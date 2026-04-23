@@ -73,13 +73,13 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               case 'number':
                 return (
                   <div className="relative">
-                    <Input id={question.id} type="number" {...field} placeholder={question.placeholder} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                    <Input id={question.id} type="number" {...field} value={field.value ?? ''} placeholder={question.placeholder} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                     {question.unit && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{question.unit}</span>}
                   </div>
                 );
               case 'select':
                 return (
-                  <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                  <Select onValueChange={field.onChange} value={field.value as string}>
                     <SelectTrigger id={question.id}>
                       <SelectValue placeholder="Select an option" />
                     </SelectTrigger>
@@ -102,7 +102,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 );
               case 'radio':
                 return (
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value as string} className="flex items-center gap-4">
+                  <RadioGroup onValueChange={field.onChange} value={field.value as string} className="flex items-center gap-4">
                     {question.options?.map((option) => (
                       <div key={String(option.value)} className="flex items-center space-x-2">
                         <RadioGroupItem value={String(option.value)} id={`${question.id}-${option.value}`} />
