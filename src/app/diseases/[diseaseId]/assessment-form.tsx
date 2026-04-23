@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SeverityBadge } from '@/components/ui/../severity-badge';
 import { ResultCard } from '@/components/ui/../result-card';
@@ -73,7 +72,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               case 'number':
                 return (
                   <div className="relative">
-                    <Input id={question.id} type="number" {...field} value={field.value ?? ''} placeholder={question.placeholder} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
+                    <Input id={question.id} type="number" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} />
                     {question.unit && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{question.unit}</span>}
                   </div>
                 );
@@ -94,11 +93,21 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 );
               case 'boolean':
                 return (
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">No</span>
-                    <Switch id={question.id} checked={!!field.value} onCheckedChange={field.onChange} />
-                    <span className="text-sm text-muted-foreground">Yes</span>
-                  </div>
+                  <RadioGroup
+                    id={question.id}
+                    onValueChange={(value) => field.onChange(value === 'true')}
+                    value={field.value === undefined ? '' : String(field.value)}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id={`${question.id}-no`} />
+                      <Label htmlFor={`${question.id}-no`}>No</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id={`${question.id}-yes`} />
+                      <Label htmlFor={`${question.id}-yes`}>Yes</Label>
+                    </div>
+                  </RadioGroup>
                 );
               case 'radio':
                 return (
