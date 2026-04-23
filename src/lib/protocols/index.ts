@@ -24,6 +24,15 @@ import { septicShockProtocol } from './septic-shock';
 import { sstiProtocol } from './ssti';
 import { toxicAssessmentProtocol } from './toxic-assessment';
 import { viralVsBacterialProtocol } from './viral-vs-bacterial';
+import { febrileSeizureProtocol } from './febrile-seizure';
+import { firstAfebrileSeizureProtocol } from './first-afebrile-seizure';
+import { statusEpilepticusProtocol } from './status-epilepticus';
+import { alteredMentalStatusProtocol } from './altered-mental-status';
+import { headacheRedFlagsProtocol } from './headache-red-flags';
+import { acuteFlaccidWeaknessProtocol } from './acute-flaccid-weakness';
+import { acuteAtaxiaProtocol } from './acute-ataxia';
+import { raisedIcpSuspicionProtocol } from './raised-icp-suspicion';
+import { pedsStrokeProtocol } from './peds-stroke';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -52,6 +61,15 @@ export const allProtocols: DiseaseProtocol[] = [
   sstiProtocol,
   toxicAssessmentProtocol,
   viralVsBacterialProtocol,
+  febrileSeizureProtocol,
+  firstAfebrileSeizureProtocol,
+  statusEpilepticusProtocol,
+  alteredMentalStatusProtocol,
+  headacheRedFlagsProtocol,
+  acuteFlaccidWeaknessProtocol,
+  acuteAtaxiaProtocol,
+  raisedIcpSuspicionProtocol,
+  pedsStrokeProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {

@@ -155,6 +155,60 @@
       "description": "An illustrative image for Mastoiditis Suspicion.",
       "imageUrl": "https://picsum.photos/seed/mastoiditis/600/400",
       "imageHint": "ear xray"
+    },
+    {
+      "id": "febrile-seizure",
+      "description": "An illustrative image for Febrile Seizure.",
+      "imageUrl": "https://picsum.photos/seed/febrile-seizure/600/400",
+      "imageHint": "child temperature"
+    },
+    {
+      "id": "first-afebrile-seizure",
+      "description": "An illustrative image for First Afebrile Seizure.",
+      "imageUrl": "https://picsum.photos/seed/first-afebrile-seizure/600/400",
+      "imageHint": "brain scan"
+    },
+    {
+      "id": "status-epilepticus",
+      "description": "An illustrative image for Status Epilepticus.",
+      "imageUrl": "https://picsum.photos/seed/status-epilepticus/600/400",
+      "imageHint": "paramedics ambulance"
+    },
+    {
+      "id": "altered-mental-status",
+      "description": "An illustrative image for Altered Mental Status.",
+      "imageUrl": "https://picsum.photos/seed/altered-mental-status/600/400",
+      "imageHint": "confused child"
+    },
+    {
+      "id": "headache-red-flags",
+      "description": "An illustrative image for Headache Red Flags.",
+      "imageUrl": "https://picsum.photos/seed/headache-red-flags/600/400",
+      "imageHint": "headache pain"
+    },
+    {
+      "id": "acute-flaccid-weakness",
+      "description": "An illustrative image for Acute Flaccid Weakness.",
+      "imageUrl": "https://picsum.photos/seed/acute-flaccid-weakness/600/400",
+      "imageHint": "child wheelchair"
+    },
+    {
+      "id": "acute-ataxia",
+      "description": "An illustrative image for Acute Ataxia.",
+      "imageUrl": "https://picsum.photos/seed/acute-ataxia/600/400",
+      "imageHint": "child stumbling"
+    },
+    {
+      "id": "raised-icp-suspicion",
+      "description": "An illustrative image for Raised ICP Suspicion.",
+      "imageUrl": "https://picsum.photos/seed/raised-icp-suspicion/600/400",
+      "imageHint": "brain pressure"
+    },
+    {
+      "id": "peds-stroke",
+      "description": "An illustrative image for Stroke in Children.",
+      "imageUrl": "https://picsum.photos/seed/peds-stroke/600/400",
+      "imageHint": "child brain"
     }
   ]
 }
