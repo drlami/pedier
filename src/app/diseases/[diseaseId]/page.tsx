@@ -23,7 +23,7 @@ export default function DiseasePage({ params }: DiseasePageProps) {
       <p className="text-muted-foreground text-center mb-8">
         {protocol.description}
       </p>
-      <AssessmentForm protocol={protocol} />
+      <AssessmentForm diseaseId={params.diseaseId} />
     </div>
   );
 }

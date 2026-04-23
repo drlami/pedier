@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Link from 'next/link';
+import { getProtocolById } from '@/lib/protocols';
 
 import type { DiseaseProtocol, FormData, Question, Severity } from '@/lib/protocols/types';
 import { Button } from '@/components/ui/button';
@@ -27,14 +28,19 @@ import {
 } from 'lucide-react';
 
 interface AssessmentFormProps {
-  protocol: DiseaseProtocol;
+  diseaseId: string;
 }
 
-export function AssessmentForm({ protocol }: AssessmentFormProps) {
+export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
+  const protocol = useMemo(() => getProtocolById(diseaseId), [diseaseId]);
   const { control, watch } = useForm<FormData>();
   const formData = watch();
 
   const [showResults, setShowResults] = useState(false);
+
+  if (!protocol) {
+    return <div>Protocol not found.</div>;
+  }
 
   const calculateResults = useCallback((data: FormData) => {
     const severity = protocol.calculateSeverity(data);
