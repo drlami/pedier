@@ -13,8 +13,6 @@ import {
 import { allProtocols } from "@/lib/protocols";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
 import { Search } from "lucide-react";
-import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 function ProtocolGrid() {
   const searchParams = useSearchParams();
@@ -25,7 +23,7 @@ function ProtocolGrid() {
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
   }, []);
 
-  const selectedSystem = searchParams.get("system") || systems[0];
+  const selectedSystem = searchParams.get("system") || (systems.length > 0 ? systems[0] : "");
 
   const filteredProtocols = useMemo(() => {
     return allProtocols
@@ -34,7 +32,8 @@ function ProtocolGrid() {
         (p) =>
           p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedSystem, searchTerm]);
 
   return (
@@ -62,29 +61,18 @@ function ProtocolGrid() {
       <section>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProtocols.map((protocol: DiseaseProtocol) => {
-             const image = PlaceHolderImages.find(img => img.id === protocol.id);
             return (
             <Link
               key={protocol.id}
               href={`/diseases/${protocol.id}`}
               className="block h-full group"
             >
-              <Card className="h-full overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card hover:ring-2 hover:ring-primary">
-                <div className="relative h-40 w-full">
-                    <Image
-                        src={image?.imageUrl || "https://picsum.photos/seed/placeholder/600/400"}
-                        alt={protocol.name}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint={image?.imageHint || 'abstract'}
-                    />
-                </div>
-                <CardHeader>
-                  <CardTitle className="font-headline text-base">
+              <Card className="h-full hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card hover:ring-2 hover:ring-primary">
+                <CardHeader className="p-4">
+                  <CardTitle className="font-headline text-lg">
                     {protocol.name}
                   </CardTitle>
-                  <CardDescription className="text-xs line-clamp-2">
+                  <CardDescription className="text-sm mt-1 line-clamp-3">
                     {protocol.description}
                   </CardDescription>
                 </CardHeader>
