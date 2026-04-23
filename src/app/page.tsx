@@ -39,7 +39,7 @@ export default function Home() {
       return acc;
     }, {} as Record<string, DiseaseProtocol[]>), [filteredProtocols]);
 
-    const systemOrder = ['Respiratory', 'Gastrointestinal', 'Cardiovascular', 'Neurology'];
+    const systemOrder = ['Respiratory', 'Gastrointestinal', 'Fever & Infectious Diseases', 'Cardiovascular', 'Neurology'];
     const sortedSystems = useMemo(() => Object.keys(groupedProtocols).sort((a, b) => {
         const indexA = systemOrder.indexOf(a);
         const indexB = systemOrder.indexOf(b);

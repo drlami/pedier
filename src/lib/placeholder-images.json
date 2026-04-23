@@ -59,6 +59,102 @@
       "description": "An illustrative image for Apnea.",
       "imageUrl": "https://picsum.photos/seed/apnea/600/400",
       "imageHint": "sleeping infant"
+    },
+    {
+      "id": "fever-neonate",
+      "description": "An illustrative image for Fever in Neonate (<28 days).",
+      "imageUrl": "https://picsum.photos/seed/fever-neonate/600/400",
+      "imageHint": "newborn checkup"
+    },
+    {
+      "id": "fever-1-2-months",
+      "description": "An illustrative image for Fever Without Source (1-2 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-1-2-months/600/400",
+      "imageHint": "infant temperature"
+    },
+    {
+      "id": "fever-2-3-months",
+      "description": "An illustrative image for Fever Without Source (2-3 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-2-3-months/600/400",
+      "imageHint": "baby temperature"
+    },
+    {
+      "id": "fever-3-36-months",
+      "description": "An illustrative image for Fever Without Source (3-36 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-3-36-months/600/400",
+      "imageHint": "toddler temperature"
+    },
+    {
+      "id": "fever-rash",
+      "description": "An illustrative image for Fever with Rash.",
+      "imageUrl": "https://picsum.photos/seed/fever-rash/600/400",
+      "imageHint": "child rash"
+    },
+    {
+      "id": "fever-neutropenia",
+      "description": "An illustrative image for Fever with Neutropenia.",
+      "imageUrl": "https://picsum.photos/seed/fever-neutropenia/600/400",
+      "imageHint": "blood cells"
+    },
+    {
+      "id": "sepsis-recognition",
+      "description": "An illustrative image for Sepsis Recognition.",
+      "imageUrl": "https://picsum.photos/seed/sepsis-recognition/600/400",
+      "imageHint": "sick child"
+    },
+    {
+      "id": "septic-shock",
+      "description": "An illustrative image for Septic Shock.",
+      "imageUrl": "https://picsum.photos/seed/septic-shock/600/400",
+      "imageHint": "intensive care"
+    },
+    {
+      "id": "meningitis-encephalitis",
+      "description": "An illustrative image for Suspected Meningitis / Encephalitis.",
+      "imageUrl": "https://picsum.photos/seed/meningitis-encephalitis/600/400",
+      "imageHint": "brain scan"
+    },
+    {
+      "id": "viral-vs-bacterial",
+      "description": "An illustrative image for Viral Syndrome vs Bacterial Infection.",
+      "imageUrl": "https://picsum.photos/seed/viral-vs-bacterial/600/400",
+      "imageHint": "microscope virus"
+    },
+    {
+      "id": "toxic-assessment",
+      "description": "An illustrative image for Toxic vs Non-toxic Child Assessment.",
+      "imageUrl": "https://picsum.photos/seed/toxic-assessment/600/400",
+      "imageHint": "worried parent"
+    },
+    {
+      "id": "cervical-lymphadenitis",
+      "description": "An illustrative image for Cervical Lymphadenitis.",
+      "imageUrl": "https://picsum.photos/seed/cervical-lymphadenitis/600/400",
+      "imageHint": "swollen neck"
+    },
+    {
+      "id": "ssti",
+      "description": "An illustrative image for Skin/Soft Tissue Infection.",
+      "imageUrl": "https://picsum.photos/seed/ssti/600/400",
+      "imageHint": "skin infection"
+    },
+    {
+      "id": "periorbital-cellulitis",
+      "description": "An illustrative image for Periorbital Cellulitis.",
+      "imageUrl": "https://picsum.photos/seed/periorbital-cellulitis/600/400",
+      "imageHint": "swollen eye"
+    },
+    {
+      "id": "orbital-cellulitis",
+      "description": "An illustrative image for Orbital Cellulitis.",
+      "imageUrl": "https://picsum.photos/seed/orbital-cellulitis/600/400",
+      "imageHint": "eye scan"
+    },
+    {
+      "id": "mastoiditis",
+      "description": "An illustrative image for Mastoiditis Suspicion.",
+      "imageUrl": "https://picsum.photos/seed/mastoiditis/600/400",
+      "imageHint": "ear xray"
     }
   ]
 }
