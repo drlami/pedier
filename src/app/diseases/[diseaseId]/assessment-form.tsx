@@ -205,11 +205,11 @@ export function AssessmentForm({ protocol }: AssessmentFormProps) {
             )}
 
             <div className="no-print">
-              <Link href={summaryUrl} passHref legacyBehavior>
-                <Button asChild variant="outline" className="w-full">
-                  <a><FileText className="mr-2 h-4 w-4" /> View Printable Summary</a>
-                </Button>
-              </Link>
+              <Button asChild variant="outline" className="w-full">
+                <Link href={summaryUrl}>
+                  <FileText className="mr-2 h-4 w-4" /> View Printable Summary
+                </Link>
+              </Button>
             </div>
         </div>
         </ScrollArea>

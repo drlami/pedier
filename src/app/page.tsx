@@ -47,27 +47,25 @@ export default function Home() {
       <section>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProtocols.map((protocol: DiseaseProtocol) => (
-            <Link key={protocol.id} href={`/diseases/${protocol.id}`} legacyBehavior>
-              <a className="block h-full">
-                <Card className="h-full hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="font-headline">{protocol.name}</CardTitle>
-                    <CardDescription>{protocol.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow flex flex-col justify-end">
-                    <div className="aspect-w-16 aspect-h-9 mt-4 overflow-hidden rounded-md">
-                       <Image
-                        src={protocol.image.url}
-                        alt={protocol.name}
-                        width={600}
-                        height={400}
-                        className="object-cover w-full h-full"
-                        data-ai-hint={protocol.image.hint}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </a>
+            <Link key={protocol.id} href={`/diseases/${protocol.id}`} className="block h-full">
+              <Card className="h-full hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                <CardHeader>
+                  <CardTitle className="font-headline">{protocol.name}</CardTitle>
+                  <CardDescription>{protocol.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col justify-end">
+                  <div className="aspect-w-16 aspect-h-9 mt-4 overflow-hidden rounded-md">
+                     <Image
+                      src={protocol.image.url}
+                      alt={protocol.name}
+                      width={600}
+                      height={400}
+                      className="object-cover w-full h-full"
+                      data-ai-hint={protocol.image.hint}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>
