@@ -23,6 +23,42 @@
       "description": "An illustrative image for Acute Gastroenteritis.",
       "imageUrl": "https://picsum.photos/seed/gastroenteritis/600/400",
       "imageHint": "stomach ache"
+    },
+    {
+      "id": "pneumonia",
+      "description": "An illustrative image for Pneumonia.",
+      "imageUrl": "https://picsum.photos/seed/pneumonia/600/400",
+      "imageHint": "chest xray"
+    },
+    {
+      "id": "tracheitis",
+      "description": "An illustrative image for Tracheitis.",
+      "imageUrl": "https://picsum.photos/seed/tracheitis/600/400",
+      "imageHint": "trachea xray"
+    },
+    {
+      "id": "epiglottitis",
+      "description": "An illustrative image for Epiglottitis.",
+      "imageUrl": "https://picsum.photos/seed/epiglottitis/600/400",
+      "imageHint": "airway xray"
+    },
+    {
+      "id": "fba",
+      "description": "An illustrative image for Foreign Body Aspiration.",
+      "imageUrl": "https://picsum.photos/seed/fba/600/400",
+      "imageHint": "child choking"
+    },
+    {
+      "id": "cyanosis",
+      "description": "An illustrative image for Cyanosis.",
+      "imageUrl": "https://picsum.photos/seed/cyanosis/600/400",
+      "imageHint": "blue baby"
+    },
+    {
+      "id": "apnea",
+      "description": "An illustrative image for Apnea.",
+      "imageUrl": "https://picsum.photos/seed/apnea/600/400",
+      "imageHint": "sleeping infant"
     }
   ]
 }
