@@ -45,7 +45,7 @@ const calculateInfusion = (drugName: string, weight: number): { dose: string, no
 export const septicShockProtocol: DiseaseProtocol = {
   id: 'septic-shock',
   name: 'Septic Shock',
-  system: 'Fever & Infectious Diseases',
+  system: 'Shock and Resuscitation',
   description: 'Emergency management of pediatric septic shock, including fluid resuscitation, antibiotics, and vasoactive infusions.',
   image: {
     url: "https://picsum.photos/seed/septic-shock/600/400",

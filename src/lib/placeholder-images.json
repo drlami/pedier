@@ -251,6 +251,60 @@
       "description": "An illustrative image for Abdominal Distention.",
       "imageUrl": "https://picsum.photos/seed/abdominal-distention/600/400",
       "imageHint": "distended abdomen"
+    },
+    {
+      "id": "shock-classification",
+      "description": "An illustrative image for Shock Classification.",
+      "imageUrl": "https://picsum.photos/seed/shock-classification/600/400",
+      "imageHint": "flow chart"
+    },
+    {
+      "id": "fluid-resuscitation",
+      "description": "An illustrative image for Fluid Resuscitation.",
+      "imageUrl": "https://picsum.photos/seed/fluid-resuscitation/600/400",
+      "imageHint": "iv fluid"
+    },
+    {
+      "id": "hypovolemic-shock",
+      "description": "An illustrative image for Hypovolemic Shock.",
+      "imageUrl": "https://picsum.photos/seed/hypovolemic-shock/600/400",
+      "imageHint": "blood loss"
+    },
+    {
+      "id": "anaphylactic-shock",
+      "description": "An illustrative image for Anaphylactic Shock.",
+      "imageUrl": "https://picsum.photos/seed/anaphylactic-shock/600/400",
+      "imageHint": "allergy injection"
+    },
+    {
+      "id": "cardiogenic-shock",
+      "description": "An illustrative image for Cardiogenic Shock.",
+      "imageUrl": "https://picsum.photos/seed/cardiogenic-shock/600/400",
+      "imageHint": "heart failure"
+    },
+    {
+      "id": "bradycardia",
+      "description": "An illustrative image for Bradycardia.",
+      "imageUrl": "https://picsum.photos/seed/bradycardia/600/400",
+      "imageHint": "slow heartbeat"
+    },
+    {
+      "id": "tachycardia",
+      "description": "An illustrative image for Tachycardia.",
+      "imageUrl": "https://picsum.photos/seed/tachycardia/600/400",
+      "imageHint": "fast heartbeat"
+    },
+    {
+      "id": "cardiac-arrest",
+      "description": "An illustrative image for Cardiac Arrest (PALS).",
+      "imageUrl": "https://picsum.photos/seed/cardiac-arrest/600/400",
+      "imageHint": "cpr chest"
+    },
+    {
+      "id": "svt",
+      "description": "An illustrative image for SVT.",
+      "imageUrl": "https://picsum.photos/seed/svt/600/400",
+      "imageHint": "ecg monitor"
     }
   ]
 }

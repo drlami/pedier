@@ -40,6 +40,15 @@ import { constipationVsObstructionProtocol } from './constipation-vs-obstruction
 import { giBleedingProtocol } from './gi-bleeding';
 import { intussusceptionProtocol } from './intussusception';
 import { abdominalDistentionProtocol } from './abdominal-distention';
+import { shockClassificationProtocol } from './shock-classification';
+import { fluidResuscitationProtocol } from './fluid-resuscitation';
+import { hypovolemicShockProtocol } from './hypovolemic-shock';
+import { anaphylacticShockProtocol } from './anaphylactic-shock';
+import { cardiogenicShockProtocol } from './cardiogenic-shock';
+import { bradycardiaProtocol } from './bradycardia';
+import { tachycardiaProtocol } from './tachycardia';
+import { cardiacArrestProtocol } from './cardiac-arrest';
+import { svtProtocol } from './svt';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -84,6 +93,15 @@ export const allProtocols: DiseaseProtocol[] = [
   giBleedingProtocol,
   intussusceptionProtocol,
   abdominalDistentionProtocol,
+  shockClassificationProtocol,
+  fluidResuscitationProtocol,
+  hypovolemicShockProtocol,
+  anaphylacticShockProtocol,
+  cardiogenicShockProtocol,
+  bradycardiaProtocol,
+  tachycardiaProtocol,
+  cardiacArrestProtocol,
+  svtProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
