@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "bronchiolitis",
+      "description": "An illustrative image for Bronchiolitis.",
+      "imageUrl": "https://picsum.photos/seed/bronchiolitis/600/400",
+      "imageHint": "lungs xray"
+    },
+    {
+      "id": "asthma",
+      "description": "An illustrative image for Asthma Exacerbation.",
+      "imageUrl": "https://picsum.photos/seed/asthma/600/400",
+      "imageHint": "inhaler"
+    },
+    {
+      "id": "croup",
+      "description": "An illustrative image for Croup.",
+      "imageUrl": "https://picsum.photos/seed/croup/600/400",
+      "imageHint": "child coughing"
+    },
+    {
+      "id": "gastroenteritis",
+      "description": "An illustrative image for Acute Gastroenteritis.",
+      "imageUrl": "https://picsum.photos/seed/gastroenteritis/600/400",
+      "imageHint": "stomach ache"
+    }
+  ]
 }
