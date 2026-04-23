@@ -41,6 +41,7 @@ export interface DiseaseProtocol {
   id: string;
   name: string;
   description: string;
+  system: string;
   image: {
     url: string;
     hint: string;

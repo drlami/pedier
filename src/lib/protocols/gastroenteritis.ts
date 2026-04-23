@@ -3,6 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const gastroenteritisProtocol: DiseaseProtocol = {
   id: 'gastroenteritis',
   name: 'Acute Gastroenteritis / Dehydration',
+  system: 'Gastrointestinal',
   description: 'Assessment and management of dehydration from acute gastroenteritis.',
    image: {
     url: "https://picsum.photos/seed/gastroenteritis/600/400",

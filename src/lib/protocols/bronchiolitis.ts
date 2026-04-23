@@ -3,6 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const bronchiolitisProtocol: DiseaseProtocol = {
   id: 'bronchiolitis',
   name: 'Bronchiolitis',
+  system: 'Respiratory',
   description: 'Assessment and management of viral bronchiolitis in infants and young children.',
   image: {
     url: "https://picsum.photos/seed/bronchiolitis/600/400",
