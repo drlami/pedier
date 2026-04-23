@@ -20,7 +20,6 @@ import { mastoiditisProtocol } from './mastoiditis';
 import { meningitisEncephalitisProtocol } from './meningitis-encephalitis';
 import { orbitalCellulitisProtocol } from './orbital-cellulitis';
 import { periorbitalCellulitisProtocol } from './periorbital-cellulitis';
-import { sepsisRecognitionProtocol } from './sepsis-recognition';
 import { septicShockProtocol } from './septic-shock';
 import { sstiProtocol } from './ssti';
 import { toxicAssessmentProtocol } from './toxic-assessment';
@@ -49,7 +48,6 @@ export const allProtocols: DiseaseProtocol[] = [
   meningitisEncephalitisProtocol,
   orbitalCellulitisProtocol,
   periorbitalCellulitisProtocol,
-  sepsisRecognitionProtocol,
   septicShockProtocol,
   sstiProtocol,
   toxicAssessmentProtocol,
