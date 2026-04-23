@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/header";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
+import { SidebarNav } from "@/components/sidebar-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,9 +31,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen bg-background">
         <Header />
-        <main className="flex-1 container mx-auto p-4 md:p-6 lg:p-8">
+        <div className="flex flex-1 overflow-hidden">
+          <aside className="w-72 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto">
+            <SidebarNav />
+          </aside>
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             {children}
-        </main>
+          </main>
+        </div>
         <DisclaimerBanner />
         <Toaster />
       </body>
