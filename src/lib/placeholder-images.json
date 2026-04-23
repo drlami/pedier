@@ -19,8 +19,8 @@
       "imageHint": "child coughing"
     },
     {
-      "id": "gastroenteritis",
-      "description": "An illustrative image for Acute Gastroenteritis.",
+      "id": "dehydration-gastroenteritis",
+      "description": "An illustrative image for Dehydration from Gastroenteritis.",
       "imageUrl": "https://picsum.photos/seed/gastroenteritis/600/400",
       "imageHint": "stomach ache"
     },
@@ -95,18 +95,6 @@
       "description": "An illustrative image for Fever with Neutropenia.",
       "imageUrl": "https://picsum.photos/seed/fever-neutropenia/600/400",
       "imageHint": "blood cells"
-    },
-    {
-      "id": "sepsis-recognition",
-      "description": "An illustrative image for Sepsis Recognition.",
-      "imageUrl": "https://picsum.photos/seed/sepsis-recognition/600/400",
-      "imageHint": "sick child"
-    },
-    {
-      "id": "septic-shock",
-      "description": "An illustrative image for Septic Shock.",
-      "imageUrl": "https://picsum.photos/seed/septic-shock/600/400",
-      "imageHint": "intensive care"
     },
     {
       "id": "meningitis-encephalitis",
@@ -305,6 +293,42 @@
       "description": "An illustrative image for SVT.",
       "imageUrl": "https://picsum.photos/seed/svt/600/400",
       "imageHint": "ecg monitor"
+    },
+    {
+      "id": "murmur-with-symptoms",
+      "description": "An illustrative image for Murmur with Symptoms.",
+      "imageUrl": "https://picsum.photos/seed/murmur-peds/600/400",
+      "imageHint": "stethoscope heart"
+    },
+    {
+      "id": "chest-pain-in-children",
+      "description": "An illustrative image for Chest Pain in Children.",
+      "imageUrl": "https://picsum.photos/seed/chest-pain-peds/600/400",
+      "imageHint": "child chest"
+    },
+    {
+      "id": "syncope",
+      "description": "An illustrative image for Syncope.",
+      "imageUrl": "https://picsum.photos/seed/syncope-peds/600/400",
+      "imageHint": "fainting person"
+    },
+    {
+      "id": "palpitations",
+      "description": "An illustrative image for Palpitations.",
+      "imageUrl": "https://picsum.photos/seed/palpitations-peds/600/400",
+      "imageHint": "heart rhythm"
+    },
+    {
+      "id": "suspected-myocarditis",
+      "description": "An illustrative image for Suspected Myocarditis.",
+      "imageUrl": "https://picsum.photos/seed/myocarditis-peds/600/400",
+      "imageHint": "inflamed heart"
+    },
+    {
+      "id": "suspected-heart-failure",
+      "description": "An illustrative image for Suspected Heart Failure.",
+      "imageUrl": "https://picsum.photos/seed/heart-failure/600/400",
+      "imageHint": "congested lungs"
     }
   ]
 }

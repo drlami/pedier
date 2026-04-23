@@ -49,6 +49,12 @@ import { bradycardiaProtocol } from './bradycardia';
 import { tachycardiaProtocol } from './tachycardia';
 import { cardiacArrestProtocol } from './cardiac-arrest';
 import { svtProtocol } from './svt';
+import { murmurWithSymptomsProtocol } from './murmur-with-symptoms';
+import { chestPainInChildrenProtocol } from './chest-pain-in-children';
+import { syncopeProtocol } from './syncope';
+import { palpitationsProtocol } from './palpitations';
+import { suspectedMyocarditisProtocol } from './suspected-myocarditis';
+import { suspectedHeartFailureProtocol } from './suspected-heart-failure';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -102,6 +108,12 @@ export const allProtocols: DiseaseProtocol[] = [
   tachycardiaProtocol,
   cardiacArrestProtocol,
   svtProtocol,
+  murmurWithSymptomsProtocol,
+  chestPainInChildrenProtocol,
+  syncopeProtocol,
+  palpitationsProtocol,
+  suspectedMyocarditisProtocol,
+  suspectedHeartFailureProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
