@@ -2,7 +2,7 @@ import type { DiseaseProtocol } from './types';
 import { bronchiolitisProtocol } from './bronchiolitis';
 import { asthmaProtocol } from './asthma';
 import { croupProtocol } from './croup';
-import { gastroenteritisProtocol } from './gastroenteritis';
+import { dehydrationGastroenteritisProtocol } from './dehydration-gastroenteritis';
 import { pneumoniaProtocol } from './pneumonia';
 import { tracheitisProtocol } from './tracheitis';
 import { epiglottitisProtocol } from './epiglottitis';
@@ -33,13 +33,20 @@ import { acuteFlaccidWeaknessProtocol } from './acute-flaccid-weakness';
 import { acuteAtaxiaProtocol } from './acute-ataxia';
 import { raisedIcpSuspicionProtocol } from './raised-icp-suspicion';
 import { pedsStrokeProtocol } from './peds-stroke';
+import { persistentVomitingProtocol } from './persistent-vomiting';
+import { biliousVomitingProtocol } from './bilious-vomiting';
+import { abdominalPainProtocol } from './abdominal-pain';
+import { constipationVsObstructionProtocol } from './constipation-vs-obstruction';
+import { giBleedingProtocol } from './gi-bleeding';
+import { intussusceptionProtocol } from './intussusception';
+import { abdominalDistentionProtocol } from './abdominal-distention';
 
 
 export const allProtocols: DiseaseProtocol[] = [
   bronchiolitisProtocol,
   asthmaProtocol,
   croupProtocol,
-  gastroenteritisProtocol,
+  dehydrationGastroenteritisProtocol,
   pneumoniaProtocol,
   tracheitisProtocol,
   epiglottitisProtocol,
@@ -70,6 +77,13 @@ export const allProtocols: DiseaseProtocol[] = [
   acuteAtaxiaProtocol,
   raisedIcpSuspicionProtocol,
   pedsStrokeProtocol,
+  persistentVomitingProtocol,
+  biliousVomitingProtocol,
+  abdominalPainProtocol,
+  constipationVsObstructionProtocol,
+  giBleedingProtocol,
+  intussusceptionProtocol,
+  abdominalDistentionProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {

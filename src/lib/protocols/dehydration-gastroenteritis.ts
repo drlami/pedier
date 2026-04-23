@@ -1,10 +1,10 @@
 import type { DiseaseProtocol, FormData, Severity } from './types';
 
-export const gastroenteritisProtocol: DiseaseProtocol = {
-  id: 'gastroenteritis',
-  name: 'Acute Gastroenteritis / Dehydration',
+export const dehydrationGastroenteritisProtocol: DiseaseProtocol = {
+  id: 'dehydration-gastroenteritis',
+  name: 'Dehydration (from Gastroenteritis)',
   system: 'Gastrointestinal',
-  description: 'Assessment and management of dehydration from acute gastroenteritis.',
+  description: 'Assessment and management of dehydration from acute gastroenteritis using the Clinical Dehydration Scale (CDS).',
    image: {
     url: "https://picsum.photos/seed/gastroenteritis/600/400",
     hint: "stomach ache"

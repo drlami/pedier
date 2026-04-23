@@ -209,6 +209,48 @@
       "description": "An illustrative image for Stroke in Children.",
       "imageUrl": "https://picsum.photos/seed/peds-stroke/600/400",
       "imageHint": "child brain"
+    },
+    {
+      "id": "persistent-vomiting",
+      "description": "An illustrative image for Persistent Vomiting.",
+      "imageUrl": "https://picsum.photos/seed/persistent-vomiting/600/400",
+      "imageHint": "child sick"
+    },
+    {
+      "id": "bilious-vomiting",
+      "description": "An illustrative image for Bilious Vomiting.",
+      "imageUrl": "https://picsum.photos/seed/bilious-vomiting/600/400",
+      "imageHint": "infant surgery"
+    },
+    {
+      "id": "abdominal-pain",
+      "description": "An illustrative image for Abdominal Pain Evaluation.",
+      "imageUrl": "https://picsum.photos/seed/abdominal-pain/600/400",
+      "imageHint": "child stomach"
+    },
+    {
+      "id": "constipation-vs-obstruction",
+      "description": "An illustrative image for Constipation vs Obstruction.",
+      "imageUrl": "https://picsum.photos/seed/constipation-vs-obstruction/600/400",
+      "imageHint": "abdominal xray"
+    },
+    {
+      "id": "gi-bleeding",
+      "description": "An illustrative image for GI Bleeding.",
+      "imageUrl": "https://picsum.photos/seed/gi-bleeding/600/400",
+      "imageHint": "endoscopy"
+    },
+    {
+      "id": "intussusception",
+      "description": "An illustrative image for Intussusception.",
+      "imageUrl": "https://picsum.photos/seed/intussusception/600/400",
+      "imageHint": "abdominal ultrasound"
+    },
+    {
+      "id": "abdominal-distention",
+      "description": "An illustrative image for Abdominal Distention.",
+      "imageUrl": "https://picsum.photos/seed/abdominal-distention/600/400",
+      "imageHint": "distended abdomen"
     }
   ]
 }
