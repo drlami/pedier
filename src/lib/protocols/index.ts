@@ -55,6 +55,7 @@ import { syncopeProtocol } from './syncope';
 import { palpitationsProtocol } from './palpitations';
 import { suspectedMyocarditisProtocol } from './suspected-myocarditis';
 import { suspectedHeartFailureProtocol } from './suspected-heart-failure';
+import { snakeBiteProtocol } from './snake-bite';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -114,6 +115,7 @@ export const allProtocols: DiseaseProtocol[] = [
   palpitationsProtocol,
   suspectedMyocarditisProtocol,
   suspectedHeartFailureProtocol,
+  snakeBiteProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {

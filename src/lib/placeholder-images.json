@@ -329,6 +329,12 @@
       "description": "An illustrative image for Suspected Heart Failure.",
       "imageUrl": "https://picsum.photos/seed/heart-failure/600/400",
       "imageHint": "congested lungs"
+    },
+    {
+      "id": "snake-bite",
+      "description": "An illustrative image for Snake Bite Management.",
+      "imageUrl": "https://picsum.photos/seed/snake-bite/600/400",
+      "imageHint": "snake reptile"
     }
   ]
 }
