@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { StethoscopeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { SidebarNav } from "@/components/sidebar-nav";
 
@@ -21,7 +28,16 @@ export function Header() {
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 pt-10 w-72 bg-sidebar border-r-0">
+              <SheetContent
+                side="left"
+                className="p-0 pt-10 w-72 bg-sidebar border-r-0"
+              >
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <SheetDescription className="sr-only">
+                    Select a clinical system to view its protocols.
+                  </SheetDescription>
+                </SheetHeader>
                 <SidebarNav />
               </SheetContent>
             </Sheet>
