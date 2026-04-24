@@ -335,6 +335,12 @@
       "description": "An illustrative image for Snake Bite Management.",
       "imageUrl": "https://picsum.photos/seed/snake-bite/600/400",
       "imageHint": "snake reptile"
+    },
+    {
+      "id": "scorpion-sting",
+      "description": "An illustrative image for Scorpion Sting Management.",
+      "imageUrl": "https://picsum.photos/seed/scorpion-sting/600/400",
+      "imageHint": "scorpion"
     }
   ]
 }
