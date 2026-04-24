@@ -341,6 +341,36 @@
       "description": "An illustrative image for Scorpion Sting Management.",
       "imageUrl": "https://picsum.photos/seed/scorpion-sting/600/400",
       "imageHint": "scorpion"
+    },
+    {
+      "id": "paracetamol-toxicity",
+      "description": "An illustrative image for Paracetamol Toxicity.",
+      "imageUrl": "https://picsum.photos/seed/paracetamol-toxicity/600/400",
+      "imageHint": "liver pills"
+    },
+    {
+      "id": "iron-toxicity",
+      "description": "An illustrative image for Iron Toxicity.",
+      "imageUrl": "https://picsum.photos/seed/iron-toxicity/600/400",
+      "imageHint": "iron pills"
+    },
+    {
+      "id": "organophosphorus-ingestion",
+      "description": "An illustrative image for Organophosphate Poisoning.",
+      "imageUrl": "https://picsum.photos/seed/organophosphorus-ingestion/600/400",
+      "imageHint": "pesticide warning"
+    },
+    {
+      "id": "chlorine-inhalation",
+      "description": "An illustrative image for Chlorine Inhalation.",
+      "imageUrl": "https://picsum.photos/seed/chlorine-inhalation/600/400",
+      "imageHint": "toxic gas"
+    },
+    {
+      "id": "co-poisoning",
+      "description": "An illustrative image for Carbon Monoxide Poisoning.",
+      "imageUrl": "https://picsum.photos/seed/co-poisoning/600/400",
+      "imageHint": "carbon monoxide"
     }
   ]
 }

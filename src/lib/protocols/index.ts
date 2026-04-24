@@ -57,6 +57,11 @@ import { suspectedMyocarditisProtocol } from './suspected-myocarditis';
 import { suspectedHeartFailureProtocol } from './suspected-heart-failure';
 import { snakeBiteProtocol } from './snake-bite';
 import { scorpionStingProtocol } from './scorpion-sting';
+import { paracetamolToxicityProtocol } from './paracetamol-toxicity';
+import { ironToxicityProtocol } from './iron-toxicity';
+import { organophosphorusIngestionProtocol } from './organophosphorus-ingestion';
+import { chlorineInhalationProtocol } from './chlorine-inhalation';
+import { coPoisoningProtocol } from './co-poisoning';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -118,6 +123,11 @@ export const allProtocols: DiseaseProtocol[] = [
   suspectedHeartFailureProtocol,
   snakeBiteProtocol,
   scorpionStingProtocol,
+  paracetamolToxicityProtocol,
+  ironToxicityProtocol,
+  organophosphorusIngestionProtocol,
+  chlorineInhalationProtocol,
+  coPoisoningProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
