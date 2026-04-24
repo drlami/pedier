@@ -32,7 +32,7 @@ export default function RootLayout({
       <body className="font-body antialiased flex flex-col min-h-screen bg-background">
         <Header />
         <div className="flex flex-1 overflow-hidden">
-          <aside className="w-72 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto">
+          <aside className="w-72 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:block">
             <SidebarNav />
           </aside>
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
