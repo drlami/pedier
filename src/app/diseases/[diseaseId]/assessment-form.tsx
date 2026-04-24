@@ -111,11 +111,11 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 );
               case 'radio':
                 return (
-                  <RadioGroup onValueChange={field.onChange} value={field.value as string} className="flex items-center gap-4">
+                  <RadioGroup onValueChange={field.onChange} value={field.value as string} className="flex flex-col space-y-2">
                     {question.options?.map((option) => (
                       <div key={String(option.value)} className="flex items-center space-x-2">
                         <RadioGroupItem value={String(option.value)} id={`${question.id}-${option.value}`} />
-                        <Label htmlFor={`${question.id}-${option.value}`}>{option.label}</Label>
+                        <Label htmlFor={`${question.id}-${option.value}`} className="font-normal cursor-pointer">{option.label}</Label>
                       </div>
                     ))}
                   </RadioGroup>
