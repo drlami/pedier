@@ -4,7 +4,7 @@ export const coPoisoningProtocol: DiseaseProtocol = {
   id: 'co-poisoning',
   name: 'Carbon Monoxide (CO) Poisoning',
   system: 'Toxins and Poisoning',
-  description: 'Diagnosis and management of carbon monoxide poisoning, including indications for hyperbaric oxygen (HBO) therapy.',
+  description: 'Diagnosis and management of carbon monoxide poisoning. CO binds to hemoglobin with an affinity ~240 times that of oxygen, leading to cellular hypoxia. This protocol includes indications for hyperbaric oxygen (HBO) therapy.',
   image: {
     url: "https://picsum.photos/seed/co-poisoning/600/400",
     hint: "carbon monoxide"

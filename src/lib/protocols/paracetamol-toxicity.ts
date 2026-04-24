@@ -4,13 +4,14 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
   id: 'paracetamol-toxicity',
   name: 'Paracetamol (Acetaminophen) Toxicity',
   system: 'Toxins and Poisoning',
-  description: 'Management of acute acetaminophen overdose using the Rumack-Matthew nomogram and N-acetylcysteine (NAC) therapy.',
+  description: 'Management of acute acetaminophen overdose. The toxic dose for a single ingestion in children is generally >150 mg/kg. This protocol uses the Rumack-Matthew nomogram and guides N-acetylcysteine (NAC) therapy.',
   image: {
     url: "https://picsum.photos/seed/paracetamol-toxicity/600/400",
     hint: "liver pills"
   },
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'ingestedDose', questionText: 'Estimated single dose ingested', type: 'number', unit: 'mg/kg' },
     { id: 'ingestionTime', questionText: 'Time since ingestion (if known)', type: 'number', unit: 'hours', info: 'Must be between 4 and 24 hours for nomogram use.' },
     { id: 'paracetamolLevel', questionText: 'Acetaminophen Level (mcg/mL)', type: 'number', unit: 'mcg/mL' },
     { id: 'isAcuteIngestion', questionText: 'Was this a single, acute ingestion?', type: 'boolean' },
@@ -20,13 +21,23 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
     const details: string[] = [];
     const time = Number(data.ingestionTime);
     const level = Number(data.paracetamolLevel);
+    const ingestedDose = Number(data.ingestedDose);
+
+    if (data.isConcerningHistory) {
+        details.push("History of massive or unknown time of ingestion. Treat empirically.");
+        return { level: 'severe', details };
+    }
+    
+    if (ingestedDose >= 150) {
+        details.push(`Potentially toxic ingestion of ${ingestedDose} mg/kg. Treatment will be guided by timed serum level.`);
+    }
 
     if (time >= 4 && time <= 24 && !isNaN(level)) {
         // Treatment line on Rumack-Matthew nomogram (simplified log-linear formula)
         // Treatment if level > 150 mcg/mL at 4 hours or level > 25 mcg/mL at 15 hours
         const treatmentThreshold = 150 * Math.exp(-0.068 * (time - 4));
         if (level >= treatmentThreshold) {
-            details.push(`Level of ${level} mcg/mL at ${time} hours is above the treatment line on the Rumack-Matthew nomogram.`);
+            details.push(`Level of ${level} mcg/mL at ${time} hours is ABOVE the treatment line on the Rumack-Matthew nomogram.`);
             return { level: 'severe', details };
         } else {
             details.push(`Level of ${level} mcg/mL at ${time} hours is below the treatment line.`);
@@ -34,25 +45,25 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
         }
     }
     
-    if (data.isConcerningHistory) {
-        details.push("History of massive or unknown time of ingestion. Treat empirically.");
-        return { level: 'severe', details };
-    }
-    
-    if (time < 4) {
+    if (time < 4 && !isNaN(level)) {
         details.push("Level drawn before 4 hours post-ingestion is not reliable for risk assessment. Re-check at or after 4 hours.");
         return { level: 'moderate', details };
     }
 
-    return { level: 'unknown', details: ["Cannot assess risk. Either level is not available or time is outside 4-24h window."] };
+    if (ingestedDose >= 150 && isNaN(level)) {
+        details.push(`Potentially toxic ingestion of ${ingestedDose} mg/kg. Empiric treatment with NAC should be considered if a level cannot be obtained in a timely manner (within 8 hours of ingestion).`);
+        return { level: 'moderate', details };
+    }
+
+    return { level: 'unknown', details: ["Cannot assess risk. Enter ingestion dose and/or a timed level (between 4-24h)."] };
   },
   getManagement: (severity) => {
     const management = [{
         title: "Initial Management",
         recommendations: [
             "Assess ABCs and stabilize the patient.",
-            "Consider activated charcoal (1 g/kg) if patient presents within 1-2 hours of a significant ingestion.",
-            "Obtain acetaminophen level at 4 hours post-ingestion or as soon as possible thereafter.",
+            "Consider activated charcoal (1 g/kg) if patient presents within 1-2 hours of a significant ingestion (>150 mg/kg).",
+            "Obtain acetaminophen level at 4 hours post-ingestion or as soon as possible thereafter (but not before 4 hours).",
             "Obtain baseline labs: LFTs (AST/ALT), PT/INR, creatinine."
         ]
     }];
@@ -72,7 +83,15 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
         title: "No Treatment Indicated (at this time)",
         recommendations: [
           "NAC is not currently indicated based on the nomogram.",
-          "Observe the patient and consider repeating labs if there is any clinical concern.",
+          "Observe the patient and consider repeating labs if there is any clinical concern or if the history of ingestion is unreliable.",
+        ]
+      });
+    } else if (severity.level === 'moderate') {
+         management.push({
+        title: "Awaiting Definitive Risk Assessment",
+        recommendations: [
+          "If level was drawn too early, repeat it at or after 4 hours post-ingestion.",
+          "If a level cannot be obtained within 8 hours of a potentially toxic ingestion (>150 mg/kg), empiric treatment with NAC is recommended."
         ]
       });
     }
@@ -90,6 +109,7 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
   },
   getRedFlags: () => [
     "Acetaminophen level on or above the treatment line on the Rumack-Matthew nomogram.",
+    "Single ingestion > 150 mg/kg.",
     "History of massive ingestion (>30g or 500mg/kg).",
     "Evidence of hepatotoxicity (markedly elevated AST/ALT, elevated INR, jaundice).",
     "Altered mental status (hepatic encephalopathy)."

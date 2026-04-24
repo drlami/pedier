@@ -4,7 +4,7 @@ export const chlorineInhalationProtocol: DiseaseProtocol = {
   id: 'chlorine-inhalation',
   name: 'Chlorine Gas Inhalation',
   system: 'Toxins and Poisoning',
-  description: 'Management of respiratory irritation and injury from acute chlorine gas exposure.',
+  description: 'Management of respiratory irritation and injury from acute chlorine gas exposure. Chlorine reacts with water in the respiratory tract to form hydrochloric acid, causing chemical burns. Severity depends on the concentration and duration of exposure.',
   image: {
     url: "https://picsum.photos/seed/chlorine-inhalation/600/400",
     hint: "toxic gas"

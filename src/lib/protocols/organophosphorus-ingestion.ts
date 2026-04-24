@@ -4,7 +4,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
   id: 'organophosphorus-ingestion',
   name: 'Organophosphate Poisoning',
   system: 'Toxins and Poisoning',
-  description: 'Management of cholinergic crisis due to organophosphate or carbamate insecticide poisoning.',
+  description: 'Management of cholinergic crisis due to organophosphate or carbamate insecticide poisoning. These agents inhibit acetylcholinesterase, leading to a life-threatening excess of acetylcholine.',
   image: {
     url: "https://picsum.photos/seed/organophosphorus-ingestion/600/400",
     hint: "pesticide warning"
