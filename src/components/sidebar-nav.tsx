@@ -19,7 +19,7 @@ export function SidebarNav() {
 
   const defaultSystem = systems[0];
   const activeSystem = currentSystem || defaultSystem;
-  const isAdminPage = pathname === '/admin';
+  const isAdminPage = pathname.startsWith('/admin');
 
   return (
     <nav className="flex flex-col p-2 pt-4 h-full">
@@ -46,7 +46,7 @@ export function SidebarNav() {
       </div>
       <div className="mt-auto border-t border-sidebar-border pt-4">
         <Link
-          href="/admin"
+          href="/admin/protocols"
           className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
             isAdminPage
@@ -55,7 +55,7 @@ export function SidebarNav() {
           )}
         >
           <UserCog className="h-4 w-4" />
-          Protocol Drafter
+          Protocol Management
         </Link>
       </div>
     </nav>
