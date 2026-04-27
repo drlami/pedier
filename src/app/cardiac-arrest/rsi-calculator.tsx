@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Copy, AlertTriangle, Syringe, Wind, Brain, CheckSquare, HeartCrack, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -100,6 +101,7 @@ export function RsiCalculator() {
   const [age, setAge] = useState<number | string>('');
   const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('years');
   const [inputType, setInputType] = useState<'weight' | 'age'>('weight');
+  const [patientType, setPatientType] = useState('infant-child');
   const [pretreatment, setPretreatment] = useState(false);
   const [difficultAirway, setDifficultAirway] = useState(false);
   const [inShock, setInShock] = useState(false);
@@ -131,7 +133,12 @@ export function RsiCalculator() {
       return undefined;
   }, [weight, age, ageUnit, inputType, finalWeight]);
 
-  const ageCategory = useMemo(() => ageInYears ? getAgeCategory(ageInYears) : undefined, [ageInYears]);
+  const ageCategory = useMemo(() => {
+    if (patientType === 'neonate') return 'neonate';
+    if (ageInYears !== undefined) return getAgeCategory(ageInYears);
+    return undefined;
+  }, [ageInYears, patientType]);
+
   const ventSettings = useMemo(() => ageCategory ? getVentilatorSettings(ageCategory) : getVentilatorSettings('child'), [ageCategory]);
 
 
@@ -159,7 +166,20 @@ export function RsiCalculator() {
         <CardHeader>
           <CardTitle>Enter Patient Details</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+              <Label>Patient Type</Label>
+              <RadioGroup value={patientType} onValueChange={setPatientType} className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="infant-child" id="type-child" />
+                      <Label htmlFor="type-child" className="font-normal">Infant / Child</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="neonate" id="type-neonate" />
+                      <Label htmlFor="type-neonate" className="font-normal">Neonate</Label>
+                  </div>
+              </RadioGroup>
+          </div>
           <Tabs value={inputType} onValueChange={(v) => setInputType(v as any)} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="weight">Weight</TabsTrigger>
