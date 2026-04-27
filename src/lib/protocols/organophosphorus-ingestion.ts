@@ -10,6 +10,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     hint: "pesticide warning"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'muscarinicSigns', questionText: 'Muscarinic (DUMBELS) signs present?', type: 'boolean', info: 'Diarrhea, Urination, Miosis, Bronchorrhea/Bradycardia, Emesis, Lacrimation, Salivation.' },
     { id: 'nicotinicSigns', questionText: 'Nicotinic signs present?', type: 'boolean', info: 'Muscle weakness, fasciculations, paralysis, tachycardia, hypertension.' },
     { id: 'respFailure', questionText: 'Is there respiratory failure?', type: 'boolean', info: 'Due to bronchorrhea, bronchospasm, or neuromuscular weakness.' },
@@ -58,10 +59,33 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     "Seizures",
     "Bradycardia with hypotension"
   ],
-  getDrugDoses: () => [
-    { drugName: "Atropine (IV)", dose: "Children: 0.02-0.05 mg/kg/dose. Adolescents: 1-2 mg/dose. Double the dose every 5 minutes until secretions dry.", notes: "Endpoint is drying of secretions, not heart rate." },
-    { drugName: "Pralidoxime (2-PAM) (IV)", dose: "25-50 mg/kg loading dose over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr.", notes: "Most effective when given early." },
-    { drugName: "Diazepam (IV)", dose: "Children: 0.1-0.3 mg/kg. Adolescents: 5-10 mg.", notes: "For seizure control." }
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    const doses: DrugDose[] = [];
+
+    if (weight > 0) {
+        doses.push({
+            drugName: "Atropine (IV)",
+            dose: `Children: 0.02-0.05 mg/kg/dose = ${(0.02 * weight).toFixed(2)} - ${(0.05 * weight).toFixed(2)} mg`,
+            notes: "Adolescents: 1-2 mg/dose. Double the dose every 5 minutes until secretions are dry. Endpoint is drying of secretions, not heart rate."
+        });
+        doses.push({
+            drugName: "Pralidoxime (2-PAM) (IV)",
+            dose: `Loading dose: 25-50 mg/kg = ${(25 * weight).toFixed(1)} - ${(50 * weight).toFixed(1)} mg`,
+            notes: "Infuse over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr. Most effective when given early."
+        });
+        doses.push({
+            drugName: "Diazepam (IV)",
+            dose: `Children: 0.1-0.3 mg/kg = ${(0.1 * weight).toFixed(2)} - ${(0.3 * weight).toFixed(2)} mg`,
+            notes: "Adolescents: 5-10 mg. For seizure control."
+        });
+    } else {
+        doses.push({ drugName: "Atropine (IV)", dose: "Children: 0.02-0.05 mg/kg/dose. Adolescents: 1-2 mg/dose. Double the dose every 5 minutes until secretions dry.", notes: "Endpoint is drying of secretions, not heart rate." });
+        doses.push({ drugName: "Pralidoxime (2-PAM) (IV)", dose: "25-50 mg/kg loading dose over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr.", notes: "Most effective when given early." });
+        doses.push({ drugName: "Diazepam (IV)", dose: "Children: 0.1-0.3 mg/kg. Adolescents: 5-10 mg.", notes: "For seizure control." });
+    }
+    
+    return doses;
+  },
   getReferences: () => [{ title: "UpToDate: Organophosphate and carbamate poisoning", url: "https://www.uptodate.com/contents/organophosphate-and-carbamate-poisoning" }],
 };
