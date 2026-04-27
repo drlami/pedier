@@ -24,17 +24,14 @@ function ProtocolCard({
   return (
     <Link
       href={`/diseases/${protocol.id}`}
-      className="block h-full group"
+      className="block group"
       onClick={onClick}
     >
-      <Card className="h-full hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card hover:ring-2 hover:ring-primary">
+      <Card className="hover:shadow-xl transition-shadow duration-300 flex justify-center items-center bg-card hover:ring-2 hover:ring-primary min-h-[80px]">
         <CardHeader className="p-4">
-          <CardTitle className="font-headline text-lg">
+          <CardTitle className="font-headline text-lg text-center">
             {protocol.name}
           </CardTitle>
-          <CardDescription className="text-sm mt-1 line-clamp-3">
-            {protocol.description}
-          </CardDescription>
         </CardHeader>
       </Card>
     </Link>
@@ -66,13 +63,14 @@ function SystemProtocols({
       </section>
 
       <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
           {protocolsForSystem.map((protocol) => (
-            <ProtocolCard
-              key={protocol.id}
-              protocol={protocol}
-              onClick={onProtocolClick}
-            />
+            <div key={protocol.id} className="break-inside-avoid">
+              <ProtocolCard
+                protocol={protocol}
+                onClick={onProtocolClick}
+              />
+            </div>
           ))}
         </div>
       </section>
@@ -134,13 +132,14 @@ function PageContent() {
             Search Results for &quot;{searchTerm}&quot;
           </h2>
           {searchResults.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
               {searchResults.map((protocol) => (
-                <ProtocolCard
-                  key={protocol.id}
-                  protocol={protocol}
-                  onClick={handleProtocolClick}
-                />
+                <div key={protocol.id} className="break-inside-avoid">
+                  <ProtocolCard
+                    protocol={protocol}
+                    onClick={handleProtocolClick}
+                  />
+                </div>
               ))}
             </div>
           ) : (
