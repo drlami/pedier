@@ -31,6 +31,14 @@ const getAgeCategory = (ageInYears: number): 'neonate' | 'infant' | 'toddler' | 
   return 'child';
 }
 
+const getBlade = (age?: number) => {
+    if(age === undefined) return 'N/A';
+    const category = getAgeCategory(age);
+    if(category === 'neonate' || category === 'infant') return 'Miller 1 (Straight)';
+    if(category === 'toddler') return 'Miller 2 (Straight)';
+    return 'Mac 2-3 (Curved)';
+}
+
 // --- Display Components ---
 const ResultCard = ({ title, icon: Icon, children }: { title: string, icon: React.ElementType, children: React.ReactNode }) => (
   <Card className="print-no-break-inside">
@@ -85,6 +93,33 @@ export function ResuscitationCalculator() {
       return undefined;
   }, [weight, age, ageUnit, inputType]);
 
+  const ageCategory = useMemo(() => ageInYears ? getAgeCategory(ageInYears) : undefined, [ageInYears]);
+
+  const ettSize = useMemo(() => {
+    if (ageInYears === undefined || finalWeight === undefined) return { uncuffed: 'N/A', cuffed: 'N/A', depth: 'N/A' };
+    
+    if (ageCategory === 'neonate') {
+      let size;
+      if (finalWeight < 1) size = 2.5;
+      else if (finalWeight < 2) size = 3.0;
+      else size = 3.5;
+      
+      const depth = finalWeight + 6; // Tip-to-lip depth
+      return { uncuffed: size.toFixed(1), cuffed: 'N/A (uncuffed used)', depth: depth.toFixed(1) };
+    }
+
+    // PALS formula for older children
+    const uncuffedSize = (ageInYears / 4) + 4;
+    const cuffedSize = (ageInYears / 4) + 3.5;
+    const depth = cuffedSize * 3; // Oral depth
+
+    return {
+        uncuffed: uncuffedSize.toFixed(1),
+        cuffed: cuffedSize.toFixed(1),
+        depth: depth.toFixed(1)
+    }
+  }, [ageInYears, finalWeight, ageCategory]);
+
   const handleCopy = useCallback(() => {
     if (summaryRef.current) {
       const text = summaryRef.current.innerText;
@@ -96,13 +131,6 @@ export function ResuscitationCalculator() {
     }
   }, [toast]);
   
-  const getBlade = (age?: number) => {
-    if(age === undefined) return 'N/A';
-    const category = getAgeCategory(age);
-    if(category === 'neonate' || category === 'infant') return 'Miller 1';
-    if(category === 'toddler') return 'Miller 2';
-    return 'Mac 2-3';
-  }
 
   return (
     <div className="space-y-6">
@@ -167,9 +195,9 @@ export function ResuscitationCalculator() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             <ResultCard title="Airway Equipment" icon={Wind}>
-                <ResultRow label="Uncuffed ETT Size" value={ageInYears ? ((ageInYears / 4) + 4).toFixed(1) : 'N/A'} />
-                <ResultRow label="Cuffed ETT Size" value={ageInYears ? ((ageInYears / 4) + 3.5).toFixed(1) : 'N/A'} />
-                <ResultRow label="Insertion Depth (Oral)" value={ageInYears ? (((ageInYears / 4) + 3.5) * 3).toFixed(1) : 'N/A'} unit="cm" />
+                <ResultRow label="Uncuffed ETT Size" value={ettSize.uncuffed} />
+                <ResultRow label="Cuffed ETT Size" value={ettSize.cuffed} />
+                <ResultRow label="Insertion Depth (Oral)" value={ettSize.depth} unit="cm" />
                 <ResultRow label="Laryngoscope Blade" value={getBlade(ageInYears)} />
             </ResultCard>
 
@@ -199,12 +227,31 @@ export function ResuscitationCalculator() {
 
             <div className="md:col-span-2">
                 <ResultCard title="CPR Parameters" icon={HeartPulse}>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div><p className="font-bold text-lg">100-120</p><p className="text-xs text-muted-foreground">Rate (/min)</p></div>
-                        <div><p className="font-bold text-lg">1/3 Chest</p><p className="text-xs text-muted-foreground">Depth</p></div>
-                        <div><p className="font-bold text-lg">30:2</p><p className="text-xs text-muted-foreground">1 Rescuer Ratio</p></div>
-                        <div><p className="font-bold text-lg">15:2</p><p className="text-xs text-muted-foreground">2 Rescuer Ratio</p></div>
-                     </div>
+                     {ageCategory === 'neonate' ? (
+                        <>
+                            <p className="text-center font-bold text-amber-600 mb-2">NRP Guidelines</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div><p className="font-bold text-lg">3:1</p><p className="text-xs text-muted-foreground">Comp:Vent Ratio</p></div>
+                                <div><p className="font-bold text-lg">90</p><p className="text-xs text-muted-foreground">Comp/min</p></div>
+                                <div><p className="font-bold text-lg">30</p><p className="text-xs text-muted-foreground">Breaths/min</p></div>
+                                <div><p className="font-bold text-lg">1/3 Chest</p><p className="text-xs text-muted-foreground">Depth</p></div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-center font-bold text-primary mb-2">PALS Guidelines</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                <div><p className="font-bold text-lg">100-120</p><p className="text-xs text-muted-foreground">Comp/min</p></div>
+                                <div><p className="font-bold text-lg">1/3 Chest</p><p className="text-xs text-muted-foreground">Depth</p></div>
+                                <div><p className="font-bold text-lg">30:2</p><p className="text-xs text-muted-foreground">1 Rescuer Ratio</p></div>
+                                <div><p className="font-bold text-lg">15:2</p><p className="text-xs text-muted-foreground">2 Rescuer Ratio</p></div>
+                            </div>
+                            <div className="text-center mt-4 pt-2 border-t">
+                                <p className="font-semibold">With Advanced Airway</p>
+                                <p className="text-sm text-muted-foreground">Continuous compressions, with 1 breath every 2-3 seconds (20-30 breaths/min).</p>
+                            </div>
+                        </>
+                    )}
                 </ResultCard>
             </div>
           </div>
