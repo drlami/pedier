@@ -6,7 +6,7 @@ import { SidebarNav } from "@/components/sidebar-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PediER Aid",
+  title: "PMC - Children Wing ER Aid - Prepared by Dr Lami Qurt",
   description: "Pediatric emergency decision support for residents.",
 };
 

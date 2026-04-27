@@ -47,7 +47,7 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2" prefetch={false}>
             <StethoscopeIcon className="h-6 w-6 text-primary" />
             <span className="text-lg font-semibold text-primary font-headline">
-              PediER Aid
+              PMC - Children Wing ER Aid - Prepared by Dr Lami Qurt
             </span>
           </Link>
         </div>
