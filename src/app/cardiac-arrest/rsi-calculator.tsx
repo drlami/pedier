@@ -89,7 +89,7 @@ const SoapMeDialog = () => (
         <p><strong className="text-primary">A</strong> - Airway: Laryngoscope (checked light), blades (primary + backup), ETTs (correct size + 0.5 smaller/larger), stylet, syringes.</p>
         <p><strong className="text-primary">P</strong> - Pharmacy: All RSI drugs drawn up, labeled, and doses confirmed.</p>
         <p><strong className="text-primary">M</strong> - Monitors: Continuous pulse oximetry, cardiac monitor (EKG), blood pressure cuff cycling, end-tidal CO2 detector.</p>
-        <p><strong className="text-primary">E</strong> - Emergency: Backup airway plan (LMA, cricothyrotomy kit), difficult airway cart nearby, designated personnel for help.</p>
+        <p><strong className="text-primary">E</strong> - Emergency: Backup airway plan (LMA, cricothyrotomy kit), designated personnel for help.</p>
       </div>
     </DialogContent>
 )
@@ -260,7 +260,7 @@ export function RsiCalculator() {
                     <h4 className='font-semibold'>Paralytic</h4>
                     <ResultRow label="Rocuronium" value={(1.2 * finalWeight).toFixed(1)} unit="mg" />
                     <ResultRow label="Succinylcholine" value={(2 * finalWeight).toFixed(1)} unit="mg" />
-                    <Alert variant="destructive" className='mt-2'><HeartCrack className='h-4 w-4'/><AlertTitle>Succinylcholine Contraindications</AlertTitle><AlertDescription className="text-xs">Neuromuscular disease, burns >48h, hyperkalemia risk, crush injury.</AlertDescription></Alert>
+                    <Alert variant="destructive" className='mt-2'><HeartCrack className='h-4 w-4'/><AlertTitle>Succinylcholine Contraindications</AlertTitle><AlertDescription className="text-xs">{'Neuromuscular disease, burns >48h, hyperkalemia risk, crush injury.'}</AlertDescription></Alert>
                 </div>
             </ResultCard>
 
