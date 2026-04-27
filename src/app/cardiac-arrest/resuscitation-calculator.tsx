@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets } from "lucide-react";
+import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // --- Helper Functions ---
@@ -215,7 +215,7 @@ export function ResuscitationCalculator() {
                     <p className="text-sm font-semibold text-muted-foreground mb-2">Advanced Medications</p>
                     <ResultRow label="Atropine (min 0.1mg)" value={Math.max(0.02 * finalWeight, 0.1).toFixed(2)} unit="mg" />
                     <ResultRow label="Sodium Bicarbonate" value={(1 * finalWeight).toFixed(1)} unit="mEq" />
-                    <ResultRow label="Calcium Gluconate 10%" value={Math.min(1 * finalWeight, 20).toFixed(1)} unit="mL" />
+                    <ResultRow label="Calcium Gluconate 10%" value={Math.min(0.5 * finalWeight, 20).toFixed(1)} unit="mL" />
                   </div>
                 )}
             </ResultCard>
@@ -254,6 +254,15 @@ export function ResuscitationCalculator() {
                     )}
                 </ResultCard>
             </div>
+             <div className="md:col-span-2">
+                <ResultCard title="References" icon={BookOpen}>
+                     <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>2020 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care.</li>
+                        <li>Pediatric Advanced Life Support (PALS) Provider Manual.</li>
+                        <li>Neonatal Resuscitation Program (NRP) Guidelines.</li>
+                    </ul>
+                </ResultCard>
+             </div>
           </div>
             <div className="flex items-center space-x-2 mt-4">
                 <Switch id="advanced-mode" checked={showAdvanced} onCheckedChange={setShowAdvanced} />

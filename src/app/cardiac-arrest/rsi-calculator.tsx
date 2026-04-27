@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, AlertTriangle, Syringe, Wind, Brain, CheckSquare, HeartCrack } from "lucide-react";
+import { Copy, AlertTriangle, Syringe, Wind, Brain, CheckSquare, HeartCrack, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -43,16 +43,17 @@ const getAgeCategory = (ageInYears: number): 'neonate' | 'infant' | 'toddler' | 
 const getVentilatorSettings = (ageCategory: 'neonate' | 'infant' | 'toddler' | 'child' | 'adolescent') => {
     switch(ageCategory) {
         case 'neonate':
+            return { rr: '30-40', volume: '4-6 mL/kg', peep: '5', notes: 'Pressure-controlled ventilation is often preferred.' };
         case 'infant':
-            return { rr: '25-30' };
+            return { rr: '25-30', volume: '6-8 mL/kg', peep: '5', notes: '' };
         case 'toddler':
-            return { rr: '20-25' };
+            return { rr: '20-25', volume: '6-8 mL/kg', peep: '5', notes: '' };
         case 'child':
-            return { rr: '16-20' };
+            return { rr: '16-20', volume: '6-8 mL/kg', peep: '5', notes: '' };
         case 'adolescent':
-            return { rr: '12-16' };
+            return { rr: '12-16', volume: '6-8 mL/kg', peep: '5', notes: '' };
         default:
-            return { rr: 'N/A' };
+            return { rr: 'N/A', volume: 'N/A', peep: 'N/A', notes: '' };
     }
 }
 
@@ -131,6 +132,8 @@ export function RsiCalculator() {
   }, [weight, age, ageUnit, inputType, finalWeight]);
 
   const ageCategory = useMemo(() => ageInYears ? getAgeCategory(ageInYears) : undefined, [ageInYears]);
+  const ventSettings = useMemo(() => ageCategory ? getVentilatorSettings(ageCategory) : getVentilatorSettings('child'), [ageCategory]);
+
 
   const handleCopy = useCallback(() => {
     if (summaryRef.current) {
@@ -201,6 +204,16 @@ export function RsiCalculator() {
                     <Button onClick={handleCopy}><Copy className="mr-2" /> Copy Summary</Button>
                  </div>
             </div>
+            
+            {ageCategory === 'neonate' && (
+                <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>NEONATAL RSI WARNING</AlertTitle>
+                    <AlertDescription>
+                        RSI in neonates carries high risk and differs significantly from pediatric RSI. These guidelines are for reference only. Procedure should be performed by experienced personnel (Neonatologist/Anesthesiologist).
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <div className="space-y-2 p-4 border rounded-lg bg-secondary/30">
                 <h3 className="font-semibold text-lg">Special Considerations</h3>
@@ -232,7 +245,11 @@ export function RsiCalculator() {
                 {pretreatment && (
                     <div className='mt-2'>
                         <ResultRow label="Atropine" value={Math.max(0.1, Math.min(0.02 * finalWeight, ageCategory === 'adolescent' ? 1 : 0.5)).toFixed(2)} unit="mg"/>
-                        <p className='text-xs text-muted-foreground mt-1'>Recommended for infants, bradycardia risk, or 2nd attempt.</p>
+                        <p className='text-xs text-muted-foreground mt-1'>
+                            {ageCategory === 'neonate'
+                             ? 'Strongly recommended for all neonates to prevent bradycardia.'
+                             : 'Recommended for infants, bradycardia risk, or 2nd attempt.'}
+                        </p>
                     </div>
                 )}
             </ResultCard>
@@ -245,7 +262,7 @@ export function RsiCalculator() {
                         <SelectContent>
                             <SelectItem value="ketamine">Ketamine</SelectItem>
                             <SelectItem value="etomidate">Etomidate</SelectItem>
-                            <SelectItem value="propofol">Propofol {inShock ? '(AVOID)' : ''}</SelectItem>
+                            <SelectItem value="propofol" disabled={ageCategory === 'neonate' || inShock}>Propofol {ageCategory === 'neonate' || inShock ? '(AVOID)' : ''}</SelectItem>
                             <SelectItem value="midazolam">Midazolam</SelectItem>
                         </SelectContent>
                     </Select>
@@ -278,9 +295,10 @@ export function RsiCalculator() {
                 </div>
                 <div className='mt-4 pt-4 border-t'>
                     <h4 className='font-semibold'>Initial Ventilator Settings</h4>
-                    <ResultRow label="Respiratory Rate" value={ageCategory ? getVentilatorSettings(ageCategory).rr : 'N/A'} unit="/min" />
-                    <ResultRow label="Tidal Volume" value={`${(6 * finalWeight).toFixed(0)} - ${(8 * finalWeight).toFixed(0)}`} unit="mL (6-8 mL/kg)" />
-                    <ResultRow label="PEEP" value="5" unit="cm H₂O" />
+                    <ResultRow label="Respiratory Rate" value={ventSettings.rr} unit="/min" />
+                    <ResultRow label="Tidal Volume" value={ventSettings.volume} />
+                    {ageCategory === 'neonate' && <p className='text-xs text-muted-foreground -mt-2'>{ventSettings.notes}</p>}
+                    <ResultRow label="PEEP" value={ventSettings.peep} unit="cm H₂O" />
                     <ResultRow label="FiO₂" value="100" unit="%, then titrate" />
                 </div>
                 <div className='mt-4 pt-4 border-t'>
@@ -290,6 +308,17 @@ export function RsiCalculator() {
                     <ResultRow label="Ketamine" value={(finalWeight).toFixed(1)} unit="mg (1 mg/kg)" />
                 </div>
             </ResultCard>
+
+             <div className="md:col-span-2">
+                <ResultCard title="References" icon={BookOpen}>
+                     <ul className="list-disc list-inside space-y-1 text-sm">
+                        <li>2020 American Heart Association Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care.</li>
+                        <li>Pediatric Advanced Life Support (PALS) Provider Manual.</li>
+                        <li>Neonatal Resuscitation Program (NRP) Guidelines.</li>
+                        <li>Manual of Neonatal Care (Cloherty and Stark).</li>
+                    </ul>
+                </ResultCard>
+             </div>
           </div>
         </div>
       ) : (
