@@ -64,6 +64,13 @@ import { coPoisoningProtocol } from './co-poisoning';
 import { dkaProtocol } from './dka';
 import { adrenalCrisisProtocol } from './adrenal-crisis';
 import { hypoglycemiaProtocol } from './hypoglycemia';
+import { hyperkalemiaProtocol } from './hyperkalemia';
+import { hypokalemiaProtocol } from './hypokalemia';
+import { hypomagnesemiaProtocol } from './hypomagnesemia';
+import { hypernatremiaProtocol } from './hypernatremia';
+import { hyponatremiaProtocol } from './hyponatremia';
+import { hypercalcemiaProtocol } from './hypercalcemia';
+import { hypocalcemiaProtocol } from './hypocalcemia';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -132,8 +139,17 @@ export const allProtocols: DiseaseProtocol[] = [
   dkaProtocol,
   adrenalCrisisProtocol,
   hypoglycemiaProtocol,
+  hyperkalemiaProtocol,
+  hypokalemiaProtocol,
+  hypomagnesemiaProtocol,
+  hypernatremiaProtocol,
+  hyponatremiaProtocol,
+  hypercalcemiaProtocol,
+  hypocalcemiaProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
   return allProtocols.find((p) => p.id === id);
 };
+
+    

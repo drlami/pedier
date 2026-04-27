@@ -283,12 +283,6 @@
       "imageHint": "fast heartbeat"
     },
     {
-      "id": "cardiac-arrest",
-      "description": "An illustrative image for Cardiac Arrest (PALS).",
-      "imageUrl": "https://picsum.photos/seed/cardiac-arrest/600/400",
-      "imageHint": "cpr chest"
-    },
-    {
       "id": "svt",
       "description": "An illustrative image for SVT.",
       "imageUrl": "https://picsum.photos/seed/svt/600/400",
@@ -389,6 +383,48 @@
       "description": "An illustrative image for Hypoglycemia.",
       "imageUrl": "https://picsum.photos/seed/hypoglycemia/600/400",
       "imageHint": "glucose monitor"
+    },
+    {
+      "id": "hyperkalemia",
+      "description": "An illustrative image for Hyperkalemia.",
+      "imageUrl": "https://picsum.photos/seed/hyperkalemia/600/400",
+      "imageHint": "heart ecg"
+    },
+    {
+      "id": "hypokalemia",
+      "description": "An illustrative image for Hypokalemia.",
+      "imageUrl": "https://picsum.photos/seed/hypokalemia/600/400",
+      "imageHint": "flat ecg"
+    },
+    {
+      "id": "hypomagnesemia",
+      "description": "An illustrative image for Hypomagnesemia.",
+      "imageUrl": "https://picsum.photos/seed/hypomagnesemia/600/400",
+      "imageHint": "torsades ecg"
+    },
+    {
+      "id": "hypernatremia",
+      "description": "An illustrative image for Hypernatremia.",
+      "imageUrl": "https://picsum.photos/seed/hypernatremia/600/400",
+      "imageHint": "brain shrink"
+    },
+    {
+      "id": "hyponatremia",
+      "description": "An illustrative image for Hyponatremia.",
+      "imageUrl": "https://picsum.photos/seed/hyponatremia/600/400",
+      "imageHint": "brain swell"
+    },
+    {
+      "id": "hypocalcemia",
+      "description": "An illustrative image for Hypocalcemia.",
+      "imageUrl": "https://picsum.photos/seed/hypocalcemia/600/400",
+      "imageHint": "tetany hand"
+    },
+    {
+      "id": "hypercalcemia",
+      "description": "An illustrative image for Hypercalcemia.",
+      "imageUrl": "https://picsum.photos/seed/hypercalcemia/600/400",
+      "imageHint": "kidney stones"
     }
   ]
 }
