@@ -62,6 +62,9 @@ import { ironToxicityProtocol } from './iron-toxicity';
 import { organophosphorusIngestionProtocol } from './organophosphorus-ingestion';
 import { chlorineInhalationProtocol } from './chlorine-inhalation';
 import { coPoisoningProtocol } from './co-poisoning';
+import { dkaProtocol } from './dka';
+import { adrenalCrisisProtocol } from './adrenal-crisis';
+import { hypoglycemiaProtocol } from './hypoglycemia';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -128,6 +131,9 @@ export const allProtocols: DiseaseProtocol[] = [
   organophosphorusIngestionProtocol,
   chlorineInhalationProtocol,
   coPoisoningProtocol,
+  dkaProtocol,
+  adrenalCrisisProtocol,
+  hypoglycemiaProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {

@@ -371,6 +371,24 @@
       "description": "An illustrative image for Carbon Monoxide Poisoning.",
       "imageUrl": "https://picsum.photos/seed/co-poisoning/600/400",
       "imageHint": "carbon monoxide"
+    },
+    {
+      "id": "dka",
+      "description": "An illustrative image for Diabetic Ketoacidosis.",
+      "imageUrl": "https://picsum.photos/seed/dka/600/400",
+      "imageHint": "blood glucose"
+    },
+    {
+      "id": "adrenal-crisis",
+      "description": "An illustrative image for Adrenal Crisis.",
+      "imageUrl": "https://picsum.photos/seed/adrenal-crisis/600/400",
+      "imageHint": "shock child"
+    },
+    {
+      "id": "hypoglycemia",
+      "description": "An illustrative image for Hypoglycemia.",
+      "imageUrl": "https://picsum.photos/seed/hypoglycemia/600/400",
+      "imageHint": "glucose monitor"
     }
   ]
 }
