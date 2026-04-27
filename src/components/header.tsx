@@ -50,7 +50,7 @@ export function Header() {
             prefetch={false}
           >
             <StethoscopeIcon className="h-6 w-6 text-primary" />
-            PMC - Children Wing ER Aid - Prepared by Dr Lami Qurt
+            PMC PediER Aid
           </Link>
         </div>
       </div>
