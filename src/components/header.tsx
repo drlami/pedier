@@ -44,11 +44,13 @@ export function Header() {
           </div>
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2" prefetch={false}>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-lg font-semibold text-primary font-headline"
+            prefetch={false}
+          >
             <StethoscopeIcon className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold text-primary font-headline">
-              PMC - Children Wing ER Aid - Prepared by Dr Lami Qurt
-            </span>
+            PMC - Children Wing ER Aid - Prepared by Dr Lami Qurt
           </Link>
         </div>
       </div>
