@@ -138,7 +138,7 @@ export function RsiCalculator() {
       navigator.clipboard.writeText(text);
       toast({
         title: "Copied!",
-        description: "RSI summary copied to clipboard.",
+        description: "Rapid Sequence Intubation summary copied to clipboard.",
       });
     }
   }, [toast]);
@@ -189,7 +189,7 @@ export function RsiCalculator() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold font-headline">RSI Summary</h2>
+                    <h2 className="text-2xl font-bold font-headline">Rapid Sequence Intubation Summary</h2>
                  </div>
                  <div className='flex gap-2'>
                     <Dialog>
@@ -198,7 +198,7 @@ export function RsiCalculator() {
                         </DialogTrigger>
                         <SoapMeDialog />
                     </Dialog>
-                    <Button onClick={handleCopy}><Copy className="mr-2" /> Copy</Button>
+                    <Button onClick={handleCopy}><Copy className="mr-2" /> Copy Summary</Button>
                  </div>
             </div>
 
@@ -208,7 +208,7 @@ export function RsiCalculator() {
                     <div className="flex items-center space-x-2"><Switch id="difficult-airway" checked={difficultAirway} onCheckedChange={setDifficultAirway}/><Label htmlFor="difficult-airway">Difficult Airway?</Label></div>
                     <div className="flex items-center space-x-2"><Switch id="shock-mode" checked={inShock} onCheckedChange={setInShock}/><Label htmlFor="shock-mode">In Shock?</Label></div>
                     <div className="flex items-center space-x-2"><Switch id="asthma-mode" checked={asthmatic} onCheckedChange={setAsmatic}/><Label htmlFor="asthma-mode">Asthmatic?</Label></div>
-                    <div className="flex items-center space-x-2"><Switch id="tbi-mode" checked={tbi} onCheckedChange={setTbi}/><Label htmlFor="tbi-mode">TBI?</Label></div>
+                    <div className="flex items-center space-x-2"><Switch id="tbi-mode" checked={tbi} onCheckedChange={setTbi}/><Label htmlFor="tbi-mode">Traumatic Brain Injury?</Label></div>
                  </div>
                  {difficultAirway && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>DIFFICULT AIRWAY</AlertTitle><AlertDescription>Call senior airway support (Anesthesia/PICU) BEFORE RSI attempt.</AlertDescription></Alert>}
                  {(inShock || asthmatic || tbi) && <Alert><AlertTriangle className="h-4 w-4" /><AlertTitle>Recommendation</AlertTitle><AlertDescription>Preferred induction agent: <span className='font-bold'>{preferredInduction}</span>. {inShock && 'Avoid Propofol. Prepare fluid bolus.'}</AlertDescription></Alert>}
@@ -295,7 +295,7 @@ export function RsiCalculator() {
       ) : (
         <Card className="text-center py-12">
             <CardContent>
-                <p className="text-muted-foreground">Enter a weight or age to generate RSI parameters.</p>
+                <p className="text-muted-foreground">Enter a weight or age to generate Rapid Sequence Intubation parameters.</p>
             </CardContent>
         </Card>
       )}
