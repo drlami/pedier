@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets, Gauge } from "lucide-react";
+import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // --- Helper Functions ---
 const estimateWeight = (age: number, unit: 'months' | 'years'): number => {
