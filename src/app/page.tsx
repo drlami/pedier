@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,10 @@ function SystemProtocols({
 function PageContent() {
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    setSearchTerm("");
+  }, [searchParams]);
 
   const handleProtocolClick = () => {
     setSearchTerm("");
