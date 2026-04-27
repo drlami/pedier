@@ -182,18 +182,19 @@ export function ResuscitationCalculator() {
              <ResultCard title="Medications" icon={Syringe}>
                 <ResultRow label="Adrenaline (1:10,000)" value={(0.1 * finalWeight).toFixed(2)} unit="mL" />
                 <ResultRow label="Amiodarone Bolus" value={Math.min(5 * finalWeight, 300).toFixed(1)} unit="mg" />
-                 {showAdvanced && (
-                    <>
-                     <ResultRow label="Atropine (min 0.1mg)" value={Math.max(0.02 * finalWeight, 0.1).toFixed(2)} unit="mg" />
-                     <ResultRow label="Sodium Bicarbonate" value={(1 * finalWeight).toFixed(1)} unit="mEq" />
-                    </>
-                 )}
+                {showAdvanced && (
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-sm font-semibold text-muted-foreground mb-2">Advanced Medications</p>
+                    <ResultRow label="Atropine (min 0.1mg)" value={Math.max(0.02 * finalWeight, 0.1).toFixed(2)} unit="mg" />
+                    <ResultRow label="Sodium Bicarbonate" value={(1 * finalWeight).toFixed(1)} unit="mEq" />
+                    <ResultRow label="Calcium Gluconate 10%" value={Math.min(1 * finalWeight, 20).toFixed(1)} unit="mL" />
+                  </div>
+                )}
             </ResultCard>
 
             <ResultCard title="Fluids & Glucose" icon={Droplets}>
                  <ResultRow label="NS Bolus" value={(20 * finalWeight).toFixed(0)} unit="mL" />
                  <ResultRow label="D10 Bolus" value={(5 * finalWeight).toFixed(0)} unit="mL" />
-                 {showAdvanced && <ResultRow label="Calcium Gluconate 10%" value={Math.min(1 * finalWeight, 20).toFixed(1)} unit="mL" />}
             </ResultCard>
 
             <div className="md:col-span-2">
