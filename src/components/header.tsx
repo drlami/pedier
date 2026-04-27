@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { Suspense } from "react";
 
 export function Header() {
   return (
@@ -38,7 +39,9 @@ export function Header() {
                     Select a clinical system to view its protocols.
                   </SheetDescription>
                 </SheetHeader>
-                <SidebarNav />
+                <Suspense fallback={<div>Loading...</div>}>
+                  <SidebarNav />
+                </Suspense>
               </SheetContent>
             </Sheet>
           </div>
@@ -50,7 +53,7 @@ export function Header() {
             prefetch={false}
           >
             <StethoscopeIcon className="h-6 w-6 text-primary" />
-            PMC PediER Aid
+            <span>PMC PediER Aid</span>
           </Link>
         </div>
       </div>

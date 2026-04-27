@@ -4,6 +4,7 @@ import { Header } from "@/components/header";
 import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { SidebarNav } from "@/components/sidebar-nav";
 import "./globals.css";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "PMC PediER Aid",
@@ -33,7 +34,9 @@ export default function RootLayout({
         <Header />
         <div className="flex flex-1 overflow-hidden">
           <aside className="w-72 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:block">
-            <SidebarNav />
+            <Suspense fallback={<div>Loading...</div>}>
+              <SidebarNav />
+            </Suspense>
           </aside>
           <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
             {children}
