@@ -102,15 +102,25 @@ export const dkaProtocol: DiseaseProtocol = {
       recommendations: [
         "DO NOT give an insulin bolus.",
         `After initial fluid resuscitation (at least 1 hour), start an insulin infusion at 0.05 - 0.1 units/kg/hr.`,
-        "Check blood glucose hourly. Adjust insulin and dextrose bags to prevent hypoglycemia.",
-        "Monitor electrolytes closely (q2-4h). Add potassium to fluids once patient has voided and K+ is <5.5 mEq/L."
+        "Aim for a gradual glucose fall of 50-100 mg/dL per hour.",
+        "Add potassium to IV fluids once patient has voided and serum K+ is < 5.5 mEq/L."
+      ]
+    });
+    
+    management.push({
+      title: "Monitoring Frequency",
+      recommendations: [
+        "**Hourly:** Bedside blood glucose. Neurological checks (GCS, pupils) for signs of cerebral edema.",
+        "**Every 2-4 Hours:** Serum electrolytes (especially K+) and a blood gas (VBG preferred) to monitor acidosis.",
+        "**Continuous:** Cardiac monitoring for T-wave changes (indicating K+ shifts) and arrhythmias.",
+        "**Strict I/Os:** Monitor fluid input and urine output closely."
       ]
     });
     
     management.push({
       title: "Cerebral Edema Watch",
       recommendations: [
-        "This is the most dangerous complication. Monitor neurology status closely.",
+        "This is the most dangerous complication.",
         "Signs: Headache, slowing heart rate, rising blood pressure, altered mental status, new focal deficits.",
         "If suspected: Elevate head of bed, administer Mannitol or 3% Hypertonic Saline, and obtain emergent head CT."
       ]
