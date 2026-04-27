@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 export const hypomagnesemiaProtocol: DiseaseProtocol = {
@@ -65,11 +66,12 @@ export const hypomagnesemiaProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        doses.push({ drugName: "IV Magnesium Sulfate", dose: `25-50 mg/kg (max 2g)`, notes: `Calculated dose: ${Math.min(25*weight, 2000)}-${Math.min(50*weight, 2000)} mg. Give over 30-60 mins for urgent repletion, or faster (5-10 min) for Torsades.` });
+        doses.push({ drugName: "IV Magnesium Sulfate", dose: `25-50 mg/kg = ${Math.min(25*weight, 2000).toFixed(0)} - ${Math.min(50*weight, 2000).toFixed(0)} mg`, notes: `Max 2g. Give over 30-60 mins for urgent repletion, or faster (5-10 min) for Torsades.` });
+        doses.push({ drugName: "Oral Magnesium Oxide", dose: `10-20 mg/kg/day = ${(10*weight).toFixed(0)} - ${(20*weight).toFixed(0)} mg/day`, notes: "Dose of elemental magnesium. Limited by GI side effects (diarrhea)." });
     } else {
         doses.push({ drugName: "IV Magnesium Sulfate", dose: "25-50 mg/kg (max 2g)", notes: "Enter weight to calculate dose." });
+        doses.push({ drugName: "Oral Magnesium Oxide", dose: "Dose varies by formulation. Target 10-20 mg/kg/day of elemental magnesium.", notes: "Limited by GI side effects (diarrhea)." });
     }
-    doses.push({ drugName: "Oral Magnesium Oxide", dose: "Dose varies by formulation. Target 10-20 mg/kg/day of elemental magnesium.", notes: "Limited by GI side effects (diarrhea)." });
 
     return doses;
   },
@@ -77,5 +79,3 @@ export const hypomagnesemiaProtocol: DiseaseProtocol = {
       { title: "UpToDate: Evaluation and treatment of hypomagnesemia", url: "https://www.uptodate.com/contents/evaluation-and-treatment-of-hypomagnesemia" }
   ],
 };
-
-    

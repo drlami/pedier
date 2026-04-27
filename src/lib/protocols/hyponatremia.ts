@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 export const hyponatremiaProtocol: DiseaseProtocol = {
@@ -86,7 +87,7 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        doses.push({ drugName: "3% Hypertonic Saline Bolus", dose: `2 mL/kg (max 100 mL) = ${(2*weight).toFixed(1)} mL`, notes: "For severe neurologic symptoms ONLY. Give over 10-15 min." });
+        doses.push({ drugName: "3% Hypertonic Saline Bolus", dose: `2 mL/kg (max 100 mL) = ${Math.min(2*weight, 100).toFixed(1)} mL`, notes: "For severe neurologic symptoms ONLY. Give over 10-15 min." });
     } else {
         doses.push({ drugName: "3% Hypertonic Saline Bolus", dose: "2 mL/kg (max 100 mL)", notes: "For severe neurologic symptoms ONLY. Enter weight." });
     }
@@ -98,5 +99,3 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
     { title: "UpToDate: Treatment of hyponatremia: Syndrome of inappropriate antidiuretic hormone secretion (SIADH) and reset osmostat", url: "https://www.uptodate.com/contents/treatment-of-hyponatremia-syndrome-of-inappropriate-antidiuretic-hormone-secretion-siadh-and-reset-osmostat" }
   ],
 };
-
-    

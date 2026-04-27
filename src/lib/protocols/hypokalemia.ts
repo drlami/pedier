@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 export const hypokalemiaProtocol: DiseaseProtocol = {
@@ -81,13 +82,14 @@ export const hypokalemiaProtocol: DiseaseProtocol = {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
     if (weight > 0) {
-        doses.push({ drugName: "Oral Potassium Chloride", dose: `1-2 mEq/kg/day divided in 2-4 doses.`, notes: `Calculated daily dose: ${weight.toFixed(1)}-${(2*weight).toFixed(1)} mEq` });
-        doses.push({ drugName: "IV Potassium Chloride (Peripheral)", dose: `Max rate: 0.3-0.5 mEq/kg/hr. Max concentration: 40 mEq/L.`, notes: `Example rate for ${weight}kg: ${(0.3*weight).toFixed(1)} mEq/hr.`});
+        doses.push({ drugName: "Oral Potassium Chloride", dose: `1-2 mEq/kg/day = ${(1*weight).toFixed(1)}-${(2*weight).toFixed(1)} mEq/day`, notes: `Divided in 2-4 doses.` });
+        doses.push({ drugName: "IV Potassium Chloride (Peripheral)", dose: `Max rate: 0.3-0.5 mEq/kg/hr.`, notes: `Example rate for ${weight}kg: ${(0.3*weight).toFixed(1)} mEq/hr. Max concentration: 40 mEq/L.`});
+        doses.push({ drugName: "IV Magnesium Sulfate", dose: `25-50 mg/kg = ${Math.min(25*weight, 2000).toFixed(0)} - ${Math.min(50*weight, 2000).toFixed(0)} mg`, notes: "If hypomagnesemia is also present. Max 2g. Give IV over 30-60 min."});
     } else {
         doses.push({ drugName: "Oral Potassium Chloride", dose: "1-2 mEq/kg/day divided in 2-4 doses." });
         doses.push({ drugName: "IV Potassium Chloride (Peripheral)", dose: "Max rate: 0.3-0.5 mEq/kg/hr. Max concentration: 40 mEq/L." });
+        doses.push({ drugName: "IV Magnesium Sulfate", dose: "25-50 mg/kg (max 2g) IV over 30-60 min", notes: "If hypomagnesemia is also present."});
     }
-    doses.push({ drugName: "IV Magnesium Sulfate", dose: "25-50 mg/kg (max 2g) IV over 30-60 min", notes: "If hypomagnesemia is also present."});
     
     return doses;
   },
@@ -95,5 +97,3 @@ export const hypokalemiaProtocol: DiseaseProtocol = {
       { title: "UpToDate: Clinical manifestations and treatment of hypokalemia in adults", url: "https://www.uptodate.com/contents/clinical-manifestations-and-treatment-of-hypokalemia-in-adults" }
   ],
 };
-
-    

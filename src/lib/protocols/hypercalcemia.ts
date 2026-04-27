@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 export const hypercalcemiaProtocol: DiseaseProtocol = {
@@ -70,10 +71,17 @@ export const hypercalcemiaProtocol: DiseaseProtocol = {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
 
-    doses.push({ drugName: "IV Hydration (Normal Saline)", dose: "Start at 1.5-2x maintenance rate.", notes: "Initial bolus of 10-20 mL/kg if dehydrated." });
-    doses.push({ drugName: "Furosemide", dose: "1-2 mg/kg IV every 4-6 hours.", notes: "Only give after patient is euvolemic." });
-    doses.push({ drugName: "Calcitonin", dose: "4 units/kg IM/SQ every 12 hours.", notes: "Rapid but transient effect." });
-    doses.push({ drugName: "Pamidronate", dose: "0.5-1 mg/kg IV infusion over 4-6 hours.", notes: "For long-term control. Consult endocrinology." });
+    if (weight > 0) {
+        doses.push({ drugName: "IV Hydration (Normal Saline)", dose: `Start at 1.5-2x maintenance rate.`, notes: `Initial bolus of 10-20 mL/kg (${(10*weight).toFixed(0)}-${(20*weight).toFixed(0)} mL) if dehydrated.` });
+        doses.push({ drugName: "Furosemide", dose: `1-2 mg/kg IV = ${(1*weight).toFixed(1)} - ${(2*weight).toFixed(1)} mg`, notes: "Only give after patient is euvolemic. Give every 4-6 hours." });
+        doses.push({ drugName: "Calcitonin", dose: `4 units/kg IM/SQ = ${(4*weight).toFixed(1)} units`, notes: "Rapid but transient effect. Give every 12 hours." });
+        doses.push({ drugName: "Pamidronate", dose: `0.5-1 mg/kg IV infusion = ${(0.5*weight).toFixed(1)} - ${(1*weight).toFixed(1)} mg`, notes: "Infuse over 4-6 hours. Consult endocrinology." });
+    } else {
+        doses.push({ drugName: "IV Hydration (Normal Saline)", dose: "Start at 1.5-2x maintenance rate.", notes: "Initial bolus of 10-20 mL/kg if dehydrated." });
+        doses.push({ drugName: "Furosemide", dose: "1-2 mg/kg IV every 4-6 hours.", notes: "Only give after patient is euvolemic." });
+        doses.push({ drugName: "Calcitonin", dose: "4 units/kg IM/SQ every 12 hours.", notes: "Rapid but transient effect." });
+        doses.push({ drugName: "Pamidronate", dose: "0.5-1 mg/kg IV infusion over 4-6 hours.", notes: "For long-term control. Consult endocrinology." });
+    }
 
     return doses;
   },
@@ -81,5 +89,3 @@ export const hypercalcemiaProtocol: DiseaseProtocol = {
       { title: "UpToDate: Treatment of hypercalcemia", url: "https://www.uptodate.com/contents/treatment-of-hypercalcemia" }
   ],
 };
-
-    

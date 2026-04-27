@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 // Function to calculate Free Water Deficit
@@ -97,7 +98,7 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     const sodium = Number(data.sodiumLevel) || 0;
     const { deficit } = calculateFWD(weight, sodium);
     return [
-      { drugName: "Free Water Deficit Calculation", dose: "0.6 x weight (kg) x [(Na/140) - 1]", notes: weight > 0 && sodium > 145 ? `Calculated deficit: ${deficit} mL. Replace over 48h.` : "Enter weight and sodium to calculate." },
+      { drugName: "Free Water Deficit Calculation", dose: "0.6 x weight (kg) x [(Na/140) - 1]", notes: weight > 0 && sodium > 145 ? `Calculated deficit: ${deficit} mL. This should be replaced over 48 hours.` : "Enter weight and sodium to calculate." },
       { drugName: "Correction Rate Goal", dose: "≤ 10-12 mEq/L per 24 hours", notes: "To prevent cerebral edema." }
     ];
   },
@@ -105,5 +106,3 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     { title: "UpToDate: Treatment of hypernatremia in adults", url: "https://www.uptodate.com/contents/treatment-of-hypernatremia-in-adults" }
   ],
 };
-
-    

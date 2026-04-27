@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 const calculateCorrectedCalcium = (totalCalcium: number, albumin: number): { correctedCa: number, notes: string } => {
@@ -91,6 +92,7 @@ export const hypocalcemiaProtocol: DiseaseProtocol = {
     "Concomitant critical illness"
   ],
   getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
     const totalCa = Number(data.totalCalcium) || 0;
     const albumin = Number(data.albumin) || 0;
     const { correctedCa, notes } = calculateCorrectedCalcium(totalCa, albumin);
@@ -98,9 +100,16 @@ export const hypocalcemiaProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     doses.push({ drugName: "Corrected Calcium Formula", dose: "Total Ca + 0.8 * (4.0 - Albumin)", notes: totalCa > 0 && albumin > 0 ? `Calculated Corrected Calcium: ${correctedCa} mg/dL. ${notes}` : notes });
-    doses.push({ drugName: "Calcium Gluconate 10% (IV)", dose: "0.5 - 1 mL/kg (max 20 mL) IV slowly over 10 min", notes: "For severe/symptomatic cases. Contains 9.3 mg elemental Ca per mL." });
-    doses.push({ drugName: "Calcium Chloride 10% (IV)", dose: "0.1 - 0.2 mL/kg (max 10 mL) IV slowly over 10 min", notes: "Use with extreme caution, preferably via central line as it is sclerosing. Contains 27.3 mg elemental Ca per mL." });
-    doses.push({ drugName: "Oral Calcium Carbonate", dose: "40-80 mg/kg/day of elemental calcium, divided TID-QID.", notes: "For mild/asymptomatic cases." });
+    
+    if (weight > 0) {
+        doses.push({ drugName: "Calcium Gluconate 10% (IV)", dose: `0.5 - 1 mL/kg = ${(0.5*weight).toFixed(1)} - ${Math.min(1*weight, 20).toFixed(1)} mL`, notes: "IV slowly over 10 min. For severe/symptomatic cases. Contains 9.3 mg elemental Ca per mL." });
+        doses.push({ drugName: "Calcium Chloride 10% (IV)", dose: `0.1 - 0.2 mL/kg = ${(0.1*weight).toFixed(1)} - ${Math.min(0.2*weight, 10).toFixed(1)} mL`, notes: "Use with extreme caution, preferably via central line as it is sclerosing. Contains 27.3 mg elemental Ca per mL." });
+        doses.push({ drugName: "Oral Calcium Carbonate", dose: `40-80 mg/kg/day = ${(40*weight).toFixed(0)} - ${(80*weight).toFixed(0)} mg/day`, notes: "Dose of elemental calcium, divided TID-QID. For mild/asymptomatic cases." });
+    } else {
+        doses.push({ drugName: "Calcium Gluconate 10% (IV)", dose: "0.5 - 1 mL/kg (max 20 mL) IV slowly over 10 min", notes: "For severe/symptomatic cases. Contains 9.3 mg elemental Ca per mL." });
+        doses.push({ drugName: "Calcium Chloride 10% (IV)", dose: "0.1 - 0.2 mL/kg (max 10 mL) IV slowly over 10 min", notes: "Use with extreme caution, preferably via central line as it is sclerosing. Contains 27.3 mg elemental Ca per mL." });
+        doses.push({ drugName: "Oral Calcium Carbonate", dose: "40-80 mg/kg/day of elemental calcium, divided TID-QID.", notes: "For mild/asymptomatic cases." });
+    }
 
     return doses;
   },
@@ -108,5 +117,3 @@ export const hypocalcemiaProtocol: DiseaseProtocol = {
       { title: "UpToDate: Treatment of hypocalcemia", url: "https://www.uptodate.com/contents/treatment-of-hypocalcemia" }
   ],
 };
-
-    

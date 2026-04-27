@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 export const hyperkalemiaProtocol: DiseaseProtocol = {
@@ -79,12 +80,19 @@ export const hyperkalemiaProtocol: DiseaseProtocol = {
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
-
-    doses.push({ drugName: "Calcium Gluconate 10%", dose: "0.5 - 1 mL/kg (max 20mL) IV over 5-10 min", notes: "For cardiac membrane stabilization. Does not lower serum K+." });
-    doses.push({ drugName: "Insulin (Regular) + Dextrose", dose: "Insulin: 0.1 units/kg IV. Dextrose: 0.5 g/kg IV (e.g., 2 mL/kg of D25W).", notes: "Give together to shift K+ intracellularly." });
-    doses.push({ drugName: "Albuterol (nebulized)", dose: "10 - 20 mg nebulized over 15 minutes.", notes: "High dose required for K+ shifting." });
-    doses.push({ drugName: "Sodium Bicarbonate", dose: "1 - 2 mEq/kg IV", notes: "Most effective in patients with metabolic acidosis." });
-    doses.push({ drugName: "Furosemide", dose: "1 - 2 mg/kg IV", notes: "To enhance potassium excretion. Requires adequate renal function." });
+    if (weight > 0) {
+        doses.push({ drugName: "Calcium Gluconate 10%", dose: `0.5 - 1 mL/kg = ${(0.5 * weight).toFixed(1)} - ${Math.min(1*weight, 20).toFixed(1)} mL`, notes: "IV over 5-10 min. For cardiac membrane stabilization. Does not lower serum K+." });
+        doses.push({ drugName: "Insulin (Regular) + Dextrose", dose: `Insulin: 0.1 units/kg = ${(0.1 * weight).toFixed(2)} units. Dextrose: 0.5 g/kg = ${(0.5 * weight).toFixed(1)} g.`, notes: "Give together to shift K+ intracellularly. e.g., 2 mL/kg of D25W." });
+        doses.push({ drugName: "Albuterol (nebulized)", dose: "10 - 20 mg nebulized over 15 minutes.", notes: "High dose required for K+ shifting." });
+        doses.push({ drugName: "Sodium Bicarbonate", dose: `1 - 2 mEq/kg IV = ${(1 * weight).toFixed(1)} - ${(2 * weight).toFixed(1)} mEq`, notes: "Most effective in patients with metabolic acidosis." });
+        doses.push({ drugName: "Furosemide", dose: `1 - 2 mg/kg IV = ${(1 * weight).toFixed(1)} - ${(2 * weight).toFixed(1)} mg`, notes: "To enhance potassium excretion. Requires adequate renal function." });
+    } else {
+        doses.push({ drugName: "Calcium Gluconate 10%", dose: "0.5 - 1 mL/kg (max 20mL) IV over 5-10 min", notes: "For cardiac membrane stabilization. Does not lower serum K+." });
+        doses.push({ drugName: "Insulin (Regular) + Dextrose", dose: "Insulin: 0.1 units/kg IV. Dextrose: 0.5 g/kg IV (e.g., 2 mL/kg of D25W).", notes: "Give together to shift K+ intracellularly." });
+        doses.push({ drugName: "Albuterol (nebulized)", dose: "10 - 20 mg nebulized over 15 minutes.", notes: "High dose required for K+ shifting." });
+        doses.push({ drugName: "Sodium Bicarbonate", dose: "1 - 2 mEq/kg IV", notes: "Most effective in patients with metabolic acidosis." });
+        doses.push({ drugName: "Furosemide", dose: "1 - 2 mg/kg IV", notes: "To enhance potassium excretion. Requires adequate renal function." });
+    }
 
     return doses;
   },
@@ -92,5 +100,3 @@ export const hyperkalemiaProtocol: DiseaseProtocol = {
       { title: "UpToDate: Treatment and prevention of hyperkalemia in adults", url: "https://www.uptodate.com/contents/treatment-and-prevention-of-hyperkalemia-in-adults" }
   ],
 };
-
-    
