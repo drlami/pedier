@@ -40,9 +40,18 @@ export const adrenalCrisisProtocol: DiseaseProtocol = {
         "Begin aggressive fluid resuscitation for shock. Use isotonic saline (0.9% NaCl).",
         "If hypoglycemic, administer a dextrose bolus and start dextrose-containing maintenance fluids (e.g., D5NS).",
         "Draw 'critical labs' before giving steroids IF POSSIBLE without delaying treatment: Cortisol, ACTH, electrolytes, glucose, renin.",
-        "Monitor electrolytes, glucose, and vital signs closely.",
         "Consult Pediatric Endocrinology urgently."
       ]
+    },
+    {
+        title: "Monitoring Protocol",
+        recommendations: [
+            "Continuous cardiac and vital sign monitoring.",
+            "Hourly bedside glucose checks initially, then every 2-4 hours once stable.",
+            "Hourly neurologic checks (mental status, GCS).",
+            "Monitor serum electrolytes (especially sodium and potassium) and blood gas every 2-4 hours initially.",
+            "Strict intake and output monitoring."
+        ]
     }];
   },
   getDisposition: (severity, data) => {
@@ -62,11 +71,15 @@ export const adrenalCrisisProtocol: DiseaseProtocol = {
         weight <= 3 ? '25 mg' :
         weight > 3 && weight <= 18 ? '50 mg' : '100 mg';
     
-    doses.push({ drugName: "Hydrocortisone (Solu-Cortef) Stress Dose IV/IM", dose: `Age-based: <3 yrs: 25 mg; 3-12 yrs: 50 mg; >12 yrs: 100 mg. A simplified weight based dose is 50-100 mg/m².`, notes: `Using approximate weight: Give ${hydrocortDose}.` });
+    doses.push({ drugName: "Hydrocortisone (Solu-Cortef) Stress Dose IV/IM", dose: `Age-based: <3 yrs: 25 mg; 3-12 yrs: 50 mg; >12 yrs: 100 mg.`, notes: weight > 0 ? `Based on weight, give ${hydrocortDose}.` : "Enter weight for approximation." });
     
-    doses.push({ drugName: "IV Fluid Bolus (0.9% NaCl)", dose: "20 mL/kg", notes: "Repeat as needed for shock." });
-
-    doses.push({ drugName: "Dextrose Bolus (for hypoglycemia)", dose: "D10W: 5 mL/kg. D25W: 2 mL/kg.", notes: "Use D10W in neonates/infants."});
+    if (weight > 0) {
+        doses.push({ drugName: "IV Fluid Bolus (0.9% NaCl)", dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`, notes: "Repeat as needed for shock." });
+        doses.push({ drugName: "Dextrose Bolus (for hypoglycemia)", dose: `D10W: 5 mL/kg = ${(5 * weight).toFixed(0)} mL. D25W: 2 mL/kg = ${(2 * weight).toFixed(0)} mL.`, notes: "Use D10W in neonates/infants."});
+    } else {
+        doses.push({ drugName: "IV Fluid Bolus (0.9% NaCl)", dose: "20 mL/kg", notes: "Enter weight for calculation. Repeat as needed." });
+        doses.push({ drugName: "Dextrose Bolus (for hypoglycemia)", dose: "D10W: 5 mL/kg. D25W: 2 mL/kg.", notes: "Use D10W in neonates/infants. Enter weight."});
+    }
 
     return doses;
   },
