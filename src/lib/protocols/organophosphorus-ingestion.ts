@@ -64,25 +64,47 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        doses.push({
-            drugName: "Atropine (IV)",
-            dose: `Children: 0.02-0.05 mg/kg/dose = ${(0.02 * weight).toFixed(2)} - ${(0.05 * weight).toFixed(2)} mg`,
-            notes: "Adolescents: 1-2 mg/dose. Double the dose every 5 minutes until secretions are dry. Endpoint is drying of secretions, not heart rate."
-        });
+        // Atropine
+        if (weight <= 50) { // Pediatric dose
+            doses.push({
+                drugName: "Atropine (IV)",
+                dose: `${(0.02 * weight).toFixed(2)} - ${(0.05 * weight).toFixed(2)} mg`,
+                notes: "Dose based on 0.02-0.05 mg/kg. Double the dose every 5 minutes until secretions are dry."
+            });
+        } else { // Adolescent/Adult dose
+            doses.push({
+                drugName: "Atropine (IV)",
+                dose: "1 - 2 mg per dose",
+                notes: "Double the dose every 5 minutes until secretions are dry."
+            });
+        }
+
+        // Pralidoxime
         doses.push({
             drugName: "Pralidoxime (2-PAM) (IV)",
-            dose: `Loading dose: 25-50 mg/kg = ${(25 * weight).toFixed(1)} - ${(50 * weight).toFixed(1)} mg`,
-            notes: "Infuse over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr. Most effective when given early."
+            dose: `Loading dose: ${(25 * weight).toFixed(1)} - ${(50 * weight).toFixed(1)} mg`,
+            notes: "Dose based on 25-50 mg/kg. Infuse over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr."
         });
-        doses.push({
-            drugName: "Diazepam (IV)",
-            dose: `Children: 0.1-0.3 mg/kg = ${(0.1 * weight).toFixed(2)} - ${(0.3 * weight).toFixed(2)} mg`,
-            notes: "Adolescents: 5-10 mg. For seizure control."
-        });
-    } else {
-        doses.push({ drugName: "Atropine (IV)", dose: "Children: 0.02-0.05 mg/kg/dose. Adolescents: 1-2 mg/dose. Double the dose every 5 minutes until secretions dry.", notes: "Endpoint is drying of secretions, not heart rate." });
-        doses.push({ drugName: "Pralidoxime (2-PAM) (IV)", dose: "25-50 mg/kg loading dose over 30 min, followed by a continuous infusion of 10-20 mg/kg/hr.", notes: "Most effective when given early." });
-        doses.push({ drugName: "Diazepam (IV)", dose: "Children: 0.1-0.3 mg/kg. Adolescents: 5-10 mg.", notes: "For seizure control." });
+
+        // Diazepam
+        if (weight <= 50) { // Pediatric dose
+            doses.push({
+                drugName: "Diazepam (IV)",
+                dose: `${(0.1 * weight).toFixed(2)} - ${(0.3 * weight).toFixed(2)} mg`,
+                notes: "For seizure control. Based on 0.1-0.3 mg/kg."
+            });
+        } else { // Adolescent/Adult dose
+            doses.push({
+                drugName: "Diazepam (IV)",
+                dose: "5 - 10 mg per dose",
+                notes: "For seizure control."
+            });
+        }
+
+    } else { // No weight entered
+        doses.push({ drugName: "Atropine (IV)", dose: "0.02-0.05 mg/kg (peds) or 1-2 mg (adolescent)", notes: "Double the dose every 5 minutes until secretions dry." });
+        doses.push({ drugName: "Pralidoxime (2-PAM) (IV)", dose: "25-50 mg/kg loading dose, then 10-20 mg/kg/hr infusion.", notes: "Most effective when given early." });
+        doses.push({ drugName: "Diazepam (IV)", dose: "0.1-0.3 mg/kg (peds) or 5-10 mg (adolescent)", notes: "For seizure control." });
     }
     
     return doses;
