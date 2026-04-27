@@ -136,26 +136,22 @@ export const dkaProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        const insulinRateLow = (0.05 * weight).toFixed(2);
-        const insulinRateHigh = (0.1 * weight).toFixed(2);
-        const bolusLow = (10 * weight).toFixed(0);
-        const bolusHigh = (20 * weight).toFixed(0);
-        const mannitolLow = (0.25 * weight).toFixed(2);
-        const mannitolHigh = (1 * weight).toFixed(2);
-        const salineLow = (3 * weight).toFixed(0);
-        const salineHigh = (5 * weight).toFixed(0);
+        const insulinRate = (0.1 * weight).toFixed(2);
+        const bolus = (20 * weight).toFixed(0);
+        const mannitolDose = (0.5 * weight).toFixed(2);
+        const salineDose = (3 * weight).toFixed(0);
 
-        doses.push({ drugName: "Insulin Infusion", dose: `Start at ${insulinRateLow} - ${insulinRateHigh} units/hr.`, notes: "Mix 50 units of regular insulin in 50 mL NS (1 unit/mL). Typical starting rate is 0.05 - 0.1 units/kg/hr." });
-        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: `${bolusLow} - ${bolusHigh} mL`, notes: "10-20 mL/kg Normal Saline." });
+        doses.push({ drugName: "Insulin Infusion", dose: `Start at ${insulinRate} units/hr`, notes: "Based on 0.1 units/kg/hr. Mix 50 units of regular insulin in 50 mL NS (1 unit/mL)." });
+        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: `${bolus} mL`, notes: "Based on 20 mL/kg Normal Saline." });
         doses.push({ drugName: "Potassium Replacement", dose: "Typically 20-40 mEq/L of combined KCl and KPhos in IV fluids.", notes: "Requires careful monitoring of K+ and Phos levels." });
-        doses.push({ drugName: "Mannitol (for cerebral edema)", dose: `${mannitolLow} - ${mannitolHigh} g IV`, notes: "0.25 - 1 g/kg IV over 20 minutes." });
-        doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: `${salineLow} - ${salineHigh} mL IV`, notes: "3-5 mL/kg IV over 20-30 minutes." });
+        doses.push({ drugName: "Mannitol (for cerebral edema)", dose: `${mannitolDose} g IV`, notes: "Based on 0.5 g/kg IV over 20 minutes." });
+        doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: `${salineDose} mL IV`, notes: "Based on 3 mL/kg IV over 20-30 minutes." });
     } else {
-        doses.push({ drugName: "Insulin Infusion", dose: "Start at 0.05 - 0.1 units/kg/hr.", notes: "Enter weight to calculate dose." });
-        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: "10-20 mL/kg Normal Saline." });
+        doses.push({ drugName: "Insulin Infusion", dose: "Start at 0.1 units/kg/hr.", notes: "Enter weight to calculate dose." });
+        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: "20 mL/kg Normal Saline." });
         doses.push({ drugName: "Potassium Replacement", dose: "Typically 20-40 mEq/L" });
-        doses.push({ drugName: "Mannitol (for cerebral edema)", dose: "0.25 - 1 g/kg IV" });
-        doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: "3-5 mL/kg IV" });
+        doses.push({ drugName: "Mannitol (for cerebral edema)", dose: "0.5 g/kg IV" });
+        doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: "3 mL/kg IV" });
     }
 
     return doses;
