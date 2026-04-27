@@ -47,7 +47,6 @@ import { anaphylacticShockProtocol } from './anaphylactic-shock';
 import { cardiogenicShockProtocol } from './cardiogenic-shock';
 import { bradycardiaProtocol } from './bradycardia';
 import { tachycardiaProtocol } from './tachycardia';
-import { cardiacArrestProtocol } from './cardiac-arrest';
 import { svtProtocol } from './svt';
 import { murmurWithSymptomsProtocol } from './murmur-with-symptoms';
 import { chestPainInChildrenProtocol } from './chest-pain-in-children';
@@ -116,7 +115,6 @@ export const allProtocols: DiseaseProtocol[] = [
   cardiogenicShockProtocol,
   bradycardiaProtocol,
   tachycardiaProtocol,
-  cardiacArrestProtocol,
   svtProtocol,
   murmurWithSymptomsProtocol,
   chestPainInChildrenProtocol,

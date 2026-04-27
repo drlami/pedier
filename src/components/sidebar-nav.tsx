@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { allProtocols } from "@/lib/protocols";
 import { cn } from "@/lib/utils";
-import { Stethoscope, UserCog } from "lucide-react";
+import { Stethoscope, UserCog, HeartPulse } from "lucide-react";
 
 export function SidebarNav() {
   const searchParams = useSearchParams();
@@ -23,6 +23,19 @@ export function SidebarNav() {
 
   return (
     <nav className="flex flex-col p-2 pt-4 h-full">
+      <div className="mb-4">
+        <Link
+          href="/cardiac-arrest"
+          className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2 text-base transition-colors font-bold text-destructive hover:bg-destructive/10",
+            pathname === '/cardiac-arrest' && "bg-destructive/10"
+          )}
+        >
+          <HeartPulse className="h-5 w-5" />
+          Cardiac Arrest
+        </Link>
+      </div>
+
       <div className="flex-1 space-y-1">
         <h3 className="px-3 py-2 text-xs font-semibold uppercase text-muted-foreground/80 tracking-wider">
           Clinical Systems
@@ -34,7 +47,7 @@ export function SidebarNav() {
             scroll={false}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              !isAdminPage && activeSystem === system
+              !isAdminPage && activeSystem === system && pathname !== '/cardiac-arrest'
                 ? "bg-primary/10 text-primary font-semibold"
                 : "text-sidebar-foreground hover:bg-accent/50 hover:text-accent-foreground"
             )}
