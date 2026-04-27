@@ -14,11 +14,18 @@ import { allProtocols } from "@/lib/protocols";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
 import { Search } from "lucide-react";
 
-function ProtocolCard({ protocol }: { protocol: DiseaseProtocol }) {
+function ProtocolCard({
+  protocol,
+  onClick,
+}: {
+  protocol: DiseaseProtocol;
+  onClick?: () => void;
+}) {
   return (
     <Link
       href={`/diseases/${protocol.id}`}
       className="block h-full group"
+      onClick={onClick}
     >
       <Card className="h-full hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card hover:ring-2 hover:ring-primary">
         <CardHeader className="p-4">
@@ -34,8 +41,13 @@ function ProtocolCard({ protocol }: { protocol: DiseaseProtocol }) {
   );
 }
 
-
-function SystemProtocols({ system }: { system: string }) {
+function SystemProtocols({
+  system,
+  onProtocolClick,
+}: {
+  system: string;
+  onProtocolClick?: () => void;
+}) {
   const protocolsForSystem = useMemo(() => {
     return allProtocols
       .filter((p) => p.system === system)
@@ -56,7 +68,11 @@ function SystemProtocols({ system }: { system: string }) {
       <section>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {protocolsForSystem.map((protocol) => (
-            <ProtocolCard key={protocol.id} protocol={protocol} />
+            <ProtocolCard
+              key={protocol.id}
+              protocol={protocol}
+              onClick={onProtocolClick}
+            />
           ))}
         </div>
       </section>
@@ -68,12 +84,17 @@ function PageContent() {
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
 
+  const handleProtocolClick = () => {
+    setSearchTerm("");
+  };
+
   const systems = useMemo(() => {
     const systemSet = new Set(allProtocols.map((p) => p.system));
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
   }, []);
 
-  const selectedSystem = searchParams.get("system") || (systems.length > 0 ? systems[0] : "");
+  const selectedSystem =
+    searchParams.get("system") || (systems.length > 0 ? systems[0] : "");
 
   const searchResults = useMemo(() => {
     if (!searchTerm) return [];
@@ -89,17 +110,19 @@ function PageContent() {
   }, [searchTerm]);
 
   return (
-     <div className="flex flex-col gap-8">
-      <div className="relative mx-auto w-full max-w-2xl">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search all protocols by name, keyword, or system..."
-          className="w-full pl-12 p-6 text-lg"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+    <div className="flex flex-col gap-8">
+      <section className="w-full max-w-3xl mx-auto">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search all protocols by name, keyword, or system..."
+            className="w-full pl-12 py-3 text-base rounded-lg shadow-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </section>
 
       {searchTerm ? (
         <section>
@@ -109,26 +132,33 @@ function PageContent() {
           {searchResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {searchResults.map((protocol) => (
-                <ProtocolCard key={protocol.id} protocol={protocol} />
+                <ProtocolCard
+                  key={protocol.id}
+                  protocol={protocol}
+                  onClick={handleProtocolClick}
+                />
               ))}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No protocols found.</p>
+              <p>No protocols found for your search.</p>
             </div>
           )}
         </section>
       ) : (
-        <SystemProtocols system={selectedSystem} />
+        <SystemProtocols
+          system={selectedSystem}
+          onProtocolClick={handleProtocolClick}
+        />
       )}
     </div>
   );
 }
 
 export default function Home() {
-    return (
-        <Suspense fallback={<p>Loading categories...</p>}>
-            <PageContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<p>Loading categories...</p>}>
+      <PageContent />
+    </Suspense>
+  );
 }
