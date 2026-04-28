@@ -71,6 +71,11 @@ import { hypernatremiaProtocol } from './hypernatremia';
 import { hyponatremiaProtocol } from './hyponatremia';
 import { hypercalcemiaProtocol } from './hypercalcemia';
 import { hypocalcemiaProtocol } from './hypocalcemia';
+import { acuteRenalFailureProtocol } from './acute-renal-failure';
+import { chronicRenalFailureProtocol } from './chronic-renal-failure';
+import { nephroticSyndromeProtocol } from './nephrotic-syndrome';
+import { nephriticSyndromeProtocol } from './nephritic-syndrome';
+import { urinaryTractInfectionProtocol } from './urinary-tract-infection';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -146,6 +151,11 @@ export const allProtocols: DiseaseProtocol[] = [
   hyponatremiaProtocol,
   hypercalcemiaProtocol,
   hypocalcemiaProtocol,
+  acuteRenalFailureProtocol,
+  chronicRenalFailureProtocol,
+  nephroticSyndromeProtocol,
+  nephriticSyndromeProtocol,
+  urinaryTractInfectionProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {

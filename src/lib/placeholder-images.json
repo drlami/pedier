@@ -425,6 +425,36 @@
       "description": "An illustrative image for Hypercalcemia.",
       "imageUrl": "https://picsum.photos/seed/hypercalcemia/600/400",
       "imageHint": "kidney stones"
+    },
+    {
+      "id": "acute-renal-failure",
+      "description": "An illustrative image for Acute Kidney Injury.",
+      "imageUrl": "https://picsum.photos/seed/aki/600/400",
+      "imageHint": "kidney"
+    },
+    {
+      "id": "chronic-renal-failure",
+      "description": "An illustrative image for Chronic Kidney Disease.",
+      "imageUrl": "https://picsum.photos/seed/ckd/600/400",
+      "imageHint": "dialysis"
+    },
+    {
+      "id": "nephrotic-syndrome",
+      "description": "An illustrative image for Nephrotic Syndrome.",
+      "imageUrl": "https://picsum.photos/seed/nephrotic/600/400",
+      "imageHint": "swollen child"
+    },
+    {
+      "id": "nephritic-syndrome",
+      "description": "An illustrative image for Acute Glomerulonephritis.",
+      "imageUrl": "https://picsum.photos/seed/nephritic/600/400",
+      "imageHint": "red urine"
+    },
+    {
+      "id": "urinary-tract-infection",
+      "description": "An illustrative image for Urinary Tract Infection.",
+      "imageUrl": "https://picsum.photos/seed/uti/600/400",
+      "imageHint": "urine sample"
     }
   ]
 }
