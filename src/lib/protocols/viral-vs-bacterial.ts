@@ -7,14 +7,13 @@ export const viralVsBacterialProtocol: DiseaseProtocol = {
   description: 'A cognitive aid summarizing clinical and laboratory findings to help differentiate between likely viral and bacterial etiologies of fever.',
   image: {
     url: "https://picsum.photos/seed/viral-vs-bacterial/600/400",
-    hint: "microscope virus"
+    imageHint: "microscope virus"
   },
   questions: [
     { id: 'isToxic', questionText: 'Is the child ill- or toxic-appearing (YOS > 10)?', type: 'boolean' },
     { id: 'hasViralSymptoms', questionText: 'Prominent viral symptoms present (cough, coryza, conjunctivitis)?', type: 'boolean' },
     { id: 'feverHeight', questionText: 'Peak temperature > 39°C (102.2°F)?', type: 'boolean' },
     { id: 'crp', questionText: 'C-Reactive Protein (CRP) in mg/L', type: 'number', info: 'e.g., <20, 20-60, >60' },
-    { id: 'procalcitonin', questionText: 'Procalcitonin (PCT) in ng/mL', type: 'number', info: 'e.g., <0.5, 0.5-2, >2' },
     { id: 'anc', questionText: 'Absolute Neutrophil Count (ANC) in cells/μL', type: 'number', info: 'e.g., <10,000, >10,000' },
   ],
   calculateSeverity: (data: FormData): Severity => {
@@ -32,15 +31,11 @@ export const viralVsBacterialProtocol: DiseaseProtocol = {
     if (crp > 80) { score += 3; details.push(`Very high CRP (>80)`); }
     else if (crp > 40) { score += 2; details.push(`High CRP (40-80)`); }
     else if (crp > 20) { score += 1; details.push(`Elevated CRP (20-40)`); }
-
-    const pct = Number(data.procalcitonin);
-    if (pct > 2) { score += 3; details.push(`High Procalcitonin (>2) is strongly suggestive of bacterial infection.`); }
-    else if (pct > 0.5) { score += 2; details.push(`Elevated Procalcitonin (>0.5)`); }
     
     const anc = Number(data.anc);
     if (anc > 10000) { score += 1; details.push(`Neutrophilia (ANC > 10,000)`); }
 
-    if (score >= 4 || pct > 2) {
+    if (score >= 4) {
       return { level: 'severe', score, details: [...details, "High probability of bacterial infection."] };
     }
     if (score >= 2) {
@@ -95,7 +90,7 @@ export const viralVsBacterialProtocol: DiseaseProtocol = {
     return ["Discharge home with supportive care instructions is appropriate."];
   },
   getRedFlags: () => [
-    "Procalcitonin > 2.0 ng/mL",
+    "CRP > 80 mg/L",
     "Toxic or ill appearance (e.g., Yale Observation Score > 10)",
     "Petechial or purpuric rash",
     "Fever in an unimmunized or immunocompromised child"

@@ -7,13 +7,12 @@ export const fever2To3MonthsProtocol: DiseaseProtocol = {
   description: 'Evaluation and management of well-appearing febrile infants aged 61 to 90 days.',
   image: {
     url: "https://picsum.photos/seed/fever-2-3-months/600/400",
-    hint: "baby temperature"
+    imageHint: "baby temperature"
   },
   questions: [
     { id: 'isWellAppearing', questionText: 'Is the infant well-appearing and previously healthy?', type: 'boolean', info: 'Well-appearing means active, alert, good tone, normal color.' },
     { id: 'urinalysis', questionText: 'Urinalysis result?', type: 'select', options: [{label: 'Negative', value: 'negative'}, {label: 'Positive (LE, Nitrite, or Pyuria)', value: 'positive'}] },
     { id: 'crp', questionText: 'C-Reactive Protein (CRP)', type: 'number', unit: 'mg/L', info: 'Value in mg/L. 1 mg/dL = 10 mg/L.' },
-    { id: 'procalcitonin', questionText: 'Procalcitonin (PCT) (if available)', type: 'number', unit: 'ng/mL' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
@@ -29,7 +28,6 @@ export const fever2To3MonthsProtocol: DiseaseProtocol = {
     }
 
     const crp = Number(data.crp);
-    const pct = Number(data.procalcitonin);
 
     if (isNaN(crp)) {
         details.push("Awaiting inflammatory marker results.");
@@ -37,17 +35,14 @@ export const fever2To3MonthsProtocol: DiseaseProtocol = {
     }
 
     const crpIsHigh = crp >= 20;
-    const pctIsHigh = !isNaN(pct) && pct >= 0.5;
 
-    if (crpIsHigh) details.push(`CRP ≥ 20 mg/L`);
-    if (pctIsHigh) details.push(`PCT ≥ 0.5 ng/mL`);
-
-    if (crpIsHigh || pctIsHigh) {
+    if (crpIsHigh) {
+      details.push(`CRP ≥ 20 mg/L`);
       details.push("Elevated inflammatory markers increase risk for Invasive Bacterial Infection (IBI).");
       return { level: 'moderate', details };
     }
 
-    details.push("Well-appearing with normal urinalysis and inflammatory markers.");
+    details.push("Well-appearing with normal urinalysis and low inflammatory markers.");
     return { level: 'mild', details }; // Low risk
   },
   getManagement: (severity, data) => {

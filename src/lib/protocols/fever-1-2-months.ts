@@ -7,13 +7,12 @@ export const fever1To2MonthsProtocol: DiseaseProtocol = {
   description: 'Evaluation and management of well-appearing febrile infants aged 29 to 60 days, based on the AAP 2021 guidelines.',
   image: {
     url: "https://picsum.photos/seed/fever-1-2-months/600/400",
-    hint: "infant temperature"
+    imageHint: "infant temperature"
   },
   questions: [
     { id: 'isWellAppearing', questionText: 'Is the infant well-appearing and previously healthy?', type: 'boolean', info: 'Well-appearing means active, alert, good tone, normal color.' },
     { id: 'urinalysis', questionText: 'Urinalysis result?', type: 'select', options: [{label: 'Negative', value: 'negative'}, {label: 'Positive (LE, Nitrite, or Pyuria)', value: 'positive'}] },
     { id: 'crp', questionText: 'C-Reactive Protein (CRP)', type: 'number', unit: 'mg/L', info: 'Value in mg/L. 1 mg/dL = 10 mg/L.' },
-    { id: 'procalcitonin', questionText: 'Procalcitonin (PCT)', type: 'number', unit: 'ng/mL' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     // This logic is a simplified interpretation of the AAP 2021 guidelines for risk stratification.
@@ -30,25 +29,21 @@ export const fever1To2MonthsProtocol: DiseaseProtocol = {
     }
 
     const crp = Number(data.crp);
-    const pct = Number(data.procalcitonin);
 
-    if (isNaN(crp) || isNaN(pct)) {
+    if (isNaN(crp)) {
         details.push("Awaiting inflammatory marker results.");
         return { level: 'unknown', details };
     }
 
     const crpIsHigh = crp >= 20;
-    const pctIsHigh = pct >= 0.5;
 
-    if (crpIsHigh) details.push(`CRP ≥ 20 mg/L`);
-    if (pctIsHigh) details.push(`PCT ≥ 0.5 ng/mL`);
-
-    if (crpIsHigh || pctIsHigh) {
+    if (crpIsHigh) {
+      details.push(`CRP ≥ 20 mg/L`);
       details.push("Elevated inflammatory markers increase risk for Invasive Bacterial Infection (IBI).");
       return { level: 'moderate', details };
     }
 
-    details.push("Well-appearing with normal urinalysis and inflammatory markers.");
+    details.push("Well-appearing with normal urinalysis and low inflammatory markers.");
     return { level: 'mild', details }; // Low risk
   },
   getManagement: (severity, data) => {
