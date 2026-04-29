@@ -1,22 +1,44 @@
 
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
-// Function to calculate Free Water Deficit
-const calculateFWD = (weight: number, sodium: number): { deficit: number, correctionRate: string } => {
-    if (!weight || !sodium || sodium <= 145) return { deficit: 0, correctionRate: 'N/A' };
+// Function to calculate fluids for hypernatremia correction
+const calculateHypernatremiaFluids = (weight: number, sodium: number): { 
+    deficit: number, 
+    maintenanceRate: number, 
+    totalRate: number,
+} => {
+    if (!weight || weight <= 0 || !sodium || sodium <= 145) {
+        return { deficit: 0, maintenanceRate: 0, totalRate: 0 };
+    }
     
+    // 1. Calculate Maintenance Fluid Rate (Holiday-Segar)
+    let dailyMaintenance = 0;
+    if (weight <= 10) {
+        dailyMaintenance = 100 * weight;
+    } else if (weight <= 20) {
+        dailyMaintenance = 1000 + 50 * (weight - 10);
+    } else {
+        dailyMaintenance = 1500 + 20 * (weight - 20);
+    }
+    const maintenanceRate = dailyMaintenance / 24;
+
+    // 2. Calculate Free Water Deficit (FWD)
     // FWD (L) = 0.6 * weight (kg) * [(serum Na / 140) - 1]
     const deficitL = 0.6 * weight * ((sodium / 140) - 1);
     const deficitML = deficitL * 1000;
 
-    // Aim to correct over 48 hours to avoid cerebral edema
-    const rate = deficitML / 48;
+    // 3. Calculate Total Infusion Rate
+    // Aim to correct deficit over 48 hours
+    const deficitCorrectionRate = deficitML / 48;
+    const totalRate = maintenanceRate + deficitCorrectionRate;
 
     return { 
         deficit: Math.round(deficitML),
-        correctionRate: `${Math.round(rate)} mL/hr of free water`
+        maintenanceRate: Math.round(maintenanceRate),
+        totalRate: Math.round(totalRate),
     };
 };
+
 
 export const hypernatremiaProtocol: DiseaseProtocol = {
   id: 'hypernatremia',
@@ -46,7 +68,7 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
   getManagement: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const sodium = Number(data.sodiumLevel) || 0;
-    const { deficit, correctionRate } = calculateFWD(weight, sodium);
+    const { deficit, maintenanceRate, totalRate } = calculateHypernatremiaFluids(weight, sodium);
 
     const management = [];
     management.push({
@@ -62,10 +84,13 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
             title: "Fluid Management",
             recommendations: [
                 `First, restore intravascular volume if patient is in shock or hypovolemic, using isotonic fluid (0.9% Normal Saline).`,
-                `Then, calculate the Free Water Deficit (FWD). For this patient: FWD is approximately ${deficit} mL.`,
-                `This deficit should be replaced over 48 hours. This requires a rate of ~${correctionRate}, in addition to maintenance fluid needs.`,
-                "The fluid used for correction is typically D5W or D5 0.45% NS, depending on the calculated infusion.",
-                "Monitor serum sodium every 2-4 hours initially to ensure the rate of correction is appropriate."
+                `Then, calculate total fluid rate. For this patient: Maintenance rate is ~${maintenanceRate} mL/hr and the free water deficit is ~${deficit} mL.`,
+                `To correct the deficit over 48 hours, the total IV fluid rate should be approximately ${totalRate} mL/hr.`,
+                "The recommended fluid for correction depends on patient size and provides maintenance electrolytes:",
+                 weight <= 10 
+                    ? "For patients ≤ 10kg: Use D5 with 0.2% NaCl + 20 mEq/L KCl."
+                    : "For patients > 10kg: Use D5 with 0.45% NaCl + 20 mEq/L KCl.",
+                "Monitor serum sodium every 2-4 hours initially to ensure the rate of correction is appropriate (not exceeding 0.5 mEq/L/hr or 10-12 mEq/L/day)."
             ]
         });
     }
@@ -96,9 +121,10 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const sodium = Number(data.sodiumLevel) || 0;
-    const { deficit } = calculateFWD(weight, sodium);
+    const { deficit, totalRate } = calculateHypernatremiaFluids(weight, sodium);
     return [
-      { drugName: "Free Water Deficit Calculation", dose: "0.6 x weight (kg) x [(Na/140) - 1]", notes: weight > 0 && sodium > 145 ? `Calculated deficit: ${deficit} mL. This should be replaced over 48 hours.` : "Enter weight and sodium to calculate." },
+      { drugName: "Free Water Deficit Calculation", dose: "0.6 x weight (kg) x [(Na/140) - 1]", notes: weight > 0 && sodium > 145 ? `Calculated deficit: ${deficit} mL.` : "Enter weight and sodium to calculate." },
+      { drugName: "Total IV Fluid Rate", dose: `~${totalRate} mL/hr`, notes: weight > 0 && sodium > 145 ? "This rate corrects the deficit over 48 hours while providing maintenance fluids. Monitor serum Na+ closely and adjust rate as needed." : "Enter weight and sodium to calculate." },
       { drugName: "Correction Rate Goal", dose: "≤ 10-12 mEq/L per 24 hours", notes: "To prevent cerebral edema." }
     ];
   },
