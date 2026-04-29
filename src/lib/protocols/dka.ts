@@ -1,3 +1,4 @@
+
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 // Helper for fluid calculation
@@ -98,12 +99,21 @@ export const dkaProtocol: DiseaseProtocol = {
     });
     
     management.push({
-      title: "Insulin and Electrolyte Therapy",
+      title: "Insulin Therapy",
       recommendations: [
         "DO NOT give an insulin bolus.",
-        `After initial fluid resuscitation (at least 1 hour), start an insulin infusion at 0.05 - 0.1 units/kg/hr.`,
+        "After initial fluid resuscitation (at least 1 hour) AND after confirming serum K+ is ≥ 3.5 mEq/L, start an insulin infusion at 0.05 - 0.1 units/kg/hr.",
         "Aim for a gradual glucose fall of 50-100 mg/dL per hour.",
-        "Add potassium to IV fluids once patient has voided and serum K+ is < 5.5 mEq/L."
+      ]
+    });
+
+    management.push({
+      title: "Potassium Management",
+      recommendations: [
+        "Potassium levels will fall rapidly with insulin and fluid therapy. Replace potassium early.",
+        "If initial serum K+ is > 5.5 mEq/L: Do not add K+ to initial fluids. Re-check labs in 1-2 hours.",
+        "If initial serum K+ is 3.5-5.5 mEq/L: Add 40 mEq/L of potassium to IV fluids (e.g., 20 mEq/L KCl + 20 mEq/L KPhos).",
+        "If initial serum K+ is < 3.5 mEq/L: **CRITICAL.** Hold insulin. Give IV potassium boluses (0.5 mEq/kg over 1 hour) until K+ > 3.5, then add 40 mEq/L to IV fluids before starting insulin.",
       ]
     });
     
@@ -147,19 +157,21 @@ export const dkaProtocol: DiseaseProtocol = {
 
     if (weight > 0) {
         const insulinRate = (0.1 * weight).toFixed(2);
-        const bolus = (20 * weight).toFixed(0);
+        const bolus = (10 * weight).toFixed(0);
         const mannitolDose = (0.5 * weight).toFixed(2);
         const salineDose = (3 * weight).toFixed(0);
 
-        doses.push({ drugName: "Insulin Infusion", dose: `Start at ${insulinRate} units/hr`, notes: "Based on 0.1 units/kg/hr. Mix 50 units of regular insulin in 50 mL NS (1 unit/mL)." });
-        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: `${bolus} mL`, notes: "Based on 20 mL/kg Normal Saline." });
-        doses.push({ drugName: "Potassium Replacement", dose: "Typically 20-40 mEq/L of combined KCl and KPhos in IV fluids.", notes: "Requires careful monitoring of K+ and Phos levels." });
+        doses.push({ drugName: "Insulin Infusion", dose: `Start at 0.05 - 0.1 units/kg/hr. e.g., ${insulinRate} units/hr`, notes: "Mix 50 units of regular insulin in 50 mL NS (1 unit/mL)." });
+        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: `${bolus} mL`, notes: "Based on 10 mL/kg Normal Saline. Avoid large/repeated boluses." });
+        doses.push({ drugName: "Potassium Replacement (in IV fluids)", dose: "Typically 40 mEq/L total concentration", notes: "Use half KCl, half KPhos. Adjust based on serum levels. See management guidelines for severe hypokalemia." });
+        doses.push({ drugName: "Potassium IV Bolus (for K+ < 3.5)", dose: `0.5 mEq/kg = ${(0.5 * weight).toFixed(1)} mEq`, notes: "Infuse slowly over 1 hour. Requires cardiac monitoring." });
         doses.push({ drugName: "Mannitol (for cerebral edema)", dose: `${mannitolDose} g IV`, notes: "Based on 0.5 g/kg IV over 20 minutes." });
         doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: `${salineDose} mL IV`, notes: "Based on 3 mL/kg IV over 20-30 minutes." });
     } else {
-        doses.push({ drugName: "Insulin Infusion", dose: "Start at 0.1 units/kg/hr.", notes: "Enter weight to calculate dose." });
-        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: "20 mL/kg Normal Saline." });
-        doses.push({ drugName: "Potassium Replacement", dose: "Typically 20-40 mEq/L" });
+        doses.push({ drugName: "Insulin Infusion", dose: "Start at 0.05 - 0.1 units/kg/hr.", notes: "Enter weight to calculate dose." });
+        doses.push({ drugName: "IV Fluid Bolus (for shock only)", dose: "10 mL/kg Normal Saline." });
+        doses.push({ drugName: "Potassium Replacement", dose: "Typically 40 mEq/L in fluids. Adjust based on K+ level." });
+        doses.push({ drugName: "Potassium IV Bolus (for K+ < 3.5)", dose: "0.5 mEq/kg" });
         doses.push({ drugName: "Mannitol (for cerebral edema)", dose: "0.5 g/kg IV" });
         doses.push({ drugName: "3% Hypertonic Saline (for cerebral edema)", dose: "3 mL/kg IV" });
     }
