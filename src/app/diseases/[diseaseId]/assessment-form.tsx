@@ -12,9 +12,10 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SeverityBadge } from '@/components/ui/../severity-badge';
-import { ResultCard } from '@/components/ui/../result-card';
+import { SeverityBadge } from '@/components/severity-badge';
+import { ResultCard } from '@/components/result-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import {
   Info,
@@ -164,6 +165,18 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 <Button variant="ghost" onClick={() => setShowResults(false)}>Close</Button>
             </div>
             
+            {/* Adrenaline Dilution Alert */}
+            {['bradycardia', 'septic-shock'].includes(diseaseId) && (
+              <Alert variant="destructive" className="bg-destructive/10">
+                  <Info className="h-4 w-4" />
+                  <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>
+                  <AlertDescription className="text-xs">
+                      Your hospital stock is <strong>1 mg/mL (1:1,000)</strong>. 
+                      For IV/IO dosing, you <strong>MUST</strong> dilute 1 mL of Adrenaline with 9 mL of Normal Saline to make 10 mL of <strong>0.1 mg/mL (1:10,000)</strong> concentration before administration.
+                  </AlertDescription>
+              </Alert>
+            )}
+
             <ResultCard title="Severity Classification" icon={Stethoscope}>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <SeverityBadge level={severity.level || 'unknown'} />
