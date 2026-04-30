@@ -3,21 +3,40 @@ import { notFound } from "next/navigation";
 import { ProtocolEditor } from "./protocol-editor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { FileText } from "lucide-react";
+import type { SerializableProtocol } from "@/lib/protocols/types";
 
 type ProtocolEditorPageProps = {
-  params: {
+  params: Promise<{
     protocolId: string;
-  };
+  }>;
 };
 
-export default function ProtocolEditorPage({ params }: ProtocolEditorPageProps) {
-  const { protocolId } = params;
+export default async function ProtocolEditorPage({ params }: ProtocolEditorPageProps) {
+  const { protocolId } = await params;
   const isNew = protocolId === "new";
   const protocol = isNew ? null : getProtocolById(protocolId);
 
   if (!isNew && !protocol) {
     notFound();
   }
+
+  // Create a serializable version of the protocol to pass to the client component
+  const serializableProtocol: SerializableProtocol | null = protocol ? {
+    id: protocol.id,
+    name: protocol.name,
+    system: protocol.system,
+    description: protocol.description,
+    image: protocol.image,
+    questions: protocol.questions,
+    logicStrings: {
+      calculateSeverity: protocol.calculateSeverity.toString(),
+      getManagement: protocol.getManagement.toString(),
+      getDisposition: protocol.getDisposition.toString(),
+      getRedFlags: protocol.getRedFlags.toString(),
+      getDrugDoses: protocol.getDrugDoses.toString(),
+      getReferences: protocol.getReferences.toString(),
+    }
+  } : null;
 
   return (
     <div>
@@ -38,7 +57,7 @@ export default function ProtocolEditorPage({ params }: ProtocolEditorPageProps) 
           </div>
         </CardHeader>
         <CardContent>
-          <ProtocolEditor protocol={protocol} />
+          <ProtocolEditor protocol={serializableProtocol} />
         </CardContent>
       </Card>
     </div>

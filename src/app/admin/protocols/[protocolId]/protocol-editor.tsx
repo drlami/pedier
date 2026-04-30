@@ -7,18 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, PlusCircle, Save } from "lucide-react";
-import type { DiseaseProtocol } from "@/lib/protocols/types";
+import type { SerializableProtocol } from "@/lib/protocols/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 interface ProtocolEditorProps {
-  protocol: DiseaseProtocol | null;
+  protocol: SerializableProtocol | null;
 }
 
 export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const { register, control, handleSubmit, formState: { errors } } = useForm<DiseaseProtocol>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<SerializableProtocol>({
     defaultValues: protocol || {
       id: "",
       name: "",
@@ -26,11 +26,6 @@ export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
       description: "",
       image: { url: "", hint: "" },
       questions: [],
-      getManagement: () => [],
-      getDisposition: () => [],
-      getRedFlags: () => [],
-      getDrugDoses: () => [],
-      getReferences: () => [],
     },
   });
 
@@ -38,14 +33,8 @@ export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
     control,
     name: "questions",
   });
-  
-  // Placeholder for logic fields which are not yet editable
-  const { fields: mgmtFields } = useFieldArray({ control, name: "getManagement" });
-  const { fields: drugsFields } = useFieldArray({ control, name: "getDrugDoses" });
-  const { fields: refsFields } = useFieldArray({ control, name: "getReferences" });
 
-
-  const onSubmit = (data: DiseaseProtocol) => {
+  const onSubmit = (data: SerializableProtocol) => {
     // In a real app, this would save to a database.
     // Here, we just show a success message.
     console.log("Form Data:", data);
@@ -143,18 +132,27 @@ export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
         </p>
         <div className="p-3 border rounded-md bg-background">
             <Label className="font-medium">Severity Logic</Label>
-            <pre className="mt-2 text-xs p-2 bg-secondary rounded-md overflow-x-auto">
-                <code>{protocol?.calculateSeverity.toString()}</code>
+            <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                <code>{protocol?.logicStrings?.calculateSeverity || "No logic defined."}</code>
             </pre>
         </div>
         <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">Management Recommendations ({mgmtFields.length})</Label>
+            <Label className="font-medium">Management Recommendations</Label>
+            <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                <code>{protocol?.logicStrings?.getManagement || "No logic defined."}</code>
+            </pre>
         </div>
          <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">Drug Doses ({drugsFields.length})</Label>
+            <Label className="font-medium">Drug Doses</Label>
+             <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                <code>{protocol?.logicStrings?.getDrugDoses || "No logic defined."}</code>
+            </pre>
         </div>
          <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">References ({refsFields.length})</Label>
+            <Label className="font-medium">References</Label>
+             <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                <code>{protocol?.logicStrings?.getReferences || "No logic defined."}</code>
+            </pre>
         </div>
       </div>
 

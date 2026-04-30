@@ -54,3 +54,27 @@ export interface DiseaseProtocol {
   getDrugDoses: (severity: Severity, data: FormData) => DrugDose[];
   getReferences: () => Reference[];
 }
+
+/**
+ * A version of DiseaseProtocol that can be safely passed to Client Components.
+ * Functions are removed or converted to strings.
+ */
+export interface SerializableProtocol {
+  id: string;
+  name: string;
+  description: string;
+  system: string;
+  image: {
+    url: string;
+    hint: string;
+  };
+  questions: Question[];
+  logicStrings?: {
+    calculateSeverity: string;
+    getManagement: string;
+    getDisposition: string;
+    getRedFlags: string;
+    getDrugDoses: string;
+    getReferences: string;
+  };
+}
