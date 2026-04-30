@@ -1,11 +1,12 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { getDiffDiagAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -40,7 +41,7 @@ function SubmitButton() {
 
 export default function DiffDiagPage() {
   const initialState = { message: null, error: null, data: null };
-  const [state, dispatch] = useFormState(getDiffDiagAction, initialState);
+  const [state, dispatch] = useActionState(getDiffDiagAction, initialState);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { draftProtocolAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +32,7 @@ function SubmitButton() {
 
 export function ProtocolDrafter() {
   const initialState = { message: null, error: null, data: null };
-  const [state, dispatch] = useFormState(draftProtocolAction, initialState);
+  const [state, dispatch] = useActionState(draftProtocolAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
