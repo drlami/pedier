@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/admin-assisted-protocol-drafting-flow.ts';
 import '@/ai/flows/differential-diagnosis-flow.ts';
+import '@/ai/flows/drug-safety-flow.ts';

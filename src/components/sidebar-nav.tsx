@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { allProtocols } from "@/lib/protocols";
 import { cn } from "@/lib/utils";
-import { Stethoscope, UserCog, HeartPulse, Brain } from "lucide-react";
+import { Stethoscope, UserCog, HeartPulse, Brain, Pill } from "lucide-react";
 
 export function SidebarNav() {
   const searchParams = useSearchParams();
@@ -45,6 +45,17 @@ export function SidebarNav() {
           <Brain className="h-4 w-4" />
           AI Diff. Diagnosis
         </Link>
+
+        <Link
+          href="/drug-safety"
+          className={cn(
+            "flex items-center gap-2 rounded-md px-2 py-1 transition-colors text-xs font-bold text-emerald-600 hover:bg-emerald-50",
+            pathname === '/drug-safety' && "bg-emerald-50"
+          )}
+        >
+          <Pill className="h-4 w-4" />
+          Drug Safety Checker
+        </Link>
       </div>
 
       <div className="flex-1 space-y-0.5 overflow-y-auto">
@@ -58,7 +69,7 @@ export function SidebarNav() {
             scroll={false}
             className={cn(
               "flex items-center gap-2 rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
-              !isAdminPage && activeSystem === system && !['/cardiac-arrest', '/differential-diagnosis'].includes(pathname)
+              !isAdminPage && activeSystem === system && !['/cardiac-arrest', '/differential-diagnosis', '/drug-safety'].includes(pathname)
                 ? "bg-primary/10 text-primary font-bold"
                 : "text-sidebar-foreground hover:bg-accent/50 hover:text-accent-foreground"
             )}

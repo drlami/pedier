@@ -2,6 +2,7 @@
 
 import { draftDiseaseProtocol } from '@/ai/flows/admin-assisted-protocol-drafting-flow';
 import { getDifferentialDiagnosis } from '@/ai/flows/differential-diagnosis-flow';
+import { checkDrugSafety } from '@/ai/flows/drug-safety-flow';
 import { z } from 'zod';
 
 const DraftProtocolSchema = z.object({
@@ -68,6 +69,40 @@ export async function getDiffDiagAction(prevState: any, formData: FormData) {
     };
   } catch (error) {
     console.error('Error generating diff diag:', error);
+    return {
+      message: 'An error occurred while processing the request.',
+      error: { _form: ['AI processing failed. Please try again.'] },
+      data: null,
+    };
+  }
+}
+
+const DrugSafetySchema = z.object({
+  drugList: z.string().min(2, "Please enter at least one medication name"),
+});
+
+export async function checkDrugSafetyAction(prevState: any, formData: FormData) {
+  const validatedFields = DrugSafetySchema.safeParse({
+    drugList: formData.get('drugList'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      message: 'Invalid drug list.',
+      error: validatedFields.error.flatten().fieldErrors,
+      data: null,
+    };
+  }
+
+  try {
+    const output = await checkDrugSafety(validatedFields.data);
+    return {
+      message: 'Drug safety check completed.',
+      error: null,
+      data: output,
+    };
+  } catch (error) {
+    console.error('Error checking drug safety:', error);
     return {
       message: 'An error occurred while processing the request.',
       error: { _form: ['AI processing failed. Please try again.'] },
