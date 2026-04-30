@@ -32,10 +32,11 @@ export const bradycardiaProtocol: DiseaseProtocol = {
           recommendations: [
             "Maintain airway, assist breathing as needed with bag-mask ventilation, and provide oxygen.",
             "If HR remains < 60/min with poor perfusion despite effective oxygenation and ventilation, START CPR.",
-            "Administer Epinephrine IV/IO.",
+            "Administer Adrenaline IV/IO.",
+            "Adrenaline Preparation (1:1,000 Stock): Dilute 1 mL (1 mg) Adrenaline with 9 mL NS to make 10 mL of 0.1 mg/mL (1:10,000).",
             "Consider Atropine for increased vagal tone or primary AV block.",
             "Consider transcutaneous pacing.",
-            "Continue CPR, give Epinephrine every 3-5 minutes, and search for and treat underlying causes (H's and T's)."
+            "Continue CPR, give Adrenaline every 3-5 minutes, and search for and treat underlying causes (H's and T's)."
           ]
         }];
       case 'moderate':
@@ -72,9 +73,9 @@ export const bradycardiaProtocol: DiseaseProtocol = {
 
     if (weight > 0) {
         doses.push({
-            drugName: "Epinephrine (IV/IO)",
-            dose: `0.01 mg/kg (0.1 mL/kg of 1:10,000 solution). Max dose 1 mg.`,
-            notes: `Calculated Dose: ${(0.01 * weight).toFixed(2)} mg. Repeat every 3-5 minutes.`
+            drugName: "Adrenaline 0.1 mg/mL (1:10,000 diluted)",
+            dose: `0.1 mL/kg. Calculated dose: ${(0.1 * weight).toFixed(2)} mL.`,
+            notes: `Repeat every 3-5 minutes. (Stock 1:1,000 MUST be diluted 1:10 first).`
         });
         doses.push({
             drugName: "Atropine",
@@ -82,7 +83,7 @@ export const bradycardiaProtocol: DiseaseProtocol = {
             notes: `Calculated Dose: ${(0.02 * weight).toFixed(2)} mg. Primarily for increased vagal tone or AV block.`
         });
     } else {
-        doses.push({ drugName: "Epinephrine (IV/IO)", dose: `0.01 mg/kg (0.1 mL/kg of 1:10,000 solution).` });
+        doses.push({ drugName: "Adrenaline 0.1 mg/mL (1:10,000)", dose: `0.1 mL/kg IV/IO.`, notes: "Dilute 1mg Adrenaline (1:1,000) with 9mL NS." });
         doses.push({ drugName: "Atropine", dose: `0.02 mg/kg (Min 0.1mg, Max 0.5mg).` });
     }
     return doses;

@@ -13,14 +13,14 @@ const calculateInfusion = (drugName: string, weight: number): { dose: string, no
             const mgIn100ml = (0.6 * weight).toFixed(2);
             return {
                 dose: "Standard Infusion: 0.6 x weight (kg) in 100mL fluid. At this concentration, 1 mL/hr = 0.1 mcg/kg/min.",
-                notes: `Preparation: Add ${mgIn100ml} mg of Adrenaline (Epinephrine) to a 100mL bag of D5W or NS.`
+                notes: `Preparation: Add ${mgIn100ml} mL of your 1 mg/mL (1:1,000) stock Adrenaline to a 100mL bag of D5W or NS.`
             };
         }
         case "Noradrenaline": {
              const mgIn100ml = (0.6 * weight).toFixed(2);
             return {
                 dose: "Standard Infusion: 0.6 x weight (kg) in 100mL fluid. At this concentration, 1 mL/hr = 0.1 mcg/kg/min.",
-                notes: `Preparation: Add ${mgIn100ml} mg of Noradrenaline (Norepinephrine) to a 100mL bag of D5W or NS.`
+                notes: `Preparation: Add ${mgIn100ml} mL of your 1 mg/mL (1:1,000) stock Noradrenaline to a 100mL bag of D5W or NS.`
             };
         }
         case "Dopamine": {
@@ -85,6 +85,7 @@ export const septicShockProtocol: DiseaseProtocol = {
             title: "Vasoactive Support for Cold Shock (Adrenaline-Responsive)",
             recommendations: [
                 "If shock persists after 40-60 mL/kg of fluid, start a peripheral or central Adrenaline (Epinephrine) infusion.",
+                "Adrenaline Preparation: Using your 1 mg/mL stock, add (0.6 x weight) mL to 100 mL NS to make a concentration where 1 mL/hr = 0.1 mcg/kg/min.",
                 "Titrate Adrenaline to improve perfusion, heart rate, and blood pressure.",
                 "Goal is normal blood pressure and perfusion (warm extremities, cap refill <2s, normal pulses, normal mental status, urine output >1 mL/kg/hr)."
             ]
@@ -132,18 +133,18 @@ export const septicShockProtocol: DiseaseProtocol = {
         });
     }
 
-    // Push Dose Epinephrine
+    // Push Dose Adrenaline (Rescue)
     if (weight > 0) {
         doses.push({
-            drugName: "Epinephrine Push Dose (for cardiac arrest or peri-arrest)",
-            dose: `0.1 mL/kg of 1:10,000 solution = ${(0.1 * weight).toFixed(2)} mL`,
-            notes: 'Use standard 1:10,000 concentration (0.1 mg/mL).'
+            drugName: "Adrenaline 1:10,000 Diluted (Rescue Dose)",
+            dose: `0.1 mL/kg. Calculated dose: ${(0.1 * weight).toFixed(2)} mL`,
+            notes: 'Dilute 1 mL of 1 mg/mL stock with 9 mL NS to make 0.1 mg/mL concentration first.'
         });
     } else {
          doses.push({
-            drugName: "Epinephrine Push Dose (for cardiac arrest or peri-arrest)",
-            dose: '0.1 mL/kg of 1:10,000 solution',
-            notes: 'Enter weight to calculate volume.'
+            drugName: "Adrenaline 1:10,000 Diluted (Rescue Dose)",
+            dose: '0.1 mL/kg',
+            notes: 'Dilute 1:1,000 stock 1:10 with NS first.'
         });
     }
 
@@ -151,29 +152,22 @@ export const septicShockProtocol: DiseaseProtocol = {
     const adrenalineInfusion = calculateInfusion("Adrenaline", weight);
     doses.push({
         drugName: "Adrenaline (Epinephrine) Infusion",
-        dose: "Start: 0.05-0.1 mcg/kg/min. Titrate to effect. Range: 0.05-1.0 mcg/kg/min.",
+        dose: "Start: 0.05-0.1 mcg/kg/min. Titrate to effect.",
         notes: `${adrenalineInfusion.notes} ${adrenalineInfusion.dose}`
     });
 
     const noradrenalineInfusion = calculateInfusion("Noradrenaline", weight);
     doses.push({
         drugName: "Noradrenaline (Norepinephrine) Infusion",
-        dose: "Start: 0.05-0.1 mcg/kg/min. Titrate to effect. Range: 0.05-1.0 mcg/kg/min.",
+        dose: "Start: 0.05-0.1 mcg/kg/min. Titrate to effect.",
         notes: `${noradrenalineInfusion.notes} ${noradrenalineInfusion.dose}`
     });
 
     const dopamineInfusion = calculateInfusion("Dopamine", weight);
     doses.push({
         drugName: "Dopamine Infusion",
-        dose: "Start: 5-10 mcg/kg/min. Titrate to effect. Range: 5-20 mcg/kg/min.",
+        dose: "Start: 5-10 mcg/kg/min. Titrate to effect.",
         notes: `${dopamineInfusion.notes} ${dopamineInfusion.dose}`
-    });
-    
-    const dobutamineInfusion = calculateInfusion("Dobutamine", weight);
-    doses.push({
-        drugName: "Dobutamine Infusion",
-        dose: "Start: 5-10 mcg/kg/min. Titrate to effect. Range: 5-20 mcg/kg/min.",
-        notes: `${dobutamineInfusion.notes} ${dobutamineInfusion.dose}`
     });
     
     // Antibiotics

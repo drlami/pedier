@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets, BookOpen } from "lucide-react";
+import { Copy, AlertTriangle, Syringe, HeartPulse, Zap, Wind, Droplets, BookOpen, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // --- Helper Functions ---
 const estimateWeight = (age: number, unit: 'months' | 'years'): number => {
@@ -192,6 +193,16 @@ export function ResuscitationCalculator() {
                     <Copy className="mr-2" /> Copy
                  </Button>
             </div>
+
+            <Alert variant="destructive" className="bg-destructive/10">
+                <Info className="h-4 w-4" />
+                <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>
+                <AlertDescription className="text-xs">
+                    Your hospital stock is <strong>1 mg/mL (1:1,000)</strong>. 
+                    For IV/IO arrest dosing, you <strong>MUST</strong> dilute 1 mL of Adrenaline with 9 mL of Normal Saline to make 10 mL of <strong>0.1 mg/mL (1:10,000)</strong> concentration before administration.
+                </AlertDescription>
+            </Alert>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             <ResultCard title="Airway Equipment" icon={Wind}>
@@ -208,7 +219,7 @@ export function ResuscitationCalculator() {
             </ResultCard>
 
              <ResultCard title="Medications" icon={Syringe}>
-                <ResultRow label="Adrenaline (1:10,000)" value={(0.1 * finalWeight).toFixed(2)} unit="mL" />
+                <ResultRow label="Adrenaline 1:10,000 (after dilution)" value={(0.1 * finalWeight).toFixed(2)} unit="mL" className="text-primary font-black" />
                 <ResultRow label="Amiodarone Bolus" value={Math.min(5 * finalWeight, 300).toFixed(1)} unit="mg" />
                 {showAdvanced && (
                   <div className="mt-4 pt-4 border-t">
