@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/header";
-import { DisclaimerBanner } from "@/components/disclaimer-banner";
 import { SidebarNav } from "@/components/sidebar-nav";
 import "./globals.css";
 import { Suspense } from "react";
@@ -33,8 +32,8 @@ export default function RootLayout({
       <body className="font-body antialiased flex flex-col min-h-screen bg-background">
         <Header />
         <div className="flex flex-1 overflow-hidden">
-          <aside className="w-72 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:block">
-            <Suspense fallback={<div>Loading...</div>}>
+          <aside className="w-64 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:block">
+            <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
               <SidebarNav />
             </Suspense>
           </aside>
@@ -42,7 +41,9 @@ export default function RootLayout({
             {children}
           </main>
         </div>
-        <DisclaimerBanner />
+        <footer className="border-t bg-card py-2 px-4 text-[10px] text-muted-foreground text-center">
+          Clinical support tool only. Final judgment remains with treating physician. Tool is Prepared and coded by Dr Lami Qurt.
+        </footer>
         <Toaster />
       </body>
     </html>
