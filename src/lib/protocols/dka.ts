@@ -1,10 +1,8 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
-// Helper for fluid calculation based on ISPAD guidelines
 const calculateDkaFluids = (weight: number): { maintenance: number, deficit: number, totalRate: number } => {
     if (!weight || weight <= 0) return { maintenance: 0, deficit: 0, totalRate: 0 };
     
-    // Holiday-Segar for daily maintenance
     let dailyMaintenance = 0;
     if (weight <= 10) {
         dailyMaintenance = 100 * weight;
@@ -15,11 +13,8 @@ const calculateDkaFluids = (weight: number): { maintenance: number, deficit: num
     }
     const maintenanceRate = dailyMaintenance / 24;
 
-    // Assume 7-10% dehydration for deficit calculation in DKA
-    // ISPAD recommends replacing deficit over 48-72 hours
-    const deficitVolume = weight * 10 * 8.5; // Average 8.5% deficit -> 85 mL/kg
+    const deficitVolume = weight * 10 * 8.5; 
 
-    // Correct deficit over 48 hours
     const totalFluidOver48h = deficitVolume + (maintenanceRate * 48);
     const totalRate = totalFluidOver48h / 48;
     
@@ -34,16 +29,16 @@ export const dkaProtocol: DiseaseProtocol = {
   id: 'dka',
   name: 'Diabetic Ketoacidosis (DKA)',
   system: 'Endocrinology',
-  description: 'Evidence-based management of pediatric DKA (ISPAD 2022), focusing on the two-bag fluid system and cerebral edema prevention.',
+  description: 'Comprehensive pediatric DKA management (ISPAD 2022). Includes specific Two-Bag system preparation using KCl and Saline.',
   image: {
     url: "https://picsum.photos/seed/dka/600/400",
     hint: "blood glucose"
   },
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'bloodGlucose', questionText: 'Initial Blood Glucose', type: 'number', unit: 'mg/dL' },
     { id: 'ph', questionText: 'Initial pH (from VBG/ABG)', type: 'number' },
     { id: 'bicarbonate', questionText: 'Initial Serum Bicarbonate (HCO3)', type: 'number', unit: 'mEq/L' },
+    { id: 'potassium', questionText: 'Initial Serum Potassium (K+)', type: 'number', unit: 'mEq/L' },
     { id: 'mentalStatus', questionText: 'Mental Status / GCS', type: 'select', options: [
         { label: 'Alert, GCS 15', value: 'normal' },
         { label: 'Drowsy/Confused, GCS 13-14', value: 'drowsy' },
@@ -59,7 +54,6 @@ export const dkaProtocol: DiseaseProtocol = {
         return { level: 'unknown', details: ["Enter pH and Bicarbonate to determine DKA severity."] };
     }
 
-    // Severity criteria per ISPAD/AAP
     if (data.mentalStatus === 'stupor' || ph < 7.1 || hco3 < 5) {
       details.push(`pH: ${ph}, Bicarb: ${hco3}. Severe DKA criteria met.`);
       return { level: 'severe', details };
@@ -78,89 +72,82 @@ export const dkaProtocol: DiseaseProtocol = {
   },
   getManagement: (severity, data) => {
     const weight = Number(data.weight) || 0;
+    const initialK = Number(data.potassium) || 0;
     const management = [];
     
-    // 1. Initial Resuscitation
     management.push({
       title: "1. Phase 1: Initial Volume Expansion",
       recommendations: [
         "Initial bolus: 10-20 mL/kg of 0.9% Normal Saline (NS) over 1-2 hours.",
-        "Only repeat boluses if signs of hypovolemic shock persist.",
-        "The goal is to restore perfusion, not to fully rehydrate rapidly."
+        "Repeat bolus ONLY if signs of hypovolemic shock persist.",
+        "GOAL: Restore perfusion while avoiding rapid changes in osmolality."
       ]
     });
 
-    // 2. Fluid Titration & Two-Bag System
-    let bagDetails = [
-      "Use the 'Two-Bag System' to allow rapid titration of dextrose without changing the electrolyte concentration or total fluid rate.",
-      "Bag A: 0.45% or 0.9% Normal Saline + 40 mEq/L Potassium (half KCl, half KPhos).",
-      "Bag B: 10% Dextrose + same Saline concentration + same Potassium concentration.",
-      "Total rate (Bag A + Bag B) should remain constant at the calculated replacement rate.",
-      "Initially, Bag A is at 100% of the total rate. As glucose falls, increase Bag B percentage and decrease Bag A."
+    management.push({
+      title: "2. The Two-Bag System: Preparation",
+      recommendations: [
+        "Prepare two 500 mL bags with IDENTICAL electrolytes but DIFFERENT dextrose.",
+        "BAG A (0% Dextrose): 500 mL of 0.9% Normal Saline + 20 mEq KCl.",
+        "BAG B (10% Dextrose): 500 mL of D10% in 0.9% Normal Saline + 20 mEq KCl.",
+        "Note: Adding 20 mEq KCl to 500 mL results in the standard 40 mEq/L concentration.",
+        "INFUSION: Run both bags on separate pumps, Y-connected into ONE IV line."
+      ]
+    });
+
+    let titrationTable = [
+      "Total Rate = Maintenance + Deficit over 48 hours. Keep this TOTAL constant.",
+      "BG > 300 mg/dL: Bag A at 100% Total Rate, Bag B at 0%.",
+      "BG 250-300 mg/dL: Bag A at 75%, Bag B at 25% (equiv. to D2.5%).",
+      "BG 200-250 mg/dL: Bag A at 50%, Bag B at 50% (equiv. to D5.0%).",
+      "BG 150-200 mg/dL: Bag A at 25%, Bag B at 75% (equiv. to D7.5%).",
+      "BG < 150 mg/dL: Bag A at 0%, Bag B at 100% (equiv. to D10%).",
+      "GOAL: Fall of BG by 50-100 mg/dL per hour. Maintain BG between 150-250 mg/dL."
     ];
 
     if (weight > 0) {
-        const { maintenance, totalRate } = calculateDkaFluids(weight);
-        bagDetails.push(`For this ${weight}kg patient: Maintenance rate is ~${maintenance} mL/hr. The recommended total replacement rate (Maintenance + Deficit over 48h) is approximately ${totalRate} mL/hr.`);
+        const { totalRate } = calculateDkaFluids(weight);
+        titrationTable.push(`For this ${weight}kg patient: Calculated Total Rate is ~${totalRate} mL/hr.`);
     }
 
     management.push({
-      title: "2. Phase 2: Fluid Replacement (The Two-Bag System)",
-      recommendations: bagDetails
+      title: "3. Two-Bag Titration Logic",
+      recommendations: titrationTable
     });
 
-    // 3. Insulin Therapy & Glucose Thresholds
     management.push({
-      title: "3. Insulin Therapy & Glucose Management",
+      title: "4. Insulin & Potassium Management",
       recommendations: [
-        "DO NOT give an insulin bolus.",
-        "Start Insulin infusion (0.05 - 0.1 units/kg/hr) at least 1 hour AFTER starting IV fluids.",
-        "Goal glucose fall: 50 - 100 mg/dL per hour.",
-        "WHEN TO ADD GLUCOSE: Start Bag B (dextrose) when Blood Glucose < 250 - 300 mg/dL, or if glucose falls > 100 mg/dL in 1 hour.",
-        "Maintain Blood Glucose between 150 - 250 mg/dL once dextrose is started.",
-        "Do not stop insulin if BG < 150; instead, increase dextrose concentration or total fluid rate (with Bag B) to maintain insulin therapy until ketosis resolves."
+        "INSULIN: Start Regular Insulin infusion at 0.05-0.1 units/kg/hr AT LEAST 1 HOUR after starting IV fluids.",
+        "K+ LEVEL < 3.5: HOLD insulin, give K+ 0.5 mEq/kg/hr IV until K+ > 3.5, then start insulin.",
+        "K+ LEVEL 3.5 - 5.5: Start K+ 40 mEq/L in all IV fluids immediately.",
+        "K+ LEVEL > 5.5: Defer K+ until urine output confirmed and level falls below 5.5."
       ]
     });
 
-    // 4. Potassium Management
     management.push({
-      title: "4. Potassium Replacement",
+      title: "5. Emergency: Cerebral Edema",
       recommendations: [
-        "If serum K+ is 3.5 - 5.5 mEq/L: Start 40 mEq/L Potassium in all IV fluids immediately.",
-        "If serum K+ is > 5.5 mEq/L: Defer K+ until urine output is confirmed and K+ falls below 5.5.",
-        "If serum K+ is < 3.5 mEq/L: CRITICAL. Hold insulin. Replete K+ immediately (0.5 mEq/kg IV over 1 hour) until K+ > 3.5, then start insulin."
-      ]
-    });
-
-    // 5. Cerebral Edema Management
-    management.push({
-      title: "5. Cerebral Edema (Brain Edema) Management",
-      recommendations: [
-        "Early signs: Headache, bradycardia, rising BP, altered mental status, vomiting, incontinence, cranial nerve palsies.",
-        "IF SUSPECTED: Act immediately before waiting for imaging.",
+        "WARNING: Early signs include headache, falling HR, rising BP, or change in mental status.",
+        "TREAT IMMEDIATELY if suspected, DO NOT wait for Head CT.",
         "1. Elevate head of bed to 30 degrees.",
-        "2. Administer Mannitol (0.5 - 1 g/kg IV) OR Hypertonic Saline (3% NaCl, 2.5 - 5 mL/kg IV) over 10-15 mins.",
-        "3. Reduce IV fluid rate by 1/3.",
-        "4. Contact PICU and Neurosurgery immediately. Head CT only AFTER stabilization."
+        "2. Reduce IV fluid rate by 1/3.",
+        "3. Administer Mannitol (0.5-1 g/kg) or 3% Hypertonic Saline (2.5-5 mL/kg).",
+        "4. Notify PICU and Neurosurgery."
       ]
     });
     
     return management;
   },
-  getDisposition: (severity, data) => {
-    return [
-      "All patients with new-onset DKA require hospital admission.",
-      "Moderate to Severe DKA, infants, and patients at high risk for cerebral edema should be managed in a PICU.",
-      "Continuous cardiac and neurologic monitoring is mandatory until ketosis resolves and patient is at baseline."
-    ];
-  },
+  getDisposition: () => [
+    "Admission to PICU is required for patients with severe DKA, infants, or those with altered mental status.",
+    "Frequent monitoring (hourly neuro checks, BG, and electrolytes every 2-4 hours) is essential."
+  ],
   getRedFlags: () => [
-    "Cerebral Edema Signs: Cushing's Triad (Bradycardia, Hypertension, Irregular Breathing)",
-    "Altered mental status / Decreased GCS",
-    "Severe Acidosis (pH < 7.1)",
-    "Hypokalemia (< 3.5 mEq/L) at presentation",
-    "Rapid fall in Blood Glucose (> 100 mg/dL per hour)",
-    "Age < 5 years (highest risk for cerebral edema)"
+    "Signs of Cerebral Edema: Cushing's Triad (Bradycardia, HTN, irregular breathing).",
+    "Hypokalemia (< 3.5) at presentation: High risk for arrhythmias when insulin starts.",
+    "Mental status changes or falling GCS.",
+    "Blood glucose falling > 100 mg/dL per hour."
   ],
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
@@ -168,16 +155,13 @@ export const dkaProtocol: DiseaseProtocol = {
 
     if (weight > 0) {
         const { totalRate } = calculateDkaFluids(weight);
-        const insulinRate = (0.1 * weight).toFixed(2);
-        const mannitolDose = (0.5 * weight).toFixed(1);
-        const salineDose = (3 * weight).toFixed(0);
-
-        doses.push({ drugName: "Calculated Total IV Fluid Rate", dose: `${totalRate} mL/hr`, notes: "Maintenance + 10% Deficit over 48 hours." });
-        doses.push({ drugName: "Insulin Infusion (Regular)", dose: `${insulinRate} units/hr`, notes: "Based on 0.1 units/kg/hr. Mix 50 units in 50 mL NS." });
-        doses.push({ drugName: "Mannitol 20% (Rescue)", dose: `${mannitolDose} - ${(weight).toFixed(1)} g IV`, notes: "For cerebral edema. Dose: 0.5 - 1 g/kg over 20 mins." });
-        doses.push({ drugName: "3% Hypertonic Saline (Rescue)", dose: `${salineDose} - ${(5 * weight).toFixed(0)} mL IV`, notes: "For cerebral edema. Dose: 2.5 - 5 mL/kg over 15 mins." });
+        doses.push({ drugName: "Total IV Fluid Rate", dose: `${totalRate} mL/hr`, notes: "Maintenance + 10% Deficit over 48h. Titrate bags A and B within this total." });
+        doses.push({ drugName: "Insulin Infusion", dose: `${(0.05 * weight).toFixed(2)} - ${(0.1 * weight).toFixed(2)} units/hr`, notes: "Regular insulin 0.05-0.1 units/kg/hr." });
+        doses.push({ drugName: "Mannitol 20%", dose: `${(0.5 * weight).toFixed(1)} - ${(weight).toFixed(1)} g IV`, notes: "For cerebral edema. Dose: 0.5-1 g/kg over 20 mins." });
+        doses.push({ drugName: "3% Hypertonic Saline", dose: `${(2.5 * weight).toFixed(0)} - ${(5 * weight).toFixed(0)} mL IV`, notes: "For cerebral edema. Dose: 2.5-5 mL/kg over 15 mins." });
     } else {
-        doses.push({ drugName: "Insulin Infusion", dose: "0.05 - 0.1 units/kg/hr", notes: "Start 1h after fluids." });
+        doses.push({ drugName: "Total IV Fluid Rate", dose: "Maintenance + Deficit over 48h", notes: "Enter weight for calculation." });
+        doses.push({ drugName: "Regular Insulin Infusion", dose: "0.05 - 0.1 units/kg/hr", notes: "Start 1 hour after starting fluids." });
         doses.push({ drugName: "Mannitol", dose: "0.5 - 1 g/kg IV", notes: "For cerebral edema signs." });
         doses.push({ drugName: "3% Hypertonic Saline", dose: "2.5 - 5 mL/kg IV", notes: "Alternative to Mannitol." });
     }
@@ -185,7 +169,6 @@ export const dkaProtocol: DiseaseProtocol = {
     return doses;
   },
   getReferences: () => [
-      { title: "ISPAD Clinical Practice Consensus Guidelines 2022: DKA and HHS in Children", url: "https://onlinelibrary.wiley.com/doi/10.1111/pedi.13406" },
-      { title: "AAP: Management of Pediatric Diabetic Ketoacidosis", url: "https://publications.aap.org/pediatrics/article/142/5/e20182762/38556/Management-of-Pediatric-Diabetic-Ketoacidosis" }
+      { title: "ISPAD Clinical Practice Consensus Guidelines 2022: Diabetic Ketoacidosis", url: "https://onlinelibrary.wiley.com/doi/10.1111/pedi.13406" }
   ],
 };
