@@ -166,7 +166,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             </div>
             
             {/* Adrenaline Dilution Alert */}
-            {['bradycardia', 'septic-shock'].includes(diseaseId) && (
+            {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
               <Alert variant="destructive" className="bg-destructive/10">
                   <Info className="h-4 w-4" />
                   <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>

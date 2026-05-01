@@ -66,7 +66,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
       return { level: 'severe', details };
     }
 
-    // Pending/Likely Anaphylaxis Logic
+    // Pending/Likely Anaphylaxis Logic (captures early/progressing cases)
     if (count >= 1 && (exposure === 'likely' || exposure === 'known')) {
         details.push("PENDING / LIKELY ANAPHYLAXIS: Significant symptoms after exposure. Do not wait for full criteria to develop if patient is worsening.");
         return { level: 'moderate', details };
@@ -84,23 +84,28 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
       const management = [];
 
       management.push({
-          title: "Adrenaline Preparation (Dilution Required for IV ONLY)",
+          title: "CRITICAL: Epinephrine First",
           recommendations: [
-              "Your hospital stock is 1 mg/mL (1:1,000).",
-              "FOR IM USE: Give UNDILUTED (1:1,000) into the mid-outer thigh.",
-              "FOR IV/IO USE: You MUST dilute 1 mL of Adrenaline with 9 mL of Normal Saline to make 10 mL of 0.1 mg/mL (1:10,000) concentration before administration."
+              "EPINEPHRINE (ADRENALINE) IS THE ONLY FIRST-LINE TREATMENT.",
+              "Do NOT delay Epinephrine for second-line drugs (antihistamines, steroids).",
+              "Delayed administration of Epinephrine is the primary risk factor for fatal anaphylaxis."
           ]
       });
 
       if (severity.level === 'severe' || severity.level === 'moderate') {
+          const isPending = severity.level === 'moderate';
+          
           management.push({
-              title: "IMMEDIATE ACTION: Epinephrine First",
+              title: isPending ? "Management of PENDING Anaphylaxis" : "Management of CONFIRMED Anaphylaxis",
               recommendations: [
-                  "Administer EPINEPHRINE (ADRENALINE) 1:1000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh.",
-                  "For PENDING anaphylaxis: Administer Epinephrine immediately if there is any sign of respiratory distress, hypotension, or rapid progression.",
+                  "Administer EPINEPHRINE 1:1,000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh.",
+                  isPending 
+                    ? "INDICATION FOR PENDING CASES: Administer Epinephrine IM immediately if there is ANY sign of respiratory distress, hemodynamic change, OR if symptoms are rapidly progressing following exposure."
+                    : "INDICATION: Administer immediately for confirmed criteria or shock.",
                   "Repeat every 5-15 minutes if symptoms persist or worsen."
               ]
           });
+
           management.push({
               title: "Positioning & Oxygen",
               recommendations: [
@@ -109,6 +114,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
                   "Prepare for advanced airway management if upper airway obstruction (stridor) is progressive."
               ]
           });
+
           management.push({
               title: "Fluid Resuscitation (for Shock)",
               recommendations: [
@@ -116,25 +122,33 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
                   "Large volumes may be required due to massive capillary leak."
               ]
           });
+
           management.push({
               title: "Adjunctive (Second-Line) Therapies",
               recommendations: [
                   "These DO NOT replace Epinephrine.",
                   "H1 Antagonist: Diphenhydramine (Benadryl) for skin symptoms.",
                   "H2 Antagonist: Famotidine.",
-                  "Corticosteroids: Methylprednisolone or Hydrocortisone (may reduce risk of biphasic reaction).",
+                  "Corticosteroids: Hydrocortisone (may reduce risk of biphasic reaction, though onset is slow 4-6h).",
                   "Nebulized Albuterol: For persistent wheezing/bronchospasm."
               ]
           });
       } else {
-          management.push({ title: "Observation", recommendations: ["If anaphylaxis is not yet clear but suspected, monitor vitals and respiratory status every 15 minutes. Have Epinephrine drawn up at the bedside and ready to give."] });
+          management.push({ 
+            title: "Observation", 
+            recommendations: [
+                "Monitor vitals and respiratory status every 15 minutes.", 
+                "Have Epinephrine drawn up at the bedside and ready to give.",
+                "If any systemic symptom develops (cough, vomiting, hives), treat as Pending Anaphylaxis."
+            ] 
+          });
       }
       
       return management;
   },
   getDisposition: (severity, data) => {
     return [
-        "ADMIT/OBSERVE: All patients with confirmed or strongly suspected anaphylaxis require a minimum 4-8 hour observation period.",
+        "ADMIT/OBSERVE: All patients receiving Epinephrine require a minimum 4-8 hour observation period.",
         "ADMIT TO PICU: For patients with hypotension, respiratory failure, or those requiring multiple doses of epinephrine.",
         "DISCHARGE CRITERIA: Completely asymptomatic for at least 4-8 hours, reliable caregivers, and patient MUST be provided with an Epinephrine Auto-Injector (if available) and an Anaphylaxis Action Plan."
     ];
@@ -169,7 +183,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
         doses.push({
             drugName: "Epinephrine IV/IO (1:10,000 DILUTED)",
             dose: `0.1 mL/kg = ${(0.1 * weight).toFixed(2)} mL`,
-            notes: "RESCUE DOSE FOR SHOCK ONLY. Must dilute 1:1,000 stock to 1:10,000 first."
+            notes: "RESCUE DOSE FOR SHOCK ONLY. Must dilute 1:1,000 stock to 1:10,000 first (1mL drug + 9mL Saline)."
         });
 
         // Adjuvants
@@ -203,7 +217,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
   },
   getReferences: () => [
       { title: "NIAID/FAAN: Guidelines for the Diagnosis and Management of Food Allergy", url: "https://www.niaid.nih.gov/" },
-      { title: "AAP: Epinephrine for the Treatment of Anaphylaxis", url: "https://publications.aap.org/" },
+      { title: "AAP: Epinephrine for the Treatment of Anaphylaxis", url: "https://publications.aap.org/pediatrics" },
       { title: "UpToDate: Anaphylaxis in children: Management", url: "https://www.uptodate.com/" }
   ],
 };
