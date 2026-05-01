@@ -4,94 +4,115 @@ export const chestPainInChildrenProtocol: DiseaseProtocol = {
   id: 'chest-pain-in-children',
   name: 'Chest Pain in Children',
   system: 'Cardiology',
-  description: 'Evaluation of chest pain in children, focusing on identifying rare but serious cardiac causes.',
+  description: 'Evaluation of chest pain in children and adolescents, focusing on identifying rare but serious cardiac causes vs. common benign etiologies.',
   image: {
     url: "https://picsum.photos/seed/chest-pain-peds/600/400",
     hint: "child chest"
   },
   questions: [
-    { id: 'painOnExertion', questionText: 'Does the pain occur with exertion?', type: 'boolean' },
-    { id: 'associatedSyncope', questionText: 'Is the pain associated with syncope or presyncope?', type: 'boolean' },
-    { id: 'isSharpLocalized', questionText: 'Is the pain sharp, localized, and reproducible with palpation?', type: 'boolean' },
-    { id: 'hasFever', questionText: 'Is there a fever and does the child appear ill?', type: 'boolean' },
-    { id: 'cardiacHistory', questionText: 'Any personal or family history of heart disease, arrhythmia, or sudden death?', type: 'boolean' },
+    { id: 'painOnExertion', questionText: 'Does the pain occur DURING exercise (not just after)?', type: 'boolean', info: 'Pain during peak exertion is a major red flag for anomalous coronary arteries or outflow obstruction.' },
+    { id: 'associatedSyncope', questionText: 'Is the pain associated with syncope or palpitations?', type: 'boolean' },
+    { id: 'isSharpLocalized', questionText: 'Is the pain sharp, localized, and reproducible with palpation?', type: 'boolean', info: 'Reproducible pain is highly suggestive of costochondritis or musculoskeletal causes.' },
+    { id: 'hasFever', questionText: 'Is there a fever and does the child appear ill?', type: 'boolean', info: 'Suggestive of myocarditis, pericarditis, or pneumonia.' },
+    { id: 'cardiacHistory', questionText: 'Concerning personal or family history?', type: 'boolean', info: 'Family history of sudden unexplained death <40y, cardiomyopathy, or significant arrhythmia.' },
+    { id: 'isCrushing', questionText: 'Is the pain "crushing," radiating to the jaw/arm, or associated with diaphoresis?', type: 'boolean', info: 'Classic anginal symptoms are rare in children but very high risk.' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
     
-    if (data.painOnExertion || data.associatedSyncope || data.cardiacHistory) {
-      if (data.painOnExertion) details.push("Exertional chest pain");
-      if (data.associatedSyncope) details.push("Associated syncope");
-      if (data.cardiacHistory) details.push("Concerning personal/family history");
-      details.push("These are red flags for a potential cardiac cause.");
-      return { level: 'severe', details };
+    // High-Risk Cardiac Features
+    if (data.painOnExertion || data.associatedSyncope || data.cardiacHistory || data.isCrushing) {
+      if (data.painOnExertion) details.push("Exertional chest pain (High risk for coronary anomalies)");
+      if (data.associatedSyncope) details.push("Associated syncope or palpitations");
+      if (data.cardiacHistory) details.push("Concerning personal/family cardiac history");
+      if (data.isCrushing) details.push("Classic anginal-type symptoms");
+      return { level: 'severe', details: [...details, "Potential cardiac emergency. Urgent workup required."] };
     }
     
+    // Inflammatory/Infectious
     if (data.hasFever) {
-      details.push("Fever suggests an inflammatory or infectious cause like myocarditis or pericarditis.");
+      details.push("Fever suggests myocarditis, pericarditis, or a pulmonary source (pneumonia/pleurisy).");
       return { level: 'moderate', details };
     }
 
+    // Benign/Typical Peds
     if (data.isSharpLocalized) {
-      details.push("Pain reproducible with palpation is highly suggestive of a benign musculoskeletal cause (e.g., costochondritis).");
+      details.push("Pain reproducible with palpation suggests a musculoskeletal cause (e.g., costochondritis).");
       return { level: 'mild', details };
     }
     
-    details.push("Chest pain is most often non-cardiac. Assess for red flags.");
+    details.push("Chest pain without red flags. Most pediatric chest pain is musculoskeletal, GI, or psychogenic.");
     return { level: 'mild', details };
   },
   getManagement: (severity, data) => {
     switch(severity.level) {
       case 'severe':
-        return [{
-          title: "Management of High-Risk Chest Pain",
-          recommendations: [
-            "Obtain an immediate 12-lead EKG.",
-            "Obtain IV access and send labs including cardiac enzymes (Troponin) and inflammatory markers (CRP).",
-            "Obtain a chest X-ray.",
-            "Place patient on a cardiac monitor.",
-            "Obtain an urgent Pediatric Cardiology consultation.",
-            "A bedside echocardiogram should be strongly considered."
-          ]
-        }];
+        return [
+          {
+            title: "Immediate Diagnostic Workup (High-Risk)",
+            recommendations: [
+              "12-Lead EKG: Look for ST changes, T-wave inversions, pathological Q-waves, WPW, or long QTc.",
+              "Labs: High-sensitivity Troponin and inflammatory markers (CRP/ESR).",
+              "Radiology: Chest X-ray to evaluate heart size and pulmonary congestion.",
+              "Place on continuous cardiac monitor and maintain bed rest."
+            ]
+          },
+          {
+            title: "Management & Consultation",
+            recommendations: [
+              "IMMEDIATE Pediatric Cardiology consultation.",
+              "Obtain an Echocardiogram to rule out anomalous coronary artery origin, HCM, or pericardial effusion.",
+              "If Troponin is elevated or EKG is abnormal, admit to a monitored bed/PICU."
+            ]
+          }
+        ];
       case 'moderate':
         return [{
           title: "Management of Febrile Chest Pain",
           recommendations: [
-            "Obtain an EKG, chest X-ray, and labs including Troponin and CRP.",
-            "Admit for observation and further evaluation for myocarditis/pericarditis.",
-            "Consult Pediatric Cardiology."
+            "Obtain a 12-lead EKG and Chest X-ray (rule out pneumonia).",
+            "Send labs: Troponin, CRP, and CBC.",
+            "Consider Myocarditis/Pericarditis: If labs are elevated or EKG shows low voltages/ST changes, consult Cardiology and admit.",
+            "Provide appropriate analgesia (e.g., Ibuprofen)."
           ]
         }];
       default: // mild
         return [{
           title: "Management of Low-Risk Chest Pain",
           recommendations: [
-            "Most pediatric chest pain is benign (musculoskeletal, GI, psychogenic).",
-            "For costochondritis, provide reassurance and analgesics (e.g., Ibuprofen).",
-            "Consider a trial of antacids for suspected reflux.",
-            "An EKG may be performed for reassurance, but is often not necessary if history and exam are clearly benign.",
-            "Discharge with outpatient follow-up."
+            "Musculoskeletal: If reproducible, provide reassurance and NSAIDs (Ibuprofen 10mg/kg).",
+            "Precordial Catch Syndrome: Reassure family if pain is very brief, sharp, and occurs at rest.",
+            "GERD: Consider a trial of antacids if pain is retrosternal and related to meals.",
+            "Psychogenic: Assess for stressors or anxiety if pain is recurrent and non-specific.",
+            "An EKG may be performed for parental reassurance but is often not strictly necessary if red flags are absent and the exam is classic for costochondritis.",
+            "Discharge with outpatient primary care follow-up."
           ]
         }];
     }
   },
   getDisposition: (severity, data) => {
     if (severity.level === 'severe' || severity.level === 'moderate') {
-      return ["Admission to a monitored bed is required for urgent workup and cardiology consultation."];
+      return [
+        "Admission to a monitored bed is required for patients with red flags, elevated Troponin, or abnormal EKG.",
+        "Consultation with Cardiology should occur prior to discharge for any 'moderate' risk case."
+      ];
     }
-    return ["Discharge is appropriate for patients with a clear benign cause of chest pain and no red flags."];
+    return ["Discharge home with reassurance and specific follow-up instructions is appropriate for low-risk, well-appearing children."];
   },
   getRedFlags: () => [
-    "Pain occurring during or after exercise.",
+    "Pain occurring DURING physical activity.",
     "Associated syncope or presyncope.",
-    "A sensation of racing or irregular heartbeat (palpitations).",
-    "Family history of sudden death, cardiomyopathy, or significant arrhythmias.",
-    "Abnormal findings on cardiac exam (murmur, gallop, click).",
-    "Signs of heart failure (edema, hepatomegaly, rales)."
+    "Pain radiating to the jaw, neck, or left arm.",
+    "Personal or family history of early sudden death, HCM, or Marfan syndrome.",
+    "Abnormal findings on cardiac exam (new murmur, gallop, distant heart sounds).",
+    "Known history of Kawasaki Disease (risk of coronary aneurysms)."
   ],
   getDrugDoses: () => [
-    { drugName: "Ibuprofen", dose: "10 mg/kg per dose", notes: "For musculoskeletal pain." },
+    { drugName: "Ibuprofen", dose: "10 mg/kg per dose (max 600-800mg)", notes: "For costochondritis or musculoskeletal pain." },
+    { drugName: "Acetaminophen", dose: "15 mg/kg per dose", notes: "For supportive care." }
   ],
-  getReferences: () => [{ title: "American Academy of Pediatrics: Evaluation and Management of Children and Adolescents With Chest Pain", url: "https://publications.aap.org/pediatrics/article/148/5/e2021053428/182962/Evaluation-and-Management-of-Children-and" }],
+  getReferences: () => [
+    { title: "AAP: Evaluation and Management of Children and Adolescents With Chest Pain", url: "https://publications.aap.org/pediatrics/article/148/5/e2021053428/182962/Evaluation-and-Management-of-Children-and" },
+    { title: "UpToDate: Evaluation of chest pain in children", url: "https://www.uptodate.com/contents/evaluation-of-chest-pain-in-children" }
+  ],
 };
