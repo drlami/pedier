@@ -31,8 +31,8 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
     const signsOfLowOutput = data.feedingHistory || data.exerciseIntolerance;
 
     if (signsOfCongestion || signsOfLowOutput) {
-      if (signsOfCongestion) details.push("Signs of systemic/pulmonary congestion present.");
-      if (signsOfLowOutput) details.push("Signs of poor cardiac output present.");
+      if (signsOfCongestion) details.push("Signs of systemic/pulmonary congestion present (Hepatomegaly/Edema/Rales).");
+      if (signsOfLowOutput) details.push("Signs of poor cardiac output present (Feeding issues/Fatigue).");
       details.push("Findings consistent with compensated heart failure.");
       return { level: 'moderate', details };
     }
@@ -46,41 +46,52 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
           title: "Management of Decompensated Heart Failure / Cardiogenic Shock",
           recommendations: [
             "This is a medical emergency. Treat as Cardiogenic Shock.",
-            "Provide respiratory support (oxygen, non-invasive or invasive ventilation).",
-            "Be cautious with IV fluids. Small boluses (5-10 mL/kg) only if clear evidence of hypovolemia.",
-            "Start inotropic support (e.g., Milrinone, Dobutamine, or Epinephrine) early.",
-            "Administer diuretics (e.g., Furosemide) to relieve congestion.",
-            "Obtain urgent Cardiology and PICU consultation.",
-            "See 'Cardiogenic Shock' protocol for more detail."
+            "Provide immediate respiratory support (oxygen, non-invasive ventilation or intubation).",
+            "BE JUDICIOUS WITH IV FLUIDS. Avoid large boluses; give 5-10 mL/kg only if clear hypovolemia exists.",
+            "Prioritize early Inotropic support: Start Milrinone or Dobutamine infusion early to improve contractility.",
+            "Administer IV Furosemide to relieve pulmonary and systemic congestion.",
+            "Establish multi-disciplinary care: Page Pediatric Cardiology and PICU immediately.",
+            "Continuous invasive/non-invasive blood pressure monitoring."
           ]
         }];
       default: // moderate or unknown
         return [{
           title: "Evaluation of Suspected Heart Failure",
           recommendations: [
-            "Obtain a 12-lead EKG and Chest X-ray (to look for cardiomegaly and pulmonary edema).",
-            "Obtain IV access and send labs, including BNP or pro-BNP, Troponin, CBC, and CMP.",
-            "An echocardiogram is the key diagnostic test and should be obtained.",
-            "Consult Pediatric Cardiology.",
-            "Initial management may include gentle diuresis if congested."
+            "12-Lead EKG: Evaluate for hypertrophy, ST changes, or arrhythmias.",
+            "Chest X-ray: Assess for cardiomegaly (CTR > 50-60%) and pulmonary venous congestion.",
+            "Laboratory Workup: Send NT-proBNP or BNP (high sensitivity/specificity for HF), Troponin, CMP (liver/renal function), and CBC.",
+            "Echocardiogram: The gold standard. Obtain an urgent bedside echo to assess ventricular function and rule out structural defects.",
+            "Maintain Bed Rest: Minimize myocardial oxygen demand.",
+            "Gentle Diuresis: Initiate IV Furosemide if systemic/pulmonary congestion is noted.",
+            "Consult Pediatric Cardiology for all suspected new-onset cases."
           ]
         }];
     }
   },
   getDisposition: (severity, data) => {
-    return ["All children with a new diagnosis of heart failure or a decompensated chronic condition require hospital admission.", "Patients with severe respiratory distress or requiring inotropic support must be admitted to the PICU."];
+    return [
+      "New Diagnosis: All children with a new diagnosis of heart failure require hospital admission for stabilization and workup.",
+      "Acuity: Patients with respiratory distress, poor perfusion, or requiring vasoactive infusions (Inotropes) must be admitted to the PICU.",
+      "Compensated: Stable patients with chronic HF and minor decompensation may occasionally be managed on a monitored floor in consultation with Cardiology."
+    ];
   },
   getRedFlags: () => [
-    "Respiratory distress, especially with rales.",
-    "Signs of shock (poor perfusion, weak pulses, hypotension).",
-    "Hepatomegaly.",
-    "A gallop rhythm (S3).",
-    "Failure to thrive in an infant with a murmur or tachypnea."
+    "Severe respiratory distress with rales (pulmonary edema).",
+    "Signs of cardiogenic shock (cool extremities, delayed cap refill, hypotension).",
+    "Significant hepatomegaly (indicating right-sided congestion).",
+    "A loud S3 gallop rhythm.",
+    "Failure to thrive/poor weight gain in infants.",
+    "Abrupt onset of symptoms following a viral illness (suspect Myocarditis)."
   ],
   getDrugDoses: () => [
-    { drugName: "Furosemide (IV)", dose: "1-2 mg/kg per dose", notes: "For diuresis." },
-    { drugName: "Milrinone Infusion", dose: "Load 50 mcg/kg over 10 min, then 0.25-0.75 mcg/kg/min infusion.", notes: "Inotrope and afterload reducer. Can cause hypotension." },
-    { drugName: "Dobutamine Infusion", dose: "Start 2-5 mcg/kg/min, titrate to effect.", notes: "Inotrope." }
+    { drugName: "Furosemide (Lasix)", dose: "1 mg/kg IV (Max 40-80 mg initial dose)", notes: "First-line to reduce preload/congestion." },
+    { drugName: "Milrinone Infusion", dose: "0.25 - 0.75 mcg/kg/min", notes: "Inotrope and afterload reducer. Loading dose (50mcg/kg) is often omitted in the ED to avoid hypotension." },
+    { drugName: "Dobutamine Infusion", dose: "2 - 10 mcg/kg/min", notes: "Pure inotrope. Titrate to effect." },
+    { drugName: "Spironolactone", dose: "1 - 2 mg/kg/day PO", notes: "Aldosterone antagonist, often added by Cardiology for long-term management." }
   ],
-  getReferences: () => [{ title: "UpToDate: Heart failure in children: Etiology, clinical manifestations, and diagnosis", url: "https://www.uptodate.com/contents/heart-failure-in-children-etiology-clinical-manifestations-and-diagnosis" }],
+  getReferences: () => [
+    { title: "ISHLT: Guidelines for the management of pediatric heart failure", url: "https://ishlt.org/" },
+    { title: "UpToDate: Heart failure in children: Management", url: "https://www.uptodate.com/contents/heart-failure-in-children-management" }
+  ],
 };
