@@ -58,22 +58,28 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
         return [{
           title: "Evaluation of Suspected Heart Failure",
           recommendations: [
+            "IMMEDIATE Cardiology Consultation: All new-onset cases require urgent specialist review.",
             "12-Lead EKG: Evaluate for hypertrophy, ST changes, or arrhythmias.",
             "Chest X-ray: Assess for cardiomegaly (CTR > 50-60%) and pulmonary venous congestion.",
-            "Laboratory Workup: Send NT-proBNP or BNP (high sensitivity/specificity for HF), Troponin, CMP (liver/renal function), and CBC.",
-            "Echocardiogram: The gold standard. Obtain an urgent bedside echo to assess ventricular function and rule out structural defects.",
+            "Laboratory Workup: Troponin, CMP (liver/renal function), and CBC.",
+            "Echocardiogram: The definitive diagnostic tool. Obtain an urgent bedside echo to assess ventricular function and rule out structural defects.",
             "Maintain Bed Rest: Minimize myocardial oxygen demand.",
-            "Gentle Diuresis: Initiate IV Furosemide if systemic/pulmonary congestion is noted.",
-            "Consult Pediatric Cardiology for all suspected new-onset cases."
+            "Gentle Diuresis: Initiate IV Furosemide if systemic/pulmonary congestion is noted."
           ]
         }];
     }
   },
   getDisposition: (severity, data) => {
     return [
-      "New Diagnosis: All children with a new diagnosis of heart failure require hospital admission for stabilization and workup.",
-      "Acuity: Patients with respiratory distress, poor perfusion, or requiring vasoactive infusions (Inotropes) must be admitted to the PICU.",
-      "Compensated: Stable patients with chronic HF and minor decompensation may occasionally be managed on a monitored floor in consultation with Cardiology."
+      "Absolute Admission (New Onset): All children with a new diagnosis of heart failure MUST be admitted for stabilization and workup.",
+      "PICU Admission: Required for patients with respiratory distress, poor perfusion, or those requiring vasoactive infusions.",
+      "Safe Discharge Criteria (PROTECTED): Discharge is only considered for KNOWN chronic patients if ALL the following are met:",
+      "1. Return to baseline clinical status (normal RR, no rales, normal feeding).",
+      "2. Stable weight (no evidence of acute fluid gain).",
+      "3. Tolerating all oral medications and feedings.",
+      "4. Normal electrolytes and stable renal function.",
+      "5. DIRECT clearance from the Pediatric Cardiology team.",
+      "6. Guaranteed reliable follow-up with Cardiology within 24-48 hours."
     ];
   },
   getRedFlags: () => [
