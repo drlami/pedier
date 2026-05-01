@@ -56,24 +56,24 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
     // NIAID/FAAN Criteria 3: Hypotension after KNOWN allergen
     const criteria3 = exposure === 'known' && hypotension;
 
-    if (hypotension) {
-      details.push("ANAPHYLACTIC SHOCK: Hypotension or end-organ dysfunction present.");
+    if (hypotension && (criteria1 || criteria2 || criteria3)) {
+      details.push("DIAGNOSIS: ANAPHYLACTIC SHOCK. Hypotension/End-organ dysfunction present.");
       return { level: 'severe', details };
     }
 
     if (criteria1 || criteria2 || criteria3) {
-      details.push("CONFIRMED ANAPHYLAXIS: Meets formal NIAID/FAAN diagnostic criteria.");
+      details.push("DIAGNOSIS: CONFIRMED ANAPHYLAXIS. Meets formal NIAID/FAAN diagnostic criteria.");
       return { level: 'severe', details };
     }
 
     // Pending/Likely Anaphylaxis Logic (captures early/progressing cases)
     if (count >= 1 && (exposure === 'likely' || exposure === 'known')) {
-        details.push("PENDING / LIKELY ANAPHYLAXIS: Significant symptoms after exposure. Do not wait for full criteria to develop if patient is worsening.");
+        details.push("DIAGNOSIS: PENDING / LIKELY ANAPHYLAXIS. Significant symptoms after exposure. High risk for rapid progression.");
         return { level: 'moderate', details };
     }
 
     if (onset && (respiratory || skinMucosal)) {
-         details.push("SUSPECTED ANAPHYLAXIS: Acute onset of systemic symptoms. Monitor extremely closely.");
+         details.push("DIAGNOSIS: SUSPECTED ANAPHYLAXIS. Acute onset of systemic symptoms. Monitor extremely closely.");
          return { level: 'moderate', details };
     }
 
@@ -92,45 +92,36 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
           ]
       });
 
-      if (severity.level === 'severe' || severity.level === 'moderate') {
-          const isPending = severity.level === 'moderate';
-          
-          management.push({
-              title: isPending ? "Management of PENDING Anaphylaxis" : "Management of CONFIRMED Anaphylaxis",
-              recommendations: [
-                  "Administer EPINEPHRINE 1:1,000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh.",
-                  isPending 
-                    ? "INDICATION FOR PENDING CASES: Administer Epinephrine IM immediately if there is ANY sign of respiratory distress, hemodynamic change, OR if symptoms are rapidly progressing following exposure."
-                    : "INDICATION: Administer immediately for confirmed criteria or shock.",
-                  "Repeat every 5-15 minutes if symptoms persist or worsen."
-              ]
-          });
+      if (severity.level === 'severe') {
+          const isShock = data.hypotension;
 
           management.push({
-              title: "Positioning & Oxygen",
+              title: isShock ? "Management of ANAPHYLACTIC SHOCK" : "Management of ANAPHYLAXIS",
               recommendations: [
-                  "Place patient in supine position with legs elevated. If in respiratory distress, allow position of comfort but avoid sudden sitting/standing.",
+                  "Administer EPINEPHRINE 1:1,000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh immediately.",
+                  "Repeat IM Epinephrine every 5-15 minutes if symptoms persist or worsen.",
+                  isShock ? "For SHOCK: Give rapid 20 mL/kg IV fluid boluses (NS or LR). Repeat as needed." : "Position patient supine with legs elevated.",
                   "Administer 100% high-flow oxygen via non-rebreather mask.",
-                  "Prepare for advanced airway management if upper airway obstruction (stridor) is progressive."
-              ]
+                  isShock ? "Refractory Shock: If shock persists after 2-3 IM doses and fluid boluses, start an Epinephrine IV Infusion (diluted 1:10,000)." : ""
+              ].filter(r => r !== "")
           });
 
           management.push({
-              title: "Fluid Resuscitation (for Shock)",
+              title: "Secondary (Adjunctive) Therapies",
               recommendations: [
-                  "If hypotension or signs of shock are present, give rapid 20 mL/kg boluses of isotonic crystalloid (NS or LR).",
-                  "Large volumes may be required due to massive capillary leak."
+                  "Antihistamines (H1 blocker e.g., Diphenhydramine): For skin symptoms (hives/itching) only. DOES NOT treat airway edema or shock.",
+                  "Corticosteroids (e.g., Hydrocortisone): For prevention of biphasic (recurrent) reactions. Onset is slow (4-6 hours).",
+                  "Nebulized Albuterol: For persistent wheezing/bronchospasm after epinephrine."
               ]
           });
-
+      } else if (severity.level === 'moderate') {
           management.push({
-              title: "Adjunctive (Second-Line) Therapies",
+              title: "Management of PENDING Anaphylaxis",
               recommendations: [
-                  "These DO NOT replace Epinephrine.",
-                  "H1 Antagonist: Diphenhydramine (Benadryl) for skin symptoms.",
-                  "H2 Antagonist: Famotidine.",
-                  "Corticosteroids: Hydrocortisone (may reduce risk of biphasic reaction, though onset is slow 4-6h).",
-                  "Nebulized Albuterol: For persistent wheezing/bronchospasm."
+                  "INDICATIONS FOR EPINEPHRINE: Administer IM Epinephrine IMMEDIATELY if there is any sign of respiratory distress, hemodynamic change, OR if symptoms are rapidly progressing.",
+                  "Place IV access and prepare fluids.",
+                  "Frequent vital sign and airway assessment (every 5-10 minutes).",
+                  "Have Epinephrine drawn up at the bedside ready to give."
               ]
           });
       } else {
@@ -148,16 +139,16 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
   },
   getDisposition: (severity, data) => {
     return [
-        "ADMIT/OBSERVE: All patients receiving Epinephrine require a minimum 4-8 hour observation period.",
-        "ADMIT TO PICU: For patients with hypotension, respiratory failure, or those requiring multiple doses of epinephrine.",
+        "ADMIT/OBSERVE: All patients receiving Epinephrine require a minimum 4-8 hour observation period due to biphasic reaction risk.",
+        "ADMIT TO PICU: For patients with hypotension (shock), respiratory failure, or those requiring multiple doses of epinephrine.",
         "DISCHARGE CRITERIA: Completely asymptomatic for at least 4-8 hours, reliable caregivers, and patient MUST be provided with an Epinephrine Auto-Injector (if available) and an Anaphylaxis Action Plan."
     ];
   },
   getRedFlags: () => [
-    "Stridor or muffled voice (upper airway edema)",
+    "Stridor or muffled voice (indicates critical upper airway edema)",
     "Severe wheezing refractory to epinephrine",
     "Hypotension or signs of shock (lethargy, cool extremities)",
-    "Biphasic reaction (symptoms returning after initial improvement)",
+    "Biphasic reaction (symptoms returning 1-72 hours after initial improvement)",
     "History of asthma (increases risk of fatal anaphylaxis)"
   ],
   getDrugDoses: (severity, data) => {
@@ -165,52 +156,50 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        // Epinephrine IM
+        // First Line
         doses.push({
             drugName: "Epinephrine IM (1:1,000 Stock)",
             dose: `0.01 mg/kg (max 0.5 mg) = ${(0.01 * weight).toFixed(2)} mL IM`,
-            notes: "Give UNDILUTED IM into mid-outer thigh. May repeat q5-15 min."
+            notes: "INDICATION: First-line for all systemic signs. Give UNDILUTED IM into mid-outer thigh. May repeat q5-15 min."
         });
 
-        // IV Bolus
-        doses.push({
-            drugName: "Isotonic Fluid Bolus (NS/LR)",
-            dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`,
-            notes: "Repeat as needed for shock."
-        });
-
-        // Push Dose Epi (Rescue ONLY)
-        doses.push({
-            drugName: "Epinephrine IV/IO (1:10,000 DILUTED)",
-            dose: `0.1 mL/kg = ${(0.1 * weight).toFixed(2)} mL`,
-            notes: "RESCUE DOSE FOR SHOCK ONLY. Must dilute 1:1,000 stock to 1:10,000 first (1mL drug + 9mL Saline)."
-        });
+        // Shock specific
+        if (data.hypotension || severity.level === 'severe') {
+            doses.push({
+                drugName: "Isotonic Fluid Bolus (NS/LR)",
+                dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`,
+                notes: "INDICATION: Anaphylactic Shock. Repeat as needed."
+            });
+            doses.push({
+                drugName: "Epinephrine IV/IO (1:10,000 DILUTED)",
+                dose: `0.1 mL/kg = ${(0.1 * weight).toFixed(2)} mL`,
+                notes: "RESCUE DOSE FOR SHOCK ONLY. Must dilute 1:1,000 stock to 1:10,000 first (1mL drug + 9mL Saline)."
+            });
+            const epiInfusion = calculateEpinephrineInfusion(weight);
+            doses.push({
+                drugName: "Epinephrine IV Infusion (Refractory Shock)",
+                dose: "Start at 0.1 mcg/kg/min. Titrate to effect.",
+                notes: `${epiInfusion.notes} ${epiInfusion.dose}`
+            });
+        }
 
         // Adjuvants
         doses.push({
             drugName: "Hydrocortisone IV",
             dose: `2-4 mg/kg (max 100-200 mg) = ${(2 * weight).toFixed(0)} to ${(4 * weight).toFixed(0)} mg`,
-            notes: "To help prevent biphasic reactions."
+            notes: "INDICATION: Prevention of biphasic reactions. Second-line therapy."
         });
         doses.push({
-            drugName: "Diphenhydramine IV/IM/PO",
+            drugName: "Diphenhydramine (Benadryl) IV/IM/PO",
             dose: `1 mg/kg (max 50 mg) = ${weight.toFixed(0)} mg`,
-            notes: "For cutaneous symptoms only."
-        });
-
-        // Infusion
-        const epiInfusion = calculateEpinephrineInfusion(weight);
-        doses.push({
-            drugName: "Epinephrine IV Infusion (Refractory Shock)",
-            dose: "Start at 0.1 mcg/kg/min. Titrate to effect.",
-            notes: `${epiInfusion.notes} ${epiInfusion.dose}`
+            notes: "INDICATION: Skin symptoms (hives/itching) only. Second-line therapy."
         });
 
     } else {
         doses.push({ drugName: "Epinephrine IM (1:1,000)", dose: "0.01 mg/kg (max 0.5 mg)", notes: "UNDILUTED IM into thigh." });
         doses.push({ drugName: "IV Fluid Bolus", dose: "20 mL/kg", notes: "For shock." });
         doses.push({ drugName: "Epinephrine IV/IO (1:10,000)", dose: "0.1 mL/kg (0.01 mg/kg)", notes: "RESCUE ONLY. Dilute 1:10 first." });
-        doses.push({ drugName: "Epinephrine Infusion", dose: "0.1 mcg/kg/min", notes: "For refractory shock." });
+        doses.push({ drugName: "Hydrocortisone IV", dose: "2-4 mg/kg", notes: "Biphasic prevention." });
     }
 
     return doses;
@@ -218,6 +207,6 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
   getReferences: () => [
       { title: "NIAID/FAAN: Guidelines for the Diagnosis and Management of Food Allergy", url: "https://www.niaid.nih.gov/" },
       { title: "AAP: Epinephrine for the Treatment of Anaphylaxis", url: "https://publications.aap.org/pediatrics" },
-      { title: "UpToDate: Anaphylaxis in children: Management", url: "https://www.uptodate.com/" }
+      { title: "PALS 2020: Management of Anaphylactic Shock", url: "https://cpr.heart.org/" }
   ],
 };
