@@ -4,56 +4,58 @@ export const feverRashProtocol: DiseaseProtocol = {
   id: 'fever-rash',
   name: 'Fever with Rash',
   system: 'Fever & Infectious Diseases',
-  description: 'Differentiating benign viral exanthems from life-threatening conditions. Includes specific management for meningococcemia, Kawasaki, and TSS.',
+  description: 'A pediatric framework for differentiating benign viral exanthems from life-threatening conditions like meningococcemia, Toxic Shock Syndrome, and Kawasaki Disease.',
   image: {
     url: "https://picsum.photos/seed/fever-rash/600/400",
     hint: "child rash"
   },
   questions: [
-    { id: 'isToxic', questionText: 'Is the child toxic-appearing or in shock?', type: 'boolean', info: 'Lethargy, poor perfusion, altered mental status, or significant tachycardia.' },
-    { id: 'rashType', questionText: 'Primary rash character?', type: 'select', options: [
-        { label: 'Maculopapular (blanching)', value: 'maculopapular' },
-        { label: 'Petechial/Purpuric (non-blanching)', value: 'petechial' },
-        { label: 'Vesicular/Bullous (blisters)', value: 'vesicular' },
-        { label: 'Urticarial (hives)', value: 'urticarial' },
-        { label: 'Diffuse Erythroderma (sunburn-like)', value: 'erythroderma' }
+    { id: 'isToxic', questionText: 'Does the child appear toxic or septic?', type: 'boolean', info: 'Signs include lethargy, poor perfusion (cool skin, delayed cap refill), extreme irritability, or altered mental status.' },
+    { id: 'rashType', questionText: 'What is the primary character of the rash?', type: 'select', options: [
+        { label: 'Blanching (Disappears when pressed)', value: 'maculopapular' },
+        { label: 'Non-blanching (Petechiae or Purpura)', value: 'petechial' },
+        { label: 'Vesicular (Blisters or Fluid-filled)', value: 'vesicular' },
+        { label: 'Diffuse Erythroderma (Sunburn-like redness)', value: 'erythroderma' },
+        { label: 'Urticarial (Hives/Wheals)', value: 'urticarial' }
     ]},
-    { id: 'hasSloughing', questionText: 'Skin sloughing or positive Nikolsky sign?', type: 'boolean', info: 'Skin peels off with gentle pressure. Suggests SJS/TEN or SSSS.' },
-    { id: 'mucosalInvolvement', questionText: 'Mucosal involvement?', type: 'boolean', info: 'Strawberry tongue, cracked lips, conjunctivitis, or oral ulcers.' },
-    { id: 'feverDuration', questionText: 'Duration of fever (days)', type: 'number' },
-    { id: 'hasJointSwelling', questionText: 'Focal findings (joint swelling or extreme tenderness)?', type: 'boolean' },
+    { id: 'hasSloughing', questionText: 'Is the skin peeling, sloughing, or blistering easily?', type: 'boolean', info: 'Positive Nikolsky sign: Top layer of skin slips off with gentle pressure. Suggests SJS/TEN or SSSS.' },
+    { id: 'mucosalInvolvement', questionText: 'Are the mouth, eyes, or genitals involved?', type: 'boolean', info: 'Look for: Strawberry tongue, cracked/bleeding lips, red eyes (conjunctivitis), or ulcers in mouth/genitals.' },
+    { id: 'feverDuration', questionText: 'Duration of fever (total days)', type: 'number' },
+    { id: 'hasJointSwelling', questionText: 'Is there joint swelling or refusal to move a limb?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
     const feverDays = Number(data.feverDuration) || 0;
 
-    // 1. Immediate Life Threats
+    // 1. CRITICAL RED FLAGS (Severe)
     if (data.isToxic || data.rashType === 'petechial' || data.hasSloughing) {
       if (data.isToxic) details.push("Toxic/Septic appearance");
-      if (data.rashType === 'petechial') details.push("Non-blanching petechial rash (High risk for Meningococcemia)");
+      if (data.rashType === 'petechial') details.push("Non-blanching rash (Emergency: Concern for Meningococcemia)");
       if (data.hasSloughing) details.push("Skin sloughing present (Concern for SJS/TEN or SSSS)");
-      return { level: 'severe', details: [...details, "CRITICAL: Life-threatening condition suspected."] };
+      return { level: 'severe', details: [...details, "LIFE-THREATENING condition suspected. Immediate resuscitation and antibiotics required."] };
     }
 
-    // 2. High-Risk Inflammatory/Bacterial
-    if (feverDays >= 5 && data.mucosalInvolvement) {
-        details.push("Fever ≥ 5 days with mucosal signs. High suspicion for Kawasaki Disease.");
-        return { level: 'moderate', details };
-    }
-    
+    // 2. Toxic Shock Syndrome suspicion
     if (data.rashType === 'erythroderma' && data.isToxic) {
-        details.push("Diffuse erythroderma with toxicity. Concern for Toxic Shock Syndrome.");
+        details.push("Diffuse sunburn-like rash with toxicity. High suspicion for Toxic Shock Syndrome.");
         return { level: 'severe', details };
     }
 
-    // 3. Moderate / Needs Evaluation
-    if (data.rashType === 'vesicular' || data.mucosalInvolvement || data.hasJointSwelling) {
-        details.push("Concerning features requiring diagnostic labs and observation.");
+    // 3. CONCERNING FEATURES (Moderate)
+    if (feverDays >= 5 && data.mucosalInvolvement) {
+        details.push("Fever ≥ 5 days + mucosal changes. High suspicion for Kawasaki Disease.");
         return { level: 'moderate', details };
     }
+    
+    if (data.rashType === 'vesicular' || data.mucosalInvolvement || data.hasJointSwelling) {
+        if (data.rashType === 'vesicular') details.push("Vesicular rash (e.g., HSV, VZV, HFM)");
+        if (data.mucosalInvolvement) details.push("Mucosal involvement (eyes, mouth, or genitals)");
+        if (data.hasJointSwelling) details.push("Joint swelling/refusal to walk (Concern for Septic Arthritis)");
+        return { level: 'moderate', details: [...details, "Concerning features requiring diagnostic labs and hospital observation."] };
+    }
 
-    // 4. Low Risk
-    details.push("Well-appearing with a blanching rash. Likely a viral exanthem.");
+    // 4. LOW RISK (Mild)
+    details.push("Well-appearing with a purely blanching rash. Likely a viral exanthem.");
     return { level: 'mild', details };
   },
   getManagement: (severity, data) => {
@@ -61,34 +63,33 @@ export const feverRashProtocol: DiseaseProtocol = {
 
     if (severity.level === 'severe') {
         management.push({
-            title: "EMERGENCY: Stabilization & Resuscitation",
+            title: "EMERGENCY: Immediate Stabilization",
             recommendations: [
-                "ACT FAST: If petechial or toxic, treat as Meningococcemia/Septic Shock.",
-                "1. RESUSCITATE: 20 mL/kg IV fluid boluses (NS/LR).",
-                "2. ANTIBIOTICS: Give IV Ceftriaxone (100mg/kg) and Vancomycin (15mg/kg) IMMEDIATELY. Do not wait for labs.",
-                "3. LABS: CBC, CRP, Blood Culture, Coagulation panel (PT/INR, PTT), Fibrinogen, Electrolytes, Creatinine, LFTs.",
-                "4. LP: Defer lumbar puncture if patient is unstable or has coagulopathy.",
-                "5. CONSULT: Page PICU and Infectious Disease immediately."
+                "1. RESUSCITATE: Provide 100% oxygen. Give 20 mL/kg IV fluid boluses (NS/LR) if in shock.",
+                "2. ANTIBIOTICS: Do not wait for labs. Give IV Ceftriaxone (100mg/kg) and Vancomycin (15mg/kg) IMMEDIATELY.",
+                "3. LABS: Draw 'Sepsis Panel': Blood culture, CBC with diff, CRP/ESR, electrolytes, LFTs, creatinine, and venous blood gas.",
+                "4. COAGULATION: Check PT/INR, aPTT, and Fibrinogen to evaluate for DIC (common in meningococcemia).",
+                "5. CONSULT: Immediate Pediatric Infectious Disease and PICU consultation."
             ]
         });
     } else if (severity.level === 'moderate') {
         management.push({
-            title: "Diagnostic Evaluation (Moderate Risk)",
+            title: "Diagnostic Evaluation & Monitoring",
             recommendations: [
-                "LABS: CBC, CRP/ESR, LFTs, and Urinalysis.",
-                "Kawasaki Workup: If fever >4-5 days, obtain EKG and consider urgent Echocardiogram.",
-                "If vesicular: Consider HSV/VZV PCR or swabs.",
-                "Observe for 4-6 hours to ensure hydration and stability."
+                "LABS: CBC, CRP, LFTs, and Urinalysis.",
+                "KAWASAKI WORKUP: If fever >4-5 days, obtain 12-lead EKG and consult Cardiology for an urgent Echocardiogram.",
+                "INVOLVED MUCOSA: Maintain hydration. Consider HSV PCR or viral swabs if vesicular.",
+                "ADMIT: Most moderate-risk rashes require 24-hour observation to ensure stability and follow diagnostic trends."
             ]
         });
     } else {
         management.push({
             title: "Supportive Care (Viral Exanthem)",
             recommendations: [
-                "Provide antipyretics (Acetaminophen or Ibuprofen) for comfort.",
+                "Antipyretics: Acetaminophen (15mg/kg) or Ibuprofen (10mg/kg) for comfort.",
                 "Encourage oral hydration.",
-                "Provide parent education on viral course and return precautions.",
-                "No routine labs required if child is strictly well-appearing with a blanching rash."
+                "Education: Reassure family about the typical course of viral rashes.",
+                "No routine labs are indicated if the child is strictly well-appearing with a blanching rash."
             ]
         });
     }
@@ -96,36 +97,36 @@ export const feverRashProtocol: DiseaseProtocol = {
     return management;
   },
   getDisposition: (severity, data) => {
-    const disposition = [];
     if (severity.level === 'severe') {
-        disposition.push("ADMIT TO PICU immediately.");
+        return ["ADMIT TO PICU immediately for stabilization and intensive monitoring."];
     } else if (severity.level === 'moderate') {
-        disposition.push("Admission typically required for observation, IVIG (if Kawasaki), or parenteral antibiotics.");
+        return ["ADMIT TO HOSPITAL for IV antibiotics, Kawasaki monitoring, or further diagnostic workup."];
     } else {
-        disposition.push("SAFE DISCHARGE CRITERIA (Must meet ALL):");
-        disposition.push("1. Child is strictly well-appearing and alert.");
-        disposition.push("2. Rash is purely blanching (no petechiae, no purpura).");
-        disposition.push("3. No signs of mucosal involvement or skin sloughing.");
-        disposition.push("4. Tolerating adequate oral fluids.");
-        disposition.push("5. Fever is responsive to antipyretics.");
-        disposition.push("6. Guaranteed reliable caregiver and follow-up within 24 hours.");
+        return [
+            "SAFE DISCHARGE CRITERIA (Must meet ALL):",
+            "1. Child is strictly well-appearing, alert, and active.",
+            "2. Rash is purely blanching (No petechiae/purpura).",
+            "3. No Nikolsky sign (skin sloughing) and no mucosal ulcerations.",
+            "4. Tolerating adequate oral fluids.",
+            "5. Fever is well-controlled with antipyretics.",
+            "6. Reliable caregivers and guaranteed follow-up within 24 hours."
+        ];
     }
-    return disposition;
   },
   getRedFlags: () => [
-    "ANY non-blanching (petechial or purpuric) rash.",
-    "Toxic appearance or altered mental status.",
-    "Skin sloughing or blisters (Nikolsky's sign).",
-    "Fever persisting > 5 days with mucosal changes (Kawasaki).",
-    "Hypotension or signs of shock (poor perfusion).",
-    "Extreme joint pain or refusal to walk."
+    "NON-BLANCHING (Petechial or Purpuric) rash: This is an emergency until proven otherwise.",
+    "Toxic appearance: Lethargy, poor perfusion, or altered mental status.",
+    "Nikolsky Sign: Skin sloughing or blisters that slip when touched.",
+    "Fever persisting > 5 days with strawberry tongue/red eyes (Kawasaki).",
+    "Extreme joint pain, swelling, or refusal to walk.",
+    "Hypotension or signs of septic shock."
   ],
   getDrugDoses: (severity, data) => {
     return [
-      { drugName: "Ceftriaxone (Meningitis/Sepsis dose)", dose: "100 mg/kg IV once (max 2g)", notes: "For suspected meningococcemia." },
-      { drugName: "Vancomycin", dose: "15 mg/kg IV q6h", notes: "Added for MRSA/TSS coverage in septic patients." },
+      { drugName: "Ceftriaxone (Meningitis/Sepsis dose)", dose: "100 mg/kg IV once (max 2g)", notes: "First-line for suspected meningococcemia." },
+      { drugName: "Vancomycin", dose: "15 mg/kg IV q6h", notes: "Added for MRSA or Toxic Shock coverage." },
       { drugName: "IVIG (for Kawasaki)", dose: "2 g/kg as a single infusion", notes: "Consult Cardiology first." },
-      { drugName: "Acyclovir", dose: "20 mg/kg IV q8h", notes: "If neonatal HSV or complicated VZV is suspected." }
+      { drugName: "Acetaminophen", dose: "15 mg/kg every 4-6 hours", notes: "For fever/pain." }
     ];
   },
   getReferences: () => [
