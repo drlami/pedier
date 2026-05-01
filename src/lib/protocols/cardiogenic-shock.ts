@@ -29,35 +29,42 @@ export const cardiogenicShockProtocol: DiseaseProtocol = {
       if (details.length > 0) {
           return { level: 'severe', details: [...details, "Signs of heart failure are present, highly suggestive of cardiogenic shock."] };
       }
-      return { level: 'unknown', details: ['Cardiogenic shock should be suspected in any child with shock unresponsive to fluids or with signs of fluid overload.'] };
+      return { level: 'unknown', details: ['Suspect Cardiogenic Shock? Use the "Shock Classification Tool" if undifferentiated.'] };
   },
   getManagement: () => [{
       title: "Management of Cardiogenic Shock",
       recommendations: [
           "This is a PICU and Cardiology emergency.",
           "BE JUDICIOUS WITH FLUIDS. Large-volume fluid resuscitation will worsen pulmonary edema and pump failure.",
-          "Administer small fluid boluses (5-10 mL/kg over 15-30 minutes) only if there is clear evidence of hypovolemia and no signs of fluid overload. Reassess constantly.",
-          "Prioritize starting INOTROPIC and/or VASOACTIVE infusions early to improve cardiac contractility and manage afterload.",
-          "Adrenaline (epinephrine) is often a good first choice in undifferentiated cardiogenic shock as it provides both inotropy and vasoconstriction.",
+          "Administer small fluid boluses (5-10 mL/kg over 15-30 minutes) only if there is clear evidence of hypovolemia and no signs of fluid overload.",
+          "Prioritize starting INOTROPIC infusions early to improve cardiac contractility.",
+          "Adrenaline (epinephrine) is often a good first choice in undifferentiated shock as it provides both inotropy and vasoconstriction.",
           "Milrinone is a good choice if afterload reduction is desired (inodilator), but can cause hypotension.",
-          "Dobutamine provides inotropy without significant vasoconstriction.",
           "Obtain EKG and urgent bedside echocardiogram.",
-          "Consider diuretics (e.g., Furosemide) if fluid overload is present."
+          "Consider diuretics (e.g., Furosemide) if fluid overload is present and BP is stable."
       ]
   }],
   getDisposition: () => ['Immediate admission to a Pediatric Intensive Care Unit (PICU) with urgent Pediatric Cardiology consultation is mandatory.'],
   getRedFlags: () => [
-      'Shock with signs of fluid overload (rales, hepatomegaly, jugular venous distention)',
+      'Shock with signs of fluid overload (rales, hepatomegaly)',
       'Worsening respiratory distress after a fluid bolus',
-      'A new, loud holosystolic murmur',
-      'Cardiomegaly or pulmonary edema on chest x-ray'
+      'A new, loud heart murmur',
+      'Cardiomegaly on chest x-ray'
   ],
-  getDrugDoses: () => [
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    if (weight > 0) {
+        return [
+            { drugName: "Cautious Fluid Bolus", dose: `5-10 mL/kg = ${(5 * weight).toFixed(0)}-${(10 * weight).toFixed(0)} mL over 30 min` },
+            { drugName: "Adrenaline Infusion", dose: "Start at 0.05-0.1 mcg/kg/min" },
+            { drugName: "Milrinone Infusion", dose: "0.25-0.75 mcg/kg/min", notes: "Afterload reducer. Use with caution if hypotensive." },
+            { drugName: "Furosemide", dose: `${weight.toFixed(0)} mg IV (1 mg/kg)`, notes: "Only for fluid overload if stable." }
+        ];
+    }
+    return [
       { drugName: "Cautious Fluid Bolus", dose: "5-10 mL/kg over 15-30 minutes" },
-      { drugName: "Adrenaline (Epinephrine) Infusion", dose: "Start 0.05-0.1 mcg/kg/min, titrate to effect." },
-      { drugName: "Milrinone Infusion", dose: "Load 50 mcg/kg over 10 min, then 0.25-0.75 mcg/kg/min infusion.", notes: "Use with caution, can cause hypotension." },
-      { drugName: "Dobutamine Infusion", dose: "Start 2-5 mcg/kg/min, titrate to effect (up to 20 mcg/kg/min)." },
-      { drugName: "Furosemide", dose: "1-2 mg/kg IV", notes: "For diuresis in fluid overload."}
-  ],
+      { drugName: "Adrenaline Infusion", dose: "Start 0.05-0.1 mcg/kg/min" },
+    ];
+  },
   getReferences: () => [{ title: "UpToDate: Initial management of shock in children", url: "https://www.uptodate.com/contents/initial-management-of-shock-in-children" }],
 };

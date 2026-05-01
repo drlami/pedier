@@ -15,54 +15,51 @@ export const hypovolemicShockProtocol: DiseaseProtocol = {
         {label: 'Non-Hemorrhagic (e.g., gastroenteritis, DKA)', value: 'non_hemorrhagic'},
         {label: 'Hemorrhagic (e.g., trauma, GI bleed)', value: 'hemorrhagic'},
     ]},
+    { id: 'isStable', questionText: 'Is the patient responsive to initial fluids?', type: 'boolean' },
   ],
-  calculateSeverity: () => ({ level: 'severe', details: ['Hypovolemic shock is a life-threatening condition requiring immediate intervention.'] }),
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.cause === 'hemorrhagic') return { level: 'severe', details: ['Hemorrhagic shock is a critical emergency.'] };
+    return { level: 'severe', details: ['Hypovolemic shock requires immediate volume restoration. Use the "Shock Classification Tool" if mechanism is unclear.'] };
+  },
   getManagement: (severity, data) => {
     switch (data.cause) {
         case 'non_hemorrhagic':
             return [{ title: "Management of Non-Hemorrhagic Hypovolemic Shock", recommendations: [
                 "The goal is to rapidly restore intravascular volume with isotonic crystalloids.",
                 "Administer 20 mL/kg boluses of Normal Saline or Lactated Ringer's over 5-20 minutes.",
-                "Reassess perfusion, heart rate, blood pressure, and mental status after each bolus.",
-                "Repeat boluses as needed, often up to 40-60 mL/kg.",
-                "If shock persists, consider other causes of shock and start vasoactive medications (see Septic Shock protocol)."
+                "Reassess perfusion, HR, BP, and mental status after EACH bolus.",
+                "Repeat boluses as needed, up to a total of 40-60 mL/kg.",
+                "If shock persists after 60 mL/kg, start vasoactive medications (Adrenaline)."
             ]}];
         case 'hemorrhagic':
             return [{ title: "Management of Hemorrhagic Shock", recommendations: [
-                "The first priority is to CONTROL THE SOURCE OF BLEEDING.",
-                "While controlling bleeding, begin volume resuscitation.",
+                "FIRST PRIORITY: CONTROL THE SOURCE OF BLEEDING.",
                 "Administer ONE bolus of 20 mL/kg isotonic crystalloid while awaiting blood products.",
-                "Switch to blood products as soon as possible. Give Packed Red Blood Cells (PRBCs) in 10-15 mL/kg aliquots.",
-                "For massive hemorrhage, activate massive transfusion protocol. The goal is balanced resuscitation with a 1:1:1 ratio of PRBCs : Fresh Frozen Plasma (FFP) : Platelets.",
-                "Consult Trauma Surgery and/or Pediatric GI immediately."
+                "SWITCH TO BLOOD PRODUCTS ASAP. Give Packed Red Blood Cells (PRBCs) in 10-15 mL/kg aliquots.",
+                "MASSIVE HEMORRHAGE: Activate massive transfusion protocol. Goal 1:1:1 ratio (PRBCs : FFP : Platelets).",
+                "Consult Trauma Surgery / Pediatric GI immediately."
             ]}];
         default:
             return [];
     }
   },
-  getDisposition: () => ['All patients in hypovolemic shock require admission to the hospital, with hemorrhagic shock and severe non-hemorrhagic shock requiring PICU level care.'],
-  getRedFlags: () => ['Hypotension for age', 'Altered mental status', 'Tachycardia with weak pulses', 'Active, uncontrolled bleeding', 'Failure to respond to initial fluid boluses'],
+  getDisposition: () => ['All patients in hypovolemic shock require admission to the hospital, typically to a PICU.'],
+  getRedFlags: () => ['Hypotension for age', 'Altered mental status', 'Failure to respond to initial 40 mL/kg of fluid'],
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
     if (weight > 0) {
         doses.push({
             drugName: "Isotonic Crystalloid Bolus",
-            dose: `20 mL/kg = ${(20*weight).toFixed(0)} mL`
+            dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`
         });
         doses.push({
             drugName: "Packed Red Blood Cells (PRBCs)",
-            dose: `10-15 mL/kg = ${(10*weight).toFixed(0)}-${(15*weight).toFixed(0)} mL`
+            dose: `10-15 mL/kg = ${(10 * weight).toFixed(0)}-${(15 * weight).toFixed(0)} mL`
         });
     } else {
-         doses.push({
-            drugName: "Isotonic Crystalloid Bolus",
-            dose: `20 mL/kg`
-        });
-        doses.push({
-            drugName: "Packed Red Blood Cells (PRBCs)",
-            dose: `10-15 mL/kg`
-        });
+         doses.push({ drugName: "Isotonic Bolus", dose: "20 mL/kg" });
+         doses.push({ drugName: "PRBCs", dose: "10-15 mL/kg" });
     }
     return doses;
   },

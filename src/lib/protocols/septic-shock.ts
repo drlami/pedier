@@ -23,13 +23,6 @@ const calculateInfusion = (drugName: string, weight: number): { dose: string, no
                 notes: `Preparation: Add ${mgIn100ml} mL of your 1 mg/mL (1:1,000) stock Noradrenaline to a 100mL bag of D5W or NS.`
             };
         }
-        case "Dopamine": {
-             const mgIn100ml = (60 * weight).toFixed(2);
-            return {
-                dose: "Standard Infusion: 60 x weight (kg) in 100mL fluid. At this concentration, 1 mL/hr = 10 mcg/kg/min.",
-                notes: `Preparation: Add ${mgIn100ml} mg of Dopamine to a 100mL bag of D5W or NS.`
-            };
-        }
         default:
             return { dose: "", notes: "" };
     }
@@ -74,12 +67,11 @@ export const septicShockProtocol: DiseaseProtocol = {
     }
 
     if (suspectedInfection) {
-        details.push("DIAGNOSIS: SEPSIS. Infection present with high risk of progression to shock. Monitor vitals every 15 minutes.");
+        details.push("DIAGNOSIS: SEPSIS. Infection present with high risk of progression to shock.");
         return { level: 'moderate', details };
     }
 
-    details.push("Does not currently meet sepsis/shock criteria. Maintain high index of suspicion if febrile/ill.");
-    return { level: 'mild', details };
+    return { level: 'unknown', details: ["Suspect Sepsis/Septic Shock? Use the 'Shock Classification' tool if undifferentiated."] };
   },
   getManagement: (severity, data) => {
       const management = [];
@@ -101,9 +93,9 @@ export const septicShockProtocol: DiseaseProtocol = {
               title: "2. URGENT ANTIBIOTICS",
               recommendations: [
                   "ADMINISTER WITHIN 60 MINUTES: Every hour of delay increases mortality risk.",
-                  "CULTURES FIRST: Draw blood cultures (from Central and Peripheral if applicable) ONLY if it doesn't delay antibiotics.",
+                  "CULTURES FIRST: Draw blood cultures ONLY if it doesn't delay antibiotics.",
                   "EMPIRIC CHOICE: Start broad-spectrum therapy (e.g., Ceftriaxone + Vancomycin).",
-                  "SOURCE CONTROL: Identify and address source (e.g., drain abscess, remove infected catheter)."
+                  "SOURCE CONTROL: Identify and address source (e.g., drain abscess)."
               ]
           });
 
@@ -112,18 +104,8 @@ export const septicShockProtocol: DiseaseProtocol = {
               title: "3. VASOACTIVE SUPPORT (Fluid-Refractory)",
               recommendations: [
                   "WHEN TO START: If shock persists after 40-60 mL/kg of fluid.",
-                  isCold ? "COLD SHOCK: Start ADRENALINE (EPINEPHRINE) infusion (0.05-0.1 mcg/kg/min)." : "WARM SHOCK: Start NORADRENALINE (NOREPINEPHRINE) infusion (0.05-0.1 mcg/kg/min).",
-                  "PERIPHERAL USE: Vasoactives can be started through a high-quality peripheral IV while awaiting central access.",
-                  "PUSH-DOSE RESCUE: Use diluted Adrenaline (1:10,000) for immediate rescue during transition to infusion."
-              ]
-          });
-
-          management.push({
-              title: "4. ADJUNCTIVE STEPS",
-              recommendations: [
-                  "GLUCOSE: Check bedside glucose. Treat hypoglycemia (<60-70 mg/dL).",
-                  "CALCIUM: Check ionized calcium. Replete if low to improve cardiac contractility.",
-                  "OXYGEN: Provide high-flow oxygen. Consider early intubation for persistent respiratory distress or failure to improve."
+                  isCold ? "COLD SHOCK: Start ADRENALINE infusion (0.05-0.1 mcg/kg/min)." : "WARM SHOCK: Start NORADRENALINE infusion (0.05-0.1 mcg/kg/min).",
+                  "PERIPHERAL USE: Vasoactives can be started through a high-quality peripheral IV while awaiting central access."
               ]
           });
       } else if (severity.level === 'moderate') {
@@ -140,73 +122,50 @@ export const septicShockProtocol: DiseaseProtocol = {
       return management;
   },
   getDisposition: () => [
-      "ADMIT TO PICU: All patients in septic shock require immediate admission to the Pediatric Intensive Care Unit.",
-      "TRANSFER: If PICU level care is not available, stabilize and arrange for emergent transport to a pediatric tertiary center."
+      "ADMIT TO PICU: All patients in septic shock require immediate admission to the Pediatric Intensive Care Unit."
   ],
   getRedFlags: () => [
-    "Hypotension (Late, ominous sign in children)",
-    "Altered Mental Status (Irritable/Lethargic)",
-    "Persistent tachycardia or tachypnea",
-    "Capillary refill > 2 seconds (Cold) or < 1 second (Warm)",
-    "Mottled or cool skin",
-    "Hypothermia (<36°C) or High Fever (>38.5°C)"
+    "Hypotension (Late, ominous sign)",
+    "Altered Mental Status",
+    "Capillary refill > 2s (Cold) or < 1s (Warm)",
+    "Mottled skin",
+    "Hypothermia (<36°C)"
   ],
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
-        // Fluid
         doses.push({
             drugName: "Isotonic Fluid Bolus (NS/LR)",
             dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`,
-            notes: "Give over 5-10 min. Repeat as needed up to 60 mL/kg total."
+            notes: "Give over 5-10 min. Repeat up to 60 mL/kg total."
         });
 
-        // Vasoactives
         const epiInfusion = calculateInfusion("Adrenaline", weight);
         doses.push({
-            drugName: "Adrenaline (Epinephrine) Infusion",
+            drugName: "Adrenaline Infusion (for Cold Shock)",
             dose: "Start at 0.05-0.1 mcg/kg/min. Titrate to effect.",
-            notes: `FIRST-LINE FOR COLD SHOCK. ${epiInfusion.notes} ${epiInfusion.dose}`
+            notes: `${epiInfusion.notes} ${epiInfusion.dose}`
         });
 
         const norEpiInfusion = calculateInfusion("Noradrenaline", weight);
         doses.push({
-            drugName: "Noradrenaline (Norepinephrine) Infusion",
+            drugName: "Noradrenaline Infusion (for Warm Shock)",
             dose: "Start at 0.05-0.1 mcg/kg/min. Titrate to effect.",
-            notes: `FIRST-LINE FOR WARM SHOCK. ${norEpiInfusion.notes} ${norEpiInfusion.dose}`
+            notes: `${norEpiInfusion.notes} ${norEpiInfusion.dose}`
         });
 
-        doses.push({
-            drugName: "Adrenaline 1:10,000 Diluted (Rescue Push)",
-            dose: `0.1 mL/kg = ${(0.1 * weight).toFixed(2)} mL`,
-            notes: "RESCUE ONLY. Dilute 1 mg (1:1,000) stock with 9 mL saline to make 10 mL of 1:10,000 concentration first."
-        });
-
-        // Antibiotics
         doses.push({
             drugName: "Ceftriaxone (IV)",
             dose: `100 mg/kg (max 2g) = ${Math.min(100 * weight, 2000).toFixed(0)} mg`,
-            notes: "INDICATION: Broad-spectrum empiric coverage. Give within 60 min."
+            notes: "Give within 60 min."
         });
-        doses.push({
-            drugName: "Vancomycin (IV)",
-            dose: `15-20 mg/kg = ${(15 * weight).toFixed(0)}-${(20 * weight).toFixed(0)} mg`,
-            notes: "INDICATION: Suspected MRSA or resistant Strep. Give within 60 min."
-        });
-
-    } else {
-        doses.push({ drugName: "Fluid Bolus", dose: "20 mL/kg over 5-10 min", notes: "NS or LR." });
-        doses.push({ drugName: "Adrenaline Infusion", dose: "0.05 - 0.3 mcg/kg/min", notes: "For Cold Shock." });
-        doses.push({ drugName: "Noradrenaline Infusion", dose: "0.05 - 0.3 mcg/kg/min", notes: "For Warm Shock." });
-        doses.push({ drugName: "Ceftriaxone IV", dose: "100 mg/kg (max 2g)", notes: "Within 60 min." });
     }
 
     return doses;
   },
   getReferences: () => [
-    { title: "Surviving Sepsis Campaign International Guidelines for Management of Septic Shock and Sepsis-Associated Organ Dysfunction in Children (2020)", url: "https://journals.lww.com/pccmjournal/fulltext/2020/02000/surviving_sepsis_campaign_international.1.aspx" },
-    { title: "PALS 2020: Septic Shock Algorithm", url: "https://cpr.heart.org/" }
+    { title: "Surviving Sepsis Campaign International Guidelines (2020)", url: "https://journals.lww.com/pccmjournal/fulltext/2020/02000/surviving_sepsis_campaign_international.1.aspx" }
   ],
 };
