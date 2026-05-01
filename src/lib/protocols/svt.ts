@@ -4,7 +4,7 @@ export const svtProtocol: DiseaseProtocol = {
   id: 'svt',
   name: 'Supraventricular Tachycardia (SVT)',
   system: 'Shock and Resuscitation',
-  description: 'PALS-aligned stepwise management of pediatric SVT. SVT is typically characterized by a sudden onset, narrow QRS complexes, and rates >220 bpm (infants) or >180 bpm (children).',
+  description: 'PALS-aligned stepwise management of pediatric SVT. SVT is characterized by a sudden onset, fixed rate, and narrow QRS complexes.',
   image: {
     url: "https://picsum.photos/seed/svt/600/400",
     hint: "ecg monitor"
@@ -25,6 +25,16 @@ export const svtProtocol: DiseaseProtocol = {
   },
   getManagement: (severity, data) => {
     const management = [];
+
+    // Diagnostic Labeling Criteria
+    management.push({
+        title: "When to Label as SVT (Diagnostic Criteria)",
+        recommendations: [
+            "1. HEART RATE: Infants (<1yr) > 220 bpm; Children (>1yr) > 180 bpm.",
+            "2. CHARACTER: Sudden onset/offset, fixed and non-variable rate despite activity, and absent or abnormal P-waves.",
+            "3. QRS WIDTH: Usually narrow (≤0.09s). If wide, treat as VTach unless SVT with aberrancy is known."
+        ]
+    });
 
     // Global Mandatory Initial Steps
     management.push({
@@ -111,15 +121,15 @@ export const svtProtocol: DiseaseProtocol = {
             notes: "Must be in 'SYNC' mode. Ensure Cardiology is consulted."
         });
         doses.push({
-            drugName: "Amiodarone (Refractory)",
+            drugName: "Amiodarone (Refractory SVT)",
             dose: `5 mg/kg = ${amio.toFixed(1)} mg IV`,
-            notes: "Requires Cardiology Consultation BEFORE use. Infuse over 20-60 minutes."
+            notes: "INDICATIONS: SVT refractory to Adenosine/Cardioversion. ADMINISTRATION: Infuse over 20-60 minutes. WARNING: Monitor for hypotension and bradycardia. Requires Cardiology consultation."
         });
     } else {
          doses.push({ drugName: "Adenosine (1st dose)", dose: "0.1 mg/kg (max 6 mg)", notes: "Rapid push + flush." });
          doses.push({ drugName: "Adenosine (2nd dose)", dose: "0.2 mg/kg (max 12 mg)", notes: "Rapid push." });
          doses.push({ drugName: "Synchronized Cardioversion", dose: "Initial: 0.5 - 1 J/kg. 2nd: 2 J/kg.", notes: "Ensure 'SYNC' mode." });
-         doses.push({ drugName: "Amiodarone", dose: "5 mg/kg IV", notes: "Consult Cardiology first. Infuse over 20-60 min." });
+         doses.push({ drugName: "Amiodarone", dose: "5 mg/kg IV", notes: "Consult Cardiology first. Infuse over 20-60 min. For refractory SVT." });
     }
     return doses;
   },
