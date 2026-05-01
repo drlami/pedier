@@ -66,12 +66,19 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
       return { level: 'severe', details };
     }
 
+    // Pending/Likely Anaphylaxis Logic
     if (count >= 1 && (exposure === 'likely' || exposure === 'known')) {
-        details.push("LIKELY ANAPHYLAXIS: High clinical suspicion following exposure. Treat promptly.");
+        details.push("PENDING / LIKELY ANAPHYLAXIS: Significant symptoms after exposure. Do not wait for full criteria to develop if patient is worsening.");
         return { level: 'moderate', details };
     }
 
-    return { level: 'unknown', details: ['Criteria for anaphylaxis not fully met. Maintain high index of suspicion and observe closely.'] };
+    if (onset && (respiratory || skinMucosal)) {
+         details.push("SUSPECTED ANAPHYLAXIS: Acute onset of systemic symptoms. Monitor extremely closely.");
+         return { level: 'moderate', details };
+    }
+
+    details.push("Does not currently meet anaphylaxis criteria. Observe closely for rapid progression.");
+    return { level: 'mild', details };
   },
   getManagement: (severity, data) => {
       const management = [];
@@ -90,7 +97,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
               title: "IMMEDIATE ACTION: Epinephrine First",
               recommendations: [
                   "Administer EPINEPHRINE (ADRENALINE) 1:1000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh.",
-                  "Do not delay for IV access if IM is possible.",
+                  "For PENDING anaphylaxis: Administer Epinephrine immediately if there is any sign of respiratory distress, hypotension, or rapid progression.",
                   "Repeat every 5-15 minutes if symptoms persist or worsen."
               ]
           });
@@ -120,14 +127,14 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
               ]
           });
       } else {
-          management.push({ title: "Observation", recommendations: ["If anaphylaxis is not yet clear but suspected, monitor vitals and respiratory status every 15 minutes. Have Epinephrine drawn up at the bedside."] });
+          management.push({ title: "Observation", recommendations: ["If anaphylaxis is not yet clear but suspected, monitor vitals and respiratory status every 15 minutes. Have Epinephrine drawn up at the bedside and ready to give."] });
       }
       
       return management;
   },
   getDisposition: (severity, data) => {
     return [
-        "ADMIT/OBSERVE: All patients with anaphylaxis require a minimum 4-8 hour observation period due to the risk of biphasic reactions (recurrence of symptoms without new exposure).",
+        "ADMIT/OBSERVE: All patients with confirmed or strongly suspected anaphylaxis require a minimum 4-8 hour observation period.",
         "ADMIT TO PICU: For patients with hypotension, respiratory failure, or those requiring multiple doses of epinephrine.",
         "DISCHARGE CRITERIA: Completely asymptomatic for at least 4-8 hours, reliable caregivers, and patient MUST be provided with an Epinephrine Auto-Injector (if available) and an Anaphylaxis Action Plan."
     ];
