@@ -11,7 +11,7 @@ const calculateEpinephrineInfusion = (weight: number): { dose: string, notes: st
     const mgIn100ml = (0.6 * weight).toFixed(2);
     return {
         dose: "Standard Infusion: 0.6 x weight (kg) in 100mL fluid. At this concentration, 1 mL/hr = 0.1 mcg/kg/min.",
-        notes: `Preparation: Add ${mgIn100ml} mg of Adrenaline (Epinephrine) to a 100mL bag of D5W or NS.`
+        notes: `Preparation: Add ${mgIn100ml} mL of your 1 mg/mL (1:1,000) stock Adrenaline to a 100mL bag of D5W or NS.`
     };
 };
 
@@ -20,7 +20,7 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
   id: 'anaphylactic-shock',
   name: 'Anaphylaxis and Anaphylactic Shock',
   system: 'Shock and Resuscitation',
-  description: 'Emergency recognition and management of anaphylaxis, a life-threatening allergic reaction.',
+  description: 'Emergency recognition and management of anaphylaxis and anaphylactic shock in children, based on NIAID/FAAN diagnostic criteria.',
   image: {
     url: "https://picsum.photos/seed/anaphylactic-shock/600/400",
     hint: "allergy injection"
@@ -28,135 +28,175 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'onset', questionText: 'Acute onset of illness (minutes to several hours)?', type: 'boolean' },
-    { id: 'skinMucosal', questionText: 'Involvement of the skin or mucosal tissue?', type: 'boolean', info: 'e.g., generalized hives, itching or flushing, swollen lips/tongue/uvula' },
-    { id: 'respiratory', questionText: 'Respiratory compromise?', type: 'boolean', info: 'e.g., dyspnea, wheeze-bronchospasm, stridor, hypoxemia' },
-    { id: 'hypotension', questionText: 'Reduced blood pressure or end-organ dysfunction?', type: 'boolean', info: 'e.g., syncope, incontinence, hypotonia' },
+    { id: 'skinMucosal', questionText: 'Skin/Mucosal involvement?', type: 'boolean', info: 'Hives, itching, flushing, swollen lips/tongue/uvula.' },
+    { id: 'respiratory', questionText: 'Respiratory signs?', type: 'boolean', info: 'Dyspnea, wheezing, stridor, hypoxemia.' },
+    { id: 'hypotension', questionText: 'Reduced BP or end-organ dysfunction?', type: 'boolean', info: 'Hypotension for age, syncope, hypotonia/floppiness.' },
+    { id: 'giSymptoms', questionText: 'Persistent GI symptoms?', type: 'boolean', info: 'Severe crampy abdominal pain, repetitive vomiting.' },
+    { id: 'exposure', questionText: 'Exposure to potential allergen?', type: 'select', options: [
+        { label: 'None suspected', value: 'none' },
+        { label: 'Likely allergen for this patient', value: 'likely' },
+        { label: 'Known allergen for this patient', value: 'known' }
+    ]},
   ],
   calculateSeverity: (data: FormData): Severity => {
-    // Diagnosis is based on NIAID criteria. Severity is always high.
+    const { onset, skinMucosal, respiratory, hypotension, giSymptoms, exposure } = data;
     const details = [];
-    const { onset, skinMucosal, respiratory, hypotension } = data;
 
-    const isAnaphylaxis = 
-      // Criterion 1
-      (onset && skinMucosal && (respiratory || hypotension)) ||
-      // Criterion 2 (simplified - assumes exposure)
-      (onset && (skinMucosal || respiratory || hypotension) && (skinMucosal && respiratory || skinMucosal && hypotension || respiratory && hypotension)) ||
-      // Criterion 3 (simplified - assumes known allergen)
-      (onset && hypotension);
+    // NIAID/FAAN Criteria 1: Acute onset skin + (Resp or Hypotension)
+    const criteria1 = onset && skinMucosal && (respiratory || hypotension);
+    
+    // NIAID/FAAN Criteria 2: 2 or more of (Skin, Resp, Hypotension, GI) after LIKELY allergen
+    let count = 0;
+    if (skinMucosal) count++;
+    if (respiratory) count++;
+    if (hypotension) count++;
+    if (giSymptoms) count++;
+    const criteria2 = (exposure === 'likely' || exposure === 'known') && count >= 2;
 
-    if (isAnaphylaxis) {
-      if (hypotension) {
-        details.push("Hypotension present, consistent with Anaphylactic Shock.");
-        return { level: 'severe', details };
-      }
-      if (respiratory) {
-        details.push("Respiratory compromise present.");
-        return { level: 'severe', details };
-      }
-      details.push("Anaphylaxis criteria met without shock.");
-      // Anaphylaxis is never mild. 'moderate' is used here to differentiate from frank shock.
-      return { level: 'moderate', details }; 
+    // NIAID/FAAN Criteria 3: Hypotension after KNOWN allergen
+    const criteria3 = exposure === 'known' && hypotension;
+
+    if (hypotension) {
+      details.push("ANAPHYLACTIC SHOCK: Hypotension or end-organ dysfunction present.");
+      return { level: 'severe', details };
     }
 
-    return { level: 'unknown', details: ['Criteria for anaphylaxis not met based on input. Maintain high index of suspicion.'] };
+    if (criteria1 || criteria2 || criteria3) {
+      details.push("CONFIRMED ANAPHYLAXIS: Meets formal NIAID/FAAN diagnostic criteria.");
+      return { level: 'severe', details };
+    }
+
+    if (count >= 1 && (exposure === 'likely' || exposure === 'known')) {
+        details.push("LIKELY ANAPHYLAXIS: High clinical suspicion following exposure. Treat promptly.");
+        return { level: 'moderate', details };
+    }
+
+    return { level: 'unknown', details: ['Criteria for anaphylaxis not fully met. Maintain high index of suspicion and observe closely.'] };
   },
   getManagement: (severity, data) => {
+      const management = [];
+
+      management.push({
+          title: "Adrenaline Preparation (Dilution Required for IV ONLY)",
+          recommendations: [
+              "Your hospital stock is 1 mg/mL (1:1,000).",
+              "FOR IM USE: Give UNDILUTED (1:1,000) into the mid-outer thigh.",
+              "FOR IV/IO USE: You MUST dilute 1 mL of Adrenaline with 9 mL of Normal Saline to make 10 mL of 0.1 mg/mL (1:10,000) concentration before administration."
+          ]
+      });
+
       if (severity.level === 'severe' || severity.level === 'moderate') {
-          return [
-              {
-                  title: "IMMEDIATE ACTION: Epinephrine First and Fast",
-                  recommendations: [
-                      "Administer EPINEPHRINE (ADRENALINE) 1:1000 (1 mg/mL) INTRAMUSCULARLY into the mid-outer thigh.",
-                      "Repeat every 5-15 minutes if symptoms persist or progress."
-                  ]
-              },
-              {
-                  title: "Supportive Care / ABCs",
-                  recommendations: [
-                      "Place patient in supine position (or position of comfort if in respiratory distress) and elevate lower extremities.",
-                      "Administer high-flow oxygen.",
-                      "Establish IV/IO access. Obtain labs if time permits (CBC, chemistry, tryptase).",
-                      "For hypotension, administer isotonic crystalloid (NS or LR) boluses.",
-                      "For refractory bronchospasm, provide nebulized albuterol."
-                  ]
-              },
-              {
-                  title: "Second-Line Therapies (Adjunctive)",
-                  recommendations: [
-                      "These DO NOT replace epinephrine.",
-                      "H1 Antagonist: Diphenhydramine IV/IM/PO.",
-                      "H2 Antagonist: Famotidine or Ranitidine IV.",
-                      "Corticosteroids: Methylprednisolone or Prednisone to potentially prevent biphasic reaction."
-                  ]
-              },
-              {
-                  title: "For Refractory Shock",
-                  recommendations: [
-                      "If hypotension persists despite fluids and repeated IM epinephrine, start an EPINEPHRINE INFUSION.",
-                      "Admit to PICU for continuous monitoring."
-                  ]
-              }
-          ];
+          management.push({
+              title: "IMMEDIATE ACTION: Epinephrine First",
+              recommendations: [
+                  "Administer EPINEPHRINE (ADRENALINE) 1:1000 (1 mg/mL) UNDILUTED via INTRAMUSCULAR (IM) injection in the mid-outer thigh.",
+                  "Do not delay for IV access if IM is possible.",
+                  "Repeat every 5-15 minutes if symptoms persist or worsen."
+              ]
+          });
+          management.push({
+              title: "Positioning & Oxygen",
+              recommendations: [
+                  "Place patient in supine position with legs elevated. If in respiratory distress, allow position of comfort but avoid sudden sitting/standing.",
+                  "Administer 100% high-flow oxygen via non-rebreather mask.",
+                  "Prepare for advanced airway management if upper airway obstruction (stridor) is progressive."
+              ]
+          });
+          management.push({
+              title: "Fluid Resuscitation (for Shock)",
+              recommendations: [
+                  "If hypotension or signs of shock are present, give rapid 20 mL/kg boluses of isotonic crystalloid (NS or LR).",
+                  "Large volumes may be required due to massive capillary leak."
+              ]
+          });
+          management.push({
+              title: "Adjunctive (Second-Line) Therapies",
+              recommendations: [
+                  "These DO NOT replace Epinephrine.",
+                  "H1 Antagonist: Diphenhydramine (Benadryl) for skin symptoms.",
+                  "H2 Antagonist: Famotidine.",
+                  "Corticosteroids: Methylprednisolone or Hydrocortisone (may reduce risk of biphasic reaction).",
+                  "Nebulized Albuterol: For persistent wheezing/bronchospasm."
+              ]
+          });
+      } else {
+          management.push({ title: "Observation", recommendations: ["If anaphylaxis is not yet clear but suspected, monitor vitals and respiratory status every 15 minutes. Have Epinephrine drawn up at the bedside."] });
       }
-      return [{ title: "No Anaphylaxis Detected", recommendations: ["Manage symptoms based on alternative diagnosis."] }];
+      
+      return management;
   },
   getDisposition: (severity, data) => {
     return [
-        "ALL patients diagnosed with anaphylaxis require a period of observation (minimum 4-8 hours) after their last dose of epinephrine due to the risk of a biphasic reaction.",
-        "Admit to hospital if patient required multiple epinephrine doses, had hypotension or severe respiratory compromise, has a history of severe reactions, or lives far from medical care."
+        "ADMIT/OBSERVE: All patients with anaphylaxis require a minimum 4-8 hour observation period due to the risk of biphasic reactions (recurrence of symptoms without new exposure).",
+        "ADMIT TO PICU: For patients with hypotension, respiratory failure, or those requiring multiple doses of epinephrine.",
+        "DISCHARGE CRITERIA: Completely asymptomatic for at least 4-8 hours, reliable caregivers, and patient MUST be provided with an Epinephrine Auto-Injector (if available) and an Anaphylaxis Action Plan."
     ];
   },
   getRedFlags: () => [
-    "Any respiratory compromise (stridor, wheeze, shortness of breath)",
-    "Any sign of cardiovascular collapse (hypotension, syncope, dizziness)",
-    "Failure to respond to initial dose of IM epinephrine",
-    "Known history of severe anaphylaxis",
-    "Biphasic reaction: recurrence of symptoms hours after initial resolution"
+    "Stridor or muffled voice (upper airway edema)",
+    "Severe wheezing refractory to epinephrine",
+    "Hypotension or signs of shock (lethargy, cool extremities)",
+    "Biphasic reaction (symptoms returning after initial improvement)",
+    "History of asthma (increases risk of fatal anaphylaxis)"
   ],
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
+        // Epinephrine IM
         doses.push({
-            drugName: "Epinephrine IM (1:1000, 1mg/mL)",
-            dose: `0.01 mg/kg (max 0.5 mg/dose) = ${(0.01 * weight).toFixed(2)} mg or ${(0.01 * weight).toFixed(2)} mL`,
-            notes: `Use auto-injector if available: 0.15 mg for child <25kg, 0.3 mg for >25kg. May repeat every 5-15 min.`
+            drugName: "Epinephrine IM (1:1,000 Stock)",
+            dose: `0.01 mg/kg (max 0.5 mg) = ${(0.01 * weight).toFixed(2)} mL IM`,
+            notes: "Give UNDILUTED IM into mid-outer thigh. May repeat q5-15 min."
         });
-        doses.push({
-            drugName: "IV Fluid Bolus (NS or LR)",
-            dose: `20 mL/kg = ${(20 * weight).toFixed(1)} mL`,
-            notes: "Repeat as needed for hypotension."
-        });
-        doses.push({
-            drugName: "Diphenhydramine (Benadryl)",
-            dose: `1-2 mg/kg (max 50 mg) = ${weight.toFixed(1)} to ${(2 * weight).toFixed(1)} mg`,
-            notes: "IV/IM/PO"
-        });
-        doses.push({
-            drugName: "Methylprednisolone (Solu-Medrol)",
-            dose: `1-2 mg/kg (max 125 mg) = ${weight.toFixed(1)} to ${(2 * weight).toFixed(1)} mg`,
-            notes: "IV"
-        });
-    } else {
-        doses.push({ drugName: "Epinephrine IM (1:1000, 1mg/mL)", dose: "0.01 mg/kg (max 0.5 mg/dose)", notes: "Enter weight for calculation."});
-        doses.push({ drugName: "IV Fluid Bolus (NS or LR)", dose: "20 mL/kg", notes: "Enter weight for calculation."});
-        doses.push({ drugName: "Diphenhydramine (Benadryl)", dose: "1-2 mg/kg (max 50 mg)", notes: "Enter weight for calculation."});
-        doses.push({ drugName: "Methylprednisolone (Solu-Medrol)", dose: "1-2 mg/kg (max 125 mg)", notes: "Enter weight for calculation."});
-    }
 
-    const epiInfusion = calculateEpinephrineInfusion(weight);
-    doses.push({
-        drugName: "Epinephrine IV Infusion (for refractory shock)",
-        dose: "Start: 0.1 mcg/kg/min. Titrate to effect.",
-        notes: `${epiInfusion.notes} ${epiInfusion.dose}`
-    });
+        // IV Bolus
+        doses.push({
+            drugName: "Isotonic Fluid Bolus (NS/LR)",
+            dose: `20 mL/kg = ${(20 * weight).toFixed(0)} mL`,
+            notes: "Repeat as needed for shock."
+        });
+
+        // Push Dose Epi (Rescue ONLY)
+        doses.push({
+            drugName: "Epinephrine IV/IO (1:10,000 DILUTED)",
+            dose: `0.1 mL/kg = ${(0.1 * weight).toFixed(2)} mL`,
+            notes: "RESCUE DOSE FOR SHOCK ONLY. Must dilute 1:1,000 stock to 1:10,000 first."
+        });
+
+        // Adjuvants
+        doses.push({
+            drugName: "Hydrocortisone IV",
+            dose: `2-4 mg/kg (max 100-200 mg) = ${(2 * weight).toFixed(0)} to ${(4 * weight).toFixed(0)} mg`,
+            notes: "To help prevent biphasic reactions."
+        });
+        doses.push({
+            drugName: "Diphenhydramine IV/IM/PO",
+            dose: `1 mg/kg (max 50 mg) = ${weight.toFixed(0)} mg`,
+            notes: "For cutaneous symptoms only."
+        });
+
+        // Infusion
+        const epiInfusion = calculateEpinephrineInfusion(weight);
+        doses.push({
+            drugName: "Epinephrine IV Infusion (Refractory Shock)",
+            dose: "Start at 0.1 mcg/kg/min. Titrate to effect.",
+            notes: `${epiInfusion.notes} ${epiInfusion.dose}`
+        });
+
+    } else {
+        doses.push({ drugName: "Epinephrine IM (1:1,000)", dose: "0.01 mg/kg (max 0.5 mg)", notes: "UNDILUTED IM into thigh." });
+        doses.push({ drugName: "IV Fluid Bolus", dose: "20 mL/kg", notes: "For shock." });
+        doses.push({ drugName: "Epinephrine IV/IO (1:10,000)", dose: "0.1 mL/kg (0.01 mg/kg)", notes: "RESCUE ONLY. Dilute 1:10 first." });
+        doses.push({ drugName: "Epinephrine Infusion", dose: "0.1 mcg/kg/min", notes: "For refractory shock." });
+    }
 
     return doses;
   },
   getReferences: () => [
-      { title: "NIAID Guidelines for the Diagnosis and Management of Food Allergy", url: "https://www.niaid.nih.gov/diseases-conditions/guidelines-clinical-management-food-allergy"},
-      { title: "UpToDate: Anaphylaxis: Emergency treatment", url: "https://www.uptodate.com/contents/anaphylaxis-emergency-treatment"}
+      { title: "NIAID/FAAN: Guidelines for the Diagnosis and Management of Food Allergy", url: "https://www.niaid.nih.gov/" },
+      { title: "AAP: Epinephrine for the Treatment of Anaphylaxis", url: "https://publications.aap.org/" },
+      { title: "UpToDate: Anaphylaxis in children: Management", url: "https://www.uptodate.com/" }
   ],
 };
