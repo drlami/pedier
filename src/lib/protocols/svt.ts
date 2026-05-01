@@ -26,37 +26,47 @@ export const svtProtocol: DiseaseProtocol = {
   getManagement: (severity, data) => {
     const management = [];
 
+    // Global Mandatory Initial Steps
+    management.push({
+        title: "IMMEDIATE INITIAL ACTIONS (Mandatory)",
+        recommendations: [
+            "1. PERFORM 12-LEAD EKG IMMEDIATELY: Must be done as soon as SVT is suspected to confirm diagnosis and QRS width.",
+            "2. CONSULT PEDIATRIC CARDIOLOGY: A consultation must be made for ALL patients with suspected or confirmed SVT, regardless of stability.",
+            "3. Place on continuous cardiac monitor, pulse oximetry, and frequent BP cycling.",
+            "4. Provide 100% supplemental oxygen."
+        ]
+    });
+
     if (severity.level === 'severe') {
       management.push({
-        title: "UNSTABLE SVT: Immediate Intervention",
+        title: "UNSTABLE SVT: Emergency Intervention",
         recommendations: [
-          "1. ACT FAST: Call for help, Pediatric Cardiology, and the Resuscitation Team.",
-          "2. SYNCHRONIZED CARDIOVERSION: Perform immediately. Initial dose: 0.5-1 J/kg. If unsuccessful, increase to 2 J/kg. Ensure 'SYNC' mode is selected on the monitor to avoid inducing Ventricular Fibrillation.",
-          "3. ADENOSINE: If IV/IO access is already available, you can try Adenosine (0.1 mg/kg) while the defibrillator is charging, but do not delay cardioversion.",
-          "4. SEDATION: If the patient is conscious, provide brief sedation before cardioversion, but ONLY if it does not delay the life-saving procedure.",
-          "5. OXYGEN & MONITORS: Provide 100% oxygen and attach continuous ECG, BP, and SpO2 monitoring."
+          "1. ACT FAST: Call for the Resuscitation Team and reiterate urgency to Cardiology.",
+          "2. SYNCHRONIZED CARDIOVERSION: Perform immediately if EKG confirms SVT. Initial dose: 0.5-1 J/kg. If unsuccessful, increase to 2 J/kg.",
+          "3. CRITICAL: Ensure 'SYNC' mode is selected on the monitor before every shock to avoid inducing Ventricular Fibrillation.",
+          "4. ADENOSINE: If IV/IO access is already available, you can try Adenosine (0.1 mg/kg) while the defibrillator is charging, but DO NOT delay cardioversion.",
+          "5. SEDATION: If the patient is conscious, provide brief sedation before cardioversion, but ONLY if it does not delay the life-saving procedure."
         ]
       });
     } else {
       management.push({
-        title: "STABLE SVT: Stepwise Approach",
+        title: "STABLE SVT: Stepwise Management",
         recommendations: [
           "1. VAGAL MANEUVERS: Attempt while preparing for medications. Infants: Ice pack to the upper face (forehead/nose) for 15-20 seconds. Children: Blowing into a 10mL syringe, or performing a Valsalva maneuver.",
           "2. IV/IO ACCESS: Establish access immediately. Ideally use a large-bore IV in the right antecubital fossa (closest to the heart).",
           "3. ADENOSINE: First-line medication. Must be given via RAPID IV PUSH using the two-syringe technique (medication followed immediately by a 10-20mL saline flush).",
           "4. REPEAT ADENOSINE: If first dose fails, give a second, larger dose (0.2 mg/kg) after 2 minutes.",
-          "5. REFRACTORY SVT: If two doses of adenosine fail, obtain a 12-lead EKG and URGENTLY CONSULT PEDIATRIC CARDIOLOGY before administering other medications like Amiodarone."
+          "5. REFRACTORY SVT: If two doses of adenosine fail, re-consult Cardiology immediately before administering further agents (e.g., Amiodarone)."
         ]
       });
     }
 
     management.push({
-        title: "Critical Cardiology Consultation",
+        title: "Post-Conversion Care",
         recommendations: [
-            "All pediatric patients with SVT require consultation with a Pediatric Cardiologist.",
-            "Cardiology should be consulted URGENTLY for unstable patients or those who do not convert with two doses of Adenosine.",
-            "A 12-lead EKG must be obtained immediately after conversion to check for underlying patterns like WPW (Wolff-Parkinson-White).",
-            "Long-term management will be directed by Cardiology."
+            "1. Obtain a repeat 12-lead EKG immediately after conversion to check for underlying patterns like WPW (Wolff-Parkinson-White).",
+            "2. Maintain continuous monitoring for at least 4-8 hours post-conversion.",
+            "3. Long-term management and disposition will be coordinated with the Pediatric Cardiology team."
         ]
     });
 
@@ -64,9 +74,9 @@ export const svtProtocol: DiseaseProtocol = {
   },
   getDisposition: () => {
     return [
-        "All patients with new-onset SVT require hospital admission for continuous cardiac monitoring.",
+        "Admission to hospital for continuous cardiac monitoring is MANDATORY for all new-onset SVT cases.",
         "Unstable patients or those requiring cardioversion must be admitted to the PICU.",
-        "Discharge from the ED is only appropriate for known chronic patients after conversion, with direct approval from their Cardiologist and clear follow-up."
+        "Cardiology MUST clear the patient and provide a follow-up plan prior to any discharge (only applicable to known chronic patients who have converted)."
     ];
   },
   getRedFlags: () => [
@@ -98,12 +108,12 @@ export const svtProtocol: DiseaseProtocol = {
         doses.push({
             drugName: "Synchronized Cardioversion",
             dose: `Initial: 0.5 - 1 J/kg (${(0.5*weight).toFixed(0)}-${(1*weight).toFixed(0)} J). 2nd: 2 J/kg (${(2*weight).toFixed(0)} J).`,
-            notes: "Must be in 'SYNC' mode. Provide sedation if stable enough."
+            notes: "Must be in 'SYNC' mode. Ensure Cardiology is consulted."
         });
         doses.push({
             drugName: "Amiodarone (Refractory)",
             dose: `5 mg/kg = ${amio.toFixed(1)} mg IV`,
-            notes: "MANDATORY Cardiology Consultation. Infuse over 20-60 minutes. Monitor closely for hypotension/bradycardia."
+            notes: "Requires Cardiology Consultation BEFORE use. Infuse over 20-60 minutes."
         });
     } else {
          doses.push({ drugName: "Adenosine (1st dose)", dose: "0.1 mg/kg (max 6 mg)", notes: "Rapid push + flush." });
