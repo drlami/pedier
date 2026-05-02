@@ -2,22 +2,23 @@
 
 import { Link, useLocation, useSearch } from "wouter";
 import { useMemo } from "react";
-import { allProtocols } from "@/lib/protocols";
 import { cn } from "@/lib/utils";
 import { Stethoscope, UserCog, HeartPulse, Brain, Pill, Users, FlaskConical } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useAllProtocols } from "@/contexts/protocols-context";
 
 export function SidebarNav() {
   const [pathname] = useLocation();
   const search = useSearch();
   const { isAdmin } = useAuth();
+  const allProtocols = useAllProtocols();
   const searchParams = new URLSearchParams(search);
   const currentSystem = searchParams.get("system");
 
   const systems = useMemo(() => {
     const systemSet = new Set(allProtocols.map((p) => p.system));
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
-  }, []);
+  }, [allProtocols]);
 
   const defaultSystem = systems[0];
   const activeSystem = currentSystem || defaultSystem;

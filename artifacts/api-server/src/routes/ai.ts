@@ -2,6 +2,8 @@ import { Router } from "express";
 import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow";
 import { checkDrugSafety } from "../ai/drug-safety-flow";
 import { draftDiseaseProtocol } from "../ai/draft-protocol-flow";
+import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -43,6 +45,20 @@ router.post("/ai/draft-protocol", async (req, res) => {
     return res.json(result);
   } catch (err: any) {
     console.error("Error in draft-protocol:", err);
+    return res.status(500).json({ message: err?.message || "AI processing failed." });
+  }
+});
+
+router.post("/ai/draft-custom-protocol", requireAdmin, async (req, res) => {
+  try {
+    const { description } = req.body;
+    if (!description || String(description).trim().length < 20) {
+      return res.status(400).json({ message: "Please provide a description of at least 20 characters." });
+    }
+    const result = await draftCustomProtocol(String(description));
+    return res.json(result);
+  } catch (err: any) {
+    console.error("Error in draft-custom-protocol:", err);
     return res.status(500).json({ message: err?.message || "AI processing failed." });
   }
 });

@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useSearch } from "wouter";
 import { Input } from "@/components/ui/input";
-import { allProtocols } from "@/lib/protocols";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
 import { Search, ChevronRight } from "lucide-react";
+import { useAllProtocols } from "@/contexts/protocols-context";
 
 function ProtocolCard({
   protocol,
@@ -33,16 +33,18 @@ function ProtocolCard({
 
 function SystemProtocols({
   system,
+  allProtocols,
   onProtocolClick,
 }: {
   system: string;
+  allProtocols: DiseaseProtocol[];
   onProtocolClick?: () => void;
 }) {
   const protocolsForSystem = useMemo(() => {
     return allProtocols
       .filter((p) => p.system === system)
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [system]);
+  }, [system, allProtocols]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,6 +80,7 @@ function SystemProtocols({
 export default function Home() {
   const search = useSearch();
   const [searchTerm, setSearchTerm] = useState("");
+  const allProtocols = useAllProtocols();
 
   useEffect(() => {
     setSearchTerm("");
@@ -90,7 +93,7 @@ export default function Home() {
   const systems = useMemo(() => {
     const systemSet = new Set(allProtocols.map((p) => p.system));
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
-  }, []);
+  }, [allProtocols]);
 
   const params = new URLSearchParams(search);
   const selectedSystem =
@@ -107,7 +110,7 @@ export default function Home() {
           p.system.toLowerCase().includes(lowercasedTerm)
       )
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [searchTerm]);
+  }, [searchTerm, allProtocols]);
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
@@ -154,6 +157,7 @@ export default function Home() {
       ) : (
         <SystemProtocols
           system={selectedSystem}
+          allProtocols={allProtocols}
           onProtocolClick={handleProtocolClick}
         />
       )}

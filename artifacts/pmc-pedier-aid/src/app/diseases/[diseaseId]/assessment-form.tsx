@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Link } from 'wouter';
-import { getProtocolById } from '@/lib/protocols';
+import { useProtocolById } from '@/contexts/protocols-context';
 
 import type { DiseaseProtocol, FormData, Question, Severity } from '@/lib/protocols/types';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ interface AssessmentFormProps {
 }
 
 export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
-  const protocol = useMemo(() => getProtocolById(diseaseId), [diseaseId]);
+  const protocol = useProtocolById(diseaseId);
   const { control, watch } = useForm<FormData>();
   const formData = watch();
 

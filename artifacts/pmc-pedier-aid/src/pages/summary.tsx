@@ -1,5 +1,5 @@
 import { useParams, useSearch } from "wouter";
-import { getProtocolById } from "@/lib/protocols";
+import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
 import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/severity-badge";
 import { ResultCard } from "@/components/result-card";
@@ -11,13 +11,23 @@ import {
   Hospital,
   Printer,
   FileQuestion,
+  Loader2,
 } from "lucide-react";
 import type { FormData } from "@/lib/protocols/types";
 
 export default function SummaryPage() {
   const params = useParams<{ diseaseId: string }>();
   const search = useSearch();
-  const protocol = getProtocolById(params.diseaseId);
+  const { isLoading } = useProtocolsContext();
+  const protocol = useProtocolById(params.diseaseId);
+
+  if (isLoading && !protocol) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!protocol) {
     return (

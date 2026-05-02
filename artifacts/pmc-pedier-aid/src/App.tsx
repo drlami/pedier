@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { ProtocolsProvider } from "@/contexts/protocols-context";
 import HomePage from "@/pages/home";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
@@ -149,14 +150,22 @@ function Router() {
   );
 }
 
+function AppInner() {
+  return (
+    <ProtocolsProvider>
+      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <Router />
+      </WouterRouter>
+    </ProtocolsProvider>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
+          <AppInner />
         </AuthProvider>
         <Toaster />
       </TooltipProvider>

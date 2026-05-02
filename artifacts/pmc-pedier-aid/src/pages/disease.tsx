@@ -1,11 +1,20 @@
 import { useParams } from "wouter";
-import { getProtocolById } from "@/lib/protocols";
+import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
 import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
-import { Stethoscope } from "lucide-react";
+import { Stethoscope, Loader2 } from "lucide-react";
 
 export default function DiseasePage() {
   const params = useParams<{ diseaseId: string }>();
-  const protocol = getProtocolById(params.diseaseId);
+  const { isLoading } = useProtocolsContext();
+  const protocol = useProtocolById(params.diseaseId);
+
+  if (isLoading && !protocol) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!protocol) {
     return (
