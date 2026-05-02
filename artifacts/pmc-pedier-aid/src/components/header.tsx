@@ -11,11 +11,35 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, LogOut, User, Shield, Stethoscope, GraduationCap } from "lucide-react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Suspense } from "react";
+import { useAuth, type UserRole } from "@/contexts/auth-context";
+
+const ROLE_ICON: Record<UserRole, typeof Shield> = {
+  admin: Shield,
+  specialist: Stethoscope,
+  resident: GraduationCap,
+};
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  admin: "Administrator",
+  specialist: "Specialist",
+  resident: "Resident",
+};
 
 export function Header() {
+  const { user, logout } = useAuth();
+  const RoleIcon = user ? ROLE_ICON[user.role] : User;
+
   return (
     <header className="no-print sticky top-0 z-40" style={{ background: "hsl(212, 72%, 22%)" }}>
       <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
@@ -29,10 +53,7 @@ export function Header() {
                   <span className="sr-only">Toggle navigation menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="left"
-                className="p-0 pt-10 w-72 bg-sidebar border-r-0"
-              >
+              <SheetContent side="left" className="p-0 pt-10 w-72 bg-sidebar border-r-0">
                 <SheetHeader>
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <SheetDescription className="sr-only">
@@ -47,25 +68,56 @@ export function Header() {
           </div>
 
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-3 text-white"
-          >
+          <Link href="/" className="flex items-center gap-3 text-white">
             <div className="flex items-center justify-center w-8 h-8 rounded-md bg-white/15">
               <StethoscopeIcon className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-base font-bold tracking-tight text-white">PMC PediER Aid</span>
-              <span className="text-[10px] text-white/60 font-normal tracking-wide uppercase hidden sm:block">Pediatric Emergency Clinical Decision Support</span>
+              <span className="text-[10px] text-white/60 font-normal tracking-wide uppercase hidden sm:block">
+                Pediatric Emergency Clinical Decision Support
+              </span>
             </div>
           </Link>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="hidden md:flex items-center gap-1.5 text-[10px] font-medium text-white/50 border border-white/20 rounded px-2 py-1 tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Clinical Support Tool
-          </span>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-white hover:bg-white/10 h-9 px-3"
+                >
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
+                    <RoleIcon className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-sm font-medium hidden sm:block">{user.username}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-sm">{user.username}</span>
+                    <span className="text-[11px] text-muted-foreground">{ROLE_LABEL[user.role]}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <span className="hidden md:flex items-center gap-1.5 text-[10px] font-medium text-white/50 border border-white/20 rounded px-2 py-1 tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Clinical Support Tool
+            </span>
+          )}
         </div>
       </div>
     </header>
