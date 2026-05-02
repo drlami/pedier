@@ -1,0 +1,460 @@
+{
+  "placeholderImages": [
+    {
+      "id": "bronchiolitis",
+      "description": "An illustrative image for Bronchiolitis.",
+      "imageUrl": "https://picsum.photos/seed/bronchiolitis/600/400",
+      "imageHint": "lungs xray"
+    },
+    {
+      "id": "asthma",
+      "description": "An illustrative image for Asthma Exacerbation.",
+      "imageUrl": "https://picsum.photos/seed/asthma/600/400",
+      "imageHint": "inhaler"
+    },
+    {
+      "id": "croup",
+      "description": "An illustrative image for Croup.",
+      "imageUrl": "https://picsum.photos/seed/croup/600/400",
+      "imageHint": "child coughing"
+    },
+    {
+      "id": "dehydration-gastroenteritis",
+      "description": "An illustrative image for Dehydration from Gastroenteritis.",
+      "imageUrl": "https://picsum.photos/seed/gastroenteritis/600/400",
+      "imageHint": "stomach ache"
+    },
+    {
+      "id": "pneumonia",
+      "description": "An illustrative image for Pneumonia.",
+      "imageUrl": "https://picsum.photos/seed/pneumonia/600/400",
+      "imageHint": "chest xray"
+    },
+    {
+      "id": "tracheitis",
+      "description": "An illustrative image for Tracheitis.",
+      "imageUrl": "https://picsum.photos/seed/tracheitis/600/400",
+      "imageHint": "trachea xray"
+    },
+    {
+      "id": "epiglottitis",
+      "description": "An illustrative image for Epiglottitis.",
+      "imageUrl": "https://picsum.photos/seed/epiglottitis/600/400",
+      "imageHint": "airway xray"
+    },
+    {
+      "id": "fba",
+      "description": "An illustrative image for Foreign Body Aspiration.",
+      "imageUrl": "https://picsum.photos/seed/fba/600/400",
+      "imageHint": "child choking"
+    },
+    {
+      "id": "cyanosis",
+      "description": "An illustrative image for Cyanosis.",
+      "imageUrl": "https://picsum.photos/seed/cyanosis/600/400",
+      "imageHint": "blue baby"
+    },
+    {
+      "id": "apnea",
+      "description": "An illustrative image for Apnea.",
+      "imageUrl": "https://picsum.photos/seed/apnea/600/400",
+      "imageHint": "sleeping infant"
+    },
+    {
+      "id": "fever-neonate",
+      "description": "An illustrative image for Fever in Neonate (<28 days).",
+      "imageUrl": "https://picsum.photos/seed/fever-neonate/600/400",
+      "imageHint": "newborn checkup"
+    },
+    {
+      "id": "fever-1-2-months",
+      "description": "An illustrative image for Fever Without Source (1-2 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-1-2-months/600/400",
+      "imageHint": "infant temperature"
+    },
+    {
+      "id": "fever-2-3-months",
+      "description": "An illustrative image for Fever Without Source (2-3 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-2-3-months/600/400",
+      "imageHint": "baby temperature"
+    },
+    {
+      "id": "fever-3-36-months",
+      "description": "An illustrative image for Fever Without Source (3-36 months).",
+      "imageUrl": "https://picsum.photos/seed/fever-3-36-months/600/400",
+      "imageHint": "toddler temperature"
+    },
+    {
+      "id": "fever-rash",
+      "description": "An illustrative image for Fever with Rash.",
+      "imageUrl": "https://picsum.photos/seed/fever-rash/600/400",
+      "imageHint": "child rash"
+    },
+    {
+      "id": "fever-neutropenia",
+      "description": "An illustrative image for Fever with Neutropenia.",
+      "imageUrl": "https://picsum.photos/seed/fever-neutropenia/600/400",
+      "imageHint": "blood cells"
+    },
+    {
+      "id": "meningitis-encephalitis",
+      "description": "An illustrative image for Suspected Meningitis / Encephalitis.",
+      "imageUrl": "https://picsum.photos/seed/meningitis-encephalitis/600/400",
+      "imageHint": "brain scan"
+    },
+    {
+      "id": "viral-vs-bacterial",
+      "description": "An illustrative image for Viral Syndrome vs Bacterial Infection.",
+      "imageUrl": "https://picsum.photos/seed/viral-vs-bacterial/600/400",
+      "imageHint": "microscope virus"
+    },
+    {
+      "id": "toxic-assessment",
+      "description": "An illustrative image for Toxic vs Non-toxic Child Assessment.",
+      "imageUrl": "https://picsum.photos/seed/toxic-assessment/600/400",
+      "imageHint": "worried parent"
+    },
+    {
+      "id": "cervical-lymphadenitis",
+      "description": "An illustrative image for Cervical Lymphadenitis.",
+      "imageUrl": "https://picsum.photos/seed/cervical-lymphadenitis/600/400",
+      "imageHint": "swollen neck"
+    },
+    {
+      "id": "ssti",
+      "description": "An illustrative image for Skin/Soft Tissue Infection.",
+      "imageUrl": "https://picsum.photos/seed/ssti/600/400",
+      "imageHint": "skin infection"
+    },
+    {
+      "id": "periorbital-cellulitis",
+      "description": "An illustrative image for Periorbital Cellulitis.",
+      "imageUrl": "https://picsum.photos/seed/periorbital-cellulitis/600/400",
+      "imageHint": "swollen eye"
+    },
+    {
+      "id": "orbital-cellulitis",
+      "description": "An illustrative image for Orbital Cellulitis.",
+      "imageUrl": "https://picsum.photos/seed/orbital-cellulitis/600/400",
+      "imageHint": "eye scan"
+    },
+    {
+      "id": "mastoiditis",
+      "description": "An illustrative image for Mastoiditis Suspicion.",
+      "imageUrl": "https://picsum.photos/seed/mastoiditis/600/400",
+      "imageHint": "ear xray"
+    },
+    {
+      "id": "febrile-seizure",
+      "description": "An illustrative image for Febrile Seizure.",
+      "imageUrl": "https://picsum.photos/seed/febrile-seizure/600/400",
+      "imageHint": "child temperature"
+    },
+    {
+      "id": "first-afebrile-seizure",
+      "description": "An illustrative image for First Afebrile Seizure.",
+      "imageUrl": "https://picsum.photos/seed/first-afebrile-seizure/600/400",
+      "imageHint": "brain scan"
+    },
+    {
+      "id": "status-epilepticus",
+      "description": "An illustrative image for Status Epilepticus.",
+      "imageUrl": "https://picsum.photos/seed/status-epilepticus/600/400",
+      "imageHint": "paramedics ambulance"
+    },
+    {
+      "id": "altered-mental-status",
+      "description": "An illustrative image for Altered Mental Status.",
+      "imageUrl": "https://picsum.photos/seed/altered-mental-status/600/400",
+      "imageHint": "confused child"
+    },
+    {
+      "id": "headache-red-flags",
+      "description": "An illustrative image for Headache Red Flags.",
+      "imageUrl": "https://picsum.photos/seed/headache-red-flags/600/400",
+      "imageHint": "headache pain"
+    },
+    {
+      "id": "acute-flaccid-weakness",
+      "description": "An illustrative image for Acute Flaccid Weakness.",
+      "imageUrl": "https://picsum.photos/seed/acute-flaccid-weakness/600/400",
+      "imageHint": "child wheelchair"
+    },
+    {
+      "id": "acute-ataxia",
+      "description": "An illustrative image for Acute Ataxia.",
+      "imageUrl": "https://picsum.photos/seed/acute-ataxia/600/400",
+      "imageHint": "child stumbling"
+    },
+    {
+      "id": "raised-icp-suspicion",
+      "description": "An illustrative image for Raised ICP Suspicion.",
+      "imageUrl": "https://picsum.photos/seed/raised-icp-suspicion/600/400",
+      "imageHint": "brain pressure"
+    },
+    {
+      "id": "peds-stroke",
+      "description": "An illustrative image for Stroke in Children.",
+      "imageUrl": "https://picsum.photos/seed/peds-stroke/600/400",
+      "imageHint": "child brain"
+    },
+    {
+      "id": "persistent-vomiting",
+      "description": "An illustrative image for Persistent Vomiting.",
+      "imageUrl": "https://picsum.photos/seed/persistent-vomiting/600/400",
+      "imageHint": "child sick"
+    },
+    {
+      "id": "bilious-vomiting",
+      "description": "An illustrative image for Bilious Vomiting.",
+      "imageUrl": "https://picsum.photos/seed/bilious-vomiting/600/400",
+      "imageHint": "infant surgery"
+    },
+    {
+      "id": "abdominal-pain",
+      "description": "An illustrative image for Abdominal Pain Evaluation.",
+      "imageUrl": "https://picsum.photos/seed/abdominal-pain/600/400",
+      "imageHint": "child stomach"
+    },
+    {
+      "id": "constipation-vs-obstruction",
+      "description": "An illustrative image for Constipation vs Obstruction.",
+      "imageUrl": "https://picsum.photos/seed/constipation-vs-obstruction/600/400",
+      "imageHint": "abdominal xray"
+    },
+    {
+      "id": "gi-bleeding",
+      "description": "An illustrative image for GI Bleeding.",
+      "imageUrl": "https://picsum.photos/seed/gi-bleeding/600/400",
+      "imageHint": "endoscopy"
+    },
+    {
+      "id": "intussusception",
+      "description": "An illustrative image for Intussusception.",
+      "imageUrl": "https://picsum.photos/seed/intussusception/600/400",
+      "imageHint": "abdominal ultrasound"
+    },
+    {
+      "id": "abdominal-distention",
+      "description": "An illustrative image for Abdominal Distention.",
+      "imageUrl": "https://picsum.photos/seed/abdominal-distention/600/400",
+      "imageHint": "distended abdomen"
+    },
+    {
+      "id": "shock-classification",
+      "description": "An illustrative image for Shock Classification.",
+      "imageUrl": "https://picsum.photos/seed/shock-classification/600/400",
+      "imageHint": "flow chart"
+    },
+    {
+      "id": "fluid-resuscitation",
+      "description": "An illustrative image for Fluid Resuscitation.",
+      "imageUrl": "https://picsum.photos/seed/fluid-resuscitation/600/400",
+      "imageHint": "iv fluid"
+    },
+    {
+      "id": "hypovolemic-shock",
+      "description": "An illustrative image for Hypovolemic Shock.",
+      "imageUrl": "https://picsum.photos/seed/hypovolemic-shock/600/400",
+      "imageHint": "blood loss"
+    },
+    {
+      "id": "anaphylactic-shock",
+      "description": "An illustrative image for Anaphylactic Shock.",
+      "imageUrl": "https://picsum.photos/seed/anaphylactic-shock/600/400",
+      "imageHint": "allergy injection"
+    },
+    {
+      "id": "cardiogenic-shock",
+      "description": "An illustrative image for Cardiogenic Shock.",
+      "imageUrl": "https://picsum.photos/seed/cardiogenic-shock/600/400",
+      "imageHint": "heart failure"
+    },
+    {
+      "id": "bradycardia",
+      "description": "An illustrative image for Bradycardia.",
+      "imageUrl": "https://picsum.photos/seed/bradycardia/600/400",
+      "imageHint": "slow heartbeat"
+    },
+    {
+      "id": "tachycardia",
+      "description": "An illustrative image for Tachycardia.",
+      "imageUrl": "https://picsum.photos/seed/tachycardia/600/400",
+      "imageHint": "fast heartbeat"
+    },
+    {
+      "id": "svt",
+      "description": "An illustrative image for SVT.",
+      "imageUrl": "https://picsum.photos/seed/svt/600/400",
+      "imageHint": "ecg monitor"
+    },
+    {
+      "id": "murmur-with-symptoms",
+      "description": "An illustrative image for Murmur with Symptoms.",
+      "imageUrl": "https://picsum.photos/seed/murmur-peds/600/400",
+      "imageHint": "stethoscope heart"
+    },
+    {
+      "id": "chest-pain-in-children",
+      "description": "An illustrative image for Chest Pain in Children.",
+      "imageUrl": "https://picsum.photos/seed/chest-pain-peds/600/400",
+      "imageHint": "child chest"
+    },
+    {
+      "id": "syncope",
+      "description": "An illustrative image for Syncope.",
+      "imageUrl": "https://picsum.photos/seed/syncope-peds/600/400",
+      "imageHint": "fainting person"
+    },
+    {
+      "id": "palpitations",
+      "description": "An illustrative image for Palpitations.",
+      "imageUrl": "https://picsum.photos/seed/palpitations-peds/600/400",
+      "imageHint": "heart rhythm"
+    },
+    {
+      "id": "suspected-myocarditis",
+      "description": "An illustrative image for Suspected Myocarditis.",
+      "imageUrl": "https://picsum.photos/seed/myocarditis-peds/600/400",
+      "imageHint": "inflamed heart"
+    },
+    {
+      "id": "suspected-heart-failure",
+      "description": "An illustrative image for Suspected Heart Failure.",
+      "imageUrl": "https://picsum.photos/seed/heart-failure/600/400",
+      "imageHint": "congested lungs"
+    },
+    {
+      "id": "snake-bite",
+      "description": "An illustrative image for Snake Bite Management.",
+      "imageUrl": "https://picsum.photos/seed/snake-bite/600/400",
+      "imageHint": "snake reptile"
+    },
+    {
+      "id": "scorpion-sting",
+      "description": "An illustrative image for Scorpion Sting Management.",
+      "imageUrl": "https://picsum.photos/seed/scorpion-sting/600/400",
+      "imageHint": "scorpion"
+    },
+    {
+      "id": "paracetamol-toxicity",
+      "description": "An illustrative image for Paracetamol Toxicity.",
+      "imageUrl": "https://picsum.photos/seed/paracetamol-toxicity/600/400",
+      "imageHint": "liver pills"
+    },
+    {
+      "id": "iron-toxicity",
+      "description": "An illustrative image for Iron Toxicity.",
+      "imageUrl": "https://picsum.photos/seed/iron-toxicity/600/400",
+      "imageHint": "iron pills"
+    },
+    {
+      "id": "organophosphorus-ingestion",
+      "description": "An illustrative image for Organophosphate Poisoning.",
+      "imageUrl": "https://picsum.photos/seed/organophosphorus-ingestion/600/400",
+      "imageHint": "pesticide warning"
+    },
+    {
+      "id": "chlorine-inhalation",
+      "description": "An illustrative image for Chlorine Inhalation.",
+      "imageUrl": "https://picsum.photos/seed/chlorine-inhalation/600/400",
+      "imageHint": "toxic gas"
+    },
+    {
+      "id": "co-poisoning",
+      "description": "An illustrative image for Carbon Monoxide Poisoning.",
+      "imageUrl": "https://picsum.photos/seed/co-poisoning/600/400",
+      "imageHint": "carbon monoxide"
+    },
+    {
+      "id": "dka",
+      "description": "An illustrative image for Diabetic Ketoacidosis.",
+      "imageUrl": "https://picsum.photos/seed/dka/600/400",
+      "imageHint": "blood glucose"
+    },
+    {
+      "id": "adrenal-crisis",
+      "description": "An illustrative image for Adrenal Crisis.",
+      "imageUrl": "https://picsum.photos/seed/adrenal-crisis/600/400",
+      "imageHint": "shock child"
+    },
+    {
+      "id": "hypoglycemia",
+      "description": "An illustrative image for Hypoglycemia.",
+      "imageUrl": "https://picsum.photos/seed/hypoglycemia/600/400",
+      "imageHint": "glucose monitor"
+    },
+    {
+      "id": "hyperkalemia",
+      "description": "An illustrative image for Hyperkalemia.",
+      "imageUrl": "https://picsum.photos/seed/hyperkalemia/600/400",
+      "imageHint": "heart ecg"
+    },
+    {
+      "id": "hypokalemia",
+      "description": "An illustrative image for Hypokalemia.",
+      "imageUrl": "https://picsum.photos/seed/hypokalemia/600/400",
+      "imageHint": "flat ecg"
+    },
+    {
+      "id": "hypomagnesemia",
+      "description": "An illustrative image for Hypomagnesemia.",
+      "imageUrl": "https://picsum.photos/seed/hypomagnesemia/600/400",
+      "imageHint": "torsades ecg"
+    },
+    {
+      "id": "hypernatremia",
+      "description": "An illustrative image for Hypernatremia.",
+      "imageUrl": "https://picsum.photos/seed/hypernatremia/600/400",
+      "imageHint": "brain shrink"
+    },
+    {
+      "id": "hyponatremia",
+      "description": "An illustrative image for Hyponatremia.",
+      "imageUrl": "https://picsum.photos/seed/hyponatremia/600/400",
+      "imageHint": "brain swell"
+    },
+    {
+      "id": "hypocalcemia",
+      "description": "An illustrative image for Hypocalcemia.",
+      "imageUrl": "https://picsum.photos/seed/hypocalcemia/600/400",
+      "imageHint": "tetany hand"
+    },
+    {
+      "id": "hypercalcemia",
+      "description": "An illustrative image for Hypercalcemia.",
+      "imageUrl": "https://picsum.photos/seed/hypercalcemia/600/400",
+      "imageHint": "kidney stones"
+    },
+    {
+      "id": "acute-renal-failure",
+      "description": "An illustrative image for Acute Kidney Injury.",
+      "imageUrl": "https://picsum.photos/seed/aki/600/400",
+      "imageHint": "kidney"
+    },
+    {
+      "id": "chronic-renal-failure",
+      "description": "An illustrative image for Chronic Kidney Disease.",
+      "imageUrl": "https://picsum.photos/seed/ckd/600/400",
+      "imageHint": "dialysis"
+    },
+    {
+      "id": "nephrotic-syndrome",
+      "description": "An illustrative image for Nephrotic Syndrome.",
+      "imageUrl": "https://picsum.photos/seed/nephrotic/600/400",
+      "imageHint": "swollen child"
+    },
+    {
+      "id": "nephritic-syndrome",
+      "description": "An illustrative image for Acute Glomerulonephritis.",
+      "imageUrl": "https://picsum.photos/seed/nephritic/600/400",
+      "imageHint": "red urine"
+    },
+    {
+      "id": "urinary-tract-infection",
+      "description": "An illustrative image for Urinary Tract Infection.",
+      "imageUrl": "https://picsum.photos/seed/uti/600/400",
+      "imageHint": "urine sample"
+    }
+  ]
+}
