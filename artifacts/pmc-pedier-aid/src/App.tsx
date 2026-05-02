@@ -12,6 +12,7 @@ import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
 import DiffDiagPage from "@/pages/differential-diagnosis";
 import DrugSafetyPage from "@/pages/drug-safety";
+import DrugDosesPage from "@/pages/drug-doses";
 import AdminPage from "@/pages/admin";
 import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
@@ -61,7 +62,6 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function ProtectedRoute({ component: Component, adminOnly = false }: { component: React.ComponentType; adminOnly?: boolean }) {
   const { user, isLoading, isAdmin } = useAuth();
-  const [location] = useLocation();
 
   if (isLoading) {
     return (
@@ -71,9 +71,7 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
     );
   }
 
-  if (!user) {
-    return <Redirect to="/login" />;
-  }
+  if (!user) return <Redirect to="/login" />;
 
   if (adminOnly && !isAdmin) {
     return (
@@ -124,6 +122,9 @@ function Router() {
       </Route>
       <Route path="/drug-safety">
         {() => <ProtectedRoute component={DrugSafetyPage} />}
+      </Route>
+      <Route path="/drug-doses">
+        {() => <ProtectedRoute component={DrugDosesPage} />}
       </Route>
       <Route path="/diseases/:diseaseId/summary">
         {() => <ProtectedRoute component={SummaryPage} />}

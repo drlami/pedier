@@ -4,7 +4,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useMemo } from "react";
 import { allProtocols } from "@/lib/protocols";
 import { cn } from "@/lib/utils";
-import { Stethoscope, UserCog, HeartPulse, Brain, Pill, Users } from "lucide-react";
+import { Stethoscope, UserCog, HeartPulse, Brain, Pill, Users, FlaskConical } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 
 export function SidebarNav() {
@@ -24,62 +24,69 @@ export function SidebarNav() {
   const isAdminPage = pathname.startsWith("/admin");
   const isProtocolPage =
     !isAdminPage &&
-    !["/cardiac-arrest", "/differential-diagnosis", "/drug-safety"].includes(pathname);
+    !["/cardiac-arrest", "/differential-diagnosis", "/drug-safety", "/drug-doses"].includes(pathname);
+
+  const quickLinks = [
+    {
+      href: "/cardiac-arrest",
+      label: "Cardiac Arrest",
+      icon: HeartPulse,
+      activeClass: "bg-red-50 text-red-700 border border-red-200",
+      inactiveClass: "text-red-600 hover:bg-red-50 hover:text-red-700",
+      indicatorClass: "bg-red-500",
+    },
+    {
+      href: "/differential-diagnosis",
+      label: "AI Diff. Diagnosis",
+      icon: Brain,
+      activeClass: "bg-primary/8 text-primary border border-primary/20",
+      inactiveClass: "text-primary hover:bg-primary/8 hover:text-primary",
+      indicatorClass: "bg-primary",
+    },
+    {
+      href: "/drug-safety",
+      label: "Drug Safety Checker",
+      icon: FlaskConical,
+      activeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      inactiveClass: "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700",
+      indicatorClass: "bg-emerald-500",
+    },
+    {
+      href: "/drug-doses",
+      label: "Drug Dosing Calc.",
+      icon: Pill,
+      activeClass: "bg-orange-50 text-orange-700 border border-orange-200",
+      inactiveClass: "text-orange-600 hover:bg-orange-50 hover:text-orange-700",
+      indicatorClass: "bg-orange-500",
+    },
+  ];
 
   return (
     <nav className="flex flex-col h-full">
-      {/* Quick Access Tools */}
+      {/* Quick Access */}
       <div className="px-3 pt-3 pb-2 space-y-0.5">
         <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
           Quick Access
         </p>
-        <Link
-          href="/cardiac-arrest"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors text-[11px] font-semibold relative",
-            pathname === "/cardiac-arrest"
-              ? "bg-red-50 text-red-700 border border-red-200"
-              : "text-red-600 hover:bg-red-50 hover:text-red-700",
-          )}
-        >
-          {pathname === "/cardiac-arrest" && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-red-500 rounded-r-full" />
-          )}
-          <HeartPulse className="h-3.5 w-3.5 shrink-0" />
-          Cardiac Arrest
-        </Link>
-
-        <Link
-          href="/differential-diagnosis"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors text-[11px] font-semibold relative",
-            pathname === "/differential-diagnosis"
-              ? "bg-primary/8 text-primary border border-primary/20"
-              : "text-primary hover:bg-primary/8 hover:text-primary",
-          )}
-        >
-          {pathname === "/differential-diagnosis" && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-          )}
-          <Brain className="h-3.5 w-3.5 shrink-0" />
-          AI Diff. Diagnosis
-        </Link>
-
-        <Link
-          href="/drug-safety"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors text-[11px] font-semibold relative",
-            pathname === "/drug-safety"
-              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-              : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700",
-          )}
-        >
-          {pathname === "/drug-safety" && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-emerald-500 rounded-r-full" />
-          )}
-          <Pill className="h-3.5 w-3.5 shrink-0" />
-          Drug Safety Checker
-        </Link>
+        {quickLinks.map(({ href, label, icon: Icon, activeClass, inactiveClass, indicatorClass }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors text-[11px] font-semibold relative",
+                active ? activeClass : inactiveClass,
+              )}
+            >
+              {active && (
+                <span className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full", indicatorClass)} />
+              )}
+              <Icon className="h-3.5 w-3.5 shrink-0" />
+              {label}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mx-3 border-t border-sidebar-border" />
@@ -112,42 +119,36 @@ export function SidebarNav() {
         })}
       </div>
 
-      {/* Bottom admin links — only for admins */}
+      {/* Admin links */}
       {isAdmin && (
         <div className="px-3 pb-3 border-t border-sidebar-border pt-2 space-y-0.5">
           <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
             Administration
           </p>
-          <Link
-            href="/admin/protocols"
-            className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
-              isAdminPage && !pathname.includes("/users")
-                ? "bg-primary/8 text-primary font-semibold border border-primary/15"
-                : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
-            )}
-          >
-            {isAdminPage && !pathname.includes("/users") && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
-            )}
-            <UserCog className="h-3.5 w-3.5 shrink-0" />
-            Protocol Management
-          </Link>
-          <Link
-            href="/admin/users"
-            className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
-              pathname === "/admin/users"
-                ? "bg-primary/8 text-primary font-semibold border border-primary/15"
-                : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
-            )}
-          >
-            {pathname === "/admin/users" && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
-            )}
-            <Users className="h-3.5 w-3.5 shrink-0" />
-            User Management
-          </Link>
+          {[
+            { href: "/admin/protocols", label: "Protocol Management", icon: UserCog },
+            { href: "/admin/users", label: "User Management", icon: Users },
+          ].map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || (href === "/admin/protocols" && isAdminPage && pathname !== "/admin/users");
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
+                  active
+                    ? "bg-primary/8 text-primary font-semibold border border-primary/15"
+                    : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
+                )}
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </nav>
