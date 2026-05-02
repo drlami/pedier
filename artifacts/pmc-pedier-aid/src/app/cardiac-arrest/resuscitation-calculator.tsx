@@ -43,22 +43,22 @@ const getBlade = (age?: number) => {
 // --- Display Components ---
 const ResultCard = ({ title, icon: Icon, children }: { title: string, icon: React.ElementType, children: React.ReactNode }) => (
   <Card className="print-no-break-inside">
-    <CardHeader className="pb-2">
-      <CardTitle className="flex items-center gap-3 text-lg font-headline text-primary">
-        <Icon className="h-6 w-6" />
+    <CardHeader className="pb-2 pt-4 px-4">
+      <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-primary uppercase tracking-wide">
+        <Icon className="h-4 w-4 shrink-0" />
         {title}
       </CardTitle>
     </CardHeader>
-    <CardContent className="text-sm">
+    <CardContent className="text-sm px-4 pb-4">
       {children}
     </CardContent>
   </Card>
 );
 
 const ResultRow = ({ label, value, unit = '', className = '' }: { label: string, value: string | number, unit?: string, className?: string }) => (
-  <div className="flex justify-between items-center py-2 border-b">
-    <p className="text-muted-foreground">{label}</p>
-    <p className={cn("font-bold text-base text-right", className)}>{value} <span className="font-normal text-muted-foreground">{unit}</span></p>
+  <div className="flex justify-between items-center py-2 border-b last:border-b-0">
+    <p className="text-foreground/70 text-sm">{label}</p>
+    <p className={cn("font-bold text-base text-right tabular-nums", className)}>{value} <span className="font-normal text-muted-foreground text-sm">{unit}</span></p>
   </div>
 );
 
@@ -186,8 +186,8 @@ export function ResuscitationCalculator() {
         <div className="space-y-4" ref={summaryRef}>
             <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="text-destructive h-6 w-6" />
-                    <h2 className="text-2xl font-bold font-headline">Resuscitation Summary</h2>
+                    <AlertTriangle className="text-destructive h-5 w-5" />
+                    <h2 className="text-xl font-bold font-headline tracking-tight">Resuscitation Summary</h2>
                  </div>
                  <Button onClick={handleCopy} variant="outline" size="sm">
                     <Copy className="mr-2" /> Copy

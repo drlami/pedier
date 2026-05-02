@@ -62,9 +62,14 @@ export default function DiffDiagPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-xl font-bold font-headline text-foreground">AI Differential Diagnosis</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Enter patient details for an AI-generated clinical starting point.</p>
+      <div className="flex items-start gap-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+          <Brain className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-headline text-foreground leading-tight">AI Differential Diagnosis</h1>
+          <p className="text-sm text-muted-foreground mt-1">Enter patient details for an AI-generated clinical starting point.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -75,11 +80,11 @@ export default function DiffDiagPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Age / Development</label>
+                <label className="text-sm font-semibold text-foreground">Age / Development</label>
                 <Input name="age" placeholder="e.g., 4 months, 12 years" required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Main Symptoms & History</label>
+                <label className="text-sm font-semibold text-foreground">Main Symptoms &amp; History</label>
                 <Textarea
                   name="symptoms"
                   placeholder="Describe symptoms, duration, and onset..."
@@ -88,7 +93,7 @@ export default function DiffDiagPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Medical History (Optional)</label>
+                <label className="text-sm font-semibold text-foreground">Medical History <span className="font-normal text-muted-foreground">(Optional)</span></label>
                 <Input name="history" placeholder="Prior surgeries, allergies, etc." />
               </div>
               <Button type="submit" disabled={pending} className="w-full">
@@ -138,7 +143,7 @@ export default function DiffDiagPage() {
                   {state.data.differentials.map((diff: any, i: number) => (
                     <div key={i} className="p-3 bg-secondary/30 rounded-lg border">
                       <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-base">{diff.diagnosis}</h4>
+                        <h4 className="font-semibold text-sm text-foreground">{diff.diagnosis}</h4>
                         <Badge variant={diff.priority === "high" ? "destructive" : "secondary"}>
                           {diff.priority} priority
                         </Badge>

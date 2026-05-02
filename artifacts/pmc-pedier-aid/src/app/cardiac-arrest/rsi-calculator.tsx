@@ -61,22 +61,22 @@ const getVentilatorSettings = (ageCategory: 'neonate' | 'infant' | 'toddler' | '
 // --- Display Components ---
 const ResultCard = ({ title, icon: Icon, children, className }: { title: string, icon?: React.ElementType, children: React.ReactNode, className?: string }) => (
   <Card className={cn("print-no-break-inside", className)}>
-    <CardHeader className="pb-2">
-      <CardTitle className="flex items-center gap-3 text-lg font-headline text-primary">
-        {Icon && <Icon className="h-6 w-6" />}
+    <CardHeader className="pb-2 pt-4 px-4">
+      <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-primary uppercase tracking-wide">
+        {Icon && <Icon className="h-4 w-4 shrink-0" />}
         {title}
       </CardTitle>
     </CardHeader>
-    <CardContent className="text-sm space-y-2">
+    <CardContent className="text-sm space-y-2 px-4 pb-4">
       {children}
     </CardContent>
   </Card>
 );
 
 const ResultRow = ({ label, value, unit = '', className = '' }: { label: string, value: string | number, unit?: string, className?: string }) => (
-  <div className="flex justify-between items-center py-2 border-b">
-    <p className="text-muted-foreground">{label}</p>
-    <p className={cn("font-bold text-base text-right", className)}>{value} <span className="font-normal text-muted-foreground">{unit}</span></p>
+  <div className="flex justify-between items-center py-2 border-b last:border-b-0">
+    <p className="text-foreground/70 text-sm">{label}</p>
+    <p className={cn("font-bold text-base text-right tabular-nums", className)}>{value} <span className="font-normal text-muted-foreground text-sm">{unit}</span></p>
   </div>
 );
 
@@ -212,7 +212,7 @@ export function RsiCalculator() {
         <div className="space-y-4">
             <div className="flex justify-between items-center">
                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold font-headline">Rapid Sequence Intubation Summary</h2>
+                    <h2 className="text-xl font-bold font-headline tracking-tight">Rapid Sequence Intubation Summary</h2>
                  </div>
                  <div className='flex gap-2'>
                     <Dialog>
@@ -236,7 +236,7 @@ export function RsiCalculator() {
             )}
 
             <div className="space-y-2 p-4 border rounded-lg bg-secondary/30">
-                <h3 className="font-semibold text-lg">Special Considerations</h3>
+                <h3 className="font-semibold text-base text-foreground">Special Considerations</h3>
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="flex items-center space-x-2"><Switch id="difficult-airway" checked={difficultAirway} onCheckedChange={setDifficultAirway}/><Label htmlFor="difficult-airway">Difficult Airway?</Label></div>
                     <div className="flex items-center space-x-2"><Switch id="shock-mode" checked={inShock} onCheckedChange={setInShock}/><Label htmlFor="shock-mode">In Shock?</Label></div>

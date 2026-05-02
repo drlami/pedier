@@ -66,11 +66,16 @@ export default function DrugSafetyPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-xl font-bold font-headline text-foreground">Drug Safety Checker</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Check for drug-drug interactions, breastfeeding safety, and renal adjustments.
-        </p>
+      <div className="flex items-start gap-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-100 border border-violet-200 shrink-0">
+          <ShieldAlert className="h-5 w-5 text-violet-600" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold font-headline text-foreground leading-tight">Drug Safety Checker</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Check for drug-drug interactions, breastfeeding safety, and renal adjustments.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -82,7 +87,7 @@ export default function DrugSafetyPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Medication List</label>
+                <label className="text-sm font-semibold text-foreground">Medication List</label>
                 <Input
                   name="drugList"
                   placeholder="e.g., Gentamicin, Vancomycin, Ibuprofen"

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -122,7 +123,7 @@
 
   --muted: 210 40% 96.1%;
 
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted-foreground: 215 18% 36%;
 
   --accent: 173 70% 55%;
 
@@ -240,7 +241,7 @@
 
   --muted: 217.2 32.6% 17.5%;
 
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted-foreground: 215 18% 58%;
 
   --accent: 173 70% 55%;
 
@@ -276,6 +277,18 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.015em;
+    font-weight: 700;
+  }
+
+  .tabular-nums, .font-mono,
+  [data-clinical-value] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
   }
 }
 
