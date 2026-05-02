@@ -128,6 +128,21 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {/* Footer */}
+      <div className="shrink-0 border-t border-amber-200 bg-amber-50">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-1 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+            <p className="text-[11px] text-amber-800 font-medium">
+              Clinical decision support only — final judgment remains with the treating physician.
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold text-amber-700/70 tracking-wide whitespace-nowrap">
+            Coded by Dr Lami Qurt
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

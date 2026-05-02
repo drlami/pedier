@@ -5,5 +5,12 @@
     "passwordHash": "$2b$12$NF.L4PF63q0JwQF6QMdceeMSwYw/OwO28Z17p2oPUukVb.x1CDeB6",
     "role": "admin",
     "createdAt": "2026-05-02T22:31:06.375Z"
+  },
+  {
+    "id": "15b739b3-44ad-4e67-abd7-c71e60d8a7a1",
+    "username": "Drsamer",
+    "passwordHash": "$2b$12$nlqtxPvXY1gzItGxOfoEKuJOyk/3fyjSvca/9pZ93YnzelO6sy7z2",
+    "role": "specialist",
+    "createdAt": "2026-05-02T22:34:48.557Z"
   }
 ]
