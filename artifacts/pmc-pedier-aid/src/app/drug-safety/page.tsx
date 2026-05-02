@@ -66,9 +66,9 @@ export default function DrugSafetyPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold font-headline text-primary">Drug Safety Checker</h1>
-        <p className="text-muted-foreground mt-2">
+      <div>
+        <h1 className="text-xl font-bold font-headline text-foreground">Drug Safety Checker</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
           Check for drug-drug interactions, breastfeeding safety, and renal adjustments.
         </p>
       </div>
@@ -131,7 +131,7 @@ export default function DrugSafetyPage() {
 
           {state.data && (
             <div className="space-y-6 animate-in fade-in duration-500">
-              <ResultCard title="Drug-Drug Interactions" icon={ArrowRightLeft}>
+              <ResultCard title="Drug-Drug Interactions" icon={ArrowRightLeft} variant="danger">
                 {state.data.interactions.length > 0 ? (
                   <div className="space-y-4">
                     {state.data.interactions.map((interaction: any, i: number) => (
@@ -164,7 +164,7 @@ export default function DrugSafetyPage() {
               </ResultCard>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ResultCard title="Breastfeeding Safety" icon={Baby}>
+                <ResultCard title="Breastfeeding Safety" icon={Baby} variant="info">
                   <div className="space-y-3">
                     {state.data.breastfeedingSafety.map((item: any, i: number) => (
                       <div key={i} className="text-xs">
@@ -180,7 +180,7 @@ export default function DrugSafetyPage() {
                   </div>
                 </ResultCard>
 
-                <ResultCard title="Renal Adjustments" icon={Stethoscope}>
+                <ResultCard title="Renal Adjustments" icon={Stethoscope} variant="drug">
                   <div className="space-y-3">
                     {state.data.renalAdjustment.map((item: any, i: number) => (
                       <div key={i} className="text-xs">

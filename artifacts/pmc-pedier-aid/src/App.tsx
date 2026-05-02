@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter, Link, useRoute, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,15 +15,32 @@ import AdminPage from "@/pages/admin";
 import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
 import NotFound from "@/pages/not-found";
+import { AlertCircle } from "lucide-react";
 
 const queryClient = new QueryClient();
+
+function Footer() {
+  return (
+    <footer className="no-print shrink-0 border-t border-amber-200 bg-amber-50">
+      <div className="flex items-center justify-center gap-2 px-4 py-2">
+        <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+        <p className="text-[11px] text-amber-800 font-medium">
+          Clinical decision support only — final judgment remains with the treating physician.
+        </p>
+        <span className="hidden sm:inline text-[11px] text-amber-600 before:content-['·'] before:mr-2">
+          Prepared by Dr Lami Qurt
+        </span>
+      </div>
+    </footer>
+  );
+}
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="font-body antialiased flex flex-col min-h-screen bg-background">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:block">
+        <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:flex lg:flex-col">
           <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
             <SidebarNav />
           </Suspense>
@@ -32,9 +49,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <footer className="border-t bg-card py-2 px-4 text-[10px] text-muted-foreground text-center">
-        Clinical support tool only. Final judgment remains with treating physician. Tool is Prepared and coded by Dr Lami Qurt.
-      </footer>
+      <Footer />
     </div>
   );
 }

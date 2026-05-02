@@ -62,9 +62,9 @@ export default function DiffDiagPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold font-headline text-primary">AI Differential Diagnosis</h1>
-        <p className="text-muted-foreground mt-2">Enter patient details for an AI-generated clinical starting point.</p>
+      <div>
+        <h1 className="text-xl font-bold font-headline text-foreground">AI Differential Diagnosis</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Enter patient details for an AI-generated clinical starting point.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -133,7 +133,7 @@ export default function DiffDiagPage() {
 
           {state.data && (
             <div className="space-y-6 animate-in fade-in duration-500">
-              <ResultCard title="Differential Diagnosis" icon={Stethoscope}>
+              <ResultCard title="Differential Diagnosis" icon={Stethoscope} variant="management">
                 <div className="space-y-4">
                   {state.data.differentials.map((diff: any, i: number) => (
                     <div key={i} className="p-3 bg-secondary/30 rounded-lg border">
@@ -150,7 +150,7 @@ export default function DiffDiagPage() {
               </ResultCard>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ResultCard title="Initial Workup" icon={TestTube2}>
+                <ResultCard title="Initial Workup" icon={TestTube2} variant="info">
                   <ul className="space-y-3">
                     {state.data.workup.map((item: any, i: number) => (
                       <li key={i} className="text-sm">
@@ -161,7 +161,7 @@ export default function DiffDiagPage() {
                   </ul>
                 </ResultCard>
 
-                <ResultCard title="Immediate Management" icon={Activity}>
+                <ResultCard title="Immediate Management" icon={Activity} variant="management">
                   <ul className="list-disc list-inside space-y-2 text-sm">
                     {state.data.management.map((item: any, i: number) => (
                       <li key={i}>{item}</li>
@@ -170,7 +170,7 @@ export default function DiffDiagPage() {
                 </ResultCard>
               </div>
 
-              <ResultCard title="Clinical Red Flags" icon={AlertTriangle} className="border-destructive/30">
+              <ResultCard title="Clinical Red Flags" icon={AlertTriangle} variant="danger">
                 <ul className="list-disc list-inside space-y-1 text-sm text-destructive font-medium">
                   {state.data.redFlags.map((flag: any, i: number) => (
                     <li key={i}>{flag}</li>

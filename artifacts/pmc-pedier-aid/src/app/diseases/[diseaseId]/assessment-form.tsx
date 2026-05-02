@@ -177,7 +177,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </Alert>
             )}
 
-            <ResultCard title="Severity Classification" icon={Stethoscope}>
+            <ResultCard title="Severity Classification" icon={Stethoscope} variant="default">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <SeverityBadge level={severity.level || 'unknown'} />
                 {severity.details.length > 0 && <p className="text-xs text-muted-foreground">Based on: {severity.details.join(', ')}</p>}
@@ -185,27 +185,27 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             </ResultCard>
 
             {management.map(m => (
-                 <ResultCard key={m.title} title={m.title} icon={Pill}>
+                 <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
                      <ul className="list-disc list-inside space-y-1">
                          {m.recommendations.map((rec, i) => <li key={i}>{rec}</li>)}
                      </ul>
                  </ResultCard>
             ))}
 
-            <ResultCard title="Disposition" icon={Hospital}>
+            <ResultCard title="Disposition" icon={Hospital} variant="disposition">
                 <ul className="list-disc list-inside space-y-1">
                     {disposition.map((d, i) => <li key={i}>{d}</li>)}
                 </ul>
             </ResultCard>
 
-            <ResultCard title="Red Flags" icon={TriangleAlert}>
+            <ResultCard title="Red Flags" icon={TriangleAlert} variant="danger">
                 <ul className="list-disc list-inside space-y-1 text-destructive">
                     {redFlags.map((flag, i) => <li key={i} className="font-medium">{flag}</li>)}
                 </ul>
             </ResultCard>
 
             {drugDoses.length > 0 && (
-                <ResultCard title="Relevant Drug Doses" icon={Pill}>
+                <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
                      <div className="space-y-2">
                         {drugDoses.map((drug, i) => (
                             <div key={i} className="p-2 bg-secondary/50 rounded-md">
@@ -219,7 +219,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             )}
 
             {references.length > 0 && (
-                <ResultCard title="References" icon={BookOpen}>
+                <ResultCard title="References" icon={BookOpen} variant="info">
                     <ul className="list-disc list-inside space-y-1">
                         {references.map((ref, i) => (
                              <li key={i}>

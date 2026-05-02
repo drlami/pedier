@@ -1,14 +1,9 @@
-import { useState, useMemo, Suspense, useEffect } from "react";
-import { Link, useSearch, useLocation } from "wouter";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useSearch } from "wouter";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { allProtocols } from "@/lib/protocols";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
-import { Search } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 
 function ProtocolCard({
   protocol,
@@ -23,13 +18,15 @@ function ProtocolCard({
       className="block group"
       onClick={onClick}
     >
-      <Card className="hover:shadow-xl transition-shadow duration-300 flex justify-center items-center bg-card hover:ring-2 hover:ring-primary min-h-[80px]">
-        <CardHeader className="p-4">
-          <CardTitle className="font-headline text-lg text-center">
+      <div className="flex items-center justify-between bg-card border border-border rounded-lg px-4 py-3 shadow-sm hover:shadow-md hover:border-primary/40 hover:bg-primary/[0.02] transition-all duration-150 group min-h-[56px]">
+        <div className="flex items-center gap-3">
+          <span className="w-1 h-8 rounded-full bg-primary/30 group-hover:bg-primary transition-colors shrink-0" />
+          <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
             {protocol.name}
-          </CardTitle>
-        </CardHeader>
-      </Card>
+          </span>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/60 shrink-0 transition-colors" />
+      </div>
     </Link>
   );
 }
@@ -48,25 +45,29 @@ function SystemProtocols({
   }, [system]);
 
   return (
-    <div className="flex flex-col gap-8">
-      <section className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold font-headline text-primary">
-          {system}
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Select a protocol to begin assessment.
+    <div className="flex flex-col gap-6">
+      <section>
+        <div className="flex items-baseline gap-3 mb-1">
+          <h1 className="text-2xl font-bold font-headline text-foreground">
+            {system}
+          </h1>
+          <span className="text-xs font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+            {protocolsForSystem.length} protocol{protocolsForSystem.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Select a protocol to begin clinical assessment.
         </p>
       </section>
 
       <section>
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
           {protocolsForSystem.map((protocol) => (
-            <div key={protocol.id} className="break-inside-avoid">
-              <ProtocolCard
-                protocol={protocol}
-                onClick={onProtocolClick}
-              />
-            </div>
+            <ProtocolCard
+              key={protocol.id}
+              protocol={protocol}
+              onClick={onProtocolClick}
+            />
           ))}
         </div>
       </section>
@@ -109,14 +110,14 @@ export default function Home() {
   }, [searchTerm]);
 
   return (
-    <div className="flex flex-col gap-8">
-      <section className="w-full max-w-3xl mx-auto">
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto">
+      <section className="w-full">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search all protocols by name, keyword, or system..."
-            className="w-full pl-12 py-3 text-base rounded-lg shadow-sm"
+            className="w-full pl-10 py-2.5 text-sm rounded-lg bg-card border-border shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -125,23 +126,28 @@ export default function Home() {
 
       {searchTerm ? (
         <section>
-          <h2 className="text-2xl font-bold font-headline mb-4">
-            Search Results for &quot;{searchTerm}&quot;
-          </h2>
+          <div className="flex items-baseline gap-3 mb-4">
+            <h2 className="text-xl font-bold font-headline">
+              Search Results
+            </h2>
+            <span className="text-xs font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+              {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &quot;{searchTerm}&quot;
+            </span>
+          </div>
           {searchResults.length > 0 ? (
-            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
               {searchResults.map((protocol) => (
-                <div key={protocol.id} className="break-inside-avoid">
-                  <ProtocolCard
-                    protocol={protocol}
-                    onClick={handleProtocolClick}
-                  />
-                </div>
+                <ProtocolCard
+                  key={protocol.id}
+                  protocol={protocol}
+                  onClick={handleProtocolClick}
+                />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>No protocols found for your search.</p>
+            <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-border">
+              <Search className="h-8 w-8 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">No protocols found for your search.</p>
             </div>
           )}
         </section>
