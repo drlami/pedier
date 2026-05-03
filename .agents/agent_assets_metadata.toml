@@ -1,0 +1,19 @@
+uploads = []
+
+[[generated]]
+id = "AlzH8nNYUHPVlAkAScZYt"
+uri = "file://artifacts/pmc-intro-video/public/images/tech-bg.png"
+type = "image"
+title = "Abstract medical tech background"
+
+[[outputs]]
+id = "HPdULPT64DBvgTMgYyuAx"
+uri = "file://artifacts/pmc-intro-video/public/images/er-corridor.jpg"
+type = "image"
+title = "empty hospital emergency room corridor with dramatic lighting cinematic"
+
+[[outputs]]
+id = "JHTsbC1oM_1NOQksnvncO"
+uri = "file://artifacts/pmc-intro-video/public/images/pediatric-room.jpg"
+type = "image"
+title = "pediatric hospital room warm lighting reassuring"
