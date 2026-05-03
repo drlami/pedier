@@ -5,17 +5,50 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby,
+  FlaskConical, Baby, BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useAllProtocols } from "@/contexts/protocols-context";
 
-const NEONATOLOGY_TOOLS = [
+// ─── All clinical tools in one ordered list ───────────────────────────────────
+// Cardiac Arrest stays first (emergency convention). Everything else follows
+// by logical category. Active state uses a single primary accent throughout,
+// except Cardiac Arrest which uses red (universal emergency colour).
+
+const CLINICAL_TOOLS = [
+  {
+    href: "/cardiac-arrest",
+    label: "Cardiac Arrest",
+    icon: HeartPulse,
+    emergency: true,
+  },
   {
     href: "/neonatology/hyperbilirubinemia",
     label: "Hyperbilirubinemia",
+    icon: Baby,
+    emergency: false,
   },
-];
+  {
+    href: "/drug-doses",
+    label: "Drug Dosing",
+    icon: Pill,
+    emergency: false,
+  },
+  {
+    href: "/drug-safety",
+    label: "Drug Safety",
+    icon: FlaskConical,
+    emergency: false,
+  },
+  {
+    href: "/differential-diagnosis",
+    label: "AI Differential Dx",
+    icon: Brain,
+    emergency: false,
+  },
+] as const;
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function SidebarNav() {
   const [pathname] = useLocation();
@@ -32,168 +65,154 @@ export function SidebarNav() {
 
   const defaultSystem = systems[0];
   const activeSystem = currentSystem || defaultSystem;
+
   const isAdminPage = pathname.startsWith("/admin");
   const isNeonatologyPage = pathname.startsWith("/neonatology");
   const isProtocolPage =
     !isAdminPage &&
     !isNeonatologyPage &&
-    !["/cardiac-arrest", "/differential-diagnosis", "/drug-safety", "/drug-doses"].includes(pathname);
-
-  const quickLinks = [
-    {
-      href: "/cardiac-arrest",
-      label: "Cardiac Arrest",
-      icon: HeartPulse,
-      activeClass: "bg-red-50 text-red-700 border border-red-200",
-      inactiveClass: "text-red-600 hover:bg-red-50 hover:text-red-700",
-      indicatorClass: "bg-red-500",
-    },
-    {
-      href: "/differential-diagnosis",
-      label: "AI Diff. Diagnosis",
-      icon: Brain,
-      activeClass: "bg-primary/8 text-primary border border-primary/20",
-      inactiveClass: "text-primary hover:bg-primary/8 hover:text-primary",
-      indicatorClass: "bg-primary",
-    },
-    {
-      href: "/drug-safety",
-      label: "Drug Safety Checker",
-      icon: FlaskConical,
-      activeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-      inactiveClass: "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700",
-      indicatorClass: "bg-emerald-500",
-    },
-    {
-      href: "/drug-doses",
-      label: "Drug Dosing Calc.",
-      icon: Pill,
-      activeClass: "bg-orange-50 text-orange-700 border border-orange-200",
-      inactiveClass: "text-orange-600 hover:bg-orange-50 hover:text-orange-700",
-      indicatorClass: "bg-orange-500",
-    },
-  ];
+    !CLINICAL_TOOLS.some((t) => t.href === pathname);
 
   return (
-    <nav className="flex flex-col h-full">
-      {/* Quick Access */}
-      <div className="px-3 pt-3 pb-2 space-y-0.5">
-        <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
-          Quick Access
-        </p>
-        {quickLinks.map(({ href, label, icon: Icon, activeClass, inactiveClass, indicatorClass }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors text-[11px] font-semibold relative",
-                active ? activeClass : inactiveClass,
-              )}
-            >
-              {active && (
-                <span className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full", indicatorClass)} />
-              )}
-              <Icon className="h-3.5 w-3.5 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
-      </div>
+    <nav className="flex flex-col h-full select-none">
 
-      <div className="mx-3 border-t border-sidebar-border" />
+      {/* ── Clinical Tools ─────────────────────────────────────────────── */}
+      <div className="px-3 pt-4 pb-3">
+        <SectionLabel>Clinical Tools</SectionLabel>
 
-      {/* Neonatology */}
-      <div className="px-3 pt-2 pb-2 space-y-0.5">
-        <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
-          Neonatology
-        </p>
-        {NEONATOLOGY_TOOLS.map(({ href, label }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
-                active
-                  ? "bg-violet-50 text-violet-700 font-semibold border border-violet-200"
-                  : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-            >
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-violet-500 rounded-r-full" />
-              )}
-              <Baby className="h-3 w-3 shrink-0 opacity-60" />
-              {label}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="mx-3 border-t border-sidebar-border" />
-
-      {/* Clinical Systems */}
-      <div className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-        <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
-          Clinical Systems
-        </p>
-        {systems.map((system) => {
-          const isActive = isProtocolPage && activeSystem === system;
-          return (
-            <Link
-              key={system}
-              href={`/?system=${encodeURIComponent(system)}`}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
-                isActive
-                  ? "bg-primary/8 text-primary font-semibold border border-primary/15"
-                  : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-            >
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
-              )}
-              <Stethoscope className="h-3 w-3 shrink-0 opacity-60" />
-              {system}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Admin links */}
-      {isAdmin && (
-        <div className="px-3 pb-3 border-t border-sidebar-border pt-2 space-y-0.5">
-          <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
-            Administration
-          </p>
-          {[
-            { href: "/admin/protocols", label: "Protocol Management", icon: UserCog },
-            { href: "/admin/users", label: "User Management", icon: Users },
-          ].map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || (href === "/admin/protocols" && isAdminPage && pathname !== "/admin/users");
+        <div className="space-y-0.5">
+          {CLINICAL_TOOLS.map(({ href, label, icon: Icon, emergency }) => {
+            const active = pathname === href || (isNeonatologyPage && href.startsWith("/neonatology") && pathname.startsWith(href));
             return (
-              <Link
+              <NavItem
                 key={href}
                 href={href}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
-                  active
-                    ? "bg-primary/8 text-primary font-semibold border border-primary/15"
-                    : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
-                )}
-              >
-                {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
-                )}
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                {label}
-              </Link>
+                label={label}
+                icon={Icon}
+                active={active}
+                emergency={emergency}
+              />
             );
           })}
         </div>
+      </div>
+
+      <Divider />
+
+      {/* ── Clinical Protocols ─────────────────────────────────────────── */}
+      <div className="flex-1 px-3 py-3 overflow-y-auto">
+        <SectionLabel>Clinical Protocols</SectionLabel>
+
+        {systems.length === 0 ? (
+          <p className="px-2 py-1 text-[11px] text-muted-foreground/50 italic">
+            No protocols loaded
+          </p>
+        ) : (
+          <div className="space-y-0.5">
+            {systems.map((system) => {
+              const active = isProtocolPage && activeSystem === system;
+              return (
+                <NavItem
+                  key={system}
+                  href={`/?system=${encodeURIComponent(system)}`}
+                  label={system}
+                  icon={Stethoscope}
+                  active={active}
+                  emergency={false}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Administration ─────────────────────────────────────────────── */}
+      {isAdmin && (
+        <>
+          <Divider />
+          <div className="px-3 py-3">
+            <SectionLabel>Administration</SectionLabel>
+            <div className="space-y-0.5">
+              {[
+                { href: "/admin/protocols", label: "Protocol Management", icon: BookOpen },
+                { href: "/admin/users", label: "User Management", icon: Users },
+                { href: "/admin", label: "Admin Panel", icon: UserCog },
+              ].map(({ href, label, icon: Icon }) => {
+                const active =
+                  pathname === href ||
+                  (href === "/admin/protocols" && isAdminPage && pathname !== "/admin/users" && pathname !== "/admin");
+                return (
+                  <NavItem
+                    key={href}
+                    href={href}
+                    label={label}
+                    icon={Icon}
+                    active={active}
+                    emergency={false}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </nav>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+      {children}
+    </p>
+  );
+}
+
+function Divider() {
+  return <div className="mx-3 border-t border-sidebar-border" />;
+}
+
+interface NavItemProps {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  active: boolean;
+  emergency: boolean;
+}
+
+function NavItem({ href, label, icon: Icon, active, emergency }: NavItemProps) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-colors relative group",
+        active && emergency
+          ? "bg-red-50 text-red-700 border border-red-200"
+          : active
+          ? "bg-primary/10 text-primary border border-primary/15 font-semibold"
+          : emergency
+          ? "text-red-600 hover:bg-red-50 hover:text-red-700"
+          : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
+      )}
+    >
+      {/* Left accent bar */}
+      {active && (
+        <span
+          className={cn(
+            "absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full",
+            emergency ? "bg-red-500" : "bg-primary",
+          )}
+        />
+      )}
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0",
+          active ? (emergency ? "text-red-600" : "text-primary") : "opacity-50 group-hover:opacity-80",
+        )}
+      />
+      <span className="leading-none">{label}</span>
+    </Link>
   );
 }
