@@ -685,7 +685,7 @@ export default function HyperbilirubinemiaCal() {
                   />
                   <ReferenceArea y1={result.exchangeThreshold} y2={yMax + 2} fill="rgba(252,165,165,0.30)" />
 
-                  <XAxis dataKey="hours" type="number" domain={[0, 168]} ticks={[0, 12, 24, 36, 48, 60, 72, 96, 120, 144, 168]}>
+                  <XAxis dataKey="hours" type="number" domain={[0, 336]} ticks={[0, 24, 48, 72, 96, 120, 144, 168, 216, 264, 312, 336]}>
                     <Label value="Age (hours)" position="insideBottom" offset={-10} className="text-xs fill-muted-foreground" />
                   </XAxis>
 
@@ -732,7 +732,7 @@ export default function HyperbilirubinemiaCal() {
                   />
 
                   {/* Patient dot */}
-                  {patientHoursSnapped !== null && hours <= 168 && (
+                  {patientHoursSnapped !== null && hours <= 336 && (
                     <ReferenceDot
                       x={patientHoursSnapped}
                       y={parseFloat(bilirubinMgdL.toFixed(1))}
