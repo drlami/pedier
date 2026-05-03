@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { sceneTransitions } from '../lib/video/animations';
+import { sceneTransitions } from '@/lib/video/animations';
 
 export function Scene3() {
   const [phase, setPhase] = useState(0);
