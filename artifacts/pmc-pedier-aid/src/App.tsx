@@ -48,7 +48,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     <div className="font-body antialiased flex flex-col min-h-screen bg-background">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-y-auto hidden lg:flex lg:flex-col">
+        <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-hidden hidden lg:flex lg:flex-col">
           <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
             <SidebarNav />
           </Suspense>

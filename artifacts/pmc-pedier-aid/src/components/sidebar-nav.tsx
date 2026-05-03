@@ -5,56 +5,38 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby, BookOpen,
+  FlaskConical, Baby, BookOpen, ChevronDown,
 } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { useAllProtocols } from "@/contexts/protocols-context";
 
-// ─── All clinical tools in one ordered list ───────────────────────────────────
-// Cardiac Arrest stays first (emergency convention). Everything else follows
-// by logical category. Active state uses a single primary accent throughout,
-// except Cardiac Arrest which uses red (universal emergency colour).
+// ─── Clinical Tools ───────────────────────────────────────────────────────────
 
 const CLINICAL_TOOLS = [
-  {
-    href: "/cardiac-arrest",
-    label: "Cardiac Arrest",
-    icon: HeartPulse,
-    emergency: true,
-  },
-  {
-    href: "/neonatology/hyperbilirubinemia",
-    label: "Hyperbilirubinemia",
-    icon: Baby,
-    emergency: false,
-  },
-  {
-    href: "/drug-doses",
-    label: "Drug Dosing",
-    icon: Pill,
-    emergency: false,
-  },
-  {
-    href: "/drug-safety",
-    label: "Drug Safety",
-    icon: FlaskConical,
-    emergency: false,
-  },
-  {
-    href: "/differential-diagnosis",
-    label: "AI Differential Dx",
-    icon: Brain,
-    emergency: false,
-  },
+  { href: "/cardiac-arrest",                label: "Cardiac Arrest",     icon: HeartPulse,    emergency: true  },
+  { href: "/neonatology/hyperbilirubinemia", label: "Hyperbilirubinemia", icon: Baby,          emergency: false },
+  { href: "/drug-doses",                     label: "Drug Dosing",        icon: Pill,          emergency: false },
+  { href: "/drug-safety",                    label: "Drug Safety",        icon: FlaskConical,  emergency: false },
+  { href: "/differential-diagnosis",         label: "AI Differential Dx", icon: Brain,         emergency: false },
+] as const;
+
+const ADMIN_LINKS = [
+  { href: "/admin/protocols", label: "Protocol Management", icon: BookOpen },
+  { href: "/admin/users",     label: "User Management",     icon: Users    },
+  { href: "/admin",           label: "Admin Panel",         icon: UserCog  },
 ] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function SidebarNav() {
-  const [pathname] = useLocation();
+  const [pathname, setLocation] = useLocation();
   const search = useSearch();
   const { isAdmin } = useAuth();
   const allProtocols = useAllProtocols();
+
   const searchParams = new URLSearchParams(search);
   const currentSystem = searchParams.get("system");
 
@@ -63,26 +45,30 @@ export function SidebarNav() {
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
   }, [allProtocols]);
 
-  const defaultSystem = systems[0];
-  const activeSystem = currentSystem || defaultSystem;
+  const defaultSystem = systems[0] ?? "";
+  const isAdminPage     = pathname.startsWith("/admin");
+  const isNeoPage       = pathname.startsWith("/neonatology");
+  const isToolPage      = CLINICAL_TOOLS.some(
+    (t) => pathname === t.href || (isNeoPage && t.href.startsWith("/neonatology")),
+  );
+  const isProtocolPage  = !isAdminPage && !isToolPage;
+  const activeSystem    = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
 
-  const isAdminPage = pathname.startsWith("/admin");
-  const isNeonatologyPage = pathname.startsWith("/neonatology");
-  const isProtocolPage =
-    !isAdminPage &&
-    !isNeonatologyPage &&
-    !CLINICAL_TOOLS.some((t) => t.href === pathname);
+  const handleSystemChange = (system: string) => {
+    setLocation(`/?system=${encodeURIComponent(system)}`);
+  };
 
   return (
-    <nav className="flex flex-col h-full select-none">
+    <nav className="flex flex-col h-full select-none overflow-hidden">
 
-      {/* ── Clinical Tools ─────────────────────────────────────────────── */}
-      <div className="px-3 pt-4 pb-3">
+      {/* ── Clinical Tools ──────────────────────────────────────── */}
+      <div className="px-3 pt-4 pb-3 shrink-0">
         <SectionLabel>Clinical Tools</SectionLabel>
-
         <div className="space-y-0.5">
           {CLINICAL_TOOLS.map(({ href, label, icon: Icon, emergency }) => {
-            const active = pathname === href || (isNeonatologyPage && href.startsWith("/neonatology") && pathname.startsWith(href));
+            const active =
+              pathname === href ||
+              (isNeoPage && href.startsWith("/neonatology") && pathname.startsWith(href));
             return (
               <NavItem
                 key={href}
@@ -99,48 +85,67 @@ export function SidebarNav() {
 
       <Divider />
 
-      {/* ── Clinical Protocols ─────────────────────────────────────────── */}
-      <div className="flex-1 px-3 py-3 overflow-y-auto">
+      {/* ── Clinical Protocols — compact select ─────────────────── */}
+      <div className="px-3 py-3 shrink-0">
         <SectionLabel>Clinical Protocols</SectionLabel>
 
         {systems.length === 0 ? (
-          <p className="px-2 py-1 text-[11px] text-muted-foreground/50 italic">
+          <p className="px-1 text-[11px] text-muted-foreground/50 italic">
             No protocols loaded
           </p>
         ) : (
-          <div className="space-y-0.5">
-            {systems.map((system) => {
-              const active = isProtocolPage && activeSystem === system;
-              return (
-                <NavItem
-                  key={system}
-                  href={`/?system=${encodeURIComponent(system)}`}
-                  label={system}
-                  icon={Stethoscope}
-                  active={active}
-                  emergency={false}
-                />
-              );
-            })}
-          </div>
+          <>
+            <Select
+              value={activeSystem ?? ""}
+              onValueChange={handleSystemChange}
+            >
+              <SelectTrigger
+                className={cn(
+                  "h-8 text-xs w-full",
+                  isProtocolPage
+                    ? "border-primary/30 text-primary font-medium"
+                    : "text-muted-foreground",
+                )}
+              >
+                <Stethoscope className="h-3.5 w-3.5 shrink-0 mr-1.5 opacity-60" />
+                <SelectValue placeholder="Select a system…" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {systems.map((system) => (
+                  <SelectItem key={system} value={system} className="text-xs">
+                    {system}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Active system pill — quick visual confirmation */}
+            {isProtocolPage && activeSystem && (
+              <p className="mt-1.5 px-1 text-[10px] text-primary/70 font-medium truncate">
+                Viewing: {activeSystem}
+              </p>
+            )}
+          </>
         )}
       </div>
 
-      {/* ── Administration ─────────────────────────────────────────────── */}
+      {/* ── Spacer — pushes admin to bottom ─────────────────────── */}
+      <div className="flex-1" />
+
+      {/* ── Administration ──────────────────────────────────────── */}
       {isAdmin && (
         <>
           <Divider />
-          <div className="px-3 py-3">
+          <div className="px-3 py-3 shrink-0">
             <SectionLabel>Administration</SectionLabel>
             <div className="space-y-0.5">
-              {[
-                { href: "/admin/protocols", label: "Protocol Management", icon: BookOpen },
-                { href: "/admin/users", label: "User Management", icon: Users },
-                { href: "/admin", label: "Admin Panel", icon: UserCog },
-              ].map(({ href, label, icon: Icon }) => {
+              {ADMIN_LINKS.map(({ href, label, icon: Icon }) => {
                 const active =
                   pathname === href ||
-                  (href === "/admin/protocols" && isAdminPage && pathname !== "/admin/users" && pathname !== "/admin");
+                  (href === "/admin/protocols" &&
+                    isAdminPage &&
+                    pathname !== "/admin/users" &&
+                    pathname !== "/admin");
                 return (
                   <NavItem
                     key={href}
@@ -164,14 +169,14 @@ export function SidebarNav() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-2 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+    <p className="px-1 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
       {children}
     </p>
   );
 }
 
 function Divider() {
-  return <div className="mx-3 border-t border-sidebar-border" />;
+  return <div className="mx-3 border-t border-sidebar-border shrink-0" />;
 }
 
 interface NavItemProps {
@@ -197,7 +202,6 @@ function NavItem({ href, label, icon: Icon, active, emergency }: NavItemProps) {
           : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
       )}
     >
-      {/* Left accent bar */}
       {active && (
         <span
           className={cn(
@@ -209,7 +213,9 @@ function NavItem({ href, label, icon: Icon, active, emergency }: NavItemProps) {
       <Icon
         className={cn(
           "h-4 w-4 shrink-0",
-          active ? (emergency ? "text-red-600" : "text-primary") : "opacity-50 group-hover:opacity-80",
+          active
+            ? emergency ? "text-red-600" : "text-primary"
+            : "opacity-50 group-hover:opacity-80",
         )}
       />
       <span className="leading-none">{label}</span>
