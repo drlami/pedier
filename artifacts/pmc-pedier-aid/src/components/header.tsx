@@ -5,14 +5,6 @@ import { Link } from "wouter";
 import { StethoscopeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,10 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Menu, LogOut, Search, Shield, Stethoscope, GraduationCap } from "lucide-react";
-import { SidebarNav } from "@/components/sidebar-nav";
 import { SearchModal } from "@/components/search-modal";
 import { Suspense } from "react";
 import { useAuth, type UserRole } from "@/contexts/auth-context";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 const ROLE_ICON: Record<UserRole, typeof Shield> = {
   admin: Shield,
@@ -40,6 +32,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
 
 export function Header() {
   const { user, logout } = useAuth();
+  const { toggle } = useSidebar();
   const [searchOpen, setSearchOpen] = useState(false);
   const RoleIcon = user ? ROLE_ICON[user.role] : Shield;
 
@@ -59,29 +52,20 @@ export function Header() {
     <>
       <header className="no-print sticky top-0 z-40" style={{ background: "hsl(212, 72%, 22%)" }}>
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu */}
-            <div className="lg:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 pt-10 w-72 bg-sidebar border-r-0">
-                  <SheetHeader>
-                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                    <SheetDescription className="sr-only">
-                      Select a clinical system to view its protocols.
-                    </SheetDescription>
-                  </SheetHeader>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <SidebarNav />
-                  </Suspense>
-                </SheetContent>
-              </Sheet>
-            </div>
+          <div className="flex items-center gap-2">
+
+            {/* Hamburger — visible on all screen sizes, toggles unified sidebar */}
+            {user && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggle}
+                className="text-white hover:bg-white/10 shrink-0"
+                aria-label="Toggle navigation"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 text-white">

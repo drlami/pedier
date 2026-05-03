@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby, BookOpen, ChevronDown,
+  FlaskConical, Baby, BookOpen,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -46,13 +46,13 @@ export function SidebarNav() {
   }, [allProtocols]);
 
   const defaultSystem = systems[0] ?? "";
-  const isAdminPage     = pathname.startsWith("/admin");
-  const isNeoPage       = pathname.startsWith("/neonatology");
-  const isToolPage      = CLINICAL_TOOLS.some(
+  const isAdminPage    = pathname.startsWith("/admin");
+  const isNeoPage      = pathname.startsWith("/neonatology");
+  const isToolPage     = CLINICAL_TOOLS.some(
     (t) => pathname === t.href || (isNeoPage && t.href.startsWith("/neonatology")),
   );
-  const isProtocolPage  = !isAdminPage && !isToolPage;
-  const activeSystem    = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
+  const isProtocolPage = !isAdminPage && !isToolPage;
+  const activeSystem   = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
 
   const handleSystemChange = (system: string) => {
     setLocation(`/?system=${encodeURIComponent(system)}`);
@@ -119,7 +119,7 @@ export function SidebarNav() {
               </SelectContent>
             </Select>
 
-            {/* Active system pill — quick visual confirmation */}
+            {/* Active system pill */}
             {isProtocolPage && activeSystem && (
               <p className="mt-1.5 px-1 text-[10px] text-primary/70 font-medium truncate">
                 Viewing: {activeSystem}
@@ -129,7 +129,7 @@ export function SidebarNav() {
         )}
       </div>
 
-      {/* ── Spacer — pushes admin to bottom ─────────────────────── */}
+      {/* ── Spacer ───────────────────────────────────────────────── */}
       <div className="flex-1" />
 
       {/* ── Administration ──────────────────────────────────────── */}
