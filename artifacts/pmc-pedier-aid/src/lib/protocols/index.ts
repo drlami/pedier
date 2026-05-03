@@ -74,6 +74,7 @@ import { chronicRenalFailureProtocol } from './chronic-renal-failure';
 import { nephroticSyndromeProtocol } from './nephrotic-syndrome';
 import { nephriticSyndromeProtocol } from './nephritic-syndrome';
 import { urinaryTractInfectionProtocol } from './urinary-tract-infection';
+import { metabolicCrisisProtocol } from './metabolic-crisis';
 
 
 export const allProtocols: DiseaseProtocol[] = [
@@ -151,6 +152,7 @@ export const allProtocols: DiseaseProtocol[] = [
   nephroticSyndromeProtocol,
   nephriticSyndromeProtocol,
   urinaryTractInfectionProtocol,
+  metabolicCrisisProtocol,
 ];
 
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
