@@ -30,9 +30,10 @@ import { cn } from "@/lib/utils";
 type BilirubinUnit = 'mg/dL' | 'µmol/L';
 type BilirubinType = 'TSB' | 'TcB';
 
-// Neurotoxicity risk factors (AAP 2022 §Risk Stratification)
+// Neurotoxicity risk factors BEYOND gestational age (AAP 2022 §Risk Stratification)
+// GA < 38 weeks is itself a NTX risk factor but is already encoded in the
+// published nomogram curves — it must NOT appear here as a user-facing checkbox.
 const NEUROTOXICITY_RISK_FACTORS = [
-  { id: 'ga_lt38', label: 'GA < 38 weeks' },
   { id: 'albumin_lt3', label: 'Serum albumin < 3.0 g/dL' },
   { id: 'hemolysis', label: 'Isoimmune hemolytic disease / positive DAT' },
   { id: 'g6pd', label: 'G6PD deficiency' },
@@ -241,8 +242,8 @@ export default function HyperbilirubinemiaCal() {
             : '#ef4444')
     : '#6b7280';
 
-  // Y-axis max
-  const yMax = result ? Math.max(26, Math.ceil((result.exchangeThreshold + 3) / 2) * 2) : 26;
+  // Y-axis max — exchange thresholds can reach up to 27 mg/dL (Fig 3, GA ≥38)
+  const yMax = result ? Math.max(30, Math.ceil((result.exchangeThreshold + 3) / 2) * 2) : 30;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 print:max-w-none" ref={printRef}>
@@ -395,9 +396,13 @@ export default function HyperbilirubinemiaCal() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                Neurotoxicity Risk Factors
-                <span className="ml-1 text-orange-600">(lower phototherapy threshold by 2 mg/dL)</span>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                Additional Neurotoxicity Risk Factors
+              </p>
+              <p className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 rounded p-2 leading-relaxed mb-2">
+                <strong>Note:</strong> GA &lt; 38 weeks is a recognised neurotoxicity risk factor — the threshold curves for each
+                gestational age already encode this. Check the boxes below only for <em>additional</em> risk factors
+                beyond gestational age (albumin, haemolysis, G6PD, sepsis, instability).
               </p>
               <div className="space-y-2">
                 {NEUROTOXICITY_RISK_FACTORS.map(({ id, label }) => (
@@ -626,7 +631,7 @@ export default function HyperbilirubinemiaCal() {
                   GA {gaWeeks} weeks · {ageHours} hours
                 </Badge>
                 <Badge variant="outline" className="text-[10px]">
-                  {hasNeurotoxicityRisk ? '⚠ Neurotoxicity risk factors present' : 'No neurotoxicity risk factors'}
+                  {hasNeurotoxicityRisk ? '⚠ Additional NTX risk factors present' : 'No additional NTX risk factors'}
                 </Badge>
                 <Badge variant="outline" className="text-[10px]">
                   {bilirubinType}
@@ -641,7 +646,7 @@ export default function HyperbilirubinemiaCal() {
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 Bilirubin Nomogram
                 <span className="text-xs font-normal text-muted-foreground">
-                  — GA {gaWeeks} wks · {hasNeurotoxicityRisk ? 'with' : 'without'} neurotoxicity risk factors
+                  — GA {gaWeeks} wks · {hasNeurotoxicityRisk ? 'with additional NTX risk factors (Fig 2/4)' : 'no additional NTX risk factors (Fig 1/3)'}
                 </span>
               </CardTitle>
             </CardHeader>
