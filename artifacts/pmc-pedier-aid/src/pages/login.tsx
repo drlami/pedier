@@ -26,7 +26,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(username, password);
-      setLocation("/");
+      setLocation("/welcome");
     } catch (err: unknown) {
       setError((err as Error).message || "Login failed. Please try again.");
     } finally {

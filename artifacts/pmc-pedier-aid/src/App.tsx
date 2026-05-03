@@ -21,6 +21,7 @@ import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
 import UsersPage from "@/pages/users";
 import LoginPage from "@/pages/login";
+import WelcomePage from "@/pages/welcome";
 import HyperbilirubinemiaCal from "@/pages/hyperbilirubinemia";
 import MetabolicCrisisPage from "@/pages/metabolic-crisis";
 import NotFound from "@/pages/not-found";
@@ -119,10 +120,24 @@ function LoginRoute() {
   return <LoginPage />;
 }
 
+function WelcomeRoute() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!user) return <Redirect to="/login" />;
+  return <WelcomePage />;
+}
+
 function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginRoute} />
+      <Route path="/welcome" component={WelcomeRoute} />
       <Route path="/">
         {() => <ProtectedRoute component={HomePage} />}
       </Route>
