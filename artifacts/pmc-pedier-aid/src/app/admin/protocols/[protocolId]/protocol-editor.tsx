@@ -1,23 +1,42 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, PlusCircle, Save } from "lucide-react";
-import type { SerializableProtocol } from "@/lib/protocols/types";
+import { Trash2, PlusCircle, Save, Loader2 } from "lucide-react";
+import type { SerializableProtocol, Question } from "@/lib/protocols/types";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { getAuthToken } from "@/contexts/auth-context";
 
 interface ProtocolEditorProps {
   protocol: SerializableProtocol | null;
+  onSaved?: () => void;
 }
 
-export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
+function toApiQuestion(q: Question): Record<string, unknown> {
+  return {
+    id: q.id,
+    questionText: q.questionText,
+    type: q.type,
+    ...(q.unit !== undefined && { unit: q.unit }),
+    ...(q.placeholder !== undefined && { placeholder: q.placeholder }),
+    ...(q.info !== undefined && { info: q.info }),
+    ...(q.options !== undefined && {
+      options: q.options.map((o) => ({ value: String(o.value), label: o.label })),
+    }),
+  };
+}
+
+export function ProtocolEditor({ protocol, onSaved }: ProtocolEditorProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [saving, setSaving] = useState(false);
+
   const { register, control, handleSubmit, formState: { errors } } = useForm<SerializableProtocol>({
     defaultValues: protocol || {
       id: "",
@@ -34,13 +53,74 @@ export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
     name: "questions",
   });
 
-  const onSubmit = (data: SerializableProtocol) => {
-    console.log("Form Data:", data);
-    toast({
-      title: "Protocol Saved!",
-      description: `The protocol "${data.name}" has been successfully saved.`,
-    });
-    setLocation("/admin/protocols");
+  const isEditing = !!protocol;
+
+  const onSubmit = async (data: SerializableProtocol) => {
+    const token = getAuthToken();
+    setSaving(true);
+
+    const questions = (data.questions ?? []).map(toApiQuestion);
+
+    try {
+      let res: Response;
+
+      if (isEditing) {
+        res = await fetch(`/api/protocols/${data.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name: data.name, system: data.system, description: data.description, questions }),
+        });
+      } else {
+        res = await fetch("/api/protocols", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id: data.id,
+            name: data.name,
+            system: data.system,
+            description: data.description,
+            questions,
+            severityRules: [],
+            defaultSeverity: "unknown",
+            management: [],
+            disposition: [],
+            redFlags: [],
+            drugDoses: [],
+            references: [],
+          }),
+        });
+      }
+
+      if (res.ok) {
+        toast({
+          title: isEditing ? "Protocol updated!" : "Protocol saved!",
+          description: `The protocol "${data.name}" has been successfully saved.`,
+        });
+        onSaved?.();
+        setLocation("/admin/protocols");
+      } else {
+        const json = await res.json();
+        toast({
+          variant: "destructive",
+          title: "Save failed",
+          description: json.message || "Could not save the protocol.",
+        });
+      }
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to connect to the server.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -126,38 +206,46 @@ export function ProtocolEditor({ protocol }: ProtocolEditorProps) {
       <div className="space-y-4 p-4 border rounded-lg bg-muted/40">
         <h3 className="font-semibold text-lg">Logic & Content (Read-Only)</h3>
         <p className="text-sm text-muted-foreground">
-            Editing for severity logic, management plans, drug doses, and references will be enabled once the database backend is connected.
+            For full control over severity logic, management plans, drug doses, and references, use the Protocol Builder instead.
         </p>
-        <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">Severity Logic</Label>
-            <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
-                <code>{protocol?.logicStrings?.calculateSeverity || "No logic defined."}</code>
-            </pre>
-        </div>
-        <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">Management Recommendations</Label>
-            <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
-                <code>{protocol?.logicStrings?.getManagement || "No logic defined."}</code>
-            </pre>
-        </div>
-         <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">Drug Doses</Label>
-             <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
-                <code>{protocol?.logicStrings?.getDrugDoses || "No logic defined."}</code>
-            </pre>
-        </div>
-         <div className="p-3 border rounded-md bg-background">
-            <Label className="font-medium">References</Label>
-             <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
-                <code>{protocol?.logicStrings?.getReferences || "No logic defined."}</code>
-            </pre>
-        </div>
+        {protocol?.logicStrings && (
+          <>
+            <div className="p-3 border rounded-md bg-background">
+                <Label className="font-medium">Severity Logic</Label>
+                <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                    <code>{protocol.logicStrings.calculateSeverity || "No logic defined."}</code>
+                </pre>
+            </div>
+            <div className="p-3 border rounded-md bg-background">
+                <Label className="font-medium">Management Recommendations</Label>
+                <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                    <code>{protocol.logicStrings.getManagement || "No logic defined."}</code>
+                </pre>
+            </div>
+             <div className="p-3 border rounded-md bg-background">
+                <Label className="font-medium">Drug Doses</Label>
+                 <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                    <code>{protocol.logicStrings.getDrugDoses || "No logic defined."}</code>
+                </pre>
+            </div>
+             <div className="p-3 border rounded-md bg-background">
+                <Label className="font-medium">References</Label>
+                 <pre className="mt-2 text-[10px] p-2 bg-secondary rounded-md overflow-x-auto text-muted-foreground">
+                    <code>{protocol.logicStrings.getReferences || "No logic defined."}</code>
+                </pre>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit">
-          <Save className="mr-2 h-4 w-4" />
-          {protocol ? "Save Changes" : "Create Protocol"}
+        <Button type="submit" disabled={saving}>
+          {saving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          {saving ? "Saving..." : protocol ? "Save Changes" : "Create Protocol"}
         </Button>
       </div>
     </form>

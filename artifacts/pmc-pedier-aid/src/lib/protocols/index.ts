@@ -156,3 +156,16 @@ export const allProtocols: DiseaseProtocol[] = [
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
   return allProtocols.find((p) => p.id === id);
 };
+
+/**
+ * Merges built-in protocols with user-saved custom protocols.
+ * Custom protocols with the same ID as a built-in protocol act as overrides
+ * (replacing the built-in entry). New custom protocols are appended.
+ */
+export function mergeProtocolsWithOverrides(
+  customProtocols: DiseaseProtocol[]
+): DiseaseProtocol[] {
+  const overriddenIds = new Set(customProtocols.map((p) => p.id));
+  const base = allProtocols.filter((p) => !overriddenIds.has(p.id));
+  return [...base, ...customProtocols];
+}

@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useAuth, getAuthToken } from "@/contexts/auth-context";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
-import { allProtocols } from "@/lib/protocols";
+import { allProtocols, mergeProtocolsWithOverrides } from "@/lib/protocols";
 import { adaptCustomProtocol } from "@/lib/custom-protocol-engine";
 import type { CustomProtocol } from "@/lib/custom-protocol-types";
 
