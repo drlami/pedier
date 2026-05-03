@@ -30,6 +30,8 @@ const ADMIN_LINKS = [
   { href: "/admin",           label: "Admin Panel",         icon: UserCog  },
 ] as const;
 
+const EXTRA_SYSTEMS = ['Metabolic Diseases'] as const;
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function SidebarNav() {
@@ -43,7 +45,10 @@ export function SidebarNav() {
   const currentSystem = searchParams.get("system");
 
   const systems = useMemo(() => {
-    const systemSet = new Set(allProtocols.map((p) => p.system));
+    const systemSet = new Set([
+      ...allProtocols.map((p) => p.system),
+      ...EXTRA_SYSTEMS,
+    ]);
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
   }, [allProtocols]);
 
