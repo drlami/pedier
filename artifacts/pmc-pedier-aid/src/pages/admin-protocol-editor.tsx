@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useLocation, useSearch } from "wouter";
 import { useProtocolsContext } from "@/contexts/protocols-context";
 import { allProtocols } from "@/lib/protocols";
@@ -7,8 +7,8 @@ import { ProtocolDrafter } from "@/app/admin/protocol-drafter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bot, FormInput, Lock, Loader2, FileText, Sparkles } from "lucide-react";
-import type { CustomProtocol } from "@/lib/custom-protocol-types";
+import { ArrowLeft, Loader2, FileText, Sparkles, Lock } from "lucide-react";
+import type { CustomProtocol, CustomQuestion, SeverityLevel } from "@/lib/custom-protocol-types";
 import { Link } from "wouter";
 
 type Mode = "select" | "builder" | "ai";
@@ -23,67 +23,40 @@ function ModeSelector({ onSelect }: { onSelect: (mode: "builder" | "ai") => void
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button
-          onClick={() => onSelect("builder")}
-          className="text-left group"
-        >
+        <button onClick={() => onSelect("builder")} className="text-left group">
           <Card className="h-full border-2 border-border hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group-hover:bg-primary/[0.01]">
             <CardHeader>
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 mb-1">
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <CardTitle className="font-headline">Protocol Builder</CardTitle>
-              <CardDescription>
-                Tier 1 — Structured form
-              </CardDescription>
+              <CardDescription>Tier 1 — Structured form</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Best for content-based protocols. Fill in questions, severity rules, management sections, and drug doses step by step using structured forms.
+                Fill in questions, severity rules, management sections, and drug doses step by step using structured forms.
               </p>
-              <ul className="mt-3 space-y-1">
-                {["Questions & severity rules", "Management sections by severity", "Weight-based drug dose formulas", "Disposition & red flags"].map((f) => (
-                  <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <span className="w-1 h-1 rounded-full bg-primary shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
             </CardContent>
           </Card>
         </button>
 
-        <button
-          onClick={() => onSelect("ai")}
-          className="text-left group"
-        >
+        <button onClick={() => onSelect("ai")} className="text-left group">
           <Card className="h-full border-2 border-border hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group-hover:bg-blue-50/30">
             <CardHeader>
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 mb-1">
                 <Sparkles className="h-6 w-6 text-blue-600" />
               </div>
               <CardTitle className="font-headline">AI Protocol Drafter</CardTitle>
-              <CardDescription>
-                Tier 2 — AI-assisted
-              </CardDescription>
+              <CardDescription>Tier 2 — AI-assisted</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Best for complex protocols. Describe the protocol in plain English or paste guideline text — AI generates the full structured protocol for you to review and edit.
+                Describe the protocol in plain English or paste guideline text — AI generates the full structured protocol for you to review and edit.
               </p>
-              <ul className="mt-3 space-y-1">
-                {["Plain English or guideline text input", "AI generates complete protocol", "Review & edit before saving", "Open in Builder to refine"].map((f) => (
-                  <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <span className="w-1 h-1 rounded-full bg-blue-500 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
             </CardContent>
           </Card>
         </button>
       </div>
-
       <div className="flex justify-center">
         <Button variant="ghost" asChild>
           <Link href="/admin/protocols">
@@ -96,53 +69,37 @@ function ModeSelector({ onSelect }: { onSelect: (mode: "builder" | "ai") => void
   );
 }
 
-function BuiltInProtocolView({ protocol }: { protocol: { id: string; name: string; system: string; description: string } }) {
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/admin/protocols">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted border border-border shrink-0">
-              <Lock className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <CardTitle className="font-headline text-xl">{protocol.name}</CardTitle>
-                <Badge variant="secondary">Built-in</Badge>
-                <Badge variant="outline">{protocol.system}</Badge>
-              </div>
-              <CardDescription className="mt-1">{protocol.description}</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/40 rounded-lg p-4 border border-border text-sm text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">Read-only Protocol</p>
-            <p>
-              This is a built-in protocol defined in the application code. It cannot be edited through the admin interface.
-              To create a similar custom protocol, use the Protocol Builder or AI Drafter.
-            </p>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/protocols/new?mode=builder">
-                <FileText className="mr-2 h-4 w-4" />
-                Create Similar Protocol
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+/** Convert a built-in DiseaseProtocol's serialisable fields to a CustomProtocol draft */
+function cloneBuiltIn(
+  protocol: { id: string; name: string; system: string; description: string; questions: any[] }
+): Partial<CustomProtocol> {
+  return {
+    id: protocol.id,
+    name: protocol.name,
+    system: protocol.system,
+    description: protocol.description,
+    questions: protocol.questions.map(
+      (q): CustomQuestion => ({
+        id: q.id,
+        questionText: q.questionText,
+        type: q.type as CustomQuestion["type"],
+        unit: q.unit,
+        placeholder: q.placeholder,
+        info: q.info,
+        options: q.options?.map((o: any) => ({
+          value: String(o.value),
+          label: o.label,
+        })),
+      })
+    ),
+    severityRules: [],
+    defaultSeverity: "mild" as SeverityLevel,
+    management: [],
+    disposition: [],
+    redFlags: [],
+    drugDoses: [],
+    references: [],
+  };
 }
 
 export default function ProtocolEditorPage() {
@@ -150,14 +107,18 @@ export default function ProtocolEditorPage() {
   const search = useSearch();
   const [, navigate] = useLocation();
   const { rawCustomProtocols, isLoading, refetch } = useProtocolsContext();
+
+  const searchParams = new URLSearchParams(search);
+  const cloneSourceId = searchParams.get("clone");
+  const modeParam = searchParams.get("mode") as "builder" | "ai" | null;
+
   const [mode, setMode] = useState<Mode>(() => {
-    const params = new URLSearchParams(search);
-    const m = params.get("mode");
-    if (m === "builder") return "builder";
-    if (m === "ai") return "ai";
+    if (cloneSourceId) return "builder";
+    if (modeParam === "builder") return "builder";
+    if (modeParam === "ai") return "ai";
     return "select";
   });
-  const [draftData, setDraftData] = useState<Omit<CustomProtocol, "isCustom" | "createdAt" | "updatedAt"> | null>(null);
+  const [draftData, setDraftData] = useState<Partial<CustomProtocol> | null>(null);
 
   const protocolId = params.protocolId;
   const isNew = protocolId === "new";
@@ -167,7 +128,16 @@ export default function ProtocolEditorPage() {
     navigate("/admin/protocols");
   };
 
+  // Clone mode — pre-populate builder from a built-in protocol
+  const cloneData = useMemo(() => {
+    if (!cloneSourceId) return null;
+    const source = allProtocols.find((p) => p.id === cloneSourceId);
+    if (!source) return null;
+    return cloneBuiltIn(source);
+  }, [cloneSourceId]);
+
   if (!isNew) {
+    // Editing an existing custom protocol
     const existingCustom = rawCustomProtocols.find((p) => p.id === protocolId);
     const existingBuiltIn = allProtocols.find((p) => p.id === protocolId);
 
@@ -184,7 +154,51 @@ export default function ProtocolEditorPage() {
     }
 
     if (existingBuiltIn) {
-      return <BuiltInProtocolView protocol={existingBuiltIn} />;
+      // Built-in that hasn't been cloned yet — offer to clone or go back
+      return (
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/admin/protocols">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Link>
+            </Button>
+          </div>
+          <Card>
+            <CardHeader>
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted border border-border shrink-0">
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CardTitle className="font-headline text-xl">{existingBuiltIn.name}</CardTitle>
+                    <Badge variant="secondary">Built-in</Badge>
+                    <Badge variant="outline">{existingBuiltIn.system}</Badge>
+                  </div>
+                  <CardDescription className="mt-1">{existingBuiltIn.description}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-muted/40 rounded-lg p-4 border border-border text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Built-in protocol</p>
+                <p>
+                  Clone this protocol to create a fully editable custom version. Questions are pre-filled;
+                  you'll need to add severity rules, management sections, and drug doses.
+                  If you use the same ID the custom version will automatically replace this built-in.
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate(`/admin/protocols/new?clone=${existingBuiltIn.id}`)}
+              >
+                Clone & Edit in Builder
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
     }
 
     return (
@@ -195,6 +209,17 @@ export default function ProtocolEditorPage() {
           <Link href="/admin/protocols">Back to list</Link>
         </Button>
       </div>
+    );
+  }
+
+  // New protocol with clone source
+  if (cloneData && mode === "builder") {
+    return (
+      <ProtocolBuilder
+        initialData={cloneData}
+        onSaved={handleSaved}
+        isClone
+      />
     );
   }
 
@@ -214,5 +239,10 @@ export default function ProtocolEditorPage() {
     );
   }
 
-  return <ProtocolBuilder initialData={draftData} onSaved={handleSaved} />;
+  return (
+    <ProtocolBuilder
+      initialData={draftData}
+      onSaved={handleSaved}
+    />
+  );
 }

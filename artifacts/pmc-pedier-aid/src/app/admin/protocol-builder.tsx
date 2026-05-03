@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,19 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getAuthToken } from "@/contexts/auth-context";
-import type { CustomProtocol, CustomQuestion, SeverityRule, ManagementSection, DrugDoseEntry, DispositionEntry, CustomReference, SeverityLevel } from "@/lib/custom-protocol-types";
+import type {
+  CustomProtocol,
+  CustomQuestion,
+  SeverityRule,
+  ManagementSection,
+  DrugDoseEntry,
+  DispositionEntry,
+  CustomReference,
+  SeverityLevel,
+} from "@/lib/custom-protocol-types";
 import {
   Save, Plus, Trash2, Pencil, ArrowLeft, Loader2, Check,
-  FileText, ListChecks, AlertTriangle, ClipboardList, Pill, Hospital, BookOpen, X,
+  FileText, ListChecks, AlertTriangle, ClipboardList, Pill, Hospital, BookOpen, X, Copy,
 } from "lucide-react";
 
 type BuilderState = {
@@ -139,17 +148,20 @@ function SeveritySelector({
 interface ProtocolBuilderProps {
   initialData: Partial<CustomProtocol> | null;
   onSaved?: () => void;
+  /** True when initialData came from cloning a built-in — forces POST (new) even if id is set */
+  isClone?: boolean;
 }
 
-export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) {
+export function ProtocolBuilder({ initialData, onSaved, isClone = false }: ProtocolBuilderProps) {
   const { toast } = useToast();
   const [form, setForm] = useState<BuilderState>(() => makeInitialState(initialData));
   const [activeTab, setActiveTab] = useState("basics");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
-  const [idAutoFilled, setIdAutoFilled] = useState(!initialData?.id);
+  const [idAutoFilled, setIdAutoFilled] = useState(!initialData?.id || isClone);
 
-  const isEditing = !!initialData?.id;
+  // isEditing = has an existing custom protocol to PUT (not a clone, not empty)
+  const isEditing = !!initialData?.id && !isClone;
 
   const update = useCallback(<K extends keyof BuilderState>(key: K, value: BuilderState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -228,7 +240,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
   type RefForm = { title: string; url: string };
   const [refEdit, setRefEdit] = useState<{ idx: number | null; data: RefForm } | null>(null);
 
-  /* ---- QUESTION HELPERS ---- */
+  /* ---- HELPERS ---- */
   const saveQuestion = () => {
     if (!qEdit) return;
     const { idx, data } = qEdit;
@@ -239,32 +251,20 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
         })
       : undefined;
     const q: CustomQuestion = { id: data.id, questionText: data.questionText, type: data.type, unit: data.unit || undefined, options };
-    if (idx === null) {
-      update("questions", [...form.questions, q]);
-    } else {
-      const updated = [...form.questions];
-      updated[idx] = q;
-      update("questions", updated);
-    }
+    if (idx === null) update("questions", [...form.questions, q]);
+    else { const u = [...form.questions]; u[idx] = q; update("questions", u); }
     setQEdit(null);
   };
 
-  /* ---- SEVERITY RULE HELPERS ---- */
   const saveRule = () => {
     if (!ruleEdit) return;
     const { idx, data } = ruleEdit;
     const rule: SeverityRule = { id: uid(), priority: idx === null ? form.severityRules.length + 1 : (form.severityRules[idx]?.priority ?? idx + 1), ...data };
-    if (idx === null) {
-      update("severityRules", [...form.severityRules, rule]);
-    } else {
-      const updated = [...form.severityRules];
-      updated[idx] = rule;
-      update("severityRules", updated);
-    }
+    if (idx === null) update("severityRules", [...form.severityRules, rule]);
+    else { const u = [...form.severityRules]; u[idx] = rule; update("severityRules", u); }
     setRuleEdit(null);
   };
 
-  /* ---- MANAGEMENT HELPERS ---- */
   const saveMgmt = () => {
     if (!mgmtEdit) return;
     const { idx, data } = mgmtEdit;
@@ -274,71 +274,40 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
       recommendations: data.recsText.split("\n").map((s) => s.trim()).filter(Boolean),
       severities: data.severities,
     };
-    if (idx === null) {
-      update("management", [...form.management, section]);
-    } else {
-      const updated = [...form.management];
-      updated[idx] = section;
-      update("management", updated);
-    }
+    if (idx === null) update("management", [...form.management, section]);
+    else { const u = [...form.management]; u[idx] = section; update("management", u); }
     setMgmtEdit(null);
   };
 
-  /* ---- DRUG DOSE HELPERS ---- */
   const saveDose = () => {
     if (!doseEdit) return;
     const { idx, data } = doseEdit;
     const dose: DrugDoseEntry = {
       id: idx !== null ? form.drugDoses[idx]?.id || uid() : uid(),
-      drugName: data.drugName,
-      dose: data.dose,
-      maxDose: data.maxDose || undefined,
-      notes: data.notes || undefined,
+      drugName: data.drugName, dose: data.dose,
+      maxDose: data.maxDose || undefined, notes: data.notes || undefined,
       severities: data.severities,
     };
-    if (idx === null) {
-      update("drugDoses", [...form.drugDoses, dose]);
-    } else {
-      const updated = [...form.drugDoses];
-      updated[idx] = dose;
-      update("drugDoses", updated);
-    }
+    if (idx === null) update("drugDoses", [...form.drugDoses, dose]);
+    else { const u = [...form.drugDoses]; u[idx] = dose; update("drugDoses", u); }
     setDoseEdit(null);
   };
 
-  /* ---- DISPOSITION HELPERS ---- */
   const saveDisp = () => {
     if (!dispEdit) return;
     const { idx, data } = dispEdit;
-    const entry: DispositionEntry = {
-      id: idx !== null ? form.disposition[idx]?.id || uid() : uid(),
-      ...data,
-    };
-    if (idx === null) {
-      update("disposition", [...form.disposition, entry]);
-    } else {
-      const updated = [...form.disposition];
-      updated[idx] = entry;
-      update("disposition", updated);
-    }
+    const entry: DispositionEntry = { id: idx !== null ? form.disposition[idx]?.id || uid() : uid(), ...data };
+    if (idx === null) update("disposition", [...form.disposition, entry]);
+    else { const u = [...form.disposition]; u[idx] = entry; update("disposition", u); }
     setDispEdit(null);
   };
 
-  /* ---- REFERENCE HELPERS ---- */
   const saveRef = () => {
     if (!refEdit) return;
     const { idx, data } = refEdit;
-    const ref: CustomReference = {
-      id: idx !== null ? form.references[idx]?.id || uid() : uid(),
-      ...data,
-    };
-    if (idx === null) {
-      update("references", [...form.references, ref]);
-    } else {
-      const updated = [...form.references];
-      updated[idx] = ref;
-      update("references", updated);
-    }
+    const ref: CustomReference = { id: idx !== null ? form.references[idx]?.id || uid() : uid(), ...data };
+    if (idx === null) update("references", [...form.references, ref]);
+    else { const u = [...form.references]; u[idx] = ref; update("references", u); }
     setRefEdit(null);
   };
 
@@ -367,7 +336,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
           </Button>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold font-headline truncate">
-              {isEditing ? `Edit: ${form.name || "Protocol"}` : "Protocol Builder"}
+              {isEditing ? `Edit: ${form.name || "Protocol"}` : isClone ? `Clone: ${form.name || "Protocol"}` : "Protocol Builder"}
             </h1>
             {form.id && <p className="text-xs text-muted-foreground font-mono">ID: {form.id}</p>}
           </div>
@@ -377,6 +346,18 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
           {saving ? "Saving..." : isEditing ? "Save Changes" : "Save Protocol"}
         </Button>
       </div>
+
+      {/* Clone notice */}
+      {isClone && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Copy className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800 text-sm">
+            <strong>Cloned from a built-in protocol.</strong> Questions are pre-filled. Add severity rules, management sections, and drug doses to complete the protocol.
+            If you keep the same ID, this custom version will automatically replace the built-in one.
+            You can also hide the original from the Protocol Management page.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {errors.length > 0 && (
         <Alert variant="destructive">
@@ -420,11 +401,13 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
                 placeholder="e.g. pediatric-asthma"
                 className="font-mono text-sm"
               />
-              <p className="text-[11px] text-muted-foreground">Kebab-case, auto-filled from name. Cannot be changed after saving.</p>
+              <p className="text-[11px] text-muted-foreground">
+                {isEditing ? "ID cannot be changed after saving." : "Auto-filled from name. Using the same ID as a built-in will override it."}
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="system">Clinical System <span className="text-destructive">*</span></Label>
-              <Input id="system" value={form.system} onChange={(e) => update("system", e.target.value)} placeholder="e.g. Respiratory, Neurology, Infectious Disease" list="system-list" />
+              <Input id="system" value={form.system} onChange={(e) => update("system", e.target.value)} placeholder="e.g. Respiratory, Neurology" list="system-list" />
               <datalist id="system-list">
                 {["Respiratory", "Neurology", "Infectious Disease", "Cardiology", "Endocrinology", "Nephrology", "Gastroenterology", "Toxicology & Envenomation", "Emergency Management"].map(s => (
                   <option key={s} value={s} />
@@ -440,7 +423,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
 
         {/* ═══ QUESTIONS TAB ═══ */}
         <TabsContent value="questions" className="mt-4 space-y-3">
-          <p className="text-sm text-muted-foreground">Define the assessment questions. Use camelCase IDs (e.g. <code className="bg-muted px-1 rounded text-xs">weight</code>, <code className="bg-muted px-1 rounded text-xs">oxygenSat</code>). These IDs are used in severity rule conditions.</p>
+          <p className="text-sm text-muted-foreground">Define assessment questions. Use camelCase IDs (e.g. <code className="bg-muted px-1 rounded text-xs">weight</code>, <code className="bg-muted px-1 rounded text-xs">oxygenSat</code>). These IDs are used in severity rule conditions.</p>
           {form.questions.length === 0 && <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">No questions yet. Add your first question below.</div>}
           {form.questions.map((q, i) => (
             <div key={q.id || i} className="flex items-center justify-between p-3 bg-card border border-border rounded-lg gap-3">
@@ -463,7 +446,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
             </div>
           ))}
-
           {qEdit ? (
             <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
               <h3 className="font-semibold text-sm">{qEdit.idx === null ? "Add Question" : "Edit Question"}</h3>
@@ -492,7 +474,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               {qEdit.data.type === "number" && (
                 <div className="space-y-1">
                   <Label className="text-xs">Unit (optional)</Label>
-                  <Input value={qEdit.data.unit} onChange={(e) => setQEdit(p => p && ({ ...p, data: { ...p.data, unit: e.target.value } }))} placeholder="e.g. kg, %, mmHg, °C" className="max-w-xs" />
+                  <Input value={qEdit.data.unit} onChange={(e) => setQEdit(p => p && ({ ...p, data: { ...p.data, unit: e.target.value } }))} placeholder="e.g. kg, %, mmHg" className="max-w-xs" />
                 </div>
               )}
               {(qEdit.data.type === "select" || qEdit.data.type === "radio") && (
@@ -553,14 +535,13 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
             ))}
           </div>
-
           {ruleEdit ? (
             <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
               <h3 className="font-semibold text-sm">{ruleEdit.idx === null ? "Add Severity Rule" : "Edit Severity Rule"}</h3>
               <div className="space-y-1">
                 <Label className="text-xs">Condition (JavaScript expression)</Label>
                 <Input value={ruleEdit.data.condition} onChange={(e) => setRuleEdit(p => p && ({ ...p, data: { ...p.data, condition: e.target.value } }))} placeholder="e.g. oxygenSat < 92 || hasStridor === true" className="font-mono text-sm" />
-                <p className="text-[11px] text-muted-foreground">Use question IDs as variables. Example: <code>weight &lt; 10 &amp;&amp; severity === 'severe'</code></p>
+                <p className="text-[11px] text-muted-foreground">Use question IDs as variables. Example: <code>weight &lt; 10 &amp;&amp; hasFever === true</code></p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -591,7 +572,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
 
         {/* ═══ MANAGEMENT TAB ═══ */}
         <TabsContent value="management" className="mt-4 space-y-3">
-          <p className="text-sm text-muted-foreground">Define management sections. Use <code className="bg-muted px-1 rounded text-xs">{"{{weight * 0.1}}"}</code> for weight-based calculations in recommendations.</p>
+          <p className="text-sm text-muted-foreground">Define management sections. Use <code className="bg-muted px-1 rounded text-xs">{"{{weight * 0.1}}"}</code> for weight-based calculations.</p>
           {form.management.length === 0 && <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">No management sections yet.</div>}
           {form.management.map((m, i) => (
             <div key={m.id || i} className="p-3 bg-card border border-border rounded-lg">
@@ -614,7 +595,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
             </div>
           ))}
-
           {mgmtEdit ? (
             <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
               <h3 className="font-semibold text-sm">{mgmtEdit.idx === null ? "Add Section" : "Edit Section"}</h3>
@@ -624,8 +604,7 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Recommendations (one per line)</Label>
-                <Textarea value={mgmtEdit.data.recsText} onChange={(e) => setMgmtEdit(p => p && ({ ...p, data: { ...p.data, recsText: e.target.value } }))} placeholder={"Establish IV access\nNormal saline {{weight * 10}} mL over 20 min\nRepeat if no improvement"} rows={5} className="text-sm" />
-                <p className="text-[11px] text-muted-foreground">Use <code>{"{{weight * 0.1}}"}</code> for weight-based calculations.</p>
+                <Textarea value={mgmtEdit.data.recsText} onChange={(e) => setMgmtEdit(p => p && ({ ...p, data: { ...p.data, recsText: e.target.value } }))} placeholder={"Establish IV access\nNormal saline {{weight * 10}} mL over 20 min"} rows={5} className="text-sm" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Applies to Severities</Label>
@@ -669,7 +648,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
             </div>
           ))}
-
           {doseEdit ? (
             <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
               <h3 className="font-semibold text-sm">{doseEdit.idx === null ? "Add Drug Dose" : "Edit Drug Dose"}</h3>
@@ -686,7 +664,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               <div className="space-y-1">
                 <Label className="text-xs">Dose Formula</Label>
                 <Input value={doseEdit.data.dose} onChange={(e) => setDoseEdit(p => p && ({ ...p, data: { ...p.data, dose: e.target.value } }))} placeholder="e.g. {{weight * 0.01}} mg/kg IM" className="font-mono text-sm" />
-                <p className="text-[11px] text-muted-foreground">Use <code>{"{{weight * factor}}"}</code> for weight-based dosing. Weight is in kg.</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Notes (optional)</Label>
@@ -720,7 +697,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               className="text-sm"
             />
           </div>
-
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">Disposition Statements</h3>
             {form.disposition.length === 0 && <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">No disposition statements yet.</div>}
@@ -743,7 +719,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
                 </div>
               </div>
             ))}
-
             {dispEdit ? (
               <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
                 <h4 className="font-semibold text-sm">{dispEdit.idx === null ? "Add Disposition" : "Edit Disposition"}</h4>
@@ -751,18 +726,16 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
                   <Label className="text-xs">Disposition Text</Label>
                   <Input value={dispEdit.data.text} onChange={(e) => setDispEdit(p => p && ({ ...p, data: { ...p.data, text: e.target.value } }))} placeholder="e.g. Admit to PICU for monitoring" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Type</Label>
-                    <Select value={dispEdit.data.type} onValueChange={(v) => setDispEdit(p => p && ({ ...p, data: { ...p.data, type: v as DispositionEntry["type"] } }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admission">Admission</SelectItem>
-                        <SelectItem value="discharge">Discharge</SelectItem>
-                        <SelectItem value="general">General</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Type</Label>
+                  <Select value={dispEdit.data.type} onValueChange={(v) => setDispEdit(p => p && ({ ...p, data: { ...p.data, type: v as DispositionEntry["type"] } }))}>
+                    <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admission">Admission</SelectItem>
+                      <SelectItem value="discharge">Discharge</SelectItem>
+                      <SelectItem value="general">General</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Applies to Severities</Label>
@@ -800,7 +773,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
               </div>
             </div>
           ))}
-
           {refEdit ? (
             <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
               <h3 className="font-semibold text-sm">{refEdit.idx === null ? "Add Reference" : "Edit Reference"}</h3>
@@ -825,7 +797,6 @@ export function ProtocolBuilder({ initialData, onSaved }: ProtocolBuilderProps) 
         </TabsContent>
       </Tabs>
 
-      {/* Bottom save */}
       <div className="flex justify-end pt-4 border-t border-border">
         <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

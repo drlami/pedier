@@ -17,55 +17,108 @@ interface ProtocolsContextValue {
   rawCustomProtocols: CustomProtocol[];
   customProtocols: DiseaseProtocol[];
   allProtocolsMerged: DiseaseProtocol[];
+  hiddenBuiltInIds: Set<string>;
   isLoading: boolean;
   refetch: () => Promise<void>;
+  hideBuiltIn: (id: string) => Promise<void>;
+  unhideBuiltIn: (id: string) => Promise<void>;
 }
 
 const ProtocolsContext = createContext<ProtocolsContextValue>({
   rawCustomProtocols: [],
   customProtocols: [],
   allProtocolsMerged: allProtocols,
+  hiddenBuiltInIds: new Set(),
   isLoading: false,
   refetch: async () => {},
+  hideBuiltIn: async () => {},
+  unhideBuiltIn: async () => {},
 });
 
 export function ProtocolsProvider({ children }: { children: ReactNode }) {
   const [rawCustomProtocols, setRawCustomProtocols] = useState<CustomProtocol[]>([]);
+  const [hiddenBuiltInIds, setHiddenBuiltInIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const fetchCustomProtocols = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     if (!user) return;
     const token = getAuthToken();
     if (!token) return;
     setIsLoading(true);
     try {
-      const res = await fetch("/api/protocols", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data: CustomProtocol[] = await res.json();
+      const [customRes, hiddenRes] = await Promise.all([
+        fetch("/api/protocols", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/hidden-protocols", { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (customRes.ok) {
+        const data: CustomProtocol[] = await customRes.json();
         setRawCustomProtocols(data);
       }
+      if (hiddenRes.ok) {
+        const ids: string[] = await hiddenRes.json();
+        setHiddenBuiltInIds(new Set(ids));
+      }
     } catch {
-      // silent fail — built-in protocols still work
+      // silent — built-in protocols still work
     } finally {
       setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    fetchCustomProtocols();
-  }, [fetchCustomProtocols]);
+    fetchAll();
+  }, [fetchAll]);
 
   const customProtocols = useMemo(
     () => rawCustomProtocols.map(adaptCustomProtocol),
     [rawCustomProtocols]
   );
 
-  const allProtocolsMerged = useMemo(
-    () => [...allProtocols, ...customProtocols],
-    [customProtocols]
+  // Custom protocols with same ID override built-ins; hidden built-ins are removed
+  const allProtocolsMerged = useMemo(() => {
+    const customIds = new Set(customProtocols.map((p) => p.id));
+    const visibleBuiltIns = allProtocols.filter(
+      (p) => !customIds.has(p.id) && !hiddenBuiltInIds.has(p.id)
+    );
+    return [...visibleBuiltIns, ...customProtocols];
+  }, [customProtocols, hiddenBuiltInIds]);
+
+  const hideBuiltIn = useCallback(
+    async (id: string) => {
+      const token = getAuthToken();
+      try {
+        const res = await fetch("/api/hidden-protocols", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ id }),
+        });
+        if (res.ok) {
+          setHiddenBuiltInIds((prev) => new Set([...prev, id]));
+        }
+      } catch {}
+    },
+    []
+  );
+
+  const unhideBuiltIn = useCallback(
+    async (id: string) => {
+      const token = getAuthToken();
+      try {
+        const res = await fetch(`/api/hidden-protocols/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          setHiddenBuiltInIds((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }
+      } catch {}
+    },
+    []
   );
 
   return (
@@ -74,8 +127,11 @@ export function ProtocolsProvider({ children }: { children: ReactNode }) {
         rawCustomProtocols,
         customProtocols,
         allProtocolsMerged,
+        hiddenBuiltInIds,
         isLoading,
-        refetch: fetchCustomProtocols,
+        refetch: fetchAll,
+        hideBuiltIn,
+        unhideBuiltIn,
       }}
     >
       {children}
