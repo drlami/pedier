@@ -66,8 +66,8 @@ function derive(v: Vals) {
     g, ph, hco, lac, nh3, ck,
     hasG:   !isNaN(g),   hasPH:  !isNaN(ph),  hasHCO: !isNaN(hco),
     hasLac: !isNaN(lac), hasNH3: !isNaN(nh3), hasCK:  !isNaN(ck),
-    hypoglycemia:      !isNaN(g)   && g   < 3.5,
-    severeHypoglycemia:!isNaN(g)   && g   < 2.5,
+    hypoglycemia:      !isNaN(g)   && g   < 63,
+    severeHypoglycemia:!isNaN(g)   && g   < 45,
     acidosis:         (!isNaN(ph)  && ph  < 7.25) || (!isNaN(hco) && hco < 15),
     severeAcidosis:   (!isNaN(ph)  && ph  < 7.1)  || (!isNaN(hco) && hco < 10),
     hyperNH3:          !isNaN(nh3) && nh3 > 100,
@@ -89,10 +89,10 @@ function derive(v: Vals) {
 
 interface Interp { label: string; cls: string }
 
-const interpGlucose  = (n: number): Interp => n >= 4.0 ? { label: 'Normal',               cls: 'text-green-700 bg-green-50 border-green-200'   } :
-                                              n >= 3.5 ? { label: 'Low-normal',             cls: 'text-yellow-700 bg-yellow-50 border-yellow-200' } :
-                                              n >= 2.5 ? { label: 'Hypoglycaemia',          cls: 'text-amber-700 bg-amber-50 border-amber-200'   } :
-                                                         { label: 'Severe hypoglycaemia',   cls: 'text-red-700 bg-red-50 border-red-200'         };
+const interpGlucose  = (n: number): Interp => n >= 72 ? { label: 'Normal',               cls: 'text-green-700 bg-green-50 border-green-200'   } :
+                                              n >= 63 ? { label: 'Low-normal',             cls: 'text-yellow-700 bg-yellow-50 border-yellow-200' } :
+                                              n >= 45 ? { label: 'Hypoglycaemia',          cls: 'text-amber-700 bg-amber-50 border-amber-200'   } :
+                                                        { label: 'Severe hypoglycaemia',   cls: 'text-red-700 bg-red-50 border-red-200'         };
 
 const interpPH       = (n: number): Interp => n >= 7.35 ? { label: 'Normal',               cls: 'text-green-700 bg-green-50 border-green-200'   } :
                                               n >= 7.25 ? { label: 'Mild acidosis',         cls: 'text-yellow-700 bg-yellow-50 border-yellow-200' } :
@@ -380,7 +380,7 @@ const DDX_DB: DxEntry[] = [
       const d = derive(v);
       if (!d.hypoglycemia || !d.lowKetones || d.acidosis) return null;
       const hi = d.neonate || d.infant;
-      return { likelihood: hi ? 'high' : 'moderate', reason: `Hypoglycaemia (${v.glucose} mmol/L) with absent / inappropriately low ketones — hypoketotic hypoglycaemia is the hallmark of FAO defects; MCAD is the most common` };
+      return { likelihood: hi ? 'high' : 'moderate', reason: `Hypoglycaemia (${v.glucose} mg/dL) with absent / inappropriately low ketones — hypoketotic hypoglycaemia is the hallmark of FAO defects; MCAD is the most common` };
     },
     distinguishing: [
       'Elevated C8 (octanoylcarnitine) on acylcarnitine profile — DIAGNOSTIC for MCAD',
@@ -457,16 +457,16 @@ const DDX_DB: DxEntry[] = [
     },
     distinguishing: [
       'Requires very high GIR (> 10–12 mg/kg/min) to maintain normoglycaemia — pathognomonic',
-      'Inappropriately elevated insulin (even insulin > 2 mIU/L at glucose < 3 mmol/L is abnormal)',
+      'Inappropriately elevated insulin (even insulin > 2 mIU/L at glucose < 54 mg/dL is abnormal)',
       'Absent ketones and low free fatty acids despite severe hypoglycaemia',
-      'Glucagon response > 1.5 mmol/L rise — excess glycogen (insulin-driven)',
+      'Glucagon response > 27 mg/dL rise — excess glycogen (insulin-driven)',
       'HI-HA syndrome (GLUD1 mutation): hyperinsulinism + elevated ammonia',
     ],
     investigations: [
       { text: 'Critical sample at hypoglycaemia: insulin, C-peptide, cortisol, GH, glucagon, free fatty acids, 3-OH butyrate', urgent: true },
       { text: 'Ammonia — elevated in HI-HA syndrome (GLUD1 mutation)', urgent: true },
       { text: 'Acylcarnitine profile — should be normal (excludes FAO defect)', urgent: false },
-      { text: 'Glucagon stimulation 0.5 mg IM — > 1.5 mmol/L rise suggests hyperinsulinism', urgent: false },
+      { text: 'Glucagon stimulation 0.5 mg IM — > 27 mg/dL rise suggests hyperinsulinism', urgent: false },
       { text: 'Genetic panel: ABCC8, KCNJ11, GLUD1, GCK, HNF4A', urgent: false },
     ],
     management: [
@@ -485,7 +485,7 @@ const DDX_DB: DxEntry[] = [
     match(v) {
       const d = derive(v);
       if (!d.hypoglycemia || !d.highKetones || d.elevatedLac) return null;
-      return { likelihood: 'high', reason: `Hypoglycaemia (${v.glucose} mmol/L) with appropriate ketosis — most common cause of hypoglycaemia in children aged 1–6 years; diagnosis of exclusion` };
+      return { likelihood: 'high', reason: `Hypoglycaemia (${v.glucose} mg/dL) with appropriate ketosis — most common cause of hypoglycaemia in children aged 1–6 years; diagnosis of exclusion` };
     },
     distinguishing: [
       'Appropriate ketosis (normal physiological response to hypoglycaemia)',
@@ -534,7 +534,7 @@ const DDX_DB: DxEntry[] = [
       { text: 'G6PC (1a) or SLC37A4 (1b) gene sequencing', urgent: false },
     ],
     management: [
-      { type: 'emergency', text: 'Continuous IV glucose — no interruption', dose: 'Target blood glucose 4–6 mmol/L; GIR 6–8 mg/kg/min — even brief interruption causes severe hypoglycaemia' },
+      { type: 'emergency', text: 'Continuous IV glucose — no interruption', dose: 'Target blood glucose 72–108 mg/dL; GIR 6–8 mg/kg/min — even brief interruption causes severe hypoglycaemia' },
       { type: 'urgent', text: 'Avoid lactate-containing IV fluids', note: 'Do NOT use Hartmann\'s or Ringer\'s lactate — lactate cannot be cleared in GSD1; use NS or dextrose-saline' },
       { type: 'urgent', text: 'Monitor lactate — may transiently worsen with glucose bolus before improving' },
       { type: 'specialist', text: 'Long-term: uncooked cornstarch; G-CSF for Type 1b neutropenia; gene therapy emerging' },
@@ -585,7 +585,7 @@ function getIcuCriteria(v: Vals): string[] {
   if (v.symptoms.has('shock'))           out.push('Haemodynamic instability / shock');
   if (d.hasNH3 && d.nh3 > 150)          out.push(`Hyperammonemia — ${v.ammonia} μmol/L`);
   if (d.hasPH  && d.ph  < 7.2)          out.push(`Severe metabolic acidosis — pH ${v.ph}`);
-  if (d.hasG   && d.g   < 2.5)          out.push(`Severe hypoglycaemia — ${v.glucose} mmol/L`);
+  if (d.hasG   && d.g   < 45)           out.push(`Severe hypoglycaemia — ${v.glucose} mg/dL`);
   if (d.hasLac && d.lac > 5)            out.push(`Elevated lactate — ${v.lactate} mmol/L`);
   if (d.hasHCO && d.hco < 10)           out.push(`Severely low bicarbonate — ${v.bicarb} mEq/L`);
   if (d.neonate)                         out.push('Neonate with suspected metabolic crisis');
@@ -880,7 +880,7 @@ export default function MetabolicCrisisPage() {
               </div>
             </CardHeader>
             <CardContent className="px-4 pt-3 pb-3 space-y-3">
-              <LabField label="Blood Glucose"          value={glucose}  onChange={setGlucose}  unit="mmol/L" placeholder="e.g. 2.5"  interpret={interpGlucose}  />
+              <LabField label="Blood Glucose"          value={glucose}  onChange={setGlucose}  unit="mg/dL"  placeholder="e.g. 50"   interpret={interpGlucose}  />
               <LabField label="pH (VBG / ABG)"         value={ph}       onChange={setPh}       placeholder="e.g. 7.15"               interpret={interpPH}       />
               <LabField label="Bicarbonate (HCO₃)"     value={bicarb}   onChange={setBicarb}   unit="mEq/L"  placeholder="e.g. 10"   interpret={interpBicarb}   />
               <LabField label="Lactate"                value={lactate}  onChange={setLactate}  unit="mmol/L" placeholder="e.g. 6.0"  interpret={interpLactate}  />
