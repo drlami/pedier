@@ -3,9 +3,19 @@
 import { Link, useLocation, useSearch } from "wouter";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Stethoscope, UserCog, HeartPulse, Brain, Pill, Users, FlaskConical } from "lucide-react";
+import {
+  Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
+  FlaskConical, Baby,
+} from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useAllProtocols } from "@/contexts/protocols-context";
+
+const NEONATOLOGY_TOOLS = [
+  {
+    href: "/neonatology/hyperbilirubinemia",
+    label: "Hyperbilirubinemia",
+  },
+];
 
 export function SidebarNav() {
   const [pathname] = useLocation();
@@ -23,8 +33,10 @@ export function SidebarNav() {
   const defaultSystem = systems[0];
   const activeSystem = currentSystem || defaultSystem;
   const isAdminPage = pathname.startsWith("/admin");
+  const isNeonatologyPage = pathname.startsWith("/neonatology");
   const isProtocolPage =
     !isAdminPage &&
+    !isNeonatologyPage &&
     !["/cardiac-arrest", "/differential-diagnosis", "/drug-safety", "/drug-doses"].includes(pathname);
 
   const quickLinks = [
@@ -84,6 +96,36 @@ export function SidebarNav() {
                 <span className={cn("absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full", indicatorClass)} />
               )}
               <Icon className="h-3.5 w-3.5 shrink-0" />
+              {label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="mx-3 border-t border-sidebar-border" />
+
+      {/* Neonatology */}
+      <div className="px-3 pt-2 pb-2 space-y-0.5">
+        <p className="px-2 mb-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50">
+          Neonatology
+        </p>
+        {NEONATOLOGY_TOOLS.map(({ href, label }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors relative",
+                active
+                  ? "bg-violet-50 text-violet-700 font-semibold border border-violet-200"
+                  : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
+              )}
+            >
+              {active && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-violet-500 rounded-r-full" />
+              )}
+              <Baby className="h-3 w-3 shrink-0 opacity-60" />
               {label}
             </Link>
           );

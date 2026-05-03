@@ -19,6 +19,7 @@ import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
 import UsersPage from "@/pages/users";
 import LoginPage from "@/pages/login";
+import HyperbilirubinemiaCal from "@/pages/hyperbilirubinemia";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -126,6 +127,9 @@ function Router() {
       </Route>
       <Route path="/drug-doses">
         {() => <ProtectedRoute component={DrugDosesPage} />}
+      </Route>
+      <Route path="/neonatology/hyperbilirubinemia">
+        {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
       </Route>
       <Route path="/diseases/:diseaseId/summary">
         {() => <ProtectedRoute component={SummaryPage} />}
