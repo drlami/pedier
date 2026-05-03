@@ -1,14 +1,12 @@
-import { Switch, Route, Router as WouterRouter, Redirect, useLocation, useSearch } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtocolsProvider } from "@/contexts/protocols-context";
-import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
-import { cn } from "@/lib/utils";
 import HomePage from "@/pages/home";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
@@ -46,40 +44,15 @@ function Footer() {
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const { open, close } = useSidebar();
-
   return (
     <div className="font-body antialiased flex flex-col min-h-screen bg-background">
       <Header />
-      <div className="flex flex-1 overflow-hidden relative">
-
-        {/* Mobile backdrop — tap outside to close */}
-        {open && (
-          <div
-            className="fixed inset-0 z-20 bg-black/30 lg:hidden"
-            onClick={close}
-          />
-        )}
-
-        {/* Sidebar — slide-over on mobile, collapsible column on desktop */}
-        <aside
-          className={cn(
-            "flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col",
-            "transition-[width] duration-200 ease-in-out overflow-hidden",
-            // Mobile: fixed slide-over on top of content
-            "fixed top-14 bottom-0 left-0 z-30",
-            // Desktop: part of the normal flex layout flow
-            "lg:relative lg:top-auto lg:bottom-auto lg:z-auto",
-            open ? "w-56" : "w-0",
-          )}
-        >
-          <div className="w-56 h-full flex flex-col overflow-hidden">
-            <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
-              <SidebarNav />
-            </Suspense>
-          </div>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-hidden hidden lg:flex lg:flex-col">
+          <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
+            <SidebarNav />
+          </Suspense>
         </aside>
-
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           {children}
         </main>
@@ -183,13 +156,11 @@ function Router() {
 
 function AppInner() {
   return (
-    <SidebarProvider>
-      <ProtocolsProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-      </ProtocolsProvider>
-    </SidebarProvider>
+    <ProtocolsProvider>
+      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <Router />
+      </WouterRouter>
+    </ProtocolsProvider>
   );
 }
 
