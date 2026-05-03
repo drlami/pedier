@@ -1106,6 +1106,234 @@ export default function MetabolicCrisisPage() {
           </div>
         </CollapsibleSection>
 
+        <CollapsibleSection title="IV Preparation Guide — Exact Steps for Each Agent" icon={FlaskConical}>
+          <div className="space-y-5">
+
+            {/* 1 — Dextrose solutions */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">1 · Making Dextrose (Glucose) Solutions</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Use a 500 mL bag of D5W (5% glucose) or D10W (10% glucose) and D50W (50% glucose) ampoules. Withdraw the listed volume from the bag, then inject the same volume of D50W back in.
+              </p>
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-muted/60">
+                      {['Target conc.', 'Starting bag', 'Withdraw', 'Inject D50W', 'IV access'].map(h => (
+                        <th key={h} className="text-left px-3 py-2 border-b font-semibold">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { t: 'D10W (10%)',  from: 'D5W  500 mL', out: '56 mL',  add: '56 mL',  acc: 'Peripheral — OK',              accCls: 'text-green-700'  },
+                      { t: 'D12.5%',      from: 'D10W 500 mL', out: '31 mL',  add: '31 mL',  acc: 'Peripheral — borderline',       accCls: 'text-amber-700'  },
+                      { t: 'D15%',        from: 'D10W 500 mL', out: '63 mL',  add: '63 mL',  acc: 'Central line preferred',        accCls: 'text-amber-700'  },
+                      { t: 'D20%',        from: 'D10W 500 mL', out: '125 mL', add: '125 mL', acc: 'Central line ONLY',             accCls: 'text-red-700'    },
+                    ].map((r, i) => (
+                      <tr key={i} className={i % 2 === 0 ? '' : 'bg-muted/20'}>
+                        <td className="px-3 py-2 border-b font-semibold">{r.t}</td>
+                        <td className="px-3 py-2 border-b text-muted-foreground">{r.from}</td>
+                        <td className="px-3 py-2 border-b text-amber-700 font-medium">{r.out}</td>
+                        <td className="px-3 py-2 border-b text-primary font-medium">{r.add}</td>
+                        <td className={cn('px-3 py-2 border-b font-medium', r.accCls)}>{r.acc}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3 rounded-md bg-blue-50 border border-blue-100 p-3">
+                <p className="text-xs font-semibold text-blue-800 mb-1.5">Adding electrolytes to dextrose bag:</p>
+                <ul className="space-y-1">
+                  {[
+                    'NaCl 23.4% (concentrated saline) = 4 mmol per mL',
+                    'For 40 mmol/L NaCl (maintenance): add 10 mL NaCl 23.4% to 500 mL bag → mix well',
+                    'For 0.45% NaCl equivalent (77 mmol/L): add 19 mL NaCl 23.4% to 500 mL bag',
+                    'Add KCl ONLY after renal function confirmed and urine output established',
+                    'KCl 15% = 2 mmol/mL — add 10 mL per 500 mL bag → gives 20 mmol/L KCl',
+                    'Always label bag clearly with final composition and rate',
+                  ].map((item, i) => (
+                    <li key={i} className="text-xs text-blue-900 flex items-start gap-1.5">
+                      <span className="text-blue-500 shrink-0 mt-0.5">•</span>{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-2 rounded-md bg-amber-50 border border-amber-100 p-2">
+                <p className="text-xs text-amber-800">
+                  <strong>IV bolus for acute hypoglycaemia:</strong> Draw up 2 mL/kg of D10W → give IV push over 2–3 min → recheck glucose after 15 min → start GIR maintenance infusion immediately. Do NOT use undiluted D50W in children (causes hyperosmolarity and vein damage).
+                </p>
+              </div>
+            </div>
+
+            {/* 2 — Ammonia scavengers */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">2 · Ammonia Scavengers — Sodium Benzoate + Sodium Phenylacetate</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Available as <strong>Ammonul®</strong>: combined product containing 100 mg/mL sodium benzoate + 100 mg/mL sodium phenylacetate.
+                If unavailable, each drug may be sourced separately from pharmacy.
+              </p>
+              <div className="rounded-md bg-amber-50 border border-amber-100 p-3 text-xs space-y-3">
+                <div>
+                  <p className="font-semibold text-amber-800 mb-1">Loading dose — infuse over 90–120 min via central line:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-amber-900">
+                    <li>Calculate Ammonul volume: <strong>2.5 mL/kg</strong> (delivers 250 mg/kg sodium benzoate + 250 mg/kg sodium phenylacetate)</li>
+                    <li>Calculate D10W diluent: <strong>32.5 mL/kg</strong></li>
+                    <li>Add Ammonul (2.5 mL/kg) into D10W (32.5 mL/kg) → total mixed volume = <strong>35 mL/kg</strong></li>
+                    <li>Infuse via <strong>dedicated central line lumen</strong> over 90–120 min</li>
+                    <li>Run arginine infusion <strong>simultaneously via a separate lumen or line</strong> (do not co-infuse in same line)</li>
+                  </ol>
+                </div>
+                <div className="border-t border-amber-200 pt-2">
+                  <p className="font-semibold text-amber-800 mb-1">Maintenance — start immediately after loading, run over 24 h:</p>
+                  <p className="text-amber-900">Same doses: 2.5 mL/kg Ammonul in 32.5 mL/kg D10W (= 35 mL/kg total) infused continuously over 24 hours</p>
+                </div>
+                <div className="rounded bg-red-100 border border-red-200 p-2">
+                  <p className="text-xs font-bold text-red-700 mb-1">WARNINGS</p>
+                  <ul className="space-y-0.5 text-red-800 text-xs">
+                    <li>• <strong>Central line required</strong> — causes severe chemical burns and tissue necrosis if extravasated peripherally</li>
+                    <li>• Never give as rapid IV push or bolus</li>
+                    <li>• Both drugs are renally excreted — check renal function and adjust if impaired</li>
+                    <li>• Monitor plasma ammonia every 2–4 h during loading</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* 3 — L-Carnitine */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">3 · L-Carnitine IV</p>
+              <p className="text-xs text-muted-foreground mb-2">Available as: <strong>200 mg/mL</strong> (1 g per 5 mL vials)</p>
+              <div className="rounded-md border bg-muted/20 p-3 text-xs space-y-2">
+                <div>
+                  <p className="font-semibold mb-1">Loading bolus — 100 mg/kg over 30 min:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                    <li>Draw up <strong>0.5 mL/kg</strong> of 200 mg/mL L-Carnitine (= 100 mg/kg)</li>
+                    <li>Dilute in 50–100 mL NS or D5W (final concentration ≤ 10 mg/mL)</li>
+                    <li>Infuse via peripheral or central line over 30 min</li>
+                  </ol>
+                </div>
+                <div className="border-t pt-2">
+                  <p className="font-semibold mb-1">Maintenance infusion — 100 mg/kg/day:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                    <li>Total daily volume: <strong>0.5 mL/kg/day</strong> of 200 mg/mL L-Carnitine</li>
+                    <li><strong>Option A:</strong> Add full daily dose to the daily IV glucose bag → run as continuous 24 h infusion</li>
+                    <li><strong>Option B:</strong> Divide q6h → 0.125 mL/kg per dose, each diluted in 20–30 mL NS, infused over 30 min</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 — Arginine HCl */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">4 · Arginine HCl IV (Urea Cycle Disorders)</p>
+              <p className="text-xs text-muted-foreground mb-2">Available as: <strong>10% solution = 100 mg/mL</strong> (10 g per 100 mL bag)</p>
+              <div className="rounded-md border bg-muted/20 p-3 text-xs space-y-2">
+                <p className="font-semibold">Preparation (dose varies by diagnosis — 250–600 mg/kg over 90–120 min):</p>
+                <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li>For <strong>250 mg/kg</strong> (OTC / CPS1): draw up <strong>2.5 mL/kg</strong> of 10% arginine</li>
+                  <li>For <strong>600 mg/kg</strong> (citrullinemia): draw up <strong>6 mL/kg</strong> of 10% arginine</li>
+                  <li>Dilute in D10W or NS to a final volume of ~25–30 mL/kg (dilute to ≤ 10% final arginine concentration)</li>
+                  <li>Infuse via <strong>central line</strong> over 90–120 min (irritating to peripheral veins)</li>
+                  <li><strong>Run simultaneously</strong> with ammonia scavengers but via a separate line or lumen — do not co-infuse in the same line (precipitation risk)</li>
+                </ol>
+              </div>
+            </div>
+
+            {/* 5 — Cofactors */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">5 · Cofactor Trials (give empirically — safe in all patients before results)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  {
+                    name: 'Hydroxocobalamin (Vitamin B12)',
+                    badge: 'For MMA — B12-responsive subtypes',
+                    steps: [
+                      'Available: 1 mg/mL ampoules',
+                      'Dose: 1 mg IM (preferred) OR dilute in 10 mL NS → slow IV over 5–10 min',
+                      'Repeat daily for 3–5 days; observe for clinical and biochemical response within 24–48 h',
+                      'Completely safe to give before genetic results are available',
+                    ],
+                  },
+                  {
+                    name: 'Thiamine (Vitamin B1) IV',
+                    badge: 'For MSUD — thiamine-responsive subtypes',
+                    steps: [
+                      'Available: 100 mg/mL vials',
+                      'Dose: 100–300 mg total (not per kg)',
+                      'Dilute in 100 mL NS → infuse over 30 min',
+                      'NEVER give as rapid IV push — risk of severe anaphylaxis',
+                      'Repeat daily for 3–5 days',
+                    ],
+                  },
+                  {
+                    name: 'Biotin (Vitamin B7)',
+                    badge: 'For Multiple Carboxylase Deficiency',
+                    steps: [
+                      'Oral or NG: 10–20 mg once daily',
+                      'If IV available: 1 mg/mL — dilute dose in 50 mL NS, infuse over 30 min',
+                      'Potentially curative — give immediately before results return',
+                      'Completely safe; no dose limit concerns in acute setting',
+                    ],
+                  },
+                  {
+                    name: 'N-Carbamylglutamate (Carbaglu / NCG)',
+                    badge: 'For CPS1 Deficiency, some organic acidemias',
+                    steps: [
+                      'Oral or NG only — no IV formulation',
+                      'Loading dose: 100–250 mg/kg',
+                      'Dissolve tablets in small volume of water (3–10 mL) — dispersible',
+                      'Administer via NG tube if patient cannot swallow',
+                      'May see ammonia reduction within 30–60 min in responsive patients',
+                    ],
+                  },
+                ].map(({ name, badge, steps }, i) => (
+                  <div key={i} className="rounded-md border p-3 text-xs">
+                    <p className="font-semibold mb-0.5">{name}</p>
+                    <p className="text-[10px] text-muted-foreground italic mb-2">{badge}</p>
+                    <ul className="space-y-1">
+                      {steps.map((s, j) => (
+                        <li key={j} className="flex items-start gap-1.5 text-muted-foreground">
+                          <span className="text-primary shrink-0 mt-0.5">•</span>{s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 6 — Acute hypoglycaemia agents */}
+            <div>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">6 · Acute Hypoglycaemia Agents</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-md border p-3 text-xs">
+                  <p className="font-semibold mb-2">Glucagon IM (when no IV access)</p>
+                  <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                    <li>Kit: 1 mg vial (lyophilised powder) + 1 mL diluent syringe</li>
+                    <li>Inject diluent into vial → roll gently → draw back up → 1 mg/mL</li>
+                    <li>Dose: <strong>0.5 mg IM</strong> if &lt; 25 kg; <strong>1 mg IM</strong> if ≥ 25 kg</li>
+                    <li>Inject into outer thigh (through clothing if needed)</li>
+                    <li>Onset 5–15 min; obtain IV access and start glucose infusion as soon as possible</li>
+                  </ol>
+                </div>
+                <div className="rounded-md border p-3 text-xs">
+                  <p className="font-semibold mb-2">Diazoxide oral (Congenital Hyperinsulinism)</p>
+                  <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                    <li>Oral suspension or capsules (specialist to initiate)</li>
+                    <li>Starting dose: 5 mg/kg/day in 3 divided doses (q8h)</li>
+                    <li>Can increase up to 15 mg/kg/day if no response in 5 days</li>
+                    <li>Give with chlorothiazide to prevent oedema (2–7 mg/kg/day)</li>
+                    <li>Monitor blood pressure and fluid balance (causes fluid retention)</li>
+                    <li>Do NOT use diazoxide IV — only oral formulation for hyperinsulinism</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </CollapsibleSection>
+
         <CollapsibleSection title="Admission / ICU Criteria & Transfer Checklist" icon={Ambulance}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-lg bg-red-50 border border-red-200 p-3">
