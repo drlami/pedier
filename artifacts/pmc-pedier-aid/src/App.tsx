@@ -7,6 +7,8 @@ import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtocolsProvider } from "@/contexts/protocols-context";
+import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
+import { cn } from "@/lib/utils";
 import HomePage from "@/pages/home";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
@@ -44,11 +46,18 @@ function Footer() {
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const { desktopOpen } = useSidebar();
   return (
     <div className="font-body antialiased flex flex-col min-h-screen bg-background">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-56 flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-hidden hidden lg:flex lg:flex-col">
+        <aside
+          className={cn(
+            "flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-hidden flex-col transition-[width] duration-200 ease-in-out",
+            "hidden lg:flex",
+            desktopOpen ? "w-56 visible" : "w-0 border-r-0 invisible",
+          )}
+        >
           <Suspense fallback={<div className="p-4 text-xs text-muted-foreground">Loading navigation...</div>}>
             <SidebarNav />
           </Suspense>
@@ -156,11 +165,13 @@ function Router() {
 
 function AppInner() {
   return (
-    <ProtocolsProvider>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <Router />
-      </WouterRouter>
-    </ProtocolsProvider>
+    <SidebarProvider>
+      <ProtocolsProvider>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <Router />
+        </WouterRouter>
+      </ProtocolsProvider>
+    </SidebarProvider>
   );
 }
 

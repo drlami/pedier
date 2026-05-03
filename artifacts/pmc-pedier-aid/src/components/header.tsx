@@ -10,7 +10,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -20,11 +19,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut, Search, Shield, Stethoscope, GraduationCap } from "lucide-react";
+import { Menu, LogOut, Search, Shield, Stethoscope, GraduationCap, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { SearchModal } from "@/components/search-modal";
 import { Suspense } from "react";
 import { useAuth, type UserRole } from "@/contexts/auth-context";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 const ROLE_ICON: Record<UserRole, typeof Shield> = {
   admin: Shield,
@@ -41,6 +41,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
 export function Header() {
   const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
+  const { desktopOpen, toggleDesktop, mobileOpen, openMobile, closeMobile } = useSidebar();
   const RoleIcon = user ? ROLE_ICON[user.role] : Shield;
 
   // Cmd/Ctrl + K global shortcut
@@ -60,27 +61,34 @@ export function Header() {
       <header className="no-print sticky top-0 z-40" style={{ background: "hsl(212, 72%, 22%)" }}>
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-4">
-            {/* Mobile Menu */}
+
+            {/* Mobile hamburger — opens Sheet */}
             <div className="lg:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 pt-10 w-72 bg-sidebar border-r-0">
-                  <SheetHeader>
-                    <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                    <SheetDescription className="sr-only">
-                      Select a clinical system to view its protocols.
-                    </SheetDescription>
-                  </SheetHeader>
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <SidebarNav />
-                  </Suspense>
-                </SheetContent>
-              </Sheet>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openMobile}
+                className="text-white hover:bg-white/10"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open navigation menu</span>
+              </Button>
+            </div>
+
+            {/* Desktop sidebar toggle */}
+            <div className="hidden lg:block">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleDesktop}
+                className="text-white hover:bg-white/10"
+                title={desktopOpen ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                {desktopOpen
+                  ? <PanelLeftClose className="h-5 w-5" />
+                  : <PanelLeftOpen  className="h-5 w-5" />
+                }
+              </Button>
             </div>
 
             {/* Logo */}
@@ -153,6 +161,21 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Sheet — controlled by sidebar context */}
+      <Sheet open={mobileOpen} onOpenChange={(open) => open ? openMobile() : closeMobile()}>
+        <SheetContent side="left" className="p-0 pt-10 w-72 bg-sidebar border-r-0">
+          <SheetHeader>
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            <SheetDescription className="sr-only">
+              Select a clinical system to view its protocols.
+            </SheetDescription>
+          </SheetHeader>
+          <Suspense fallback={<div>Loading...</div>}>
+            <SidebarNav />
+          </Suspense>
+        </SheetContent>
+      </Sheet>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>

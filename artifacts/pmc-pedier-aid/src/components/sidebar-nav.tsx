@@ -5,13 +5,14 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby, BookOpen, ChevronDown,
+  FlaskConical, Baby, BookOpen,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { useAllProtocols } from "@/contexts/protocols-context";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 // ─── Clinical Tools ───────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ export function SidebarNav() {
   const search = useSearch();
   const { isAdmin } = useAuth();
   const allProtocols = useAllProtocols();
+  const { closeAll } = useSidebar();
 
   const searchParams = new URLSearchParams(search);
   const currentSystem = searchParams.get("system");
@@ -46,16 +48,17 @@ export function SidebarNav() {
   }, [allProtocols]);
 
   const defaultSystem = systems[0] ?? "";
-  const isAdminPage     = pathname.startsWith("/admin");
-  const isNeoPage       = pathname.startsWith("/neonatology");
-  const isToolPage      = CLINICAL_TOOLS.some(
+  const isAdminPage    = pathname.startsWith("/admin");
+  const isNeoPage      = pathname.startsWith("/neonatology");
+  const isToolPage     = CLINICAL_TOOLS.some(
     (t) => pathname === t.href || (isNeoPage && t.href.startsWith("/neonatology")),
   );
-  const isProtocolPage  = !isAdminPage && !isToolPage;
-  const activeSystem    = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
+  const isProtocolPage = !isAdminPage && !isToolPage;
+  const activeSystem   = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
 
   const handleSystemChange = (system: string) => {
     setLocation(`/?system=${encodeURIComponent(system)}`);
+    closeAll();
   };
 
   return (
@@ -77,6 +80,7 @@ export function SidebarNav() {
                 icon={Icon}
                 active={active}
                 emergency={emergency}
+                onNavigate={closeAll}
               />
             );
           })}
@@ -119,7 +123,7 @@ export function SidebarNav() {
               </SelectContent>
             </Select>
 
-            {/* Active system pill — quick visual confirmation */}
+            {/* Active system pill */}
             {isProtocolPage && activeSystem && (
               <p className="mt-1.5 px-1 text-[10px] text-primary/70 font-medium truncate">
                 Viewing: {activeSystem}
@@ -154,6 +158,7 @@ export function SidebarNav() {
                     icon={Icon}
                     active={active}
                     emergency={false}
+                    onNavigate={closeAll}
                   />
                 );
               })}
@@ -185,12 +190,14 @@ interface NavItemProps {
   icon: React.ElementType;
   active: boolean;
   emergency: boolean;
+  onNavigate?: () => void;
 }
 
-function NavItem({ href, label, icon: Icon, active, emergency }: NavItemProps) {
+function NavItem({ href, label, icon: Icon, active, emergency, onNavigate }: NavItemProps) {
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       className={cn(
         "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-colors relative group",
         active && emergency
