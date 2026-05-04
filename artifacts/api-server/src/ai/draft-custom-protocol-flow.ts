@@ -67,7 +67,7 @@ const prompt = ai.definePrompt({
 
 IMPORTANT RULES:
 - Use only established, evidence-based medical information
-- All drug doses must include weight-based expressions using {{weight * factor}} notation where weight is in kg
+- All drug doses must include weight-based expressions using \{{weight * factor}} notation where weight is in kg
 - Severity rule conditions must be valid JavaScript boolean expressions using the exact question IDs you define
 - Include at least 3 assessment questions (always include 'weight' as a number question in kg if drug doses are weight-based)
 - Severity rules must use the exact question IDs defined in the questions array
