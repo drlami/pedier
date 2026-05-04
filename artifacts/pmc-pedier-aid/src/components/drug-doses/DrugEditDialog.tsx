@@ -53,6 +53,8 @@ function uid(): string {
 
 function inferType(route: string): DoseType {
   const r = route.toLowerCase();
+  if (r.includes("suspension") || r.includes("syrup") || r.includes("liquid") || r.includes("susp")) return "oral-suspension";
+  if (r.includes("tab") || r.includes("capsule") || r.includes("cap ") || r.includes("tablet")) return "oral-tablet";
   if (r.includes("oral") || r.includes(" po")) return "oral";
   if (r.includes("iv") || r.includes("intravenous") || r.includes("infusion")) return "iv";
   if (r.includes("im") || r.includes("intramuscular")) return "im";
@@ -155,7 +157,9 @@ function formToStored(draft: DraftDrug, originalId: string, isCustom: boolean): 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const TYPE_LABELS: Record<DoseType, string> = {
-  oral: "Oral",
+  "oral-suspension": "Oral Suspension (liquid/syrup)",
+  "oral-tablet": "Oral Tab / Capsule",
+  oral: "Oral (generic)",
   iv: "IV",
   im: "IM",
   io: "IO",
@@ -232,7 +236,7 @@ function DoseRowEditor({
   const set = <K extends keyof DraftDoseRow>(key: K, value: DraftDoseRow[K]) =>
     onChange({ ...row, [key]: value });
 
-  const isOral = row.type === "oral";
+  const isOral = row.type === "oral" || row.type === "oral-suspension";
   const isIV = row.type === "iv" || row.type === "im" || row.type === "io";
 
   return (

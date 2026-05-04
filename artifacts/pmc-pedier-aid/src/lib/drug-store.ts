@@ -5,7 +5,7 @@ export interface OralConcentration {
   mgPerMl: number;
 }
 
-export type DoseType = "oral" | "iv" | "im" | "io" | "inhaled" | "rectal" | "other";
+export type DoseType = "oral" | "oral-suspension" | "oral-tablet" | "iv" | "im" | "io" | "inhaled" | "rectal" | "other";
 
 export interface StoredDoseRow {
   id: string;

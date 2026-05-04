@@ -29,72 +29,49 @@ const CATEGORY_EMOJI: Record<DrugCategory, string> = {
 
 // ── Oral concentration ml calculator ─────────────────────────────────────────
 
-function calcMl(dose: EnhancedDoseRow, kg: number, mgPerMl: number): string | null {
-  if (!dose.dosePerKgMg || !mgPerMl || mgPerMl <= 0) return null;
+function calcMlResult(dose: EnhancedDoseRow, kg: number, mgPerMl: number): { mg: number; ml: number } | null {
+  if (!dose.dosePerKgMg || !mgPerMl || mgPerMl <= 0 || kg <= 0) return null;
   const rawMg = dose.dosePerKgMg * kg;
   const doseMg = dose.maxDoseMg ? Math.min(rawMg, dose.maxDoseMg) : rawMg;
-  const roundedMg = Math.round(doseMg);
-  const ml = doseMg / mgPerMl;
-  return `${roundedMg} mg = ${ml.toFixed(1)} ml`;
+  return { mg: Math.round(doseMg), ml: Math.round((doseMg / mgPerMl) * 10) / 10 };
 }
 
-// ── Oral concentration picker ─────────────────────────────────────────────────
+// ── Suspension concentration selector ────────────────────────────────────────
 
-function ConcentrationPicker({
+function ConcentrationSelector({
   dose,
-  kg,
   drugId,
   doseIndex,
   concentrationMap,
   setConcentrationMap,
-  colors,
 }: {
   dose: EnhancedDoseRow;
-  kg: number;
   drugId: string;
   doseIndex: number;
   concentrationMap: Record<string, string>;
   setConcentrationMap: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  colors: { bg: string; text: string; border: string };
 }) {
   const key = `${drugId}-${doseIndex}`;
   const selected = concentrationMap[key] ?? "";
-  const mgPerMl = selected ? parseFloat(selected) : 0;
-  const mlResult = kg > 0 && mgPerMl > 0 ? calcMl(dose, kg, mgPerMl) : null;
-  const conc = dose.oralConcentrations?.find((c) => String(c.mgPerMl) === selected);
 
   return (
-    <div className="mt-2 space-y-1.5">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <FlaskConical className="h-3 w-3 shrink-0" />
-          <span className="font-semibold uppercase tracking-wide">Volume calculator</span>
-        </div>
-        <select
-          value={selected}
-          onChange={(e) =>
-            setConcentrationMap((prev) => ({ ...prev, [key]: e.target.value }))
-          }
-          className="text-xs border border-border rounded-lg px-2 py-1 bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20"
-        >
-          <option value="">Select concentration…</option>
-          {dose.oralConcentrations?.map((c) => (
-            <option key={c.label} value={String(c.mgPerMl)}>{c.label}</option>
-          ))}
-        </select>
+    <div className="flex items-center gap-2 flex-wrap mt-2">
+      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+        <FlaskConical className="h-3 w-3 shrink-0" />
+        <span className="font-semibold uppercase tracking-wide">Suspension concentration</span>
       </div>
-      {mlResult && conc && (
-        <div className={cn(
-          "inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-lg",
-          colors.bg, colors.text,
-        )}>
-          <FlaskConical className="h-3.5 w-3.5 shrink-0" />
-          {mlResult} of {conc.label}
-        </div>
-      )}
-      {selected && !mlResult && kg <= 0 && (
-        <p className="text-[11px] text-muted-foreground italic">Enter patient weight above to calculate volume.</p>
-      )}
+      <select
+        value={selected}
+        onChange={(e) =>
+          setConcentrationMap((prev) => ({ ...prev, [key]: e.target.value }))
+        }
+        className="text-xs border border-border rounded-lg px-2 py-1 bg-background text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+      >
+        <option value="">Select to calculate ml…</option>
+        {dose.oralConcentrations?.map((c) => (
+          <option key={c.label} value={String(c.mgPerMl)}>{c.label}</option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -120,7 +97,25 @@ function DoseRowDisplay({
   concentrationMap: Record<string, string>;
   setConcentrationMap: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
-  const isOral = dose.type === "oral" && (dose.oralConcentrations?.length ?? 0) > 0;
+  // Suspension = oral or oral-suspension type that has concentration options
+  const isSuspension = (dose.type === "oral" || dose.type === "oral-suspension") &&
+    (dose.oralConcentrations?.length ?? 0) > 0;
+
+  // Resolve selected concentration for this row
+  const concKey = `${drug.id}-${index}`;
+  const selectedConcValue = isSuspension ? (concentrationMap[concKey] ?? "") : "";
+  const selectedMgPerMl = selectedConcValue ? parseFloat(selectedConcValue) : 0;
+  const selectedConcObj = dose.oralConcentrations?.find((c) => String(c.mgPerMl) === selectedConcValue);
+  const mlCalc = selectedMgPerMl > 0 ? calcMlResult(dose, kg, selectedMgPerMl) : null;
+
+  // Build result text: when suspension + concentration chosen → show mg + ml
+  const resultBadge = (() => {
+    if (!validWeight) return null;
+    if (isSuspension && mlCalc) {
+      return `${mlCalc.mg} mg  =  ${mlCalc.ml} ml`;
+    }
+    return dose.calculate(kg);
+  })();
 
   return (
     <div className="px-4 py-3 space-y-2">
@@ -145,8 +140,21 @@ function DoseRowDisplay({
           {validWeight ? (
             <>
               <span className={cn("inline-block text-sm font-bold px-3 py-1 rounded-lg", colors.bg, colors.text)}>
-                {dose.calculate(kg)}
+                {resultBadge}
               </span>
+              {/* When ml shown: display which concentration was used */}
+              {isSuspension && mlCalc && selectedConcObj && (
+                <div className="flex items-center gap-1 justify-end">
+                  <FlaskConical className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">{selectedConcObj.label}</span>
+                </div>
+              )}
+              {/* When suspension but no concentration chosen yet */}
+              {isSuspension && !selectedConcValue && (
+                <p className="text-[11px] text-muted-foreground italic text-right">
+                  Select concentration ↓
+                </p>
+              )}
               {/* Frequency badge */}
               {dose.frequency && (
                 <div className="flex items-center gap-1 justify-end">
@@ -169,16 +177,14 @@ function DoseRowDisplay({
         </div>
       </div>
 
-      {/* Oral concentration picker */}
-      {isOral && (
-        <ConcentrationPicker
+      {/* Suspension concentration selector */}
+      {isSuspension && (
+        <ConcentrationSelector
           dose={dose}
-          kg={kg}
           drugId={drug.id}
           doseIndex={index}
           concentrationMap={concentrationMap}
           setConcentrationMap={setConcentrationMap}
-          colors={colors}
         />
       )}
     </div>
