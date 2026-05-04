@@ -1,0 +1,331 @@
+Design an interactive calculator-style tool that guides evaluation and management of children aged 3–36 months presenting with fever and no clear source after history and physical exam.
+
+Base logic on:
+- AAP fever without source recommendations (post Hib/PCV era)
+- AAP UTI guideline (2011, reaffirmed 2016)
+- Modern ER practice (Merck / AAFP review)
+
+IMPORTANT DISCLAIMER:
+This tool is for clinical support only. It does not replace physician judgment, local protocols, or antimicrobial resistance patterns.
+
+-------------------------------------
+🔷 UI DESIGN
+-------------------------------------
+
+Split screen layout:
+LEFT SIDE → Input (calculator form)
+RIGHT SIDE → Live Result Card
+
+Buttons:
+- “Calculate Risk”
+- “Reset”
+- “Print Protocol”
+
+Color coding:
+- GREEN → Low Risk
+- YELLOW → Intermediate Risk
+- RED → High Risk
+
+-------------------------------------
+🔷 STEP 1: INPUT SECTION
+-------------------------------------
+
+Patient Basics:
+- Age (months) [3–36 only]
+- Weight (kg)
+- Temperature (°C)
+- Fever duration:
+  - <24h
+  - 24–48h
+  - >48h
+  - >5 days
+
+General Appearance:
+- Well appearing
+- Ill appearing
+- Toxic appearing
+
+Immunization:
+- Fully immunized (Hib + PCV)
+- Incomplete/unknown
+
+Hydration:
+- Normal
+- Mild dehydration
+- Moderate/severe dehydration
+
+-------------------------------------
+🔷 STEP 2: RED FLAGS
+-------------------------------------
+
+Checkboxes:
+- Toxic appearance
+- Poor perfusion / shock
+- Lethargy or inconsolable irritability
+- Petechial/purpuric rash
+- Neck stiffness / bulging fontanelle / seizure
+- Persistent vomiting
+- Moderate/severe dehydration
+- Respiratory distress / hypoxia
+- Immunocompromised
+- Chronic disease
+- Fever ≥40°C
+- Fever >5 days
+- Cannot ensure follow-up
+
+-------------------------------------
+🔷 STEP 3: UTI RISK CALCULATOR
+-------------------------------------
+
+Checkboxes:
+
+Age/Sex:
+- Female <24 months
+- Male <12 months
+- Male <6 months (higher risk)
+
+Circumcision:
+- Uncircumcised male <12 months
+
+Fever pattern:
+- Fever ≥39°C
+- Fever >24–48h
+- No identifiable source after exam
+
+Urinary symptoms:
+- Dysuria
+- Foul-smelling urine
+- Frequency/urgency
+- Abdominal/suprapubic pain
+
+History:
+- Previous UTI
+
+-------------------------------------
+🔷 STEP 4: AUTOMATED LOGIC ENGINE
+-------------------------------------
+
+A. HIGH RISK (RED)
+
+If ANY:
+- Toxic appearance
+- Shock / poor perfusion
+- Altered mental status
+- Petechial/purpuric rash
+- Meningitis signs
+- Severe dehydration
+- Immunocompromised
+
+→ RESULT = RED (High Risk)
+
+-------------------------------------
+
+B. INTERMEDIATE RISK (YELLOW)
+
+If NOT high risk AND ANY:
+- Fever ≥39°C + incomplete immunization
+- Fever ≥40°C
+- Fever >48h
+- Any UTI risk factors
+- Ill appearing (not toxic)
+- Unreliable follow-up
+
+→ RESULT = YELLOW (Intermediate Risk)
+
+-------------------------------------
+
+C. LOW RISK (GREEN)
+
+ALL must be present:
+- Well appearing
+- Fully immunized
+- Fever <39°C
+- No red flags
+- Good hydration
+- Reliable follow-up
+
+→ RESULT = GREEN (Low Risk)
+
+-------------------------------------
+🔷 STEP 5: UTI DECISION LOGIC
+-------------------------------------
+
+If ANY of:
+- Female <24 months with fever
+- Uncircumcised male <12 months
+- Fever ≥39°C + no source
+- Fever >24–48h + no source
+- Any urinary symptoms
+- Previous UTI
+
+→ Show: “UTI SCREENING INDICATED”
+
+-------------------------------------
+
+Urine collection:
+
+Non-toilet trained:
+- Catheter or suprapubic aspiration → for culture
+- Bag urine → ONLY for screening urinalysis
+
+Toilet-trained:
+- Clean catch midstream
+
+-------------------------------------
+
+Interpretation:
+
+If UA shows:
+- Leukocyte esterase +
+- OR Nitrites +
+- OR Pyuria
+
+→ “UTI SUSPECTED”
+→ Send urine culture BEFORE antibiotics
+
+-------------------------------------
+
+-------------------------------------
+🔷 STEP 6: LAB RECOMMENDATIONS
+-------------------------------------
+
+RED:
+- CBC + differential
+- Blood culture
+- CRP ± procalcitonin
+- Urinalysis + culture
+- Electrolytes/glucose if needed
+- Lumbar puncture if indicated
+- Chest X-ray if respiratory signs
+
+-------------------------------------
+
+YELLOW:
+- Urinalysis ± urine culture
+- Consider CBC, CRP, blood culture
+- Chest X-ray ONLY if respiratory signs
+
+-------------------------------------
+
+GREEN:
+- No routine labs
+- Urine testing ONLY if UTI risk present
+
+-------------------------------------
+🔷 STEP 7: ADMISSION CRITERIA
+-------------------------------------
+
+Admit if ANY:
+- High risk category
+- Toxic appearance
+- Shock
+- CNS signs
+- Severe dehydration
+- Persistent vomiting
+- Hypoxia
+- Suspected serious bacterial infection
+- Need IV antibiotics
+- Incomplete immunization + abnormal labs
+- Poor follow-up
+
+-------------------------------------
+🔷 STEP 8: DISCHARGE CRITERIA
+-------------------------------------
+
+ALL must be met:
+- Well appearing
+- Stable vitals
+- No red flags
+- Tolerating oral intake
+- No sepsis/meningitis concern
+- Labs reassuring OR clear diagnosis (e.g. UTI)
+- Caregiver reliable
+- Follow-up within 24–48h
+
+-------------------------------------
+🔷 STEP 9: ANTIBIOTIC CALCULATOR
+-------------------------------------
+
+Show antibiotics ONLY if:
+- UTI suspected OR confirmed
+- OR bacterial focus identified
+- OR high-risk situation
+
+-------------------------------------
+
+For febrile UTI:
+
+Cefixime:
+- 8 mg/kg/day once daily
+
+Cephalexin:
+- 50–100 mg/kg/day ÷ every 6h
+
+Amoxicillin-clavulanate:
+- 40–45 mg/kg/day ÷ every 12h
+
+-------------------------------------
+
+Dose calculation:
+Dose = weight × mg/kg/day
+
+Display:
+- Total daily dose
+- Dose per administration
+
+-------------------------------------
+
+If severe or unable to tolerate oral:
+
+Ceftriaxone:
+- 50–75 mg/kg IV/IM
+
+-------------------------------------
+
+WARNING:
+“Always send urine culture before antibiotics. Adjust antibiotic choice to local resistance patterns.”
+
+-------------------------------------
+🔷 STEP 10: FINAL RESULT CARD
+-------------------------------------
+
+Display:
+
+- Risk category (Green / Yellow / Red)
+- Reasons for classification
+- Red flags detected
+- UTI risk: Yes/No
+- Labs required
+- Admission vs discharge
+- Antibiotic needed: Yes/No
+- If yes → show calculated dose
+- Safety-net advice
+- Follow-up timing
+
+-------------------------------------
+🔷 STEP 11: SAFETY NET
+-------------------------------------
+
+Return immediately if:
+- Lethargy or irritability
+- Poor feeding
+- Persistent vomiting
+- Breathing difficulty
+- Rash (especially petechial)
+- Seizure
+- Dehydration
+- Fever >48h after visit or >5 days total
+- Caregiver concern
+
+-------------------------------------
+🔷 FINAL RULE
+-------------------------------------
+
+DO NOT recommend antibiotics automatically for fever.
+
+Antibiotics should ONLY appear if:
+- UTI suspected
+- Bacterial source found
+- High-risk scenario
+
+Otherwise → supportive care only.

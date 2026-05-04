@@ -26,7 +26,7 @@ const CustomProtocolOutputSchema = z.object({
   management: z.array(z.object({
     id: z.string(),
     title: z.string(),
-    recommendations: z.array(z.string()).describe("Can include {{weight * 0.1}} expressions for weight-based calculations"),
+    recommendations: z.array(z.string()).describe("Use CALC(weight * factor) style placeholders for weight-based dose calculations"),
     severities: z.array(SeverityLevelEnum).nullable().describe("null means applies to all severities"),
   })),
   disposition: z.array(z.object({
@@ -39,7 +39,7 @@ const CustomProtocolOutputSchema = z.object({
   drugDoses: z.array(z.object({
     id: z.string(),
     drugName: z.string(),
-    dose: z.string().describe("Can use {{weight * factor}} expressions, e.g. '{{weight * 0.1}} mg/kg IV'"),
+    dose: z.string().describe("For weight-based doses write: CALC(weight * 0.1) mg/kg IV — the CALC(...) expression will be evaluated at runtime"),
     maxDose: z.string().optional(),
     notes: z.string().optional(),
     severities: z.array(SeverityLevelEnum).nullable(),
@@ -67,7 +67,7 @@ const prompt = ai.definePrompt({
 
 IMPORTANT RULES:
 - Use only established, evidence-based medical information
-- All drug doses must include weight-based expressions using \{{weight * factor}} notation where weight is in kg
+- For weight-based drug doses, write expressions as: CALC(weight * factor) — for example: "CALC(weight * 0.15) mg/kg IV" where weight is the patient weight in kg
 - Severity rule conditions must be valid JavaScript boolean expressions using the exact question IDs you define
 - Include at least 3 assessment questions (always include 'weight' as a number question in kg if drug doses are weight-based)
 - Severity rules must use the exact question IDs defined in the questions array
@@ -89,7 +89,10 @@ const draftCustomProtocolFlow = ai.defineFlow(
   async (input) => {
     const { output } = await prompt(input);
     if (!output) throw new Error("AI returned no output.");
-    return output;
+    // Convert CALC(...) expressions back to {{...}} format for the runtime engine
+    const json = JSON.stringify(output);
+    const converted = json.replace(/CALC\(([^)]+)\)/g, '{{$1}}');
+    return JSON.parse(converted) as typeof output;
   }
 );
 
