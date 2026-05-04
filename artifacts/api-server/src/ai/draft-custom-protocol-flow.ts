@@ -55,6 +55,8 @@ export type DraftCustomProtocolOutput = z.infer<typeof CustomProtocolOutputSchem
 
 const InputSchema = z.object({
   description: z.string(),
+  name: z.string().optional().describe("Suggested protocol name — use this if provided"),
+  system: z.string().optional().describe("Clinical system/category — use this if provided"),
 });
 
 const prompt = ai.definePrompt({
@@ -71,6 +73,8 @@ IMPORTANT RULES:
 - Severity rules must use the exact question IDs defined in the questions array
 - Include comprehensive management recommendations
 - Red flags should be clinical warning signs that require immediate escalation
+{{#if name}}- Use exactly this protocol name: {{{name}}}{{/if}}
+{{#if system}}- Use exactly this clinical system category: {{{system}}}{{/if}}
 
 Generate a complete protocol for the following:
 {{{description}}}`,
@@ -89,6 +93,10 @@ const draftCustomProtocolFlow = ai.defineFlow(
   }
 );
 
-export async function draftCustomProtocol(description: string): Promise<DraftCustomProtocolOutput> {
-  return draftCustomProtocolFlow({ description });
+export async function draftCustomProtocol(
+  description: string,
+  name?: string,
+  system?: string
+): Promise<DraftCustomProtocolOutput> {
+  return draftCustomProtocolFlow({ description, name, system });
 }

@@ -38,14 +38,31 @@ import {
 
 export default function ProtocolListPage() {
   const [, navigate] = useLocation();
-  const { rawCustomProtocols, hiddenBuiltInIds, refetch, hideBuiltIn, unhideBuiltIn } =
-    useProtocolsContext();
+  const {
+    rawCustomProtocols,
+    hiddenBuiltInIds,
+    deletedBuiltInIds,
+    refetch,
+    hideBuiltIn,
+    unhideBuiltIn,
+    deleteBuiltIn,
+    restoreDeleted,
+  } = useProtocolsContext();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Custom protocol delete
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [hideTarget, setHideTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Built-in hide
+  const [hideTarget, setHideTarget] = useState<{ id: string; name: string } | null>(null);
   const [hiding, setHiding] = useState(false);
+
+  // Built-in delete (permanent hide)
+  const [deleteBuiltInTarget, setDeleteBuiltInTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deletingBuiltIn, setDeletingBuiltIn] = useState(false);
+
   const [openSystems, setOpenSystems] = useState<Set<string>>(new Set());
 
   const builtInBySystem = useMemo(() => {
@@ -54,6 +71,7 @@ export default function ProtocolListPage() {
       .filter(
         (p) =>
           !hiddenBuiltInIds.has(p.id) &&
+          !deletedBuiltInIds.has(p.id) &&
           (!searchTerm ||
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.system.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -63,11 +81,16 @@ export default function ProtocolListPage() {
         map[p.system].push(p);
       });
     return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
-  }, [searchTerm, hiddenBuiltInIds]);
+  }, [searchTerm, hiddenBuiltInIds, deletedBuiltInIds]);
 
   const hiddenBuiltIns = useMemo(
     () => allProtocols.filter((p) => hiddenBuiltInIds.has(p.id)),
     [hiddenBuiltInIds]
+  );
+
+  const deletedBuiltIns = useMemo(
+    () => allProtocols.filter((p) => deletedBuiltInIds.has(p.id)),
+    [deletedBuiltInIds]
   );
 
   const filteredCustom = useMemo(() => {
@@ -90,6 +113,7 @@ export default function ProtocolListPage() {
     });
   };
 
+  // Delete custom protocol
   const handleDeleteCustom = async () => {
     if (!deleteTarget) return;
     const token = getAuthToken();
@@ -113,6 +137,7 @@ export default function ProtocolListPage() {
     }
   };
 
+  // Hide built-in (soft / recoverable)
   const handleHideBuiltIn = async () => {
     if (!hideTarget) return;
     setHiding(true);
@@ -127,12 +152,32 @@ export default function ProtocolListPage() {
     }
   };
 
+  // Delete built-in (permanent removal from view — restorable only from Deleted section)
+  const handleDeleteBuiltIn = async () => {
+    if (!deleteBuiltInTarget) return;
+    setDeletingBuiltIn(true);
+    try {
+      await deleteBuiltIn(deleteBuiltInTarget.id);
+      toast({ title: "Protocol deleted", description: `"${deleteBuiltInTarget.name}" has been deleted. You can restore it from the Deleted section if needed.` });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete protocol." });
+    } finally {
+      setDeletingBuiltIn(false);
+      setDeleteBuiltInTarget(null);
+    }
+  };
+
   const handleRestoreBuiltIn = async (id: string, name: string) => {
     await unhideBuiltIn(id);
     toast({ title: "Protocol restored", description: `"${name}" is visible again.` });
   };
 
-  const visibleBuiltInCount = allProtocols.length - hiddenBuiltInIds.size;
+  const handleRestoreDeleted = async (id: string, name: string) => {
+    await restoreDeleted(id);
+    toast({ title: "Protocol restored", description: `"${name}" is back in the protocol list.` });
+  };
+
+  const visibleBuiltInCount = allProtocols.length - hiddenBuiltInIds.size - deletedBuiltInIds.size;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -145,6 +190,9 @@ export default function ProtocolListPage() {
             <span className="font-medium text-foreground">{rawCustomProtocols.length}</span> custom
             {hiddenBuiltInIds.size > 0 && (
               <span className="text-muted-foreground/70"> · {hiddenBuiltInIds.size} hidden</span>
+            )}
+            {deletedBuiltInIds.size > 0 && (
+              <span className="text-muted-foreground/70"> · {deletedBuiltInIds.size} deleted</span>
             )}
           </p>
         </div>
@@ -245,7 +293,7 @@ export default function ProtocolListPage() {
           <FileText className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-base font-semibold">Built-in Protocols</h2>
           <Badge variant="secondary" className="ml-1">{visibleBuiltInCount}</Badge>
-          <span className="text-xs text-muted-foreground">— clone to edit, or hide to remove from view</span>
+          <span className="text-xs text-muted-foreground">— clone to edit, hide to temporarily remove, or delete to remove permanently</span>
         </div>
 
         <div className="space-y-2">
@@ -290,11 +338,22 @@ export default function ProtocolListPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
                           onClick={() => setHideTarget({ id: p.id, name: p.name })}
-                          title="Hide this protocol from the clinical interface"
+                          title="Temporarily hide from clinical interface (restorable)"
                         >
-                          <EyeOff className="h-3 w-3" />
+                          <EyeOff className="h-3 w-3 mr-1" />
+                          Hide
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteBuiltInTarget({ id: p.id, name: p.name })}
+                          title="Delete this protocol (can be restored from Deleted section)"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Delete
                         </Button>
                       </div>
                     </div>
@@ -322,7 +381,7 @@ export default function ProtocolListPage() {
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground line-through">{p.name}</span>
+                    <span className="text-sm text-muted-foreground">{p.name}</span>
                     <Badge variant="outline" className="text-[10px] opacity-60">{p.system}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground/60 mt-0.5">Hidden from clinical interface</p>
@@ -331,7 +390,7 @@ export default function ProtocolListPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-7 text-xs text-primary hover:text-primary hover:bg-primary/10"
                     onClick={() => navigate(`/admin/protocols/new?clone=${p.id}`)}
                   >
                     <Copy className="h-3 w-3 mr-1" />
@@ -342,6 +401,44 @@ export default function ProtocolListPage() {
                     size="sm"
                     className="h-7 text-xs"
                     onClick={() => handleRestoreBuiltIn(p.id, p.name)}
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Restore
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Deleted Built-in Protocols */}
+      {deletedBuiltIns.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Trash2 className="h-4 w-4 text-destructive/50" />
+            <h2 className="text-base font-semibold text-muted-foreground">Deleted Protocols</h2>
+            <Badge variant="outline" className="ml-1 text-[10px] border-destructive/30 text-destructive/70">{deletedBuiltIns.length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {deletedBuiltIns.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between p-3 bg-destructive/5 border border-dashed border-destructive/20 rounded-lg"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground line-through">{p.name}</span>
+                    <Badge variant="outline" className="text-[10px] opacity-60 border-destructive/30">{p.system}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">Deleted — not visible in clinical interface</p>
+                </div>
+                <div className="flex gap-1 ml-4 shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => handleRestoreDeleted(p.id, p.name)}
                   >
                     <RotateCcw className="h-3 w-3 mr-1" />
                     Restore
@@ -388,6 +485,29 @@ export default function ProtocolListPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleHideBuiltIn} disabled={hiding}>
               {hiding ? "Hiding..." : "Hide Protocol"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete built-in confirmation */}
+      <AlertDialog open={!!deleteBuiltInTarget} onOpenChange={(open) => !open && setDeleteBuiltInTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Protocol</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete <strong>"{deleteBuiltInTarget?.name}"</strong> from the clinical interface?
+              It will no longer appear for users. You can restore it anytime from the <strong>Deleted Protocols</strong> section at the bottom of this page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteBuiltIn}
+              disabled={deletingBuiltIn}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingBuiltIn ? "Deleting..." : "Delete Protocol"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
