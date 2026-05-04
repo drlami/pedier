@@ -305,7 +305,6 @@ export const fever3To36MonthsProtocol: DiseaseProtocol = {
       {
         title: 'Low-Risk Fever Without Source',
         recommendations: [
-          'TEST TEST TEST',
           'No routine laboratory tests are required.',
           'No antibiotics are recommended.',
           'Provide antipyretics and supportive care.',
