@@ -3,9 +3,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertCircle,
   Loader2,
@@ -16,11 +25,15 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowLeft,
+  Layers,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAuthToken } from "@/contexts/auth-context";
 import type { CustomProtocol } from "@/lib/custom-protocol-types";
+import { CLINICAL_SYSTEMS } from "@/lib/protocols";
 import { Link } from "wouter";
+
+const CUSTOM_SYSTEM_VALUE = "__custom__";
 
 interface ProtocolDrafterProps {
   onDraftReady?: (draft: Omit<CustomProtocol, "isCustom" | "createdAt" | "updatedAt">) => void;
@@ -30,15 +43,26 @@ interface ProtocolDrafterProps {
 export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps) {
   const { toast } = useToast();
   const [description, setDescription] = useState("");
+  const [selectedSystem, setSelectedSystem] = useState<string>("");
+  const [customSystem, setCustomSystem] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<CustomProtocol | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showJson, setShowJson] = useState(false);
 
+  const effectiveSystem =
+    selectedSystem === CUSTOM_SYSTEM_VALUE
+      ? customSystem.trim()
+      : selectedSystem;
+
   const handleGenerate = async () => {
     if (!description.trim() || description.trim().length < 20) {
       setError("Please provide at least 20 characters describing the protocol.");
+      return;
+    }
+    if (!effectiveSystem) {
+      setError("Please select or enter a clinical system for this protocol.");
       return;
     }
     setError(null);
@@ -52,7 +76,7 @@ export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps)
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ description }),
+        body: JSON.stringify({ description, system: effectiveSystem }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -130,18 +154,77 @@ export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps)
       </div>
 
       <Card>
-        <CardContent className="pt-6 space-y-4">
-          <Textarea
-            placeholder="Describe the protocol you want to create. For example:
+        <CardContent className="pt-6 space-y-5">
+          {/* Clinical System Selector */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5 text-sm font-medium">
+              <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+              Clinical System
+              <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={selectedSystem}
+              onValueChange={(val) => {
+                setSelectedSystem(val);
+                if (val !== CUSTOM_SYSTEM_VALUE) setCustomSystem("");
+              }}
+              disabled={generating}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select the clinical system this protocol belongs to..." />
+              </SelectTrigger>
+              <SelectContent>
+                {CLINICAL_SYSTEMS.map((system) => (
+                  <SelectItem key={system} value={system}>
+                    {system}
+                  </SelectItem>
+                ))}
+                <SelectItem value={CUSTOM_SYSTEM_VALUE}>
+                  <span className="text-muted-foreground italic">Custom system...</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            {selectedSystem === CUSTOM_SYSTEM_VALUE && (
+              <Input
+                placeholder="e.g. Dermatology, Ophthalmology, Haematology..."
+                value={customSystem}
+                onChange={(e) => setCustomSystem(e.target.value)}
+                disabled={generating}
+                className="mt-2"
+              />
+            )}
+
+            {selectedSystem && selectedSystem !== CUSTOM_SYSTEM_VALUE && (
+              <p className="text-xs text-muted-foreground">
+                The protocol will appear under <strong>{selectedSystem}</strong> in the protocol browser.
+              </p>
+            )}
+            {selectedSystem === CUSTOM_SYSTEM_VALUE && customSystem.trim() && (
+              <p className="text-xs text-muted-foreground">
+                A new system category <strong>"{customSystem.trim()}"</strong> will be created.
+              </p>
+            )}
+          </div>
+
+          {/* Protocol Description */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Protocol Description
+              <span className="text-destructive ml-1">*</span>
+            </Label>
+            <Textarea
+              placeholder="Describe the protocol you want to create. For example:
 
 'Pediatric asthma management protocol. Include severity classification using PRAM score with mild (0-4), moderate (5-7), and severe (8-12) categories. Include weight-based salbutamol dosing (0.15 mg/kg), ipratropium for moderate/severe, IV magnesium for severe cases, and oxygen therapy. Include disposition criteria and red flags.'
 
 Or paste a clinical guideline directly."
-            className="min-h-[200px] text-sm resize-none"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={generating}
-          />
+              className="min-h-[180px] text-sm resize-none"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={generating}
+            />
+          </div>
 
           {error && (
             <Alert variant="destructive">
@@ -153,7 +236,11 @@ Or paste a clinical guideline directly."
 
           <Button
             onClick={handleGenerate}
-            disabled={generating || description.trim().length < 20}
+            disabled={
+              generating ||
+              description.trim().length < 20 ||
+              !effectiveSystem
+            }
             className="w-full"
           >
             {generating ? (
@@ -180,7 +267,9 @@ Or paste a clinical guideline directly."
                 <div>
                   <CardTitle className="font-headline text-lg text-green-900">{draft.name}</CardTitle>
                   <div className="flex gap-2 flex-wrap mt-1">
-                    <Badge variant="outline" className="text-xs">{draft.system}</Badge>
+                    <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                      {draft.system}
+                    </Badge>
                     <Badge variant="outline" className="text-xs">{draft.questions?.length ?? 0} questions</Badge>
                     <Badge variant="outline" className="text-xs">{draft.severityRules?.length ?? 0} severity rules</Badge>
                     <Badge variant="outline" className="text-xs">{draft.management?.length ?? 0} management sections</Badge>

@@ -155,6 +155,22 @@ export const allProtocols: DiseaseProtocol[] = [
   metabolicCrisisProtocol,
 ];
 
+export const CLINICAL_SYSTEMS = [
+  "Cardiology",
+  "Electrolyte Disturbances",
+  "Endocrinology",
+  "Fever & Infectious Diseases",
+  "Gastrointestinal",
+  "Metabolic Diseases",
+  "Nephrology",
+  "Neurology",
+  "Respiratory",
+  "Shock and Resuscitation",
+  "Toxins and Poisoning",
+] as const;
+
+export type ClinicalSystem = typeof CLINICAL_SYSTEMS[number];
+
 export const getProtocolById = (id: string): DiseaseProtocol | undefined => {
   return allProtocols.find((p) => p.id === id);
 };
