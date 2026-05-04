@@ -32,5 +32,235 @@
     "isCustom": true,
     "createdAt": "2026-05-03T00:47:59.361Z",
     "updatedAt": "2026-05-03T00:47:59.361Z"
+  },
+  {
+    "id": "fever-without-source",
+    "name": "Test",
+    "system": "Fever & Infectious Diseases",
+    "description": "This protocol guides the risk stratification and management of fever without source (FWS) in children aged 3-36 months, based on current AAP guidelines.",
+    "questions": [
+      {
+        "id": "weight",
+        "questionText": "Patient weight",
+        "type": "number",
+        "unit": "kg"
+      },
+      {
+        "id": "toxicAppearance",
+        "questionText": "Does the child exhibit lethargy, poor perfusion, cyanosis, or respiratory distress (toxic appearance)?",
+        "type": "boolean"
+      },
+      {
+        "id": "immunizedHibPcv",
+        "questionText": "Has the child received at least 2 doses of Hib and PCV13/15 vaccines?",
+        "type": "boolean"
+      },
+      {
+        "id": "temperature",
+        "questionText": "Current measured temperature",
+        "type": "number",
+        "unit": "°C"
+      },
+      {
+        "id": "comorbidities",
+        "questionText": "Does the patient have Sickle Cell Disease, a central line, or is immunocompromised?",
+        "type": "boolean"
+      },
+      {
+        "id": "procalcitoninResult",
+        "questionText": "Procalcitonin result (ng/mL) (if available)",
+        "type": "number",
+        "unit": "ng/mL"
+      },
+      {
+        "id": "uaPositive",
+        "questionText": "Is Urine Analysis (UA) positive for infection?",
+        "type": "boolean"
+      },
+      {
+        "id": "gramStainPositive",
+        "questionText": "Is Gram stain positive for bacteria from CSF or Blood (if performed)?",
+        "type": "boolean"
+      },
+      {
+        "id": "unableToMaintainHydration",
+        "questionText": "Is the patient unable to maintain adequate hydration orally?",
+        "type": "boolean"
+      }
+    ],
+    "severityRules": [
+      {
+        "id": "toxicHighRisk",
+        "priority": 1,
+        "condition": "toxicAppearance === true",
+        "level": "severe",
+        "detail": "Child exhibits signs of toxicity (lethargy, poor perfusion, cyanosis, or respiratory distress)."
+      },
+      {
+        "id": "comorbiditiesHighRisk",
+        "priority": 2,
+        "condition": "comorbidities === true",
+        "level": "severe",
+        "detail": "Patient has Sickle Cell Disease, a central line, or is immunocompromised."
+      },
+      {
+        "id": "labAbnormalitiesHighRisk",
+        "priority": 3,
+        "condition": "procalcitoninResult > 0.5 || uaPositive === true || gramStainPositive === true",
+        "level": "severe",
+        "detail": "Significant lab abnormalities (Procalcitonin >0.5ng/mL, positive UA, or positive Gram stain) indicate high risk."
+      },
+      {
+        "id": "moderateRisk",
+        "priority": 4,
+        "condition": "!toxicAppearance && !comorbidities && !(procalcitoninResult > 0.5 || uaPositive === true || gramStainPositive === true) && (temperature >= 39.0 || immunizedHibPcv === false)",
+        "level": "moderate",
+        "detail": "Nontoxic, no comorbidities or significant lab abnormalities, but temperature is ≥39.0°C OR the child is under-immunized."
+      },
+      {
+        "id": "lowRisk",
+        "priority": 5,
+        "condition": "!toxicAppearance && !comorbidities && !(procalcitoninResult > 0.5 || uaPositive === true || gramStainPositive === true) && temperature < 39.0 && immunizedHibPcv === true",
+        "level": "mild",
+        "detail": "Nontoxic, immunized, temperature <39.0°C, and no comorbidities or significant lab abnormalities."
+      }
+    ],
+    "defaultSeverity": "mild",
+    "management": [
+      {
+        "id": "sepsisWorkupLabs",
+        "title": "Required Lab Orders (High Risk)",
+        "recommendations": [
+          "Complete Blood Count (CBC) with differential",
+          "Blood Culture",
+          "Urine Analysis (UA) and Urine Culture (UCult)",
+          "Procalcitonin",
+          "Consider Cerebrospinal Fluid (CSF) analysis"
+        ],
+        "severities": [
+          "severe"
+        ]
+      },
+      {
+        "id": "moderateRiskLabs",
+        "title": "Required Lab Orders (Moderate Risk)",
+        "recommendations": [
+          "Urine Analysis (UA) and Urine Culture (UCult) - Priority 1",
+          "Consider Complete Blood Count (CBC) with differential",
+          "Consider Procalcitonin"
+        ],
+        "severities": [
+          "moderate"
+        ]
+      },
+      {
+        "id": "lowRiskLabs",
+        "title": "Required Lab Orders (Low Risk)",
+        "recommendations": [
+          "Observation is primary management.",
+          "Consider Urine Analysis (UA) and Urine Culture (UCult) for females or uncircumcised males."
+        ],
+        "severities": [
+          "mild"
+        ]
+      },
+      {
+        "id": "empiricAntibiotics",
+        "title": "Empiric Antibiotics (if indicated)",
+        "recommendations": [
+          "Consider Ceftriaxone for empiric treatment."
+        ],
+        "severities": [
+          "severe",
+          "moderate"
+        ]
+      },
+      {
+        "id": "oralAntibioticsUTI",
+        "title": "Oral Antibiotics for confirmed UTI",
+        "recommendations": [
+          "Prescribe Amoxicillin for 7 days"
+        ],
+        "severities": [
+          "mild",
+          "moderate"
+        ]
+      }
+    ],
+    "disposition": [
+      {
+        "id": "admissionHighRisk",
+        "text": "Admission for all High Risk patients for further evaluation and management, including those with Procalcitonin >0.5ng/mL.",
+        "type": "admission",
+        "severities": [
+          "severe"
+        ]
+      },
+      {
+        "id": "admissionHydrationIssue",
+        "text": "Consider admission if patient has positive UA/Gram stain and is unable to maintain adequate hydration orally, even if not classified as severe risk.",
+        "type": "admission",
+        "severities": [
+          "moderate",
+          "mild"
+        ]
+      },
+      {
+        "id": "dischargeLowRisk",
+        "text": "Discharge home with reliable 24-hour follow-up instructions.",
+        "type": "discharge",
+        "severities": [
+          "mild"
+        ]
+      },
+      {
+        "id": "dischargeModerateRisk",
+        "text": "Discharge home for Moderate Risk patients with negative UA and reliable 24-hour follow-up instructions.",
+        "type": "discharge",
+        "severities": [
+          "moderate"
+        ]
+      }
+    ],
+    "redFlags": [
+      "Purple spots/rash",
+      "Unable to wake up or severe lethargy",
+      "Breathing fast or difficulty breathing",
+      "No wet diapers for 8 hours"
+    ],
+    "drugDoses": [
+      {
+        "id": "ceftriaxoneEmpiric",
+        "drugName": "Ceftriaxone",
+        "dose": "{{weight * 50}} mg IM",
+        "maxDose": "1000 mg",
+        "notes": "For empiric treatment of suspected serious bacterial infection.",
+        "severities": [
+          "severe",
+          "moderate"
+        ]
+      },
+      {
+        "id": "cephalexinUTI",
+        "drugName": "Cephalexin",
+        "dose": "{{weight * 16.6}} - {{weight * 33.3}} mg orally TID",
+        "maxDose": "100 mg/kg/day total",
+        "notes": "Administer 50-100 mg/kg/day divided into three daily doses (TID) for confirmed UTI.",
+        "severities": [
+          "mild",
+          "moderate"
+        ]
+      }
+    ],
+    "references": [
+      {
+        "id": "aapFws",
+        "title": "Evaluation and Management of Febrile Infants and Toddlers (AAP Clinical Practice Guideline)",
+        "url": "https://publications.aap.org/pediatrics/article/148/1/e2021052648/18121/Evaluation-and-Management-of-Febrile-Infants-and"
+      }
+    ],
+    "isCustom": true,
+    "createdAt": "2026-05-04T09:34:17.742Z",
+    "updatedAt": "2026-05-04T09:39:12.491Z"
   }
 ]
