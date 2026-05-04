@@ -1,36 +1,30 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { db, customProtocolsTable } from '@workspace/db';
+import { eq } from 'drizzle-orm';
 import type { CustomProtocol } from './custom-protocol-types.js';
 
-const DATA_FILE = join(process.cwd(), 'data', 'custom-protocols.json');
-
-function readProtocols(): CustomProtocol[] {
-  if (!existsSync(DATA_FILE)) return [];
-  try {
-    const raw = readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(raw) as CustomProtocol[];
-  } catch {
-    return [];
-  }
+export async function getAllCustomProtocols(): Promise<CustomProtocol[]> {
+  const rows = await db.select().from(customProtocolsTable);
+  return rows.map((r) => r.data as CustomProtocol);
 }
 
-function writeProtocols(protocols: CustomProtocol[]): void {
-  writeFileSync(DATA_FILE, JSON.stringify(protocols, null, 2), 'utf-8');
+export async function getCustomProtocolById(
+  id: string,
+): Promise<CustomProtocol | undefined> {
+  const rows = await db
+    .select()
+    .from(customProtocolsTable)
+    .where(eq(customProtocolsTable.id, id));
+  return rows.length > 0 ? (rows[0].data as CustomProtocol) : undefined;
 }
 
-export function getAllCustomProtocols(): CustomProtocol[] {
-  return readProtocols();
-}
-
-export function getCustomProtocolById(id: string): CustomProtocol | undefined {
-  return readProtocols().find((p) => p.id === id);
-}
-
-export function createCustomProtocol(
-  data: Omit<CustomProtocol, 'isCustom' | 'createdAt' | 'updatedAt'>
-): CustomProtocol {
-  const protocols = readProtocols();
-  if (protocols.find((p) => p.id === data.id)) {
+export async function createCustomProtocol(
+  data: Omit<CustomProtocol, 'isCustom' | 'createdAt' | 'updatedAt'>,
+): Promise<CustomProtocol> {
+  const existing = await db
+    .select()
+    .from(customProtocolsTable)
+    .where(eq(customProtocolsTable.id, data.id));
+  if (existing.length > 0) {
     throw new Error(`A protocol with id "${data.id}" already exists.`);
   }
   const now = new Date().toISOString();
@@ -40,34 +34,41 @@ export function createCustomProtocol(
     createdAt: now,
     updatedAt: now,
   };
-  protocols.push(protocol);
-  writeProtocols(protocols);
+  await db.insert(customProtocolsTable).values({
+    id: protocol.id,
+    data: protocol,
+  });
   return protocol;
 }
 
-export function updateCustomProtocol(
+export async function updateCustomProtocol(
   id: string,
-  data: Partial<Omit<CustomProtocol, 'id' | 'isCustom' | 'createdAt'>>
-): CustomProtocol | null {
-  const protocols = readProtocols();
-  const idx = protocols.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  protocols[idx] = {
-    ...protocols[idx],
+  data: Partial<Omit<CustomProtocol, 'id' | 'isCustom' | 'createdAt'>>,
+): Promise<CustomProtocol | null> {
+  const rows = await db
+    .select()
+    .from(customProtocolsTable)
+    .where(eq(customProtocolsTable.id, id));
+  if (rows.length === 0) return null;
+  const existing = rows[0].data as CustomProtocol;
+  const updated: CustomProtocol = {
+    ...existing,
     ...data,
     id,
     isCustom: true,
     updatedAt: new Date().toISOString(),
   };
-  writeProtocols(protocols);
-  return protocols[idx];
+  await db
+    .update(customProtocolsTable)
+    .set({ data: updated, updatedAt: new Date() })
+    .where(eq(customProtocolsTable.id, id));
+  return updated;
 }
 
-export function deleteCustomProtocol(id: string): boolean {
-  const protocols = readProtocols();
-  const idx = protocols.findIndex((p) => p.id === id);
-  if (idx === -1) return false;
-  protocols.splice(idx, 1);
-  writeProtocols(protocols);
-  return true;
+export async function deleteCustomProtocol(id: string): Promise<boolean> {
+  const rows = await db
+    .delete(customProtocolsTable)
+    .where(eq(customProtocolsTable.id, id))
+    .returning();
+  return rows.length > 0;
 }

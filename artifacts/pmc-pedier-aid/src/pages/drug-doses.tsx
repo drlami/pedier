@@ -8,7 +8,7 @@ import {
   type DrugEntry,
   type EnhancedDoseRow,
 } from "@/lib/drug-doses";
-import { deleteCustomDrug, resetBuiltinDrug } from "@/lib/drug-store";
+import { fetchCustomStore, saveCustomDrug, deleteCustomDrug, resetBuiltinDrug, type StoredDrug, type CustomDrugStore } from "@/lib/drug-store";
 import DrugEditDialog from "@/components/drug-doses/DrugEditDialog";
 import {
   AlertTriangle, Info, Pill, Weight, Pencil, Trash2, RotateCcw, Plus,
@@ -204,6 +204,10 @@ export default function DrugDosesPage() {
   const [concentrationMap, setConcentrationMap] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
+  // DB-backed custom drug store
+  const [customStore, setCustomStore] = useState<CustomDrugStore>({ additions: [], edits: {} });
+  const [storeLoading, setStoreLoading] = useState(true);
+
   // Edit dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDrug, setEditingDrug] = useState<DrugEntry | undefined>(undefined);
@@ -214,6 +218,36 @@ export default function DrugDosesPage() {
 
   const drugRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // Fetch custom drugs from API (with one-time localStorage migration)
+  useEffect(() => {
+    let cancelled = false;
+    setStoreLoading(true);
+    const load = async () => {
+      // One-time migration from localStorage
+      const OLD_KEY = "pmc-custom-drugs-v1";
+      const raw = localStorage.getItem(OLD_KEY);
+      if (raw) {
+        try {
+          const old = JSON.parse(raw) as { additions?: StoredDrug[]; edits?: Record<string, StoredDrug> };
+          await Promise.all([
+            ...(old.additions ?? []).map((d) => saveCustomDrug(d)),
+            ...Object.values(old.edits ?? {}).map((d) => saveCustomDrug(d)),
+          ]);
+          localStorage.removeItem(OLD_KEY);
+        } catch {
+          // ignore - data may already be in DB
+        }
+      }
+      const store = await fetchCustomStore();
+      if (!cancelled) {
+        setCustomStore(store);
+        setStoreLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
   const kg = parseFloat(weight);
   const validWeight = !isNaN(kg) && kg > 0 && kg <= 200;
   const weightWarning =
@@ -221,7 +255,7 @@ export default function DrugDosesPage() {
       ? "Please verify — weight seems unusual for a paediatric patient."
       : null;
 
-  const allDrugs = useMemo(() => getMergedDrugs(), [refreshKey]);
+  const allDrugs = useMemo(() => getMergedDrugs(customStore), [customStore]);
 
   // Sorted alphabetically within the active category
   const drugsInCategory = useMemo(
@@ -269,14 +303,14 @@ export default function DrugDosesPage() {
     setDialogOpen(true);
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    deleteCustomDrug(id);
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteCustomDrug(id);
     setConfirmDelete(null);
     refresh();
   }, [refresh]);
 
-  const handleReset = useCallback((id: string) => {
-    resetBuiltinDrug(id);
+  const handleReset = useCallback(async (id: string) => {
+    await resetBuiltinDrug(id);
     refresh();
   }, [refresh]);
 

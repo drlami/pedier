@@ -10,12 +10,12 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/protocols', requireAuth, (_req, res) => {
-  res.json(getAllCustomProtocols());
+router.get('/protocols', requireAuth, async (_req, res) => {
+  res.json(await getAllCustomProtocols());
 });
 
-router.get('/protocols/:id', requireAuth, (req, res) => {
-  const protocol = getCustomProtocolById(req.params.id);
+router.get('/protocols/:id', requireAuth, async (req, res) => {
+  const protocol = await getCustomProtocolById(req.params.id);
   if (!protocol) {
     res.status(404).json({ message: 'Protocol not found' });
     return;
@@ -23,7 +23,7 @@ router.get('/protocols/:id', requireAuth, (req, res) => {
   res.json(protocol);
 });
 
-router.post('/protocols', requireAdmin, (req, res) => {
+router.post('/protocols', requireAdmin, async (req, res) => {
   const data = req.body;
   if (!data?.id || !data?.name || !data?.system) {
     res.status(400).json({ message: 'id, name, and system are required' });
@@ -35,15 +35,15 @@ router.post('/protocols', requireAdmin, (req, res) => {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
   try {
-    const protocol = createCustomProtocol({ ...data, id: safeId });
+    const protocol = await createCustomProtocol({ ...data, id: safeId });
     res.status(201).json(protocol);
   } catch (err: any) {
     res.status(409).json({ message: err.message });
   }
 });
 
-router.put('/protocols/:id', requireAdmin, (req, res) => {
-  const updated = updateCustomProtocol(req.params.id, req.body);
+router.put('/protocols/:id', requireAdmin, async (req, res) => {
+  const updated = await updateCustomProtocol(req.params.id, req.body);
   if (!updated) {
     res.status(404).json({ message: 'Protocol not found' });
     return;
@@ -51,8 +51,8 @@ router.put('/protocols/:id', requireAdmin, (req, res) => {
   res.json(updated);
 });
 
-router.delete('/protocols/:id', requireAdmin, (req, res) => {
-  const deleted = deleteCustomProtocol(req.params.id);
+router.delete('/protocols/:id', requireAdmin, async (req, res) => {
+  const deleted = await deleteCustomProtocol(req.params.id);
   if (!deleted) {
     res.status(404).json({ message: 'Protocol not found' });
     return;

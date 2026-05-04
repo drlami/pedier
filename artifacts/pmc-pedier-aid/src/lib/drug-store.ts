@@ -36,52 +36,55 @@ export interface CustomDrugStore {
   edits: Record<string, StoredDrug>;
 }
 
-const STORAGE_KEY = "pmc-custom-drugs-v1";
+const API_BASE = "/api";
+const TOKEN_KEY = "pmc-auth-token";
 
-function loadStore(): CustomDrugStore {
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+export async function fetchCustomStore(): Promise<CustomDrugStore> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { additions: [], edits: {} };
-    return JSON.parse(raw) as CustomDrugStore;
+    const res = await fetch(`${API_BASE}/custom-drugs`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) return { additions: [], edits: {} };
+    const drugs: StoredDrug[] = await res.json();
+    const store: CustomDrugStore = { additions: [], edits: {} };
+    for (const drug of drugs) {
+      if (drug.isCustom) {
+        store.additions.push(drug);
+      } else {
+        store.edits[drug.id] = drug;
+      }
+    }
+    return store;
   } catch {
     return { additions: [], edits: {} };
   }
 }
 
-function persistStore(store: CustomDrugStore): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+export async function saveCustomDrug(drug: StoredDrug): Promise<void> {
+  await fetch(`${API_BASE}/custom-drugs/${drug.id}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(drug),
+  });
 }
 
-export function getCustomStore(): CustomDrugStore {
-  return loadStore();
+export async function deleteCustomDrug(id: string): Promise<void> {
+  await fetch(`${API_BASE}/custom-drugs/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
 }
 
-export function saveCustomDrug(drug: StoredDrug): CustomDrugStore {
-  const store = loadStore();
-  if (drug.isCustom) {
-    const idx = store.additions.findIndex((d) => d.id === drug.id);
-    if (idx >= 0) store.additions[idx] = drug;
-    else store.additions.push(drug);
-  } else {
-    store.edits[drug.id] = drug;
-  }
-  persistStore(store);
-  return store;
-}
-
-export function deleteCustomDrug(id: string): CustomDrugStore {
-  const store = loadStore();
-  store.additions = store.additions.filter((d) => d.id !== id);
-  delete store.edits[id];
-  persistStore(store);
-  return store;
-}
-
-export function resetBuiltinDrug(id: string): CustomDrugStore {
-  const store = loadStore();
-  delete store.edits[id];
-  persistStore(store);
-  return store;
+export async function resetBuiltinDrug(id: string): Promise<void> {
+  await deleteCustomDrug(id);
 }
 
 function rnd(n: number, dp = 2): number {

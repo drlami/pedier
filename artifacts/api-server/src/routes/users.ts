@@ -12,8 +12,8 @@ const router = Router();
 
 const VALID_ROLES: UserRole[] = ['admin', 'specialist', 'resident'];
 
-router.get('/users', requireAdmin, (_req, res) => {
-  res.json(getAllUsers());
+router.get('/users', requireAdmin, async (_req, res) => {
+  res.json(await getAllUsers());
 });
 
 router.post('/users', requireAdmin, async (req, res) => {
@@ -34,7 +34,7 @@ router.post('/users', requireAdmin, async (req, res) => {
   }
 });
 
-router.put('/users/:id', requireAdmin, (req: AuthRequest, res) => {
+router.put('/users/:id', requireAdmin, async (req: AuthRequest, res) => {
   const { role } = req.body as { role?: UserRole };
   if (!role || !VALID_ROLES.includes(role)) {
     res.status(400).json({ message: 'Valid role required (admin, specialist, resident)' });
@@ -44,7 +44,7 @@ router.put('/users/:id', requireAdmin, (req: AuthRequest, res) => {
     res.status(400).json({ message: 'You cannot change your own role' });
     return;
   }
-  const updated = updateUserRole(req.params.id, role);
+  const updated = await updateUserRole(req.params.id, role);
   if (!updated) {
     res.status(404).json({ message: 'User not found' });
     return;
@@ -52,12 +52,12 @@ router.put('/users/:id', requireAdmin, (req: AuthRequest, res) => {
   res.json(updated);
 });
 
-router.delete('/users/:id', requireAdmin, (req: AuthRequest, res) => {
+router.delete('/users/:id', requireAdmin, async (req: AuthRequest, res) => {
   if (req.params.id === req.user?.userId) {
     res.status(400).json({ message: 'You cannot delete your own account' });
     return;
   }
-  const deleted = deleteUser(req.params.id);
+  const deleted = await deleteUser(req.params.id);
   if (!deleted) {
     res.status(404).json({ message: 'User not found' });
     return;

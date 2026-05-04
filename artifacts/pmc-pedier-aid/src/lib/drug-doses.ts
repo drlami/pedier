@@ -1,4 +1,4 @@
-import { getCustomStore, generateCalculate, buildFormula, type StoredDrug } from "./drug-store";
+import { generateCalculate, buildFormula, type StoredDrug, type CustomDrugStore } from "./drug-store";
 export type { OralConcentration, DoseType } from "./drug-store";
 
 export type DrugCategory =
@@ -969,8 +969,7 @@ function storedDrugToEntry(stored: StoredDrug): DrugEntry {
   };
 }
 
-export function getMergedDrugs(): DrugEntry[] {
-  const store = getCustomStore();
+export function getMergedDrugs(store: CustomDrugStore): DrugEntry[] {
   const result: DrugEntry[] = [];
 
   for (const drug of DRUGS) {

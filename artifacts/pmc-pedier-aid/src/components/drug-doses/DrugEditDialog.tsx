@@ -480,6 +480,7 @@ export default function DrugEditDialog({
     drug ? drugEntryToForm(drug) : blankDrug(defaultCategory),
   );
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -509,7 +510,7 @@ export default function DrugEditDialog({
   const addRow = () =>
     setDraft((prev) => ({ ...prev, doses: [...prev.doses, blankRow()] }));
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!draft.name.trim()) { setError("Drug name is required."); return; }
     if (draft.doses.length === 0) { setError("At least one dose row is required."); return; }
     for (const row of draft.doses) {
@@ -523,9 +524,16 @@ export default function DrugEditDialog({
     const originalId = drug?.id ?? `custom-${Date.now()}`;
     const isCustom = isNew ? true : (drug?.isCustom ?? false);
     const stored = formToStored(draft, originalId, isCustom);
-    saveCustomDrug(stored);
-    onSave();
-    onClose();
+    setSaving(true);
+    try {
+      await saveCustomDrug(stored);
+      onSave();
+      onClose();
+    } catch {
+      setError("Failed to save drug. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -639,9 +647,10 @@ export default function DrugEditDialog({
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+            disabled={saving}
+            className="px-5 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isNew ? "Add Drug" : "Save Changes"}
+            {saving ? "Saving…" : isNew ? "Add Drug" : "Save Changes"}
           </button>
         </div>
       </div>
