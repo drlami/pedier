@@ -1,0 +1,203 @@
+You are an expert pediatric emergency physician and software designer.
+
+Your task is to build a clinical decision-support CALCULATOR for “Fever Without Focus (FWS)” in children aged 3–36 months.
+
+The calculator MUST follow evidence-based guidelines (AAP, CPS, UpToDate-style logic) and should simulate real ER clinical decision-making.
+
+🎯 GOAL
+
+Create an INTERACTIVE calculator that:
+
+Asks structured clinical questions step-by-step
+Classifies the patient into risk categories
+Determines required investigations
+Recommends admission vs discharge
+Suggests antibiotic use (or no antibiotics)
+Displays clear final management plan
+⚠️ GENERAL RULES
+Prioritize patient safety
+Always check RED FLAGS first
+Do NOT miss Serious Bacterial Infection (SBI)
+Avoid unnecessary labs in low-risk children
+UTI is the MOST COMMON SBI → must be emphasized
+Output must be SIMPLE, CLEAR, and CLINICAL
+🧩 STEP 1: INPUT QUESTIONS (UI FORM)
+
+The calculator must ask the following questions EXACTLY:
+
+BASIC INFORMATION
+Age (months)
+Temperature (°C)
+Duration of fever (hours or days)
+GENERAL APPEARANCE
+Is the child well-appearing?
+(Yes / No)
+Any of the following RED FLAGS?
+(multi-select Yes/No)
+Lethargy or decreased consciousness
+Toxic/ill appearance
+Poor perfusion / delayed capillary refill
+Respiratory distress
+Persistent irritability or inconsolable crying
+Petechiae or purpura
+Neck stiffness or bulging fontanelle
+Signs of dehydration
+Immunocompromised state
+RISK FACTORS FOR SBI
+Fever ≥ 39°C? (Yes/No)
+Fever duration > 48 hours? (Yes/No)
+Fully immunized for age? (Yes/No)
+Previous UTI? (Yes/No)
+Sex:
+Male circumcised
+Male uncircumcised
+Female
+Age subgroup:
+3–6 months
+6–12 months
+12–24 months
+24–36 months
+SOURCE EVALUATION
+Is there a clear source of fever after exam?
+(Yes / No)
+Any urinary symptoms?
+(Yes / No)
+🧠 STEP 2: LOGIC ENGINE
+
+The calculator must follow this EXACT DECISION TREE:
+
+🔴 RULE 1: RED FLAGS OVERRIDE EVERYTHING
+
+IF any red flag OR child is NOT well-appearing:
+→ CLASSIFY as HIGH RISK
+→ OUTPUT:
+
+“Suspected serious bacterial infection”
+Immediate FULL SEPSIS WORKUP
+Admit to hospital
+Start IV antibiotics
+🟡 RULE 2: WELL-APPEARING CHILD
+
+IF well-appearing AND no red flags:
+
+LOW RISK CRITERIA:
+Temperature < 39°C
+Fever < 48 hours
+Fully immunized
+No SBI risk factors
+
+→ MANAGEMENT:
+
+No labs required
+No antibiotics
+Discharge with safety net
+Follow-up in 24–48 hours
+INTERMEDIATE / HIGHER RISK:
+
+IF ANY of the following:
+
+Temp ≥ 39°C
+Fever > 48h
+Age < 12 months
+Uncircumcised male
+Female < 24 months
+No clear source
+
+→ DO:
+
+URINE TEST (MANDATORY)
+Consider blood tests
+🚽 URINE LOGIC (VERY IMPORTANT)
+
+Indications:
+
+ALL females <24 months
+Males <12 months (especially uncircumcised)
+Fever ≥39°C with no source
+Fever >24–48h
+URINE COLLECTION METHOD:
+
+Display clearly:
+
+Preferred: catheterization
+Acceptable: suprapubic aspiration
+Clean catch only if toilet-trained
+Bag urine NOT acceptable for culture
+🧪 BLOOD TEST LOGIC
+
+Order CBC ± CRP if:
+
+Fever ≥39°C
+Moderate/high risk
+No source
+🧫 BLOOD CULTURE
+
+Only if:
+
+Ill-appearing
+High fever + abnormal labs
+Not fully immunized
+🏥 ADMISSION LOGIC
+
+Admit if:
+
+Any red flag
+Abnormal labs suggesting SBI
+Unable to ensure follow-up
+Dehydration or poor intake
+🏠 DISCHARGE LOGIC
+
+Discharge ONLY if:
+
+Well-appearing
+No red flags
+Reliable caregivers
+Follow-up available
+💊 ANTIBIOTIC LOGIC
+
+DO NOT GIVE antibiotics if:
+
+Low-risk
+Negative urine
+No source
+
+GIVE antibiotics if:
+
+UTI suspected or confirmed
+→ Oral antibiotics
+High suspicion bacteremia
+→ IV ceftriaxone
+Ill-appearing
+→ Broad IV antibiotics
+📤 STEP 3: OUTPUT DISPLAY
+
+The final result must include:
+
+RISK CATEGORY:
+Low / Intermediate / High
+RECOMMENDED INVESTIGATIONS:
+Urine / Blood / Culture
+MANAGEMENT PLAN:
+Admit or discharge
+ANTIBIOTIC PLAN:
+Yes / No + type
+FOLLOW-UP INSTRUCTIONS:
+Return if worsening
+Recheck in 24–48h
+🎨 UI REQUIREMENTS
+Step-by-step question flow (like a wizard)
+Color coding:
+Red = high risk
+Yellow = intermediate
+Green = low risk
+Clear warnings for dangerous conditions
+Mobile-friendly design
+⚠️ DISCLAIMER (MUST INCLUDE)
+
+“This tool is for clinical support only and does not replace physician judgment.”
+
+🎯 FINAL INSTRUCTION
+
+Build this as a fully functional calculator with clean UI and structured decision logic.
+
+Ensure the logic is strictly followed and medically accurate.
