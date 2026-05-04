@@ -12,7 +12,7 @@ import { deleteCustomDrug, resetBuiltinDrug } from "@/lib/drug-store";
 import DrugEditDialog from "@/components/drug-doses/DrugEditDialog";
 import {
   AlertTriangle, Info, Pill, Weight, Pencil, Trash2, RotateCcw, Plus,
-  FlaskConical, Clock,
+  FlaskConical, Clock, Search, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -202,6 +202,7 @@ export default function DrugDosesPage() {
   const [activeCategory, setActiveCategory] = useState<DrugCategory>("Resuscitation");
   const [refreshKey, setRefreshKey] = useState(0);
   const [concentrationMap, setConcentrationMap] = useState<Record<string, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Edit dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -221,11 +222,28 @@ export default function DrugDosesPage() {
       : null;
 
   const allDrugs = useMemo(() => getMergedDrugs(), [refreshKey]);
+
+  // Sorted alphabetically within the active category
   const drugsInCategory = useMemo(
-    () => allDrugs.filter((d) => d.category === activeCategory),
+    () => allDrugs
+      .filter((d) => d.category === activeCategory)
+      .sort((a, b) => a.name.localeCompare(b.name)),
     [allDrugs, activeCategory],
   );
-  const colors = CATEGORY_COLOR[activeCategory];
+
+  // Cross-category search results, alphabetically sorted
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return null;
+    return allDrugs
+      .filter((d) =>
+        d.name.toLowerCase().includes(q) ||
+        d.indication?.toLowerCase().includes(q),
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [allDrugs, searchQuery]);
+
+  const isSearching = searchResults !== null;
 
   useEffect(() => {
     if (targetDrug && drugRefs.current[targetDrug]) {
@@ -320,148 +338,202 @@ export default function DrugDosesPage() {
         )}
       </div>
 
-      {/* Category tabs */}
-      <div className="flex flex-wrap gap-1.5">
-        {DRUG_CATEGORIES.map((cat) => {
-          const c = CATEGORY_COLOR[cat];
-          const active = activeCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all",
-                active
-                  ? `${c.bg} ${c.text} ${c.border} shadow-sm`
-                  : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
-              )}
-            >
-              {CATEGORY_EMOJI[cat]} {cat}
-            </button>
-          );
-        })}
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search drugs by name or indication…"
+          aria-label="Search drugs"
+          className="w-full pl-9 pr-9 py-2.5 text-sm border border-border rounded-xl bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/60 transition-colors"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
+
+      {/* Category tabs — hidden while searching */}
+      {!isSearching && (
+        <div className="flex flex-wrap gap-1.5">
+          {DRUG_CATEGORIES.map((cat) => {
+            const c = CATEGORY_COLOR[cat];
+            const active = activeCategory === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all",
+                  active
+                    ? `${c.bg} ${c.text} ${c.border} shadow-sm`
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted",
+                )}
+              >
+                {CATEGORY_EMOJI[cat]} {cat}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Drug cards */}
       <div className="space-y-3">
-        {drugsInCategory.map((drug) => (
-          <div
-            key={drug.id}
-            ref={(el) => { drugRefs.current[drug.id] = el; }}
-            id={`drug-${drug.id}`}
-            className={cn(
-              "bg-card border rounded-xl shadow-sm overflow-hidden",
-              targetDrug === drug.id ? `${colors.border} border-2` : "border-border",
-            )}
-          >
-            {/* Drug header */}
-            <div className={cn("px-4 py-3 border-b flex items-start justify-between gap-2", colors.bg, colors.border, "border-b")}>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className={cn("font-bold text-sm", colors.text)}>{drug.name}</h3>
-                  {drug.isCustom && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wide">
-                      Custom
+        {/* Search mode: header + results or empty state */}
+        {isSearching && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              {searchResults!.length === 0
+                ? "No drugs found"
+                : `${searchResults!.length} drug${searchResults!.length === 1 ? "" : "s"} found`}
+            </p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-xs text-primary hover:underline"
+            >
+              Clear search
+            </button>
+          </div>
+        )}
+
+        {(isSearching ? searchResults! : drugsInCategory).map((drug) => {
+          const dc = CATEGORY_COLOR[drug.category];
+          return (
+            <div
+              key={drug.id}
+              ref={(el) => { drugRefs.current[drug.id] = el; }}
+              id={`drug-${drug.id}`}
+              className={cn(
+                "bg-card border rounded-xl shadow-sm overflow-hidden",
+                targetDrug === drug.id ? `${dc.border} border-2` : "border-border",
+              )}
+            >
+              {/* Drug header */}
+              <div className={cn("px-4 py-3 border-b flex items-start justify-between gap-2", dc.bg, dc.border, "border-b")}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className={cn("font-bold text-sm", dc.text)}>{drug.name}</h3>
+                    {/* Category badge — always shown for clarity */}
+                    <span className={cn(
+                      "text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                      dc.bg, dc.text, dc.border,
+                    )}>
+                      {drug.category}
                     </span>
-                  )}
-                  {drug.isEdited && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wide">
-                      Edited
-                    </span>
+                    {drug.isCustom && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wide">
+                        Custom
+                      </span>
+                    )}
+                    {drug.isEdited && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wide">
+                        Edited
+                      </span>
+                    )}
+                  </div>
+                  {drug.indication && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{drug.indication}</p>
                   )}
                 </div>
-                {drug.indication && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{drug.indication}</p>
-                )}
-              </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  onClick={() => openEdit(drug)}
-                  title="Edit drug"
-                  className="p-1.5 rounded-lg hover:bg-white/60 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-                {drug.isEdited && (
+                {/* Action buttons */}
+                <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => handleReset(drug.id)}
-                    title="Reset to default"
-                    className="p-1.5 rounded-lg hover:bg-white/60 text-blue-600 hover:text-blue-800 transition-colors"
+                    onClick={() => openEdit(drug)}
+                    title="Edit drug"
+                    className="p-1.5 rounded-lg hover:bg-white/60 text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
-                )}
-                {drug.isCustom && (
-                  confirmDelete === drug.id ? (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleDelete(drug.id)}
-                        className="text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="text-[10px] text-muted-foreground hover:text-foreground px-1 py-1"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
+                  {drug.isEdited && (
                     <button
-                      onClick={() => setConfirmDelete(drug.id)}
-                      title="Delete drug"
-                      className="p-1.5 rounded-lg hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors"
+                      onClick={() => handleReset(drug.id)}
+                      title="Reset to default"
+                      className="p-1.5 rounded-lg hover:bg-white/60 text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <RotateCcw className="h-3.5 w-3.5" />
                     </button>
-                  )
-                )}
+                  )}
+                  {drug.isCustom && (
+                    confirmDelete === drug.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(drug.id)}
+                          className="text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 px-2 py-1 rounded"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(null)}
+                          className="text-[10px] text-muted-foreground hover:text-foreground px-1 py-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDelete(drug.id)}
+                        title="Delete drug"
+                        className="p-1.5 rounded-lg hover:bg-red-100 text-muted-foreground hover:text-red-600 transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Warning */}
+              {drug.warning && (
+                <div className="flex items-start gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-800 font-medium">{drug.warning}</p>
+                </div>
+              )}
+
+              {/* Dose rows */}
+              <div className="divide-y divide-border">
+                {drug.doses.map((dose, i) => (
+                  <DoseRowDisplay
+                    key={i}
+                    dose={dose}
+                    index={i}
+                    drug={drug}
+                    kg={kg}
+                    validWeight={validWeight}
+                    colors={dc}
+                    concentrationMap={concentrationMap}
+                    setConcentrationMap={setConcentrationMap}
+                  />
+                ))}
               </div>
             </div>
+          );
+        })}
 
-            {/* Warning */}
-            {drug.warning && (
-              <div className="flex items-start gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-800 font-medium">{drug.warning}</p>
-              </div>
-            )}
-
-            {/* Dose rows */}
-            <div className="divide-y divide-border">
-              {drug.doses.map((dose, i) => (
-                <DoseRowDisplay
-                  key={i}
-                  dose={dose}
-                  index={i}
-                  drug={drug}
-                  kg={kg}
-                  validWeight={validWeight}
-                  colors={colors}
-                  concentrationMap={concentrationMap}
-                  setConcentrationMap={setConcentrationMap}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* Add drug button */}
-        <button
-          onClick={() => openAdd(activeCategory)}
-          className={cn(
-            "flex items-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-xl text-sm font-medium transition-colors",
-            colors.border,
-            `${colors.text} hover:${colors.bg}`,
-            "border-opacity-50 hover:border-opacity-100",
-          )}
-        >
-          <Plus className="h-4 w-4" />
-          Add drug to {activeCategory}
-        </button>
+        {/* Add drug button — only shown when not searching */}
+        {!isSearching && (() => {
+          const ac = CATEGORY_COLOR[activeCategory];
+          return (
+            <button
+              onClick={() => openAdd(activeCategory)}
+              className={cn(
+                "flex items-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-xl text-sm font-medium transition-colors",
+                ac.border, ac.text,
+              )}
+            >
+              <Plus className="h-4 w-4" />
+              Add drug to {activeCategory}
+            </button>
+          );
+        })()}
       </div>
 
       {/* Disclaimer */}
