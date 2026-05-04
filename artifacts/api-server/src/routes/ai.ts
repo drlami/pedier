@@ -51,15 +51,11 @@ router.post("/ai/draft-protocol", async (req, res) => {
 
 router.post("/ai/draft-custom-protocol", requireAdmin, async (req, res) => {
   try {
-    const { description, name, system } = req.body;
+    const { description } = req.body;
     if (!description || String(description).trim().length < 20) {
       return res.status(400).json({ message: "Please provide a description of at least 20 characters." });
     }
-    const result = await draftCustomProtocol(
-      String(description),
-      name ? String(name).trim() : undefined,
-      system ? String(system).trim() : undefined
-    );
+    const result = await draftCustomProtocol(String(description));
     return res.json(result);
   } catch (err: any) {
     console.error("Error in draft-custom-protocol:", err);

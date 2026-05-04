@@ -2,19 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertCircle,
   Loader2,
@@ -31,21 +22,6 @@ import { getAuthToken } from "@/contexts/auth-context";
 import type { CustomProtocol } from "@/lib/custom-protocol-types";
 import { Link } from "wouter";
 
-const CLINICAL_SYSTEMS = [
-  "Cardiology",
-  "Electrolyte Disturbances",
-  "Endocrinology",
-  "Fever & Infectious Diseases",
-  "Gastrointestinal",
-  "Metabolic Diseases",
-  "Nephrology",
-  "Neurology",
-  "Respiratory",
-  "Shock and Resuscitation",
-  "Toxins and Poisoning",
-  "Other",
-];
-
 interface ProtocolDrafterProps {
   onDraftReady?: (draft: Omit<CustomProtocol, "isCustom" | "createdAt" | "updatedAt">) => void;
   onSaved?: () => void;
@@ -53,17 +29,12 @@ interface ProtocolDrafterProps {
 
 export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps) {
   const { toast } = useToast();
-  const [protocolName, setProtocolName] = useState("");
-  const [selectedSystem, setSelectedSystem] = useState("");
-  const [customSystem, setCustomSystem] = useState("");
   const [description, setDescription] = useState("");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<CustomProtocol | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showJson, setShowJson] = useState(false);
-
-  const effectiveSystem = selectedSystem === "Other" ? customSystem : selectedSystem;
 
   const handleGenerate = async () => {
     if (!description.trim() || description.trim().length < 20) {
@@ -81,11 +52,7 @@ export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps)
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          description,
-          name: protocolName.trim() || undefined,
-          system: effectiveSystem.trim() || undefined,
-        }),
+        body: JSON.stringify({ description }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -158,76 +125,23 @@ export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps)
           AI Protocol Drafter
         </h1>
         <p className="text-muted-foreground mt-1">
-          Give the protocol a name and category, then describe it. The AI will generate a complete structured protocol.
+          Describe the protocol in plain English or paste guideline text. The AI will generate a complete structured protocol.
         </p>
       </div>
 
       <Card>
-        <CardContent className="pt-6 space-y-5">
-          {/* Protocol Name */}
-          <div className="space-y-1.5">
-            <Label htmlFor="draft-name">
-              Protocol Name
-              <span className="ml-1.5 text-xs text-muted-foreground font-normal">(optional — AI will generate one if left blank)</span>
-            </Label>
-            <Input
-              id="draft-name"
-              placeholder="e.g. Pediatric Hypertensive Emergency"
-              value={protocolName}
-              onChange={(e) => setProtocolName(e.target.value)}
-              disabled={generating}
-            />
-          </div>
-
-          {/* Clinical System */}
-          <div className="space-y-1.5">
-            <Label htmlFor="draft-system">
-              Clinical System / Category
-              <span className="ml-1.5 text-xs text-muted-foreground font-normal">(optional — helps AI place it correctly)</span>
-            </Label>
-            <Select
-              value={selectedSystem}
-              onValueChange={setSelectedSystem}
-              disabled={generating}
-            >
-              <SelectTrigger id="draft-system">
-                <SelectValue placeholder="Select a clinical system..." />
-              </SelectTrigger>
-              <SelectContent>
-                {CLINICAL_SYSTEMS.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedSystem === "Other" && (
-              <Input
-                placeholder="Type your custom system name..."
-                value={customSystem}
-                onChange={(e) => setCustomSystem(e.target.value)}
-                disabled={generating}
-                className="mt-2"
-              />
-            )}
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <Label htmlFor="draft-description">
-              Protocol Description / Guidelines <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="draft-description"
-              placeholder="Describe the protocol you want to create. For example:
+        <CardContent className="pt-6 space-y-4">
+          <Textarea
+            placeholder="Describe the protocol you want to create. For example:
 
 'Pediatric asthma management protocol. Include severity classification using PRAM score with mild (0-4), moderate (5-7), and severe (8-12) categories. Include weight-based salbutamol dosing (0.15 mg/kg), ipratropium for moderate/severe, IV magnesium for severe cases, and oxygen therapy. Include disposition criteria and red flags.'
 
 Or paste a clinical guideline directly."
-              className="min-h-[180px] text-sm resize-none"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={generating}
-            />
-          </div>
+            className="min-h-[200px] text-sm resize-none"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={generating}
+          />
 
           {error && (
             <Alert variant="destructive">
@@ -349,7 +263,7 @@ Or paste a clinical guideline directly."
                 ) : (
                   <Save className="mr-2 h-4 w-4" />
                 )}
-                {saving ? "Saving..." : "Save Protocol"}
+                {saving ? "Saving..." : "Save Protocol Directly"}
               </Button>
             </div>
           </CardContent>

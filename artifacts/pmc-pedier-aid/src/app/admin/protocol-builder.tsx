@@ -52,21 +52,6 @@ type BuilderState = {
 const SEVERITY_LEVELS: SeverityLevel[] = ["mild", "moderate", "severe", "some", "no", "unknown"];
 const MAIN_SEVERITIES: SeverityLevel[] = ["mild", "moderate", "severe"];
 
-const CLINICAL_SYSTEMS = [
-  "Cardiology",
-  "Electrolyte Disturbances",
-  "Endocrinology",
-  "Fever & Infectious Diseases",
-  "Gastrointestinal",
-  "Metabolic Diseases",
-  "Nephrology",
-  "Neurology",
-  "Respiratory",
-  "Shock and Resuscitation",
-  "Toxins and Poisoning",
-  "Other",
-];
-
 const SEVERITY_COLORS: Record<string, string> = {
   mild: "bg-green-100 text-green-700 border-green-200",
   moderate: "bg-amber-100 text-amber-700 border-amber-200",
@@ -422,30 +407,12 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="system">Clinical System <span className="text-destructive">*</span></Label>
-              <Select
-                value={CLINICAL_SYSTEMS.includes(form.system) ? form.system : form.system ? "Other" : ""}
-                onValueChange={(v) => {
-                  if (v !== "Other") update("system", v);
-                  else update("system", "");
-                }}
-              >
-                <SelectTrigger id="system">
-                  <SelectValue placeholder="Select a clinical system..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {CLINICAL_SYSTEMS.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(!CLINICAL_SYSTEMS.includes(form.system) || form.system === "") && (
-                <Input
-                  value={form.system}
-                  onChange={(e) => update("system", e.target.value)}
-                  placeholder="Type your custom system name..."
-                  className="mt-2"
-                />
-              )}
+              <Input id="system" value={form.system} onChange={(e) => update("system", e.target.value)} placeholder="e.g. Respiratory, Neurology" list="system-list" />
+              <datalist id="system-list">
+                {["Respiratory", "Neurology", "Infectious Disease", "Cardiology", "Endocrinology", "Nephrology", "Gastroenterology", "Toxicology & Envenomation", "Emergency Management"].map(s => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">Description <span className="text-destructive">*</span></Label>

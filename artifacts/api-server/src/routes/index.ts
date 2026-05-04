@@ -5,7 +5,6 @@ import authRouter from "./auth.js";
 import usersRouter from "./users.js";
 import customProtocolsRouter from "./custom-protocols.js";
 import hiddenProtocolsRouter from "./hidden-protocols.js";
-import deletedProtocolsRouter from "./deleted-protocols.js";
 
 const router: IRouter = Router();
 
@@ -15,6 +14,5 @@ router.use(usersRouter);
 router.use(aiRouter);
 router.use(customProtocolsRouter);
 router.use(hiddenProtocolsRouter);
-router.use(deletedProtocolsRouter);
 
 export default router;
