@@ -2,7 +2,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 
 export const fever3To36MonthsProtocol: DiseaseProtocol = {
   id: 'fever-3-36-months',
-  name: 'Fever Without Source (3-36 months)',
+  name: 'name: '🚨 TEST VERSION – Fever Without Source 🚨',',
   system: 'Fever & Infectious Diseases',
   description:
     'Decision-support calculator for fever without a source in children 3 to 36 months, focusing on serious bacterial infection, UTI, bacteremia, admission, discharge, and antibiotic decisions.',
