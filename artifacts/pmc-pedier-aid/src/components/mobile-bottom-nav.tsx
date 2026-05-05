@@ -51,7 +51,7 @@ export function MobileBottomNav() {
             key={href}
             href={href}
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-1 transition-colors select-none",
+              "relative flex flex-1 flex-col items-center justify-center gap-1 transition-colors select-none",
               active
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground",
