@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtocolsProvider } from "@/contexts/protocols-context";
 import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
@@ -31,7 +32,7 @@ const queryClient = new QueryClient();
 
 function Footer() {
   return (
-    <footer className="no-print shrink-0 border-t border-amber-200 bg-amber-50">
+    <footer className="no-print shrink-0 border-t border-amber-200 bg-amber-50 hidden lg:block">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-1 px-4 py-2">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
@@ -64,10 +65,11 @@ function Layout({ children }: { children: React.ReactNode }) {
             <SidebarNav />
           </Suspense>
         </aside>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
+      <MobileBottomNav />
       <Footer />
     </div>
   );

@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { Link, useSearch } from "wouter";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Link, useSearch, useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
 import { Search, ChevronRight } from "lucide-react";
@@ -79,12 +79,20 @@ function SystemProtocols({
 
 export default function Home() {
   const search = useSearch();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const allProtocols = useAllProtocols();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setSearchTerm("");
-  }, [search]);
+    const params = new URLSearchParams(search);
+    if (params.get("focus") === "search") {
+      setLocation("/", { replace: true });
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    } else {
+      setSearchTerm("");
+    }
+  }, [search, setLocation]);
 
   const handleProtocolClick = () => {
     setSearchTerm("");
@@ -118,6 +126,7 @@ export default function Home() {
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            ref={searchInputRef}
             type="search"
             placeholder="Search all protocols by name, keyword, or system..."
             className="w-full pl-10 py-2.5 text-sm rounded-lg bg-card border-border shadow-sm"
