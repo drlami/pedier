@@ -56,12 +56,19 @@ export function MobileBottomNav() {
     );
 
   const iconCls = (active: boolean, emergency = false) =>
-    cn("h-5 w-5 transition-colors", active ? (emergency ? "text-red-600" : "text-primary") : "opacity-40");
+    cn(
+      "h-5 w-5 transition-colors",
+      active
+        ? emergency ? "text-red-600" : "text-primary"
+        : emergency ? "text-red-400/70" : "opacity-40",
+    );
 
   const labelCls = (active: boolean, emergency = false) =>
     cn(
       "text-[10px] font-semibold leading-none tracking-wide",
-      active ? (emergency ? "text-red-600" : "text-primary") : "text-muted-foreground/70",
+      active
+        ? emergency ? "text-red-600" : "text-primary"
+        : emergency ? "text-red-400/70" : "text-muted-foreground/70",
     );
 
   const Indicator = ({ emergency = false }: { emergency?: boolean }) => (
