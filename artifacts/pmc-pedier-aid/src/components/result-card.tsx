@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
-type ResultCardVariant = "default" | "management" | "disposition" | "danger" | "drug" | "info";
+type ResultCardVariant = "default" | "management" | "decision" | "danger" | "drug" | "info";
 
 interface ResultCardProps {
   title: string;
@@ -13,12 +13,12 @@ interface ResultCardProps {
 }
 
 const variantStyles: Record<ResultCardVariant, { border: string; icon: string; header: string }> = {
-  default:     { border: "border-l-4 border-l-primary/40",       icon: "text-primary",        header: "text-primary" },
-  management:  { border: "border-l-4 border-l-primary",          icon: "text-primary",        header: "text-primary" },
-  disposition: { border: "border-l-4 border-l-emerald-500",      icon: "text-emerald-600",    header: "text-emerald-700" },
-  danger:      { border: "border-l-4 border-l-destructive",      icon: "text-destructive",    header: "text-destructive" },
-  drug:        { border: "border-l-4 border-l-violet-500",       icon: "text-violet-600",     header: "text-violet-700" },
-  info:        { border: "border-l-4 border-l-slate-400",        icon: "text-slate-500",      header: "text-slate-700" },
+  default:    { border: "border-l-4 border-l-primary/40",     icon: "text-primary",       header: "text-primary" },
+  management: { border: "border-l-4 border-l-primary",        icon: "text-primary",       header: "text-primary" },
+  decision:   { border: "border-emerald-200 bg-emerald-50/60", icon: "text-emerald-700",   header: "text-emerald-800" },
+  danger:     { border: "border-l-4 border-l-destructive",    icon: "text-destructive",   header: "text-destructive" },
+  drug:       { border: "border-l-4 border-l-violet-500",     icon: "text-violet-600",    header: "text-violet-700" },
+  info:       { border: "border-l-4 border-l-slate-400",      icon: "text-slate-500",     header: "text-slate-700" },
 };
 
 export function ResultCard({ title, icon: Icon, children, className, variant = "default" }: ResultCardProps) {

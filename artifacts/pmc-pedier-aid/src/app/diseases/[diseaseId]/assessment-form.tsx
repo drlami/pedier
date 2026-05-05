@@ -27,11 +27,21 @@ import {
   Hospital,
   FileText,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface AssessmentFormProps {
   diseaseId: string;
 }
+
+const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string }> = {
+  mild:     { card: 'bg-green-50  border-2 border-green-200  text-green-900',  icon: 'text-green-600',  dot: 'bg-green-500' },
+  moderate: { card: 'bg-amber-50  border-2 border-amber-200  text-amber-900',  icon: 'text-amber-600',  dot: 'bg-amber-500' },
+  severe:   { card: 'bg-orange-50 border-2 border-orange-200 text-orange-900', icon: 'text-orange-600', dot: 'bg-orange-500' },
+  critical: { card: 'bg-red-50    border-2 border-red-200    text-red-900',    icon: 'text-red-600',    dot: 'bg-red-500' },
+  unknown:  { card: 'bg-muted     border-2 border-border     text-muted-foreground', icon: 'text-muted-foreground', dot: 'bg-muted-foreground' },
+};
 
 export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const protocol = useProtocolById(diseaseId);
@@ -40,6 +50,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
 
   const [showResults, setShowResults] = useState(false);
   const [openInfoId, setOpenInfoId] = useState<string | null>(null);
+  const [showRefs, setShowRefs] = useState(false);
 
   if (!protocol) {
     return <div>Protocol not found.</div>;
@@ -60,13 +71,15 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     [formData, calculateResults],
   );
 
-  // Count how many questions have been answered
   const answeredCount = protocol.questions.filter(
     (q) => formData[q.id] !== undefined && formData[q.id] !== '',
   ).length;
   const totalCount = protocol.questions.length;
   const allAnswered = answeredCount === totalCount;
   const completionPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
+
+  const severityLevel = severity.level || 'unknown';
+  const bannerStyle = SEVERITY_BANNER[severityLevel] ?? SEVERITY_BANNER.unknown;
 
   // ─── Question renderers ────────────────────────────────────────────────────
 
@@ -149,7 +162,6 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             {question.options?.map((option, idx) => {
               const val = String(option.value);
               const selected = field.value === val;
-              // Subtle colour progression for scored scales (first = green, last = red)
               const optCount = question.options?.length ?? 1;
               const colorClass =
                 selected && optCount >= 3
@@ -232,6 +244,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* ── Left column: questions ── */}
       <div className="space-y-3">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
           <div className="flex items-center justify-between gap-3">
@@ -277,13 +290,18 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         </Button>
       </div>
 
+      {/* ── Right column: results ── */}
       <div className={showResults ? 'fixed inset-0 bg-background z-50 lg:static lg:block' : 'hidden lg:block'}>
         <ScrollArea className="h-full">
-          <div className="space-y-6 p-4 lg:p-0">
+          <div className="space-y-4 p-4 lg:p-0">
+
+            {/* Mobile close header */}
             <div className="flex justify-between items-center lg:hidden sticky top-0 bg-background py-2 z-10 no-print">
               <h2 className="text-xl font-bold font-headline">Results</h2>
               <Button variant="ghost" onClick={() => setShowResults(false)}>Close</Button>
             </div>
+
+            {/* Adrenaline alert (specific diseases) */}
             {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
               <Alert variant="destructive" className="bg-destructive/10">
                 <Info className="h-4 w-4" />
@@ -297,39 +315,36 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </Alert>
             )}
 
-            <ResultCard title="Severity Classification" icon={Stethoscope} variant="default" className={cn(severity.level !== 'unknown' && 'ring-1 ring-primary/10')}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                <SeverityBadge level={severity.level || 'unknown'} />
+            {/* 1. SEVERITY — hero banner */}
+            <div className={cn('rounded-xl p-4', bannerStyle.card)}>
+              <div className="flex items-center gap-2 mb-2">
+                <Stethoscope className={cn('h-4 w-4 shrink-0', bannerStyle.icon)} />
+                <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
+                  Severity Classification
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <SeverityBadge level={severityLevel} />
                 {severity.details.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs opacity-70">
                     Based on: {severity.details.join(', ')}
                   </p>
                 )}
               </div>
-            </ResultCard>
+            </div>
 
-            {management.map((m) => (
-              <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
-                <ul className="list-disc list-inside space-y-1">
-                  {m.recommendations.map((rec, i) => <li key={i}>{rec}</li>)}
-                </ul>
-              </ResultCard>
-            ))}
-
-            <ResultCard title="Disposition" icon={Hospital} variant="disposition">
-              <ul className="list-disc list-inside space-y-1">
-                {disposition.map((d, i) => <li key={i}>{d}</li>)}
-              </ul>
-            </ResultCard>
-
+            {/* 2. RED FLAGS — immediately after severity */}
             <Alert className="border-red-200 bg-red-50 text-red-900">
               <TriangleAlert className="h-4 w-4 text-red-600" />
               <AlertTitle className="font-bold">Red Flags</AlertTitle>
               <AlertDescription className="mt-2">
                 {redFlags.length > 0 ? (
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                  <ul className="space-y-1 text-sm">
                     {redFlags.map((flag, i) => (
-                      <li key={i} className="font-medium">{flag}</li>
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                        <span className="font-medium">{flag}</span>
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -338,23 +353,46 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </AlertDescription>
             </Alert>
 
-            <ResultCard title="Red Flags" icon={TriangleAlert} variant="danger" className="hidden">
-              <ul className="list-disc list-inside space-y-1 text-destructive">
-                {redFlags.map((flag, i) => (
-                  <li key={i} className="font-medium">{flag}</li>
+            {/* 3. MANAGEMENT — numbered steps */}
+            {management.map((m) => (
+              <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
+                <ol className="space-y-2">
+                  {m.recommendations.map((rec, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                        {i + 1}
+                      </span>
+                      <span className="flex-1 leading-snug">{rec}</span>
+                    </li>
+                  ))}
+                </ol>
+              </ResultCard>
+            ))}
+
+            {/* 4. FINAL DECISION (was Disposition) */}
+            <ResultCard title="Final Decision" icon={Hospital} variant="decision">
+              <ul className="space-y-2">
+                {disposition.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="leading-snug">{d}</span>
+                  </li>
                 ))}
               </ul>
             </ResultCard>
 
+            {/* 5. DRUG DOSES — compact scannable table */}
             {drugDoses.length > 0 && (
               <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
-                <div className="space-y-2">
+                <div className="divide-y divide-border rounded-md overflow-hidden border">
                   {drugDoses.map((drug, i) => (
-                    <div key={i} className="p-2 bg-secondary/50 rounded-md">
-                      <p className="font-semibold">{drug.drugName}</p>
-                      <p>{drug.dose}</p>
+                    <div key={i} className="px-3 py-2 bg-background">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="font-semibold text-sm">{drug.drugName}</span>
+                        <span className="text-sm text-right shrink-0 text-muted-foreground">{drug.dose}</span>
+                      </div>
                       {drug.notes && (
-                        <p className="text-xs text-muted-foreground mt-1">{drug.notes}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{drug.notes}</p>
                       )}
                     </div>
                   ))}
@@ -362,25 +400,40 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </ResultCard>
             )}
 
+            {/* 6. REFERENCES — collapsed by default */}
             {references.length > 0 && (
-              <ResultCard title="References" icon={BookOpen} variant="info">
-                <ul className="list-disc list-inside space-y-1">
-                  {references.map((ref, i) => (
-                    <li key={i}>
-                      <a
-                        href={ref.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {ref.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </ResultCard>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowRefs((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
+                  {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
+                </button>
+                {showRefs && (
+                  <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
+                    <ul className="list-disc list-inside space-y-1">
+                      {references.map((ref, i) => (
+                        <li key={i}>
+                          <a
+                            href={ref.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {ref.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </ResultCard>
+                )}
+              </div>
             )}
 
+            {/* Print summary link */}
             <div className="no-print">
               <Button asChild variant="outline" className="w-full">
                 <Link href={summaryUrl}>
@@ -388,6 +441,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 </Link>
               </Button>
             </div>
+
           </div>
         </ScrollArea>
       </div>

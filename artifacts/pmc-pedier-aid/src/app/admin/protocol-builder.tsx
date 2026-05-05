@@ -698,8 +698,8 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
             />
           </div>
           <div className="space-y-3">
-            <h3 className="font-semibold text-sm">Disposition Statements</h3>
-            {form.disposition.length === 0 && <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">No disposition statements yet.</div>}
+            <h3 className="font-semibold text-sm">Final Decision Statements</h3>
+            {form.disposition.length === 0 && <div className="border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">No final decision statements yet.</div>}
             {form.disposition.map((d, i) => (
               <div key={d.id || i} className="flex items-center justify-between p-3 bg-card border border-border rounded-lg gap-3">
                 <div className="min-w-0">
@@ -721,9 +721,9 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
             ))}
             {dispEdit ? (
               <div className="border-2 border-primary/20 rounded-lg p-4 space-y-3 bg-primary/[0.02]">
-                <h4 className="font-semibold text-sm">{dispEdit.idx === null ? "Add Disposition" : "Edit Disposition"}</h4>
+                <h4 className="font-semibold text-sm">{dispEdit.idx === null ? "Add Final Decision" : "Edit Final Decision"}</h4>
                 <div className="space-y-1">
-                  <Label className="text-xs">Disposition Text</Label>
+                  <Label className="text-xs">Final Decision Text</Label>
                   <Input value={dispEdit.data.text} onChange={(e) => setDispEdit(p => p && ({ ...p, data: { ...p.data, text: e.target.value } }))} placeholder="e.g. Admit to PICU for monitoring" />
                 </div>
                 <div className="space-y-1">
@@ -748,7 +748,7 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
               </div>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setDispEdit({ idx: null, data: { text: "", type: "general", severities: null } })}>
-                <Plus className="mr-2 h-4 w-4" />Add Disposition Statement
+                <Plus className="mr-2 h-4 w-4" />Add Final Decision Statement
               </Button>
             )}
           </div>
