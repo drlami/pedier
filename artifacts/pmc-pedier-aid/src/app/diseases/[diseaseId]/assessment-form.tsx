@@ -66,6 +66,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   ).length;
   const totalCount = protocol.questions.length;
   const allAnswered = answeredCount === totalCount;
+  const completionPercent = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
 
   // ─── Question renderers ────────────────────────────────────────────────────
 
@@ -231,28 +232,42 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-      {/* ── Left: Assessment Questions ──────────────────────────── */}
       <div className="space-y-3">
-
-        {/* Header row */}
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 font-headline text-xl font-bold">
-            <Stethoscope className="h-5 w-5 text-primary" />
-            Assessment Questions
-          </h2>
-          {/* Progress indicator */}
-          <span className={cn(
-            'text-xs font-medium px-2 py-1 rounded-full border',
-            allAnswered
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-muted text-muted-foreground border-border',
-          )}>
-            {answeredCount}/{totalCount} answered
-          </span>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <h2 className="flex items-center gap-2 font-headline text-xl font-bold">
+                <Stethoscope className="h-5 w-5 text-primary" />
+                Assessment Questions
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Answer the minimum required questions to update the protocol results in real time.
+              </p>
+            </div>
+            <span className={cn(
+              'text-xs font-medium px-2 py-1 rounded-full border shrink-0',
+              allAnswered
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-muted text-muted-foreground border-border',
+            )}>
+              {answeredCount}/{totalCount} answered
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  allAnswered ? 'bg-green-500' : 'bg-primary',
+                )}
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              {completionPercent}% complete
+            </p>
+          </div>
         </div>
-
-        {/* One card per question */}
         <div className="space-y-2">
           {protocol.questions.map(renderQuestion)}
         </div>
@@ -262,18 +277,13 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         </Button>
       </div>
 
-      {/* ── Right: Results ──────────────────────────────────────── */}
       <div className={showResults ? 'fixed inset-0 bg-background z-50 lg:static lg:block' : 'hidden lg:block'}>
         <ScrollArea className="h-full">
           <div className="space-y-6 p-4 lg:p-0">
-
-            {/* Mobile close button */}
             <div className="flex justify-between items-center lg:hidden sticky top-0 bg-background py-2 z-10 no-print">
               <h2 className="text-xl font-bold font-headline">Results</h2>
               <Button variant="ghost" onClick={() => setShowResults(false)}>Close</Button>
             </div>
-
-            {/* Adrenaline dilution alert */}
             {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
               <Alert variant="destructive" className="bg-destructive/10">
                 <Info className="h-4 w-4" />
@@ -287,7 +297,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </Alert>
             )}
 
-            <ResultCard title="Severity Classification" icon={Stethoscope} variant="default">
+            <ResultCard title="Severity Classification" icon={Stethoscope} variant="default" className={cn(severity.level !== 'unknown' && 'ring-1 ring-primary/10')}>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <SeverityBadge level={severity.level || 'unknown'} />
                 {severity.details.length > 0 && (
@@ -312,7 +322,23 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               </ul>
             </ResultCard>
 
-            <ResultCard title="Red Flags" icon={TriangleAlert} variant="danger">
+            <Alert className="border-red-200 bg-red-50 text-red-900">
+              <TriangleAlert className="h-4 w-4 text-red-600" />
+              <AlertTitle className="font-bold">Red Flags</AlertTitle>
+              <AlertDescription className="mt-2">
+                {redFlags.length > 0 ? (
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {redFlags.map((flag, i) => (
+                      <li key={i} className="font-medium">{flag}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm">No immediate red flags identified.</p>
+                )}
+              </AlertDescription>
+            </Alert>
+
+            <ResultCard title="Red Flags" icon={TriangleAlert} variant="danger" className="hidden">
               <ul className="list-disc list-inside space-y-1 text-destructive">
                 {redFlags.map((flag, i) => (
                   <li key={i} className="font-medium">{flag}</li>
