@@ -76,14 +76,15 @@ export function MobileBottomNav() {
           {isProtocols && <Indicator />}
         </button>
 
-        <button type="button" onClick={() => setSearchOpen(true)} className={tabCls(false)}>
-          <Search className={iconCls(false)} />
-          <span className={labelCls(false)}>Search</span>
+        <button type="button" onClick={() => setSearchOpen(true)} className={tabCls(searchOpen)}>
+          <Search className={iconCls(searchOpen)} />
+          <span className={labelCls(searchOpen)}>Search</span>
+          {searchOpen && <Indicator />}
         </button>
 
         <Link href="/drug-doses" className={tabCls(isDrugDoses)}>
           <Pill className={iconCls(isDrugDoses)} />
-          <span className={labelCls(isDrugDoses)}>Drug Doses</span>
+          <span className={labelCls(isDrugDoses)}>Drugs</span>
           {isDrugDoses && <Indicator />}
         </Link>
 
