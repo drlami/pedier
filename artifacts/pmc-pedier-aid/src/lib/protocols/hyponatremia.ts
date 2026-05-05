@@ -1,12 +1,61 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/* =======================
+   HELPER CALCULATIONS
+======================= */
+
+// Maintenance (Holiday-Segar)
+const maintenanceRate = (w: number): number => {
+  if (!w || w <= 0) return 0;
+  if (w <= 10) return Math.round((100 * w) / 24);
+  if (w <= 20) return Math.round((1000 + 50 * (w - 10)) / 24);
+  return Math.round((1500 + 20 * (w - 20)) / 24);
+};
+
+// 3% bolus
+const hypertonicBolus = (w: number): number => {
+  if (!w) return 0;
+  return Math.min(2 * w, 100);
+};
+
+// Sodium deficit
+const sodiumDeficit = (w: number, Na: number, targetNa: number): number => {
+  if (!w || !Na || Na >= targetNa) return 0;
+  return 0.6 * w * (targetNa - Na);
+};
+
+// 3% infusion rate
+const infusionRate = (deficit: number, hours: number): number => {
+  if (!deficit || !hours) return 0;
+  return ((deficit / 513) * 1000) / hours;
+};
+
+// Expected sodium rise (Adrogué–Madias)
+const expectedNaRise = (
+  currentNa: number,
+  infusateNa: number,
+  weight: number,
+  volumeML: number
+): number => {
+  if (!currentNa || !weight || !volumeML) return 0;
+
+  const TBW = 0.6 * weight;
+  const volumeL = volumeML / 1000;
+
+  return ((infusateNa - currentNa) / (TBW + 1)) * volumeL;
+};
+
+/* =======================
+   PROTOCOL
+======================= */
+
 export const hyponatremiaProtocol: DiseaseProtocol = {
   id: 'hyponatremia',
   name: 'Hyponatremia',
   system: 'Electrolyte Disturbances',
 
   description:
-    'Pediatric hyponatremia management based on symptoms, sodium level (mEq/L), duration, and volume status. Focus on safe correction to prevent cerebral edema and osmotic demyelination.',
+    'Pediatric hyponatremia management with stepwise approach: initial NS resuscitation, followed by controlled correction if needed, with expected sodium rise calculation.',
 
   image: {
     url: "https://picsum.photos/seed/hyponatremia/600/400",
@@ -14,187 +63,151 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
   },
 
   questions: [
-    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-
-    { id: 'sodiumLevel', questionText: 'Serum Sodium (Na+)', type: 'number', unit: 'mEq/L' },
+    { id: 'weight', questionText: 'Weight', type: 'number', unit: 'kg' },
+    { id: 'sodiumLevel', questionText: 'Serum Na+', type: 'number', unit: 'mEq/L' },
 
     {
       id: 'isAcute',
-      questionText: 'Is hyponatremia acute (<48 hours)?',
-      type: 'boolean',
-      info: 'If unknown → treat as chronic.'
+      questionText: 'Acute (<48h)?',
+      type: 'boolean'
     },
 
     {
       id: 'hasSevereSymptoms',
-      questionText: 'Severe neurologic symptoms?',
+      questionText: 'Severe symptoms?',
       type: 'boolean',
-      info: 'Seizure, coma, respiratory arrest.'
+      info: 'Seizure, coma'
     },
 
     {
       id: 'volumeStatus',
-      questionText: 'Volume Status',
+      questionText: 'Volume status',
       type: 'select',
       options: [
-        { label: '💧 Hypovolemic', value: 'hypovolemic' },
-        { label: '⚖️ Euvolemic (SIADH likely)', value: 'euvolemic' },
-        { label: '🧂 Hypervolemic', value: 'hypervolemic' },
+        { label: '💧 Hypovolemic', value: 'hypo' },
+        { label: '⚖️ Euvolemic (SIADH)', value: 'eu' },
+        { label: '🧂 Hypervolemic', value: 'hyper' },
       ],
     },
   ],
 
   calculateSeverity: (data: FormData): Severity => {
-    const sodium = Number(data.sodiumLevel);
+    const Na = Number(data.sodiumLevel);
 
-    if (data.hasSevereSymptoms) {
-      return {
-        level: 'severe',
-        details: ['Severe symptomatic hyponatremia → neurologic emergency']
-      };
+    if (data.hasSevereSymptoms || Na < 120) {
+      return { level: 'severe', details: ['Emergency hyponatremia'] };
     }
 
-    if (sodium < 120) {
-      return {
-        level: 'severe',
-        details: ['Very severe hyponatremia (Na <120)']
-      };
+    if (Na < 125) {
+      return { level: 'moderate', details: ['Moderate hyponatremia'] };
     }
 
-    if (sodium < 125) {
-      return {
-        level: 'moderate',
-        details: ['Moderate hyponatremia (120–125)']
-      };
-    }
-
-    if (sodium < 135) {
-      return {
-        level: 'mild',
-        details: ['Mild hyponatremia (125–134)']
-      };
+    if (Na < 135) {
+      return { level: 'mild', details: ['Mild hyponatremia'] };
     }
 
     return { level: 'unknown', details: [] };
   },
 
   getManagement: (severity, data) => {
-    const weight = Number(data.weight) || 0;
-    const sodium = Number(data.sodiumLevel);
-    const isAcute = Boolean(data.isAcute);
+    const w = Number(data.weight);
+    const Na = Number(data.sodiumLevel);
+    const maint = maintenanceRate(w);
 
-    const management = [];
+    const mgmt = [];
 
     // 🔴 EMERGENCY
-    if (severity.level === 'severe' || data.hasSevereSymptoms) {
-      management.push({
-        title: "🚨 Emergency Management",
+    if (severity.level === 'severe') {
+      mgmt.push({
+        title: '🚨 Emergency',
         recommendations: [
-          "Goal: raise Na by 4–6 mEq/L rapidly to stop seizures",
-          `Give 3% NaCl: 2 mL/kg IV bolus (max 100 mL)`,
-          "Repeat every 10–15 min if symptoms persist (max 3 doses)",
-          "Once symptoms improve → STOP boluses",
-          "Then switch to slow correction",
+          `3% NaCl bolus: 2 mL/kg = ${hypertonicBolus(w)} mL`,
+          'Repeat if needed (max 3)',
+          'Goal: +4–6 mEq/L'
         ]
       });
     }
 
-    // 🔵 GENERAL PRINCIPLES
-    management.push({
-      title: "⚠️ Correction Safety",
+    // 🔵 STAGE 1
+    mgmt.push({
+      title: '🔵 Initial Treatment',
       recommendations: [
-        "Chronic/unknown → max 8–10 mEq/L per 24h",
-        "Acute → can correct faster (1–2 mEq/L/hr initially)",
-        "Avoid overcorrection → risk of Osmotic Demyelination Syndrome",
+        'Hypovolemic → 0.9% NS',
+        `Rate ≈ maintenance: ${maint} mL/hr`,
+        'Monitor Na every 2–4h',
       ]
     });
 
-    // 🔵 VOLUME BASED MANAGEMENT
-    switch (data.volumeStatus) {
-      case 'hypovolemic':
-        management.push({
-          title: "Hypovolemic Hyponatremia",
-          recommendations: [
-            "Give 0.9% Normal Saline",
-            "Restores volume → suppresses ADH → auto-corrects Na",
-          ]
-        });
-        break;
+    // 🔴 STAGE 2
+    const targetNa = 125;
+    const deficit = sodiumDeficit(w, Na, targetNa);
+    const rate = infusionRate(deficit, 24);
 
-      case 'euvolemic':
-        management.push({
-          title: "Euvolemic (SIADH)",
-          recommendations: [
-            "Fluid restriction",
-            "Treat underlying cause (CNS, infection, meds)",
-          ]
-        });
-        break;
+    const expected1L = expectedNaRise(Na, 513, w, 1000);
 
-      case 'hypervolemic':
-        management.push({
-          title: "Hypervolemic",
-          recommendations: [
-            "Fluid restriction + diuretics",
-            "Treat underlying cause (heart failure, renal, liver)",
-          ]
-        });
-        break;
-    }
-
-    // 🔵 MONITORING
-    management.push({
-      title: "Monitoring",
+    mgmt.push({
+      title: '🔁 If NOT improving → Controlled correction',
       recommendations: [
-        "Check Na every 2–4 hours",
-        "Strict input/output",
-        "Stop correction if Na rising too fast",
-        "Target: +4–6 mEq initial, then slow correction",
+        `Target Na: ${targetNa}`,
+        `Na deficit: ${deficit.toFixed(1)} mEq`,
+        `3% rate: ${rate.toFixed(1)} mL/hr`,
+        `Expected Na rise with 1L 3%: ~${expected1L.toFixed(2)} mEq/L`,
+        'Correct over 24–48h',
       ]
     });
 
-    return management;
+    mgmt.push({
+      title: '⚠️ Safety',
+      recommendations: [
+        'Max correction 8–10 mEq/L/day',
+        'If overcorrecting → D5W or DDAVP',
+      ]
+    });
+
+    return mgmt;
   },
-
-  getDisposition: (severity) => {
-    if (severity.level === 'severe') {
-      return ["PICU admission mandatory"];
-    }
-
-    return ["Admit for monitoring"];
-  },
-
-  getRedFlags: () => [
-    "Seizure or coma",
-    "Na <120",
-    "Rapid Na drop",
-    "Overcorrection >10 mEq/L/day"
-  ],
 
   getDrugDoses: (severity, data) => {
-    const weight = Number(data.weight) || 0;
+    const w = Number(data.weight);
+    const Na = Number(data.sodiumLevel);
+
+    const bolus = hypertonicBolus(w);
+    const deficit = sodiumDeficit(w, Na, 125);
+    const rate = infusionRate(deficit, 24);
+
+    const expectedBolus = expectedNaRise(Na, 513, w, bolus);
 
     return [
       {
-        drugName: "3% Hypertonic Saline",
-        dose: weight > 0 ? `${(2 * weight).toFixed(1)} mL` : "2 mL/kg",
-        notes: "Bolus over 10–15 min for severe symptoms"
+        drugName: '3% NaCl bolus',
+        dose: `${bolus} mL`,
+        notes: `Expected rise ≈ ${expectedBolus.toFixed(2)} mEq/L`
       },
       {
-        drugName: "Target Correction",
-        dose: "4–6 mEq/L initial rise",
-        notes: "Then slow correction"
+        drugName: '3% NaCl infusion',
+        dose: `${rate.toFixed(1)} mL/hr`,
+        notes: 'Adjust per Na'
       },
       {
-        drugName: "Max Daily Correction",
-        dose: "≤ 8–10 mEq/L",
-        notes: "Prevent ODS"
+        drugName: 'NS maintenance',
+        dose: `${maintenanceRate(w)} mL/hr`,
+        notes: 'Initial phase'
       }
     ];
   },
 
+  getDisposition: (severity) => {
+    if (severity.level === 'severe') return ['PICU'];
+    return ['Admit'];
+  },
+
+  getRedFlags: () => [
+    'Seizure',
+    'Na <120',
+    'Rapid correction',
+  ],
+
   getReferences: () => [
-    { title: "AAP Pediatric Care", url: "https://publications.aap.org" },
-    { title: "European Hyponatremia Guidelines", url: "https://academic.oup.com" }
+    { title: 'European Hyponatremia Guidelines', url: 'https://academic.oup.com' }
   ],
 };
