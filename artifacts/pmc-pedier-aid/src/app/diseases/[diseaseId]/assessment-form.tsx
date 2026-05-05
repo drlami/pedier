@@ -39,6 +39,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const formData = watch();
 
   const [showResults, setShowResults] = useState(false);
+  const [openInfoId, setOpenInfoId] = useState<string | null>(null);
 
   if (!protocol) {
     return <div>Protocol not found.</div>;
@@ -186,12 +187,25 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const renderQuestion = (question: Question) => (
     <Card key={question.id} className="overflow-hidden">
       <CardHeader className="py-2.5 px-4 bg-muted/30 border-b">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2 leading-snug">
-          {question.questionText}
-          {question.info && (
-            <span title={question.info} className="shrink-0">
-              <Info className="h-3.5 w-3.5 text-muted-foreground" />
-            </span>
+        <CardTitle className="text-sm font-semibold leading-snug">
+          <div className="flex items-start gap-2">
+            <span className="flex-1">{question.questionText}</span>
+            {question.info && (
+              <button
+                type="button"
+                onClick={() => setOpenInfoId(openInfoId === question.id ? null : question.id)}
+                className="shrink-0 rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
+                aria-label="Show question information"
+                aria-expanded={openInfoId === question.id}
+              >
+                !
+              </button>
+            )}
+          </div>
+          {question.info && openInfoId === question.id && (
+            <div className="mt-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-normal text-red-800">
+              {question.info}
+            </div>
           )}
         </CardTitle>
       </CardHeader>
