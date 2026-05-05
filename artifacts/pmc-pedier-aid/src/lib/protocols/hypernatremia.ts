@@ -159,18 +159,26 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
       info: 'Enter serum sodium in mEq/L.',
     },
     {
-      id: 'ageGroup',
-      questionText: 'Age Group',
-      type: 'radio',
-      options: ['Infant < 1 year', 'Child 1–12 years', 'Adolescent'],
-    },
-    {
-      id: 'volumeStatus',
-      questionText: 'Clinical Volume Status',
-      type: 'radio',
-      options: ['Hypovolemic', 'Euvolemic', 'Hypervolemic'],
-      info: 'Hypovolemic: dehydration or shock. Euvolemic: consider diabetes insipidus. Hypervolemic: sodium overload, renal failure, or iatrogenic sodium load.',
-    },
+  id: 'ageGroup',
+  questionText: 'Age Group',
+  type: 'radio',
+  options: [
+    { label: 'Infant < 1 year', value: 'Infant < 1 year' },
+    { label: 'Child 1–12 years', value: 'Child 1–12 years' },
+    { label: 'Adolescent', value: 'Adolescent' },
+  ],
+},
+{
+  id: 'volumeStatus',
+  questionText: 'Clinical Volume Status',
+  type: 'radio',
+  options: [
+    { label: 'Hypovolemic', value: 'Hypovolemic' },
+    { label: 'Euvolemic', value: 'Euvolemic' },
+    { label: 'Hypervolemic', value: 'Hypervolemic' },
+  ],
+  info: 'Hypovolemic: dehydration or shock. Euvolemic: consider diabetes insipidus. Hypervolemic: sodium overload.',
+},
     {
       id: 'hasShock',
       questionText: 'Is the child in shock or poor perfusion?',
