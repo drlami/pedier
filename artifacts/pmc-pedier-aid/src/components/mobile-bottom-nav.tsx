@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { SearchModal } from "@/components/search-modal";
-import { useAllProtocols } from "@/contexts/protocols-context";
+import { useAllProtocols, useProtocolById } from "@/contexts/protocols-context";
 
 export function MobileBottomNav() {
   const [pathname, setLocation] = useLocation();
@@ -27,9 +27,16 @@ export function MobileBottomNav() {
     return counts;
   }, [allProtocols]);
 
+  const diseaseIdFromPath = pathname.startsWith("/diseases/")
+    ? pathname.replace(/^\/diseases\//, "").split("/")[0]
+    : "";
+  const diseaseProtocol = useProtocolById(diseaseIdFromPath);
+
   const searchParams = new URLSearchParams(search);
   const activeSystem =
-    pathname === "/" ? (searchParams.get("system") ?? systems[0] ?? "") : "";
+    pathname === "/"
+      ? (searchParams.get("system") ?? systems[0] ?? "")
+      : (diseaseProtocol?.system ?? "");
 
   const isProtocols = pathname === "/" || pathname.startsWith("/diseases/");
   const isDrugDoses = pathname === "/drug-doses";
@@ -62,7 +69,7 @@ export function MobileBottomNav() {
 
   return (
     <>
-      <nav className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border flex items-stretch h-16">
+      <nav className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)", minHeight: "4rem" }}>
         <button type="button" onClick={() => setSystemSheetOpen(true)} className={tabCls(isProtocols)}>
           <Stethoscope className={iconCls(isProtocols)} />
           <span className={labelCls(isProtocols)}>Protocols</span>
