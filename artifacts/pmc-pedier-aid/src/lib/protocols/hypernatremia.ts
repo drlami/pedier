@@ -161,7 +161,7 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     {
   id: 'ageGroup',
   questionText: 'Age Group',
-  type: 'radio',
+  type: 'select',
   options: [
     { label: 'Infant < 1 year', value: 'Infant < 1 year' },
     { label: 'Child 1–12 years', value: 'Child 1–12 years' },
@@ -171,7 +171,7 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
 {
   id: 'volumeStatus',
   questionText: 'Clinical Volume Status',
-  type: 'radio',
+  type: 'select',
   options: [
     { label: 'Hypovolemic', value: 'Hypovolemic' },
     { label: 'Euvolemic', value: 'Euvolemic' },
