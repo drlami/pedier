@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Users, ClipboardList, Bot, Plus } from "lucide-react";
+import { FileText, Users, ClipboardList, Bot, Plus, Activity } from "lucide-react";
 import { useProtocolsContext } from "@/contexts/protocols-context";
 import { allProtocols } from "@/lib/protocols";
 
@@ -98,6 +98,31 @@ export default function AdminPage() {
               <Link href="/admin/users">
                 <Users className="mr-2 h-4 w-4" />
                 Manage Users
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200">
+                <Activity className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <CardTitle className="font-headline">Activity Log</CardTitle>
+                <CardDescription>Track who has opened the app</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              View a chronological log of all user logins and app sessions — useful for monitoring usage across your clinical team.
+            </p>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/admin/activity-logs">
+                <Activity className="mr-2 h-4 w-4" />
+                View Activity
               </Link>
             </Button>
           </CardContent>

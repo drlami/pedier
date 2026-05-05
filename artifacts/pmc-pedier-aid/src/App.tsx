@@ -21,6 +21,7 @@ import AdminPage from "@/pages/admin";
 import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
 import UsersPage from "@/pages/users";
+import ActivityLogsPage from "@/pages/activity-logs";
 import LoginPage from "@/pages/login";
 import WelcomePage from "@/pages/welcome";
 import HyperbilirubinemiaCal from "@/pages/hyperbilirubinemia";
@@ -178,6 +179,9 @@ function Router() {
       </Route>
       <Route path="/admin/users">
         {() => <ProtectedRoute component={UsersPage} adminOnly />}
+      </Route>
+      <Route path="/admin/activity-logs">
+        {() => <ProtectedRoute component={ActivityLogsPage} adminOnly />}
       </Route>
       <Route component={NotFound} />
     </Switch>

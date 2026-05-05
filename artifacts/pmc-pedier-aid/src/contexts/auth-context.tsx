@@ -43,7 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!res.ok) throw new Error("Token invalid");
         return res.json();
       })
-      .then((data: AuthUser) => setUser(data))
+      .then((data: AuthUser) => {
+        setUser(data);
+        fetch(`${API_BASE}/activity-logs/open`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      })
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY);
       })

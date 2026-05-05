@@ -6,6 +6,7 @@ import usersRouter from "./users.js";
 import customProtocolsRouter from "./custom-protocols.js";
 import hiddenProtocolsRouter from "./hidden-protocols.js";
 import customDrugsRouter from "./custom-drugs.js";
+import activityLogsRouter from "./activity-logs.js";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(aiRouter);
 router.use(customProtocolsRouter);
 router.use(hiddenProtocolsRouter);
 router.use(customDrugsRouter);
+router.use(activityLogsRouter);
 
 export default router;

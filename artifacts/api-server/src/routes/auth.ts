@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getUserByUsername } from '../lib/user-store.js';
 import { signToken } from '../lib/jwt.js';
 import { requireAuth, type AuthRequest } from '../middleware/auth.js';
+import { recordActivity } from '../lib/activity-log-store.js';
 
 const router = Router();
 
@@ -23,6 +24,9 @@ router.post('/auth/login', async (req, res) => {
     return;
   }
   const token = signToken({ userId: user.id, username: user.username, role: user.role });
+  const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || undefined;
+  const ua = (req.headers['user-agent'] as string) || undefined;
+  recordActivity({ userId: user.id, username: user.username, role: user.role, event: 'login', ipAddress: ip, userAgent: ua }).catch(() => {});
   res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
 });
 
