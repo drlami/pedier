@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
-import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight } from "lucide-react";
+import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight, Baby } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { SearchModal } from "@/components/search-modal";
 import { useAllProtocols, useProtocolById } from "@/contexts/protocols-context";
@@ -41,6 +41,7 @@ export function MobileBottomNav() {
   const isProtocols = pathname === "/" || pathname.startsWith("/diseases/");
   const isDrugDoses = pathname === "/drug-doses";
   const isAIDx      = pathname === "/differential-diagnosis";
+  const isBili      = pathname === "/neonatology/hyperbilirubinemia";
   const isArrest    = pathname === "/cardiac-arrest";
 
   const handleSystemSelect = (system: string) => {
@@ -92,6 +93,12 @@ export function MobileBottomNav() {
           <Brain className={iconCls(isAIDx)} />
           <span className={labelCls(isAIDx)}>AI Dx</span>
           {isAIDx && <Indicator />}
+        </Link>
+
+        <Link href="/neonatology/hyperbilirubinemia" className={tabCls(isBili)}>
+          <Baby className={iconCls(isBili)} />
+          <span className={labelCls(isBili)}>Bili</span>
+          {isBili && <Indicator />}
         </Link>
 
         <Link href="/cardiac-arrest" className={tabCls(isArrest, true)}>
