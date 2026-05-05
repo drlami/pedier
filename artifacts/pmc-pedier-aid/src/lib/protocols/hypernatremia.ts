@@ -162,13 +162,13 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
       id: 'ageGroup',
       questionText: 'Age Group',
       type: 'select',
-      options: ['Infant < 1 year', 'Child 1–12 years', 'Adolescent'],
+      choices: ['Infant < 1 year', 'Child 1–12 years', 'Adolescent'],
     },
     {
       id: 'volumeStatus',
       questionText: 'Clinical Volume Status',
       type: 'select',
-      options: ['Hypovolemic', 'Euvolemic', 'Hypervolemic'],
+      choices: ['Hypovolemic', 'Euvolemic', 'Hypervolemic'],
       info: 'Hypovolemic: dehydration or shock. Euvolemic: consider diabetes insipidus. Hypervolemic: sodium overload, renal failure, or iatrogenic sodium load.',
     },
     {
