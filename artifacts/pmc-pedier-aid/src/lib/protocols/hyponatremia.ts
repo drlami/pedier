@@ -1,10 +1,9 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
 /* =======================
-   HELPER CALCULATIONS
+   HELPERS
 ======================= */
 
-// Maintenance (Holiday-Segar)
 const maintenanceRate = (w: number): number => {
   if (!w || w <= 0) return 0;
   if (w <= 10) return Math.round((100 * w) / 24);
@@ -12,37 +11,9 @@ const maintenanceRate = (w: number): number => {
   return Math.round((1500 + 20 * (w - 20)) / 24);
 };
 
-// 3% bolus
 const hypertonicBolus = (w: number): number => {
   if (!w) return 0;
   return Math.min(2 * w, 100);
-};
-
-// Sodium deficit
-const sodiumDeficit = (w: number, Na: number, targetNa: number): number => {
-  if (!w || !Na || Na >= targetNa) return 0;
-  return 0.6 * w * (targetNa - Na);
-};
-
-// 3% infusion rate
-const infusionRate = (deficit: number, hours: number): number => {
-  if (!deficit || !hours) return 0;
-  return ((deficit / 513) * 1000) / hours;
-};
-
-// Expected sodium rise (Adrogué–Madias)
-const expectedNaRise = (
-  currentNa: number,
-  infusateNa: number,
-  weight: number,
-  volumeML: number
-): number => {
-  if (!currentNa || !weight || !volumeML) return 0;
-
-  const TBW = 0.6 * weight;
-  const volumeL = volumeML / 1000;
-
-  return ((infusateNa - currentNa) / (TBW + 1)) * volumeL;
 };
 
 /* =======================
@@ -55,7 +26,7 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
   system: 'Electrolyte Disturbances',
 
   description:
-    'Pediatric hyponatremia management with stepwise approach: initial NS resuscitation, followed by controlled correction if needed, with expected sodium rise calculation.',
+    'Pediatric hyponatremia management using symptom-based emergency treatment, volume status, and controlled correction strategies.',
 
   image: {
     url: "https://picsum.photos/seed/hyponatremia/600/400",
@@ -69,14 +40,15 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
     {
       id: 'isAcute',
       questionText: 'Acute (<48h)?',
-      type: 'boolean'
+      type: 'boolean',
+      info: 'If unknown → treat as chronic'
     },
 
     {
       id: 'hasSevereSymptoms',
-      questionText: 'Severe symptoms?',
+      questionText: 'Severe neurologic symptoms?',
       type: 'boolean',
-      info: 'Seizure, coma'
+      info: 'Seizure, coma, respiratory arrest'
     },
 
     {
@@ -90,6 +62,10 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
       ],
     },
   ],
+
+  /* =======================
+     SEVERITY
+  ======================= */
 
   calculateSeverity: (data: FormData): Severity => {
     const Na = Number(data.sodiumLevel);
@@ -109,6 +85,10 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
     return { level: 'unknown', details: [] };
   },
 
+  /* =======================
+     MANAGEMENT
+  ======================= */
+
   getManagement: (severity, data) => {
     const w = Number(data.weight);
     const Na = Number(data.sodiumLevel);
@@ -116,98 +96,145 @@ export const hyponatremiaProtocol: DiseaseProtocol = {
 
     const mgmt = [];
 
-    // 🔴 EMERGENCY
+    /* 🔴 EMERGENCY */
     if (severity.level === 'severe') {
       mgmt.push({
-        title: '🚨 Emergency',
+        title: '🚨 Emergency Management (HTS Bolus)',
         recommendations: [
-          `3% NaCl bolus: 2 mL/kg = ${hypertonicBolus(w)} mL`,
-          'Repeat if needed (max 3)',
-          'Goal: +4–6 mEq/L'
+          `Give 3% NaCl: 2 mL/kg = ${hypertonicBolus(w)} mL over 10–15 min`,
+          "Repeat every 10–15 min if symptoms persist (max 3 boluses)",
+
+          "STOP boluses when:",
+          "• Seizure stops / mental status improves",
+          "• OR Na rises by ~4–6 mEq/L",
+
+          "After stopping → reassess and switch to controlled correction",
         ]
       });
     }
 
-    // 🔵 STAGE 1
+    /* 🔵 INITIAL MANAGEMENT */
     mgmt.push({
-      title: '🔵 Initial Treatment',
+      title: '🔵 Initial Treatment (Based on Volume)',
       recommendations: [
-        'Hypovolemic → 0.9% NS',
-        `Rate ≈ maintenance: ${maint} mL/hr`,
-        'Monitor Na every 2–4h',
+        "Hypovolemic → 0.9% Normal Saline",
+        `Suggested rate: ~${maint} mL/hr (maintenance)`,
+
+        "Euvolemic (SIADH) → Fluid restriction (50–70% maintenance)",
+        "Hypervolemic → Fluid restriction + diuretics",
+
+        "Monitor sodium every 2–4 hours",
       ]
     });
 
-    // 🔴 STAGE 2
-    const targetNa = 125;
-    const deficit = sodiumDeficit(w, Na, targetNa);
-    const rate = infusionRate(deficit, 24);
-
-    const expected1L = expectedNaRise(Na, 513, w, 1000);
-
+    /* 🔁 ESCALATION */
     mgmt.push({
-      title: '🔁 If NOT improving → Controlled correction',
+      title: '🔁 If NOT Improving with Normal Saline',
       recommendations: [
-        `Target Na: ${targetNa}`,
-        `Na deficit: ${deficit.toFixed(1)} mEq`,
-        `3% rate: ${rate.toFixed(1)} mL/hr`,
-        `Expected Na rise with 1L 3%: ~${expected1L.toFixed(2)} mEq/L`,
-        'Correct over 24–48h',
+        "Start controlled hypertonic saline infusion:",
+        "3% NaCl at 0.5–1 mL/kg/hour",
+
+        "Use lower end initially and titrate",
+
+        "Goal: slow correction ≤ 8–10 mEq/L per 24 hours",
+
+        "⚠️ Recheck Na BEFORE starting HTS (may already be rising)",
       ]
     });
 
+    /* 🔄 RATE ADJUSTMENT */
     mgmt.push({
-      title: '⚠️ Safety',
+      title: '🔄 Adjusting IV Fluid Rate',
       recommendations: [
-        'Max correction 8–10 mEq/L/day',
-        'If overcorrecting → D5W or DDAVP',
+        "Check Na every 2–4 hours",
+
+        "If Na rising appropriately → continue same rate",
+
+        "If Na rising TOO FAST (>0.5 mEq/L/hr):",
+        "• STOP or reduce HTS",
+        "• Consider D5W",
+        "• Consider Desmopressin (DDAVP)",
+
+        "If Na NOT rising:",
+        "• Increase HTS rate slightly (do not exceed 1 mL/kg/hr)",
+        "• Reassess cause (ongoing losses, SIADH)",
+
+      ]
+    });
+
+    /* ⚠️ SAFETY */
+    mgmt.push({
+      title: '⚠️ Safety Rules',
+      recommendations: [
+        "Max correction: ≤ 8–10 mEq/L in 24 hours",
+
+        "High risk of Osmotic Demyelination if overcorrected",
+
+        "After NS in hypovolemia → Na may rise rapidly (auto-correction)",
+
+        "Always reassess before escalating therapy",
       ]
     });
 
     return mgmt;
   },
 
+  /* =======================
+     DISPOSITION
+  ======================= */
+
+  getDisposition: (severity) => {
+    if (severity.level === 'severe') {
+      return ["PICU admission required"];
+    }
+
+    return ["Admit for monitoring and controlled correction"];
+  },
+
+  /* =======================
+     RED FLAGS
+  ======================= */
+
+  getRedFlags: () => [
+    "Seizure or coma",
+    "Na <120",
+    "Rapid Na drop",
+    "Correction >10 mEq/L/day",
+  ],
+
+  /* =======================
+     DRUG DOSES
+  ======================= */
+
   getDrugDoses: (severity, data) => {
-    const w = Number(data.weight);
-    const Na = Number(data.sodiumLevel);
-
-    const bolus = hypertonicBolus(w);
-    const deficit = sodiumDeficit(w, Na, 125);
-    const rate = infusionRate(deficit, 24);
-
-    const expectedBolus = expectedNaRise(Na, 513, w, bolus);
+    const w = Number(data.weight) || 0;
+    const maint = maintenanceRate(w);
 
     return [
       {
-        drugName: '3% NaCl bolus',
-        dose: `${bolus} mL`,
-        notes: `Expected rise ≈ ${expectedBolus.toFixed(2)} mEq/L`
+        drugName: "3% NaCl bolus",
+        dose: `${hypertonicBolus(w)} mL`,
+        notes: "2 mL/kg over 10–15 min (max 100 mL)"
       },
       {
-        drugName: '3% NaCl infusion',
-        dose: `${rate.toFixed(1)} mL/hr`,
-        notes: 'Adjust per Na'
+        drugName: "3% NaCl infusion",
+        dose: `${(0.5 * w).toFixed(1)} – ${(1 * w).toFixed(1)} mL/hr`,
+        notes: "Controlled correction (0.5–1 mL/kg/hr)"
       },
       {
-        drugName: 'NS maintenance',
-        dose: `${maintenanceRate(w)} mL/hr`,
-        notes: 'Initial phase'
+        drugName: "Normal Saline",
+        dose: `${maint} mL/hr`,
+        notes: "Initial treatment for hypovolemic hyponatremia"
       }
     ];
   },
 
-  getDisposition: (severity) => {
-    if (severity.level === 'severe') return ['PICU'];
-    return ['Admit'];
-  },
-
-  getRedFlags: () => [
-    'Seizure',
-    'Na <120',
-    'Rapid correction',
-  ],
+  /* =======================
+     REFERENCES
+  ======================= */
 
   getReferences: () => [
-    { title: 'European Hyponatremia Guidelines', url: 'https://academic.oup.com' }
+    { title: "RCH Pediatric Hyponatremia Guideline", url: "https://www.rch.org.au/clinicalguide/guideline_index/hyponatraemia/" },
+    { title: "European Hyponatremia Guidelines", url: "https://academic.oup.com" },
   ],
 };
