@@ -1,0 +1,74 @@
+I already have a working pediatric hyperkalemia protocol/calculator. Do NOT rewrite the whole logic from scratch and do NOT change the medical thresholds unless clearly needed. I want you mainly to improve the DESIGN and RESULT DISPLAY logic.
+
+Main goal:
+Make the protocol scenario-focused. After the user answers the questions, the results should show ONLY the management cards that match the exact patient scenario. Do not show multiple unrelated cards or general management sections.
+
+Design requirement:
+The result area should feel like a clinical decision calculator:
+1. Show one clear highlighted “Final Scenario Classification” card at the top.
+2. Then show only the matching management plan for that scenario.
+3. Hide irrelevant cards completely.
+4. Avoid showing both “Disposition” and “Final Decision” cards if they repeat each other. Keep one clear “Final Decision” card only.
+5. Make the result easy to scan during ER use.
+
+Scenario-based display:
+Use the answered questions to classify the patient into one of these clear scenarios:
+
+Scenario 1:
+Mild hyperkalemia, asymptomatic, no ECG changes.
+Show:
+- Repeat/confirm potassium if suspected hemolysis.
+- Review renal function, medications, intake, acidosis.
+- Monitoring advice.
+- No calcium/insulin unless worsening or ECG changes.
+
+Scenario 2:
+Moderate hyperkalemia without ECG changes and clinically stable.
+Show:
+- Cardiac monitoring.
+- Confirm potassium if possible but do not delay if clinically concerning.
+- Potassium shifting therapy if needed according to protocol.
+- Potassium removal plan.
+- Repeat potassium monitoring.
+
+Scenario 3:
+Severe hyperkalemia OR any ECG changes OR arrhythmia.
+Show emergency card only:
+- Immediate cardiac monitor.
+- IV calcium first if ECG changes/arrhythmia/severe instability.
+- Then insulin/glucose and/or nebulized salbutamol according to protocol.
+- Consider sodium bicarbonate only if significant metabolic acidosis.
+- Potassium removal therapy.
+- ICU/nephrology involvement.
+- Repeat ECG and potassium urgently.
+
+Scenario 4:
+Suspected pseudohyperkalemia / hemolyzed sample and child is well with no ECG changes.
+Show:
+- Repeat venous/arterial sample urgently.
+- Avoid aggressive treatment unless repeat potassium is high or ECG changes develop.
+- Continue clinical monitoring.
+
+Scenario 5:
+Hyperkalemia with renal failure, oliguria/anuria, or failure to respond to medical therapy.
+Show:
+- Nephrology urgent consult.
+- Consider dialysis according to protocol.
+- Continue temporizing measures while arranging definitive potassium removal.
+
+Important UI behavior:
+- Do not display all possible treatments at once.
+- Do not display generic “calcium card”, “insulin card”, “salbutamol card”, etc unless they are actually indicated for the selected scenario.
+- If a treatment is not indicated, hide it completely or mention briefly under “Not indicated now” only if clinically useful.
+- The management cards should be directly tied to the scenario classification.
+
+Suggested layout:
+- Left side: assessment input questions.
+- Right side after clicking Calculate:
+  1. Final Scenario Classification card
+  2. Immediate actions card
+  3. Medication/treatment card only if indicated
+  4. Monitoring card
+  5. Final Decision card
+
+Please update the existing file/components only as needed. Keep the same route and same protocol structure so the app does not break. Make the design cleaner, more user-friendly, and pediatric ER oriented.
