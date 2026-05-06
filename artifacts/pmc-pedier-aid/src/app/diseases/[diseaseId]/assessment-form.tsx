@@ -215,7 +215,6 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const { control, watch } = useForm<FormData>();
   const formData = watch();
 
-  const [showResults, setShowResults] = useState(false);
   const [openInfoId, setOpenInfoId] = useState<string | null>(null);
   const [showRefs, setShowRefs] = useState(false);
 
@@ -452,39 +451,10 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
           {protocol.questions.map(renderQuestion)}
         </div>
 
-        <Button onClick={() => setShowResults(true)} className="w-full lg:hidden no-print mt-2">
-          View Results
-        </Button>
       </div>
 
-      {/* ── Mobile overlay: results (only visible on small screens when triggered) ── */}
-      {showResults && (
-        <div className="fixed inset-0 bg-background z-50 overflow-y-auto lg:hidden">
-          <div className="space-y-4 p-4">
-            <div className="flex justify-between items-center sticky top-0 bg-background py-2 z-10 no-print">
-              <h2 className="text-xl font-bold font-headline">Results</h2>
-              <Button variant="ghost" onClick={() => setShowResults(false)}>Close</Button>
-            </div>
-            <ResultsContent
-              diseaseId={diseaseId}
-              bannerStyle={bannerStyle}
-              severityLevel={severityLevel}
-              severity={severity}
-              redFlags={redFlags}
-              management={management}
-              disposition={disposition}
-              drugDoses={drugDoses}
-              references={references}
-              showRefs={showRefs}
-              setShowRefs={setShowRefs}
-              summaryUrl={summaryUrl}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── Desktop right column: always visible at lg+ (completely independent of showResults) ── */}
-      <div className="hidden lg:block">
+      {/* ── Right column: results — always visible, stacks below on mobile, side-by-side on desktop ── */}
+      <div>
         <div className="space-y-4">
           <ResultsContent
             diseaseId={diseaseId}
