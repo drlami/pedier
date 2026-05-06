@@ -191,14 +191,6 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
         ]
       });
 
-      cards.push({
-        title: "Disposition",
-        recommendations: [
-          "Discharge only if clinically well after adequate observation, no evolving symptoms, normal respiratory status, reliable caregivers, and senior/toxicology agreement.",
-          "Admit if exposure was significant, intentional, unknown, or symptoms evolve."
-        ]
-      });
-
       return cards;
     }
 
@@ -243,9 +235,8 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       }
 
       cards.push({
-        title: "Severe Disposition & Monitoring",
+        title: "Severe Monitoring",
         recommendations: [
-          "PICU admission required.",
           "Continuous cardiorespiratory monitoring and pulse oximetry.",
           "Repeat assessment of secretions, air entry, respiratory effort, mental status, and muscle strength.",
           "Consider blood gas if respiratory distress, weakness, hypoventilation, shock, or altered mental status.",
@@ -281,15 +272,6 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
         ]
       });
 
-      cards.push({
-        title: "Disposition",
-        recommendations: [
-          "Admit for monitored care.",
-          "Consider PICU if weakness is progressive, bulbar signs appear, gas exchange worsens, or airway support may be needed.",
-          "Toxicology/poison center consultation recommended."
-        ]
-      });
-
       return cards;
     }
 
@@ -316,15 +298,6 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
         ]
       });
 
-      cards.push({
-        title: "Disposition",
-        recommendations: [
-          "Admit for monitored care.",
-          "Consider PICU if repeated atropine boluses/infusion required, worsening secretions, bronchospasm, weakness, abnormal blood gas, or unstable vitals.",
-          "Toxicology/poison center consultation recommended."
-        ]
-      });
-
       return cards;
     }
 
@@ -347,15 +320,6 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
           "Give pralidoxime early if organophosphate or unknown exposure is suspected.",
           "Atropine treats secretions/bronchospasm/bradycardia but does not reverse muscle weakness.",
           "Pralidoxime is used to improve nicotinic weakness/fasciculations, especially in organophosphate poisoning."
-        ]
-      });
-
-      cards.push({
-        title: "Disposition",
-        recommendations: [
-          "Admit for monitored care.",
-          "Consider PICU if increasing weakness, respiratory distress, abnormal blood gas, repeated atropine need, unstable vitals, or concern for airway compromise.",
-          "Toxicology/poison center consultation recommended."
         ]
       });
 
