@@ -166,15 +166,6 @@ export const scorpionStingProtocol: DiseaseProtocol = {
             "Prazosin is NOT indicated if there are no systemic autonomic symptoms.",
             "Do not give unnecessary antivenom in completely local reactions."
           ]
-        },
-        {
-          title: "Grade I — Disposition",
-          recommendations: [
-            "Observe in ER for 4–6 hours.",
-            "Discharge only if pain is controlled and no systemic symptoms develop.",
-            "Give return precautions: vomiting, sweating, salivation, agitation, breathing difficulty, tachycardia, weakness, seizures, worsening pain, or poor general condition.",
-            "Be more cautious in children younger than 5 years."
-          ]
         }
       ];
     }
@@ -233,14 +224,6 @@ export const scorpionStingProtocol: DiseaseProtocol = {
             "Give cautious fluids only if there is clear dehydration or poor perfusion.",
             "Monitor for development of pulmonary edema.",
             "Frequent reassessment is essential."
-          ]
-        },
-        {
-          title: "Grade II — Disposition",
-          recommendations: [
-            "Admit for close monitoring.",
-            "PICU is preferred if age <5 years, persistent vomiting, progressive symptoms, abnormal ECG, unstable vital signs, or difficult monitoring area.",
-            "Escalate immediately if respiratory distress, pulmonary edema, hypotension, arrhythmia, altered mental status, or seizures develop."
           ]
         }
       ];
@@ -306,15 +289,6 @@ export const scorpionStingProtocol: DiseaseProtocol = {
             "Blood gas, glucose, electrolytes, renal function, CBC.",
             "Echocardiography if available to assess LV dysfunction.",
             "Repeat ECG/troponin/chest imaging based on clinical course."
-          ]
-        },
-        {
-          title: "Grade III — Disposition",
-          recommendations: [
-            "Immediate PICU admission.",
-            "Do not discharge from ER.",
-            "Continue ACS, Prazosin, respiratory support, cardiac monitoring, and hemodynamic support.",
-            "Escalate to Grade IV management if shock, coma, seizures, or respiratory failure develops."
           ]
         }
       ];
@@ -398,15 +372,6 @@ export const scorpionStingProtocol: DiseaseProtocol = {
             "Blood gas, glucose, electrolytes, renal function, CBC.",
             "Echocardiography if available.",
             "Repeat tests according to clinical deterioration or response."
-          ]
-        },
-        {
-          title: "Grade IV — Disposition",
-          recommendations: [
-            "Immediate PICU admission.",
-            "Do not discharge from ER.",
-            "Continue resuscitation, ACS, Prazosin, airway support, seizure control, and hemodynamic support.",
-            "Frequent reassessment is mandatory."
           ]
         }
       ];
