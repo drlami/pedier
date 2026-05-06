@@ -192,10 +192,10 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       });
 
       cards.push({
-        title: "Final Decision",
+        title: "Disposition",
         recommendations: [
           "Discharge only if clinically well after adequate observation, no evolving symptoms, normal respiratory status, reliable caregivers, and senior/toxicology agreement.",
-          "Admit if exposure was significant, intentional, unknown, unreliable history, poor follow-up, or symptoms evolve."
+          "Admit if exposure was significant, intentional, unknown, or symptoms evolve."
         ]
       });
 
@@ -243,14 +243,13 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       }
 
       cards.push({
-        title: "Final Decision & Monitoring",
+        title: "Severe Disposition & Monitoring",
         recommendations: [
           "PICU admission required.",
           "Continuous cardiorespiratory monitoring and pulse oximetry.",
           "Repeat assessment of secretions, air entry, respiratory effort, mental status, and muscle strength.",
           "Consider blood gas if respiratory distress, weakness, hypoventilation, shock, or altered mental status.",
-          "Monitor for intermediate syndrome 24–96 hours later: neck flexor weakness, proximal weakness, cranial nerve weakness, or respiratory muscle weakness.",
-          "Toxicology/poison center consultation recommended."
+          "Monitor for intermediate syndrome 24–96 hours later: neck flexor weakness, proximal weakness, cranial nerve weakness, or respiratory muscle weakness."
         ]
       });
 
@@ -283,7 +282,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       });
 
       cards.push({
-        title: "Final Decision",
+        title: "Disposition",
         recommendations: [
           "Admit for monitored care.",
           "Consider PICU if weakness is progressive, bulbar signs appear, gas exchange worsens, or airway support may be needed.",
@@ -318,7 +317,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       });
 
       cards.push({
-        title: "Final Decision",
+        title: "Disposition",
         recommendations: [
           "Admit for monitored care.",
           "Consider PICU if repeated atropine boluses/infusion required, worsening secretions, bronchospasm, weakness, abnormal blood gas, or unstable vitals.",
@@ -352,7 +351,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       });
 
       cards.push({
-        title: "Final Decision",
+        title: "Disposition",
         recommendations: [
           "Admit for monitored care.",
           "Consider PICU if increasing weakness, respiratory distress, abnormal blood gas, repeated atropine need, unstable vitals, or concern for airway compromise.",
@@ -364,6 +363,44 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     }
 
     return cards;
+  },
+
+  getDisposition: (severity, data) => {
+    const isMuscarinic =
+      !!data.muscarinicSigns ||
+      !!data.copiousSecretions ||
+      !!data.bronchospasm ||
+      !!data.shockOrHypotension;
+
+    const isNicotinic = !!data.nicotinicSigns;
+    const isolatedNicotinic = isNicotinic && !isMuscarinic;
+
+    if (severity.level === 'severe') {
+      return [
+        "PICU admission required.",
+        "Continue airway monitoring and antidotal therapy.",
+        "Toxicology/poison center consultation recommended."
+      ];
+    }
+
+    if (severity.level === 'moderate') {
+      if (isolatedNicotinic) {
+        return [
+          "Admit for monitored care because isolated nicotinic weakness can progress to respiratory muscle paralysis.",
+          "Consider PICU if weakness progresses, bulbar signs appear, gas exchange worsens, or airway support may be needed."
+        ];
+      }
+
+      return [
+        "Admit for monitored care.",
+        "Consider PICU if repeated atropine is needed, respiratory symptoms worsen, weakness develops, blood gas is abnormal, or vitals are unstable."
+      ];
+    }
+
+    return [
+      "Observe in ED.",
+      "Discharge only if asymptomatic after adequate observation, reliable follow-up, and senior/toxicology agreement."
+    ];
   },
 
   getRedFlags: () => [
