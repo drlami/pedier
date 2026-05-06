@@ -412,6 +412,16 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* ── Left column: questions + desktop results ── */}
       <div className="space-y-3">
+        {/* Paracetamol toxic dose alert */}
+        {diseaseId === 'paracetamol-toxicity' && (
+          <Alert variant="destructive" className="bg-destructive/10">
+            <AlertTitle className="font-bold text-sm">Pediatric Toxic Dose Reference</AlertTitle>
+            <AlertDescription className="text-xs mt-1 space-y-1">
+              <div><strong>Acute (single) ingestion:</strong> &gt; 150 mg/kg — Potentially toxic</div>
+              <div><strong>Chronic / repeated (supratherapeutic):</strong> &gt; 200 mg/kg over 24 h, OR &gt; 150 mg/kg/day for 2 days, OR &gt; 100 mg/kg/day for ≥ 3 days</div>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
