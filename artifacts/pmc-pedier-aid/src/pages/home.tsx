@@ -46,6 +46,27 @@ function SystemProtocols({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [system, allProtocols]);
 
+  if (protocolsForSystem.length === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <section>
+          <div className="flex items-baseline gap-3 mb-1">
+            <h1 className="text-2xl font-bold font-headline text-foreground">{system}</h1>
+          </div>
+        </section>
+        <section>
+          <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed border-border bg-muted/20">
+            <div className="text-5xl mb-4">🚧</div>
+            <h2 className="text-lg font-bold font-headline text-foreground mb-1">Under Construction</h2>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Protocols for <strong>{system}</strong> are coming soon. Check back later.
+            </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <section>

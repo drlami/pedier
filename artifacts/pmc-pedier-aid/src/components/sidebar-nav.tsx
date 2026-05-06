@@ -30,7 +30,7 @@ const ADMIN_LINKS = [
   { href: "/admin",           label: "Admin Panel",         icon: UserCog  },
 ] as const;
 
-const EXTRA_SYSTEMS = ['Metabolic Diseases'] as const;
+const EXTRA_SYSTEMS = ['Metabolic Diseases', 'Neonatology'] as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
