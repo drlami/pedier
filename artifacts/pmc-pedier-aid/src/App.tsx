@@ -17,6 +17,7 @@ import CardiacArrestPage from "@/pages/cardiac-arrest";
 import DiffDiagPage from "@/pages/differential-diagnosis";
 import DrugSafetyPage from "@/pages/drug-safety";
 import DrugDosesPage from "@/pages/drug-doses";
+import CalculatorsPage from "@/pages/calculators";
 import AdminPage from "@/pages/admin";
 import ProtocolListPage from "@/pages/admin-protocols";
 import ProtocolEditorPage from "@/pages/admin-protocol-editor";
@@ -156,6 +157,9 @@ function Router() {
       <Route path="/drug-doses">
         {() => <ProtectedRoute component={DrugDosesPage} />}
       </Route>
+      <Route path="/calculators">
+        {() => <ProtectedRoute component={CalculatorsPage} />}
+      </Route>
       <Route path="/neonatology/hyperbilirubinemia">
         {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
       </Route>
@@ -192,7 +196,7 @@ function AppInner() {
   return (
     <SidebarProvider>
       <ProtocolsProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "") }>
           <Router />
         </WouterRouter>
       </ProtocolsProvider>
