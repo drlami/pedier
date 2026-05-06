@@ -1,5 +1,312 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+// ─── Scenario Classification ──────────────────────────────────────────────────
+
+export interface HyperkalemiaScenario {
+  scenarioNumber: 1 | 2 | 3 | 4 | 5 | null;
+  label: string;
+  description: string;
+  urgency: 'low' | 'moderate' | 'high' | 'emergency';
+  immediateActions: string[];
+  medications: DrugDose[] | null;
+  monitoring: string[];
+  finalDecision: string[];
+}
+
+export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity): HyperkalemiaScenario {
+  const potassium = Number(data.potassiumLevel);
+  const weight = Number(data.weight) || 0;
+
+  if (!potassium || potassium <= 0) {
+    return {
+      scenarioNumber: null,
+      label: 'Awaiting Assessment',
+      description: 'Enter serum potassium level and answer all questions to classify the patient scenario.',
+      urgency: 'low',
+      immediateActions: ['Enter serum potassium level and complete clinical assessment.'],
+      medications: null,
+      monitoring: ['Clinical monitoring while assessment is ongoing.'],
+      finalDecision: ['Disposition depends on potassium level, ECG, symptoms, and clinical context.'],
+    };
+  }
+
+  // Weight-based dose strings
+  const caMin  = weight > 0 ? `${(0.5 * weight).toFixed(1)} mL` : '—';
+  const caMax  = weight > 0 ? `${Math.min(weight, 20).toFixed(1)} mL` : '—';
+  const ins    = weight > 0 ? `${(0.1 * weight).toFixed(2)} units` : '0.1 units/kg';
+  const d10    = weight > 0 ? `${(5 * weight).toFixed(1)} mL` : '5 mL/kg';
+  const d25    = weight > 0 ? `${(2 * weight).toFixed(1)} mL` : '2 mL/kg';
+  const dextG  = weight > 0 ? `${(0.5 * weight).toFixed(1)} g` : '0.5 g/kg';
+  const biMin  = weight > 0 ? `${(1 * weight).toFixed(1)} mEq` : '—';
+  const biMax  = weight > 0 ? `${(2 * weight).toFixed(1)} mEq` : '—';
+  const fuMin  = weight > 0 ? `${(1 * weight).toFixed(1)} mg` : '—';
+  const fuMax  = weight > 0 ? `${(2 * weight).toFixed(1)} mg` : '—';
+
+  // ── Scenario 3: Emergency — ECG changes, symptoms, or K+ ≥ 6.5 ──────────────
+  if (data.hasEkgChanges || data.hasMuscleWeakness || potassium >= 6.5) {
+    const meds: DrugDose[] = [
+      {
+        drugName: 'Calcium Gluconate 10% — GIVE FIRST',
+        dose: weight > 0
+          ? `0.5–1 mL/kg IV = ${caMin}–${caMax} IV over 5–10 min. Max 20 mL/dose.`
+          : '0.5–1 mL/kg IV over 5–10 min. Max 20 mL/dose.',
+        notes:
+          'Cardiac membrane stabilization ONLY — does NOT lower K+. Repeat after 5–10 min if ECG changes persist. Give via peripheral line.',
+      },
+      {
+        drugName: 'Regular Insulin + Dextrose',
+        dose: weight > 0
+          ? `Insulin 0.1 units/kg IV = ${ins} + dextrose ${dextG}: D10W ${d10} OR D25W ${d25}.`
+          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
+        notes: 'Shifts K+ intracellularly. Give dextrose with insulin. Monitor glucose every 30 min for ≥ 2–3 h.',
+      },
+      {
+        drugName: 'Salbutamol nebulized',
+        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
+        notes: 'Adjunct intracellular K+ shift. Do NOT rely on it alone. Watch tachycardia/tremor.',
+      },
+      ...(data.hasAcidosis
+        ? [
+            {
+              drugName: 'Sodium Bicarbonate (acidosis present)',
+              dose: weight > 0
+                ? `1–2 mEq/kg IV = ${biMin}–${biMax} IV slowly.`
+                : '1–2 mEq/kg IV slowly.',
+              notes: 'Only if significant metabolic acidosis confirmed on blood gas. Not routine for all hyperkalemia.',
+            },
+          ]
+        : []),
+      {
+        drugName: 'Furosemide (if urine output adequate)',
+        dose: weight > 0
+          ? `1–2 mg/kg IV = ${fuMin}–${fuMax} IV.`
+          : '1–2 mg/kg IV.',
+        notes: 'K+ removal — use ONLY if adequate urine output and renal function. Do not give if oliguria/anuria.',
+      },
+    ];
+
+    return {
+      scenarioNumber: 3,
+      label: 'Scenario 3 — EMERGENCY: Severe Hyperkalemia',
+      description: data.hasEkgChanges
+        ? 'ECG changes present — immediate cardiac membrane stabilization required.'
+        : data.hasMuscleWeakness
+        ? 'Symptoms (weakness / paralysis) present — emergency treatment required.'
+        : 'K+ ≥ 6.5 mEq/L — life-threatening hyperkalemia.',
+      urgency: 'emergency',
+      immediateActions: [
+        'Attach continuous cardiac monitor and obtain 12-lead ECG immediately.',
+        'Establish IV/IO access — draw repeat K+, glucose, calcium, creatinine, blood gas.',
+        'Give IV Calcium Gluconate NOW if ECG changes, arrhythmia, or severe instability — do not delay.',
+        'Stop ALL potassium sources: K-containing fluids, oral/IV K+, TPN K+, and K+-raising medications.',
+        ...(data.hasRenalFailure
+          ? ['Urgent nephrology AND PICU consultation — renal failure present, dialysis pathway required.']
+          : ['Urgent senior pediatrician involvement. Involve PICU/nephrology if refractory or deteriorating.']),
+        'Prepare for dialysis if refractory hyperkalemia, persistent ECG changes, or oliguria/anuria.',
+      ],
+      medications: meds,
+      monitoring: [
+        'Continuous ECG monitoring until K+ is safe and ECG normalized.',
+        'Repeat serum K+ 30–60 min after shifting therapy, then every 1–2 h until stable.',
+        'Blood glucose every 30 min for at least 2–3 h after insulin/dextrose.',
+        'Monitor for hypoglycemia — especially young children, renal failure, or poor oral intake.',
+        'Strict urine output monitoring.',
+        'Repeat 12-lead ECG after treatment and with each K+ recheck.',
+      ],
+      finalDecision: [
+        'PICU / high-dependency monitored admission.',
+        'Urgent senior pediatrician, PICU, and nephrology involvement.',
+        ...(data.hasRenalFailure
+          ? ['Active dialysis pathway — renal failure with severe hyperkalemia.']
+          : ['Dialysis pathway if refractory, persistent ECG changes, or oliguria/anuria develops.']),
+      ],
+    };
+  }
+
+  // ── Scenario 4: Pseudohyperkalemia — hemolyzed, clinically well, no ECG changes ──
+  if (
+    data.sampleHemolyzed &&
+    !data.hasEkgChanges &&
+    !data.hasMuscleWeakness &&
+    !data.hasRenalFailure &&
+    potassium < 6.5
+  ) {
+    return {
+      scenarioNumber: 4,
+      label: 'Scenario 4 — Suspected Pseudohyperkalemia',
+      description: 'Hemolyzed or suspicious sample in a clinically stable child with no ECG changes and no renal failure.',
+      urgency: 'moderate',
+      immediateActions: [
+        'Repeat potassium urgently with a fresh, carefully collected non-hemolyzed venous or arterial sample.',
+        'Obtain 12-lead ECG while awaiting the repeat result.',
+        'Do NOT start hyperkalemia medications until repeat result is confirmed high.',
+        'Stop any potassium-raising medications or K-containing supplements while awaiting result.',
+        'If repeat K+ is elevated, ECG changes appear, or the child deteriorates — escalate to Scenario 2 or 3 immediately.',
+      ],
+      medications: null,
+      monitoring: [
+        'Cardiac monitor while awaiting repeat potassium result.',
+        'Repeat ECG if any new symptoms or clinical change.',
+        'Reassess fully once repeat potassium is available.',
+      ],
+      finalDecision: [
+        'Observe in ED until repeat potassium result is available.',
+        'If repeat K+ is normal and ECG is normal: may discharge with primary care or outpatient follow-up.',
+        'If repeat K+ remains elevated or any ECG changes develop: escalate to Scenario 2 or 3 immediately.',
+      ],
+    };
+  }
+
+  // ── Scenario 5: Renal failure / oliguria / anuria ────────────────────────────
+  if (data.hasRenalFailure && potassium >= 5.5) {
+    const meds: DrugDose[] = [
+      {
+        drugName: 'Regular Insulin + Dextrose (temporizing)',
+        dose: weight > 0
+          ? `Insulin 0.1 units/kg IV = ${ins} + D10W ${d10} OR D25W ${d25}.`
+          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
+        notes: 'Intracellular K+ shift — temporizing only. Monitor glucose every 30 min for ≥ 2–3 h.',
+      },
+      {
+        drugName: 'Salbutamol nebulized (temporizing)',
+        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
+        notes: 'Adjunct temporizing measure. Watch tachycardia.',
+      },
+      {
+        drugName: 'Dialysis / Renal Replacement Therapy',
+        dose: 'Urgent nephrology consultation for dialysis planning.',
+        notes:
+          'Definitive K+ removal in renal failure with oliguria/anuria or refractory hyperkalemia. Furosemide is unreliable and likely ineffective in this setting.',
+      },
+    ];
+
+    return {
+      scenarioNumber: 5,
+      label: 'Scenario 5 — Hyperkalemia with Renal Failure',
+      description: 'Renal failure or oliguria/anuria present — medical therapy alone is unlikely to be sufficient.',
+      urgency: 'high',
+      immediateActions: [
+        'Urgent nephrology consultation — dialysis may be required.',
+        'Attach cardiac monitor and obtain 12-lead ECG now.',
+        'Stop ALL potassium sources immediately.',
+        'Begin temporizing medical measures while arranging nephrology review.',
+        'Monitor strict urine output.',
+        'If ECG changes develop — escalate to Scenario 3 and give calcium immediately.',
+      ],
+      medications: meds,
+      monitoring: [
+        'Continuous cardiac monitoring.',
+        'Repeat K+ every 1–2 h and after each intervention.',
+        'Blood glucose every 30 min if insulin/dextrose given.',
+        'Strict urine output charting.',
+        'Repeat ECG with each K+ recheck.',
+      ],
+      finalDecision: [
+        'PICU / nephrology-led admission.',
+        'Prepare for renal replacement therapy if K+ not responding or persistently ≥ 6.0 with oliguria.',
+        'Do not discharge until K+ is safe, cause identified, and renal management plan established.',
+      ],
+    };
+  }
+
+  // ── Scenario 2: Moderate — K 6.0–6.4, stable, no ECG changes ────────────────
+  if (potassium >= 6.0) {
+    const meds: DrugDose[] = [
+      {
+        drugName: 'Regular Insulin + Dextrose (if persistent or high-risk)',
+        dose: weight > 0
+          ? `Insulin 0.1 units/kg IV = ${ins} + D10W ${d10} OR D25W ${d25}.`
+          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
+        notes: 'Consider if K+ persists ≥ 6.0 or patient is high-risk. Monitor glucose every 30 min.',
+      },
+      {
+        drugName: 'Salbutamol nebulized (adjunct)',
+        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
+        notes: 'Adjunct K+ shift alongside insulin/dextrose. Watch tachycardia.',
+      },
+      {
+        drugName: 'Furosemide (if urine output adequate)',
+        dose: weight > 0
+          ? `1–2 mg/kg IV = ${fuMin}–${fuMax} IV.`
+          : '1–2 mg/kg IV.',
+        notes: 'K+ removal via urine — only if good urine output and renal function. Not useful if oliguria.',
+      },
+    ];
+
+    return {
+      scenarioNumber: 2,
+      label: 'Scenario 2 — Moderate Hyperkalemia, Clinically Stable',
+      description: 'K+ 6.0–6.4 mEq/L without ECG changes or symptoms. Requires urgent monitoring and active management.',
+      urgency: 'high',
+      immediateActions: [
+        'Attach continuous cardiac monitor and obtain 12-lead ECG immediately.',
+        'Confirm potassium with repeat sample (particularly if sample quality is uncertain).',
+        'Stop all potassium sources: K-containing fluids, supplements, and K+-raising medications.',
+        'Check glucose, creatinine, blood gas, calcium, and urine output.',
+        ...(data.hasAcidosis ? ['Address metabolic acidosis — acidosis worsens hyperkalemia.'] : []),
+        'If K+ is rising, renal failure develops, or ECG becomes abnormal — escalate to Scenario 3 immediately.',
+      ],
+      medications: meds,
+      monitoring: [
+        'Continuous cardiac monitoring.',
+        'Repeat K+ every 1–2 h until stable and clearly improving.',
+        'Blood glucose every 30 min if insulin/dextrose given.',
+        'Urine output monitoring.',
+        'Repeat ECG if any change in clinical status.',
+      ],
+      finalDecision: [
+        'Admit to monitored setting or observe in ED with continuous cardiac monitoring.',
+        'Do not discharge until K+ is improving, ECG is normal, cause is identified and addressed.',
+        'Discuss with senior clinician if K+ not improving or any deterioration.',
+      ],
+    };
+  }
+
+  // ── Scenario 1: Mild — K 5.5–5.9, asymptomatic, no ECG changes ─────────────
+  if (potassium >= 5.5) {
+    return {
+      scenarioNumber: 1,
+      label: 'Scenario 1 — Mild Hyperkalemia, Asymptomatic',
+      description: 'K+ 5.5–5.9 mEq/L with no ECG changes and no symptoms. Focus on confirming result and addressing cause.',
+      urgency: 'low',
+      immediateActions: [
+        data.sampleHemolyzed
+          ? 'Repeat potassium urgently — sample may be hemolyzed and result may be falsely elevated.'
+          : 'Confirm potassium with repeat sample if result is unexpected.',
+        'Stop all potassium sources: K-containing fluids, supplements, and K+-raising medications.',
+        'Assess renal function, medications, dietary potassium intake, and acid-base status.',
+        'Obtain 12-lead ECG if not already done.',
+        'No emergency calcium, insulin, or salbutamol required at this stage if ECG is normal and child is well.',
+      ],
+      medications: null,
+      monitoring: [
+        'Repeat potassium in 2–4 h or sooner if clinical concern.',
+        'Obtain or repeat ECG if any new symptoms or K+ rises.',
+        'Monitor urine output and renal function.',
+      ],
+      finalDecision: [
+        'May be managed with observation or outpatient follow-up if: child is well, ECG is normal, repeat K+ is stable or improving, and no renal failure or high-risk cause identified.',
+        'Re-evaluate immediately if K+ rises above 6.0 or any symptoms/ECG changes develop.',
+      ],
+    };
+  }
+
+  // K+ below hyperkalemic range
+  return {
+    scenarioNumber: null,
+    label: 'Potassium Not in Hyperkalemic Range',
+    description:
+      'Serum potassium is below the hyperkalemic threshold. Continue clinical assessment if symptoms or ECG findings suggest otherwise.',
+    urgency: 'low',
+    immediateActions: ['Continue clinical assessment. Re-check potassium if symptoms or ECG concern is present.'],
+    medications: null,
+    monitoring: ['Standard clinical monitoring as per clinical presentation.'],
+    finalDecision: ['Manage as per underlying clinical presentation.'],
+  };
+}
+
+// ─── Protocol Definition (unchanged medical logic) ───────────────────────────
+
 export const hyperkalemiaProtocol: DiseaseProtocol = {
   id: 'hyperkalemia',
   name: 'Hyperkalemia',
@@ -335,19 +642,19 @@ export const hyperkalemiaProtocol: DiseaseProtocol = {
 
   getReferences: () => [
     {
-      title: 'Royal Children’s Hospital Melbourne: Clinical Practice Guideline — Hyperkalaemia',
+      title: 'Royal Children\u2019s Hospital Melbourne: Clinical Practice Guideline \u2014 Hyperkalaemia',
       url: 'https://www.rch.org.au/clinicalguide/guideline_index/hyperkalaemia/',
     },
     {
-      title: 'NHSGGC: Hyperkalaemia Emergency Management — Paediatric Intensive Care Unit',
+      title: 'NHSGGC: Hyperkalaemia Emergency Management \u2014 Paediatric Intensive Care Unit',
       url: 'https://rightdecisions.scot.nhs.uk/ggc-clinical-guidelines/paediatrics/intensive-and-critical-care-paediatric/hyperkalaemia-emergency-management-paediatric-intensive-care-unit-387/',
     },
     {
-      title: 'Children’s Health Queensland: Hyperkalaemia — Emergency Management in Children',
+      title: 'Children\u2019s Health Queensland: Hyperkalaemia \u2014 Emergency Management in Children',
       url: 'https://www.childrens.health.qld.gov.au/__data/assets/pdf_file/0017/180206/af2e5e382600d8b7ef80587e718f4e2d3d5d4b1d.pdf',
     },
     {
-      title: 'Starship Children’s Health: Hyperkalaemia in Children',
+      title: 'Starship Children\u2019s Health: Hyperkalaemia in Children',
       url: 'https://www.starship.org.nz/guidelines/hyperkalemia-in-children/',
     },
   ],
