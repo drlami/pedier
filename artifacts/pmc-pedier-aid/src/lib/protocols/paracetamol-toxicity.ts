@@ -40,16 +40,9 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
 
     {
       id: 'isUnknownTime',
-      questionText: 'Is timing unknown, unreliable, or staggered?',
+      questionText: 'Is timing unknown, unreliable?',
       type: 'boolean',
       info: 'Unknown or staggered ingestion cannot be interpreted safely using the Rumack-Matthew nomogram.'
-    },
-
-    {
-      id: 'isExtendedRelease',
-      questionText: 'Was extended-release paracetamol/acetaminophen possibly ingested?',
-      type: 'boolean',
-      info: 'Extended-release ingestion may require repeat levels and toxicology consultation.'
     },
 
     {
