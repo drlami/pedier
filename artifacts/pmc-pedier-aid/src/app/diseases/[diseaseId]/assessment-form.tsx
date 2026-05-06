@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Link } from 'wouter';
 import { useProtocolById } from '@/contexts/protocols-context';
 
-import type { DiseaseProtocol, FormData, Question, Severity } from '@/lib/protocols/types';
+import type { DiseaseProtocol, FormData, Question, Severity, SeverityLevel } from '@/lib/protocols/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,174 @@ const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string 
   critical: { card: 'bg-red-50    border-2 border-red-200    text-red-900',    icon: 'text-red-600',    dot: 'bg-red-500' },
   unknown:  { card: 'bg-muted     border-2 border-border     text-muted-foreground', icon: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 };
+
+interface ResultsContentProps {
+  diseaseId: string;
+  bannerStyle: { card: string; icon: string; dot: string };
+  severityLevel: SeverityLevel;
+  severity: Severity;
+  redFlags: string[];
+  management: { title: string; recommendations: string[] }[];
+  disposition: string[];
+  drugDoses: { drugName: string; dose: string; notes?: string }[];
+  references: { url: string; title: string }[];
+  showRefs: boolean;
+  setShowRefs: React.Dispatch<React.SetStateAction<boolean>>;
+  summaryUrl: string;
+}
+
+function ResultsContent({
+  diseaseId,
+  bannerStyle,
+  severityLevel,
+  severity,
+  redFlags,
+  management,
+  disposition,
+  drugDoses,
+  references,
+  showRefs,
+  setShowRefs,
+  summaryUrl,
+}: ResultsContentProps) {
+  return (
+    <>
+      {/* Adrenaline alert (specific diseases) */}
+      {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
+        <Alert variant="destructive" className="bg-destructive/10">
+          <Info className="h-4 w-4" />
+          <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>
+          <AlertDescription className="text-xs">
+            Your hospital stock is <strong>1 mg/mL (1:1,000)</strong>.
+            For IV/IO dosing, you <strong>MUST</strong> dilute 1 mL of Adrenaline with 9 mL of
+            Normal Saline to make 10 mL of <strong>0.1 mg/mL (1:10,000)</strong> concentration
+            before administration.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* 1. SEVERITY — hero banner */}
+      <div className={cn('rounded-xl p-4', bannerStyle.card)}>
+        <div className="flex items-center gap-2 mb-2">
+          <Stethoscope className={cn('h-4 w-4 shrink-0', bannerStyle.icon)} />
+          <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
+            Severity Classification
+          </span>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <SeverityBadge level={severityLevel} />
+          {severity.details.length > 0 && (
+            <p className="text-xs opacity-70">Based on: {severity.details.join(', ')}</p>
+          )}
+        </div>
+      </div>
+
+      {/* 2. RED FLAGS */}
+      <Alert className="border-red-200 bg-red-50 text-red-900">
+        <TriangleAlert className="h-4 w-4 text-red-600" />
+        <AlertTitle className="font-bold">Red Flags</AlertTitle>
+        <AlertDescription className="mt-2">
+          {redFlags.length > 0 ? (
+            <ul className="space-y-1 text-sm">
+              {redFlags.map((flag, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                  <span className="font-medium">{flag}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm">No immediate red flags identified.</p>
+          )}
+        </AlertDescription>
+      </Alert>
+
+      {/* 3. MANAGEMENT — numbered steps */}
+      {management.map((m) => (
+        <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
+          <ol className="space-y-2">
+            {m.recommendations.map((rec, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                  {i + 1}
+                </span>
+                <span className="flex-1 leading-snug">{rec}</span>
+              </li>
+            ))}
+          </ol>
+        </ResultCard>
+      ))}
+
+      {/* 4. FINAL DECISION */}
+      <ResultCard title="Final Decision" icon={Hospital} variant="decision">
+        <ul className="space-y-2">
+          {disposition.map((d, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="leading-snug">{d}</span>
+            </li>
+          ))}
+        </ul>
+      </ResultCard>
+
+      {/* 5. DRUG DOSES */}
+      {drugDoses.length > 0 && (
+        <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
+          <div className="divide-y divide-border rounded-md overflow-hidden border">
+            {drugDoses.map((drug, i) => (
+              <div key={i} className="px-3 py-2 bg-background">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-semibold text-sm">{drug.drugName}</span>
+                  <span className="text-sm text-right shrink-0 text-muted-foreground">{drug.dose}</span>
+                </div>
+                {drug.notes && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{drug.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </ResultCard>
+      )}
+
+      {/* 6. REFERENCES — collapsed by default */}
+      {references.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowRefs((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
+            {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
+          </button>
+          {showRefs && (
+            <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
+              <ul className="list-disc list-inside space-y-1">
+                {references.map((ref, i) => (
+                  <li key={i}>
+                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {ref.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </ResultCard>
+          )}
+        </div>
+      )}
+
+      {/* Print summary link */}
+      <div className="no-print">
+        <Button asChild variant="outline" className="w-full">
+          <Link href={summaryUrl}>
+            <FileText className="mr-2 h-4 w-4" /> View Printable Summary
+          </Link>
+        </Button>
+      </div>
+    </>
+  );
+}
 
 export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const protocol = useProtocolById(diseaseId);
@@ -289,158 +457,50 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         </Button>
       </div>
 
-      {/* ── Right column: results ── */}
-      <div className={showResults ? 'fixed inset-0 bg-background z-50 overflow-y-auto lg:static lg:block lg:overflow-visible' : 'hidden lg:block'}>
-          <div className="space-y-4 p-4 lg:p-0">
-
-            {/* Mobile close header */}
-            <div className="flex justify-between items-center lg:hidden sticky top-0 bg-background py-2 z-10 no-print">
+      {/* ── Mobile overlay: results (only visible on small screens when triggered) ── */}
+      {showResults && (
+        <div className="fixed inset-0 bg-background z-50 overflow-y-auto lg:hidden">
+          <div className="space-y-4 p-4">
+            <div className="flex justify-between items-center sticky top-0 bg-background py-2 z-10 no-print">
               <h2 className="text-xl font-bold font-headline">Results</h2>
               <Button variant="ghost" onClick={() => setShowResults(false)}>Close</Button>
             </div>
-
-            {/* Adrenaline alert (specific diseases) */}
-            {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
-              <Alert variant="destructive" className="bg-destructive/10">
-                <Info className="h-4 w-4" />
-                <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>
-                <AlertDescription className="text-xs">
-                  Your hospital stock is <strong>1 mg/mL (1:1,000)</strong>.
-                  For IV/IO dosing, you <strong>MUST</strong> dilute 1 mL of Adrenaline with 9 mL of
-                  Normal Saline to make 10 mL of <strong>0.1 mg/mL (1:10,000)</strong> concentration
-                  before administration.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* 1. SEVERITY — hero banner */}
-            <div className={cn('rounded-xl p-4', bannerStyle.card)}>
-              <div className="flex items-center gap-2 mb-2">
-                <Stethoscope className={cn('h-4 w-4 shrink-0', bannerStyle.icon)} />
-                <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
-                  Severity Classification
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <SeverityBadge level={severityLevel} />
-                {severity.details.length > 0 && (
-                  <p className="text-xs opacity-70">
-                    Based on: {severity.details.join(', ')}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* 2. RED FLAGS — immediately after severity */}
-            <Alert className="border-red-200 bg-red-50 text-red-900">
-              <TriangleAlert className="h-4 w-4 text-red-600" />
-              <AlertTitle className="font-bold">Red Flags</AlertTitle>
-              <AlertDescription className="mt-2">
-                {redFlags.length > 0 ? (
-                  <ul className="space-y-1 text-sm">
-                    {redFlags.map((flag, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
-                        <span className="font-medium">{flag}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm">No immediate red flags identified.</p>
-                )}
-              </AlertDescription>
-            </Alert>
-
-            {/* 3. MANAGEMENT — numbered steps */}
-            {management.map((m) => (
-              <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
-                <ol className="space-y-2">
-                  {m.recommendations.map((rec, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                        {i + 1}
-                      </span>
-                      <span className="flex-1 leading-snug">{rec}</span>
-                    </li>
-                  ))}
-                </ol>
-              </ResultCard>
-            ))}
-
-            {/* 4. FINAL DECISION (was Disposition) */}
-            <ResultCard title="Final Decision" icon={Hospital} variant="decision">
-              <ul className="space-y-2">
-                {disposition.map((d, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    <span className="leading-snug">{d}</span>
-                  </li>
-                ))}
-              </ul>
-            </ResultCard>
-
-            {/* 5. DRUG DOSES — compact scannable table */}
-            {drugDoses.length > 0 && (
-              <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
-                <div className="divide-y divide-border rounded-md overflow-hidden border">
-                  {drugDoses.map((drug, i) => (
-                    <div key={i} className="px-3 py-2 bg-background">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold text-sm">{drug.drugName}</span>
-                        <span className="text-sm text-right shrink-0 text-muted-foreground">{drug.dose}</span>
-                      </div>
-                      {drug.notes && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{drug.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ResultCard>
-            )}
-
-            {/* 6. REFERENCES — collapsed by default */}
-            {references.length > 0 && (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowRefs((v) => !v)}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-                >
-                  <BookOpen className="h-3.5 w-3.5" />
-                  <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
-                  {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
-                </button>
-                {showRefs && (
-                  <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
-                    <ul className="list-disc list-inside space-y-1">
-                      {references.map((ref, i) => (
-                        <li key={i}>
-                          <a
-                            href={ref.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {ref.title}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </ResultCard>
-                )}
-              </div>
-            )}
-
-            {/* Print summary link */}
-            <div className="no-print">
-              <Button asChild variant="outline" className="w-full">
-                <Link href={summaryUrl}>
-                  <FileText className="mr-2 h-4 w-4" /> View Printable Summary
-                </Link>
-              </Button>
-            </div>
-
+            <ResultsContent
+              diseaseId={diseaseId}
+              bannerStyle={bannerStyle}
+              severityLevel={severityLevel}
+              severity={severity}
+              redFlags={redFlags}
+              management={management}
+              disposition={disposition}
+              drugDoses={drugDoses}
+              references={references}
+              showRefs={showRefs}
+              setShowRefs={setShowRefs}
+              summaryUrl={summaryUrl}
+            />
           </div>
+        </div>
+      )}
+
+      {/* ── Desktop right column: always visible at lg+ (completely independent of showResults) ── */}
+      <div className="hidden lg:block">
+        <div className="space-y-4">
+          <ResultsContent
+            diseaseId={diseaseId}
+            bannerStyle={bannerStyle}
+            severityLevel={severityLevel}
+            severity={severity}
+            redFlags={redFlags}
+            management={management}
+            disposition={disposition}
+            drugDoses={drugDoses}
+            references={references}
+            showRefs={showRefs}
+            setShowRefs={setShowRefs}
+            summaryUrl={summaryUrl}
+          />
+        </div>
       </div>
     </div>
   );
