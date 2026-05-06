@@ -4,7 +4,7 @@ export const ironToxicityProtocol: DiseaseProtocol = {
   id: 'iron-toxicity',
   name: 'Iron Toxicity',
   system: 'Toxins and Poisoning',
-  description: 'Management of acute iron poisoning. Doses <20 mg/kg of elemental iron are non-toxic. 20-60 mg/kg can cause GI symptoms. >60 mg/kg is potentially lethal. This protocol guides risk stratification, GI decontamination, and chelation therapy.',
+  description: '',
   image: {
     url: "https://picsum.photos/seed/iron-toxicity/600/400",
     hint: "iron pills"

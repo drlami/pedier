@@ -1,6 +1,7 @@
 import { useParams } from "wouter";
 import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
 import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Stethoscope, Loader2 } from "lucide-react";
 
 export default function DiseasePage() {
@@ -43,6 +44,18 @@ export default function DiseasePage() {
           {protocol.system}
         </span>
       </div>
+      {protocol.id === 'iron-toxicity' && (
+        <Alert variant="destructive" className="bg-destructive/10">
+          <AlertTitle className="font-bold text-sm">Pediatric Toxic Dose Reference</AlertTitle>
+          <AlertDescription className="text-xs mt-1 space-y-1">
+            <div>&lt;20 mg/kg → non-toxic</div>
+            <div>20–40 mg/kg → mild toxicity possible</div>
+            <div>≥40 mg/kg → toxic ingestion</div>
+            <div>≥60 mg/kg → severe toxicity risk</div>
+            <div>&gt;120 mg/kg → potentially lethal</div>
+          </AlertDescription>
+        </Alert>
+      )}
       <AssessmentForm diseaseId={params.diseaseId} />
     </div>
   );
