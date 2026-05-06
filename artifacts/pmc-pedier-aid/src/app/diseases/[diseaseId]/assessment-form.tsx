@@ -81,109 +81,6 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const severityLevel = severity.level || 'unknown';
   const bannerStyle = SEVERITY_BANNER[severityLevel] ?? SEVERITY_BANNER.unknown;
 
-  const desktopSummary = (
-    <div className="hidden lg:block space-y-4">
-      <div className={cn('rounded-xl p-4', bannerStyle.card)}>
-        <div className="flex items-center gap-2 mb-2">
-          <Stethoscope className={cn('h-4 w-4 shrink-0', bannerStyle.icon)} />
-          <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
-            Severity Classification
-          </span>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <SeverityBadge level={severityLevel} />
-          {severity.details.length > 0 && (
-            <p className="text-xs opacity-70">
-              Based on: {severity.details.join(', ')}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <Alert className="border-red-200 bg-red-50 text-red-900">
-        <TriangleAlert className="h-4 w-4 text-red-600" />
-        <AlertTitle className="font-bold">Red Flags</AlertTitle>
-        <AlertDescription className="mt-2">
-          {redFlags.length > 0 ? (
-            <ul className="space-y-1 text-sm">
-              {redFlags.map((flag, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
-                  <span className="font-medium">{flag}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm">No immediate red flags identified.</p>
-          )}
-        </AlertDescription>
-      </Alert>
-
-      {management.map((m) => (
-        <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
-          <ol className="space-y-2">
-            {m.recommendations.map((rec, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                  {i + 1}
-                </span>
-                <span className="flex-1 leading-snug">{rec}</span>
-              </li>
-            ))}
-          </ol>
-        </ResultCard>
-      ))}
-
-      <ResultCard title="Final Decision" icon={Hospital} variant="decision">
-        <ul className="space-y-2">
-          {disposition.map((d, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="leading-snug">{d}</span>
-            </li>
-          ))}
-        </ul>
-      </ResultCard>
-
-      {drugDoses.length > 0 && (
-        <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
-          <div className="divide-y divide-border rounded-md overflow-hidden border">
-            {drugDoses.map((drug, i) => (
-              <div key={i} className="px-3 py-2 bg-background">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-semibold text-sm">{drug.drugName}</span>
-                  <span className="text-sm text-right shrink-0 text-muted-foreground">{drug.dose}</span>
-                </div>
-                {drug.notes && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{drug.notes}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </ResultCard>
-      )}
-
-      {references.length > 0 && (
-        <ResultCard title="References" icon={BookOpen} variant="info">
-          <ul className="list-disc list-inside space-y-1">
-            {references.map((ref, i) => (
-              <li key={i}>
-                <a
-                  href={ref.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {ref.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </ResultCard>
-      )}
-    </div>
-  );
-
   // ─── Question renderers ────────────────────────────────────────────────────
 
   const renderQuestionInput = (question: Question, field: any) => {
@@ -387,8 +284,6 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         <div className="space-y-2">
           {protocol.questions.map(renderQuestion)}
         </div>
-
-        {desktopSummary}
 
         <Button onClick={() => setShowResults(true)} className="w-full lg:hidden no-print mt-2">
           View Results
