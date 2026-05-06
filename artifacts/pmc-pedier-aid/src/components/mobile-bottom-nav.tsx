@@ -78,12 +78,6 @@ export function MobileBottomNav() {
   return (
     <>
       <nav className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)", minHeight: "4rem" }}>
-        <button type="button" onClick={() => setSystemSheetOpen(true)} className={tabCls(isProtocols)}>
-          <Stethoscope className={iconCls(isProtocols)} />
-          <span className={labelCls(isProtocols)}>Protocols</span>
-          {isProtocols && <Indicator />}
-        </button>
-
         <button type="button" onClick={() => setSearchOpen(true)} className={tabCls(searchOpen)}>
           <Search className={iconCls(searchOpen)} />
           <span className={labelCls(searchOpen)}>Search</span>
@@ -95,6 +89,21 @@ export function MobileBottomNav() {
           <span className={labelCls(isDrugDoses)}>Drugs</span>
           {isDrugDoses && <Indicator />}
         </Link>
+
+        <button
+          type="button"
+          onClick={() => setSystemSheetOpen(true)}
+          className={cn(
+            "relative flex flex-1 flex-col items-center justify-center gap-1 select-none transition-transform -translate-y-2",
+            isProtocols ? "text-primary" : "text-muted-foreground",
+          )}
+        >
+          <span className={cn("flex h-12 w-12 items-center justify-center rounded-full shadow-md border border-primary/20 bg-primary text-primary-foreground", isProtocols && "ring-4 ring-primary/10")}> 
+            <Stethoscope className="h-5 w-5" />
+          </span>
+          <span className="text-[10px] font-semibold leading-none tracking-wide text-primary">Protocols</span>
+          {isProtocols && <Indicator />}
+        </button>
 
         <Link href="/differential-diagnosis" className={tabCls(isAIDx)}>
           <Brain className={iconCls(isAIDx)} />
@@ -140,10 +149,10 @@ export function MobileBottomNav() {
                     active ? "bg-primary/5" : "hover:bg-muted/40 active:bg-muted/60",
                   )}
                 >
-                  <span className={cn("flex items-center justify-center w-8 h-8 rounded-lg shrink-0", active ? "bg-primary/10" : "bg-muted")}>
+                  <span className={cn("flex items-center justify-center w-8 h-8 rounded-lg shrink-0", active ? "bg-primary/10" : "bg-muted")}> 
                     <Stethoscope className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground/60")} />
                   </span>
-                  <span className={cn("flex-1 text-sm font-semibold leading-snug", active ? "text-primary" : "text-foreground")}>
+                  <span className={cn("flex-1 text-sm font-semibold leading-snug", active ? "text-primary" : "text-foreground") }>
                     {system}
                   </span>
                   {count > 0 && (
