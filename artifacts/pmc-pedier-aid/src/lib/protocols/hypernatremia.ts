@@ -1,134 +1,153 @@
 import type { DiseaseProtocol, FormData, Severity } from './types';
 
 /*
-  Pediatric Hypernatremia Protocol
-  Sodium unit: mEq/L
+  Pediatric Hypernatremia Protocol - Scenario Oriented
 
-  Main safety rule:
-  - Chronic or unknown duration: correct Na by ≤0.5 mEq/L/hour
-  - Maximum fall: about 10–12 mEq/L/day
-  - Very high Na needs longer correction time
+  Core safety:
+  - If shock: restore circulation first with 0.9% saline boluses.
+  - Chronic or unknown duration: Na correction should not exceed 0.5 mEq/L/hr
+    or about 10–12 mEq/L/day.
+  - Moderate/severe hypernatremia requires admission and serial sodium checks.
 */
+
+const round = (n: number): number => Math.round(n);
+
+const calculateMaintenanceRate = (weight: number): number => {
+  if (!weight || weight <= 0) return 0;
+
+  let daily = 0;
+
+  if (weight <= 10) {
+    daily = 100 * weight;
+  } else if (weight <= 20) {
+    daily = 1000 + 50 * (weight - 10);
+  } else {
+    daily = 1500 + 20 * (weight - 20);
+  }
+
+  return daily / 24;
+};
+
+const getTBWFactor = (ageGroup: string): number => {
+  if (ageGroup === 'Infant < 1 year') return 0.7;
+  if (ageGroup === 'Adolescent') return 0.5;
+  return 0.6;
+};
 
 const calculateCorrectionHours = (sodium: number, isAcute: boolean): number => {
   if (!sodium || sodium <= 145) return 0;
 
-  // Acute hypernatremia <48h may be corrected faster,
-  // but only with senior/PICU supervision.
-  if (isAcute) return 24;
+  if (isAcute) {
+    return 24;
+  }
 
-  // Chronic or unknown duration:
-  // Aim to bring Na gradually toward 145 mEq/L.
-  // Use about 10 mEq/L/day as a safe target.
   const sodiumToCorrect = sodium - 145;
   const daysNeeded = Math.ceil(sodiumToCorrect / 10);
 
-  // Minimum 48 hours for clinically significant hypernatremia.
   return Math.max(daysNeeded * 24, 48);
 };
 
-const calculateHypernatremiaFluids = (
+const calculateHypernatremiaPlan = (
   weight: number,
   sodium: number,
   ageGroup: string,
   isAcute: boolean
-): {
-  deficit: number;
-  maintenanceRate: number;
-  deficitRate: number;
-  totalRate: number;
-  tbwFactor: number;
-  correctionHours: number;
-} => {
+) => {
+  const tbwFactor = getTBWFactor(ageGroup);
   const correctionHours = calculateCorrectionHours(sodium, isAcute);
+  const maintenanceRate = calculateMaintenanceRate(weight);
 
   if (!weight || weight <= 0 || !sodium || sodium <= 145 || correctionHours === 0) {
     return {
-      deficit: 0,
-      maintenanceRate: 0,
-      deficitRate: 0,
-      totalRate: 0,
-      tbwFactor: 0.6,
+      tbwFactor,
       correctionHours,
+      deficitML: 0,
+      maintenanceRate: round(maintenanceRate),
+      deficitRate: 0,
+      totalRate: round(maintenanceRate),
+      correctionDays: 0,
+      shockBolus10: weight > 0 ? round(weight * 10) : 0,
+      shockBolus20: weight > 0 ? round(weight * 20) : 0,
     };
   }
 
-  // Pediatric total body water factor
-  let tbwFactor = 0.6;
-
-  if (ageGroup === 'Infant < 1 year') {
-    tbwFactor = 0.7;
-  }
-
-  if (ageGroup === 'Adolescent') {
-    tbwFactor = 0.5;
-  }
-
-  // Holiday-Segar maintenance fluid calculation
-  let dailyMaintenance = 0;
-
-  if (weight <= 10) {
-    dailyMaintenance = 100 * weight;
-  } else if (weight <= 20) {
-    dailyMaintenance = 1000 + 50 * (weight - 10);
-  } else {
-    dailyMaintenance = 1500 + 20 * (weight - 20);
-  }
-
-  const maintenanceRate = dailyMaintenance / 24;
-
-  // Free water deficit
-  // Unit: mL
-  // Formula: TBW × weight × [(Na / 140) - 1]
   const deficitL = tbwFactor * weight * ((sodium / 140) - 1);
   const deficitML = deficitL * 1000;
-
   const deficitRate = deficitML / correctionHours;
   const totalRate = maintenanceRate + deficitRate;
 
   return {
-    deficit: Math.round(deficitML),
-    maintenanceRate: Math.round(maintenanceRate),
-    deficitRate: Math.round(deficitRate),
-    totalRate: Math.round(totalRate),
     tbwFactor,
     correctionHours,
+    deficitML: round(deficitML),
+    maintenanceRate: round(maintenanceRate),
+    deficitRate: round(deficitRate),
+    totalRate: round(totalRate),
+    correctionDays: Math.round((correctionHours / 24) * 10) / 10,
+    shockBolus10: round(weight * 10),
+    shockBolus20: round(weight * 20),
   };
 };
 
-const getRecommendedFluid = (sodium: number, volumeStatus: string): string => {
-  if (volumeStatus === 'Hypervolemic') {
-    return 'Hypervolemic hypernatremia: needs senior/PICU review. Usually free water replacement ± diuretics depending on cause. Avoid routine saline correction without specialist input.';
+const classifyScenario = (data: FormData): string => {
+  const sodium = Number(data.sodiumLevel);
+  const volumeStatus = String(data.volumeStatus || '');
+  const hasShock = Boolean(data.hasShock);
+  const hasSevereSymptoms = Boolean(data.hasSevereSymptoms);
+  const hasPolyuria = Boolean(data.hasPolyuria);
+
+  if (!sodium || sodium <= 145) return 'No significant hypernatremia';
+  if (hasShock) return 'Hypovolemic hypernatremia with shock';
+  if (volumeStatus === 'Hypervolemic') return 'Hypervolemic hypernatremia / sodium overload';
+  if (hasSevereSymptoms || sodium >= 170) return 'Severe symptomatic hypernatremia';
+  if (sodium >= 160) return 'Severe hypernatremia';
+  if (hasPolyuria && volumeStatus === 'Euvolemic') return 'Euvolemic hypernatremia - suspected diabetes insipidus';
+  if (sodium >= 150) return 'Moderate hypernatremia';
+  return 'Mild hypernatremia';
+};
+
+const getSuggestedFluid = (
+  sodium: number,
+  volumeStatus: string,
+  hasShock: boolean
+): string => {
+  if (hasShock) {
+    return 'Start with 0.9% normal saline bolus for shock. After perfusion improves, start controlled correction fluid.';
   }
 
-  if (sodium >= 170) {
-    return 'Na ≥170 mEq/L: PICU-level care recommended. Use carefully titrated hypotonic fluid such as D5W or D5 + 0.2% NaCl depending on sodium trend and volume status.';
+  if (volumeStatus === 'Hypervolemic') {
+    return 'Avoid routine saline. Consider free water replacement plus diuretic/renal support depending on cause. Discuss urgently with senior/PICU/nephrology.';
+  }
+
+  if (volumeStatus === 'Euvolemic') {
+    return 'Usually free water replacement using enteral water if safe, D5W, or D5 + 0.45% NaCl depending on sodium trend and clinical setting.';
   }
 
   if (sodium >= 160) {
-    return 'Na 160–169 mEq/L: usually D5 + 0.2% NaCl after circulation is restored. Add KCl only after urine output is confirmed and potassium is known.';
+    return 'After circulation is restored: commonly D5 + 0.45% NaCl or D5 + 0.2% NaCl, adjusted by serial sodium trend.';
   }
 
   if (sodium >= 150) {
-    return 'Na 150–159 mEq/L: usually D5 + 0.45% NaCl. Add KCl only after urine output is confirmed and potassium is known.';
+    return 'Usually D5 + 0.45% NaCl if IV correction is needed. Enteral/oral correction may be considered only if stable and tolerating.';
   }
 
   if (sodium > 145) {
-    return 'Na 146–149 mEq/L: oral or enteral fluids are preferred if the child is stable and tolerating intake.';
+    return 'Oral or enteral rehydration is preferred if stable, alert, not vomiting persistently, and reliable follow-up is available.';
   }
 
   return 'No hypernatremia correction fluid required.';
 };
 
-const getCorrectionTarget = (sodium: number, isAcute: boolean): string => {
+const getCorrectionTargetText = (sodium: number, isAcute: boolean): string => {
+  if (!sodium || sodium <= 145) return 'No correction target needed.';
+
   if (isAcute) {
-    return 'Acute hypernatremia <48 hours: may correct faster, around 1–2 mEq/L/hour, but only with senior/PICU supervision.';
+    return 'Acute hypernatremia <48 hours: may be corrected faster than chronic cases, but only with senior/PICU supervision.';
   }
 
   const hours = calculateCorrectionHours(sodium, false);
-  const days = Math.round(hours / 24);
 
-  return `Chronic or unknown duration: correct slowly, ≤0.5 mEq/L/hour and usually ≤10–12 mEq/L/day. Estimated correction duration: about ${hours} hours, approximately ${days} day(s).`;
+  return `Chronic or unknown duration: target sodium fall ≤0.5 mEq/L/hr and usually ≤10–12 mEq/L/day. Estimated correction duration: about ${hours} hours.`;
 };
 
 export const hypernatremiaProtocol: DiseaseProtocol = {
@@ -137,7 +156,7 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
   system: 'Electrolyte Disturbances',
 
   description:
-    'Pediatric-oriented management of hypernatremia using weight, serum sodium in mEq/L, age group, symptoms, volume status, and safe correction duration.',
+    'Scenario-oriented pediatric hypernatremia calculator. It classifies the child by sodium level, volume status, shock, neurologic symptoms, acute/chronic duration, polyuria/DI risk, and ongoing losses, then gives targeted management.',
 
   image: {
     url: 'https://picsum.photos/seed/hypernatremia/600/400',
@@ -156,52 +175,52 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
       questionText: 'Serum Sodium Na+',
       type: 'number',
       unit: 'mEq/L',
-      info: 'Enter serum sodium in mEq/L.',
+      info: 'Enter measured serum sodium in mEq/L.',
     },
     {
-  id: 'ageGroup',
-  questionText: 'Age Group',
-  type: 'select',
-  options: [
-    { label: 'Infant < 1 year', value: 'Infant < 1 year' },
-    { label: 'Child 1–12 years', value: 'Child 1–12 years' },
-    { label: 'Adolescent', value: 'Adolescent' },
-  ],
-},
-{
-  id: 'volumeStatus',
-  questionText: 'Clinical Volume Status',
-  type: 'select',
-  options: [
-    { label: 'Hypovolemic', value: 'Hypovolemic' },
-    { label: 'Euvolemic', value: 'Euvolemic' },
-    { label: 'Hypervolemic', value: 'Hypervolemic' },
-  ],
-  info: 'Hypovolemic: dehydration or shock. Euvolemic: consider diabetes insipidus. Hypervolemic: sodium overload.',
-},
+      id: 'ageGroup',
+      questionText: 'Age Group',
+      type: 'select',
+      options: [
+        { label: 'Infant < 1 year', value: 'Infant < 1 year' },
+        { label: 'Child 1–12 years', value: 'Child 1–12 years' },
+        { label: 'Adolescent', value: 'Adolescent' },
+      ],
+    },
+    {
+      id: 'volumeStatus',
+      questionText: 'Clinical Volume Status',
+      type: 'select',
+      options: [
+        { label: 'Hypovolemic', value: 'Hypovolemic' },
+        { label: 'Euvolemic', value: 'Euvolemic' },
+        { label: 'Hypervolemic', value: 'Hypervolemic' },
+      ],
+      info: 'Hypovolemic: dehydration/shock. Euvolemic: consider diabetes insipidus. Hypervolemic: sodium overload or iatrogenic sodium gain.',
+    },
     {
       id: 'hasShock',
       questionText: 'Is the child in shock or poor perfusion?',
       type: 'boolean',
-      info: 'Cold extremities, weak pulses, delayed capillary refill, hypotension, lethargy.',
+      info: 'Cold extremities, weak pulses, delayed capillary refill, hypotension, lethargy, or poor peripheral perfusion.',
     },
     {
       id: 'hasSevereSymptoms',
       questionText: 'Are there severe neurologic symptoms?',
       type: 'boolean',
-      info: 'Seizure, coma, marked altered mental status, severe irritability, or abnormal movements.',
+      info: 'Seizure, coma, marked altered mental status, severe irritability, abnormal movements, or signs of cerebral dysfunction.',
     },
     {
       id: 'isAcute',
       questionText: 'Did hypernatremia develop acutely <48 hours?',
       type: 'boolean',
-      info: 'If unknown, treat as chronic and correct slowly.',
+      info: 'If uncertain, treat as chronic or unknown duration and correct slowly.',
     },
     {
       id: 'hasPolyuria',
       questionText: 'Is there polyuria or persistent high urine output?',
       type: 'boolean',
-      info: 'Consider diabetes insipidus if hypernatremia persists with dilute urine and polyuria.',
+      info: 'Consider diabetes insipidus if hypernatremia persists with high urine output and dilute urine.',
     },
     {
       id: 'hasOngoingLosses',
@@ -213,22 +232,33 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
 
   calculateSeverity: (data: FormData): Severity => {
     const sodium = Number(data.sodiumLevel);
-    const hasSevereSymptoms = Boolean(data.hasSevereSymptoms);
     const hasShock = Boolean(data.hasShock);
+    const hasSevereSymptoms = Boolean(data.hasSevereSymptoms);
+    const volumeStatus = String(data.volumeStatus || '');
+
+    const scenario = classifyScenario(data);
 
     if (!sodium || sodium <= 145) {
       return {
         level: 'unknown',
-        details: ['No significant hypernatremia entered. Recheck sodium level and clinical status.'],
+        details: [
+          'No significant hypernatremia entered.',
+          'Recheck serum sodium and clinical status.',
+        ],
       };
     }
 
-    if (hasShock || hasSevereSymptoms || sodium >= 160) {
+    if (
+      hasShock ||
+      hasSevereSymptoms ||
+      sodium >= 160 ||
+      volumeStatus === 'Hypervolemic'
+    ) {
       return {
         level: 'severe',
         details: [
-          'Severe or high-risk hypernatremia.',
-          'Requires urgent senior review, controlled correction, and frequent sodium monitoring.',
+          `Scenario: ${scenario}.`,
+          'High-risk hypernatremia requiring urgent senior review and controlled correction.',
         ],
       };
     }
@@ -237,8 +267,8 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
       return {
         level: 'moderate',
         details: [
-          'Moderate hypernatremia: Na 150–159 mEq/L.',
-          'Requires careful fluid management and repeat sodium monitoring.',
+          `Scenario: ${scenario}.`,
+          'Moderate hypernatremia requiring careful correction and repeat sodium monitoring.',
         ],
       };
     }
@@ -246,8 +276,8 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     return {
       level: 'unknown',
       details: [
-        'Mild hypernatremia: Na 146–149 mEq/L.',
-        'May be managed orally if clinically stable, tolerating fluids, and reliable follow-up is available.',
+        `Scenario: ${scenario}.`,
+        'Mild hypernatremia. Oral/enteral correction may be enough if clinically stable.',
       ],
     };
   },
@@ -257,112 +287,179 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     const sodium = Number(data.sodiumLevel) || 0;
     const ageGroup = String(data.ageGroup || 'Child 1–12 years');
     const volumeStatus = String(data.volumeStatus || 'Hypovolemic');
-    const isAcute = Boolean(data.isAcute);
     const hasShock = Boolean(data.hasShock);
+    const hasSevereSymptoms = Boolean(data.hasSevereSymptoms);
+    const isAcute = Boolean(data.isAcute);
     const hasPolyuria = Boolean(data.hasPolyuria);
     const hasOngoingLosses = Boolean(data.hasOngoingLosses);
 
-    const {
-      deficit,
-      maintenanceRate,
-      deficitRate,
-      totalRate,
-      tbwFactor,
-      correctionHours,
-    } = calculateHypernatremiaFluids(weight, sodium, ageGroup, isAcute);
-
-    const correctionDays =
-      correctionHours > 0 ? Math.round((correctionHours / 24) * 10) / 10 : 0;
-
-    const recommendedFluid = getRecommendedFluid(sodium, volumeStatus);
+    const scenario = classifyScenario(data);
+    const plan = calculateHypernatremiaPlan(weight, sodium, ageGroup, isAcute);
+    const suggestedFluid = getSuggestedFluid(sodium, volumeStatus, hasShock);
+    const correctionTarget = getCorrectionTargetText(sodium, isAcute);
 
     const management = [];
 
     management.push({
-      title: '1) Immediate Safety Check',
+      title: 'Scenario Result',
       recommendations: [
-        'Assess ABCs, mental status, perfusion, hydration severity, urine output, and weight.',
-        'Check glucose immediately if altered mental status or seizure.',
-        'If seizure is present, treat seizure urgently while also managing sodium safely.',
-        'Do not rapidly correct chronic or unknown-duration hypernatremia.',
+        `Scenario: ${scenario}.`,
+        `Severity level: ${severity.level}.`,
+        sodium > 145
+          ? `Serum sodium: ${sodium} mEq/L.`
+          : 'No significant hypernatremia entered.',
+        volumeStatus ? `Volume status: ${volumeStatus}.` : 'Volume status not selected.',
+        isAcute
+          ? 'Duration: reported acute <48 hours.'
+          : 'Duration: chronic or unknown, so slow correction is safest.',
       ],
     });
 
-    if (hasShock || volumeStatus === 'Hypovolemic') {
+    if (!sodium || sodium <= 145) {
       management.push({
-        title: '2) Resuscitation Phase',
+        title: 'No Hypernatremia Management Needed',
         recommendations: [
-          'If shock or poor perfusion: give 0.9% normal saline 10–20 mL/kg IV bolus.',
-          'Repeat bolus only as needed until circulation and perfusion improve.',
-          'Restore intravascular volume first before starting controlled sodium correction.',
-          'Do not use hypotonic correction fluid before shock is corrected.',
+          'No hypernatremia correction plan is generated because sodium is not >145 mEq/L.',
+          'If the child is clinically unwell, reassess hydration, glucose, renal function, and repeat electrolytes.',
+        ],
+      });
+
+      return management;
+    }
+
+    if (hasShock) {
+      management.push({
+        title: 'Immediate Priority: Shock Resuscitation',
+        recommendations: [
+          'This is the first priority before free-water correction.',
+          `Give 0.9% normal saline ${plan.shockBolus10}–${plan.shockBolus20} mL IV bolus, equal to 10–20 mL/kg.`,
+          'Reassess perfusion after each bolus: heart rate, pulses, capillary refill, blood pressure, mental status, urine output.',
+          'Repeat bolus only if shock or poor perfusion persists.',
+          'Do not start hypotonic correction fluid before circulation is restored.',
         ],
       });
     }
 
-    management.push({
-      title: '3) Controlled Sodium Correction Plan',
-      recommendations: [
-        getCorrectionTarget(sodium, isAcute),
-        `Serum sodium entered: ${sodium} mEq/L.`,
-        `Free water deficit: approximately ${deficit} mL.`,
-        `TBW factor used: ${tbwFactor}.`,
-        `Estimated correction duration: ${correctionHours} hours, approximately ${correctionDays} day(s).`,
-        `Maintenance rate: approximately ${maintenanceRate} mL/hr.`,
-        `Deficit replacement rate: approximately ${deficitRate} mL/hr.`,
-        `Estimated total IV rate: approximately ${totalRate} mL/hr.`,
-        `Suggested correction fluid: ${recommendedFluid}`,
-        'Add potassium only after urine output is established and serum potassium is known.',
-        'This rate is only an initial estimate. Adjust according to serial sodium levels.',
-      ],
-    });
-
-    management.push({
-      title: '4) Monitoring and Recalculation',
-      recommendations: [
-        'Check serum sodium every 2–4 hours initially.',
-        'Monitor glucose, potassium, chloride, bicarbonate, urea, creatinine, calcium, and serum osmolality if available.',
-        'Strict input/output charting is essential.',
-        'Monitor weight, urine output, neurologic status, and signs of cerebral edema.',
-        'Recalculate free water deficit whenever sodium changes significantly.',
-        'If sodium is falling too fast, reduce free water delivery or increase sodium concentration of IV fluid.',
-        'If sodium is not falling, reassess ongoing losses, fluid calculation, renal function, and diabetes insipidus.',
-      ],
-    });
-
-    if (hasPolyuria) {
+    if (volumeStatus === 'Hypervolemic') {
       management.push({
-        title: '5) Polyuria / Suspected Diabetes Insipidus',
+        title: 'Hypervolemic Hypernatremia / Sodium Overload',
         recommendations: [
-          'Consider diabetes insipidus if hypernatremia persists with high urine output.',
-          'Check urine osmolality and urine specific gravity.',
-          'Check paired serum and urine osmolality if available.',
-          'Discuss with senior pediatrician or endocrinology before desmopressin unless diagnosis is clear.',
+          'Likely sodium gain rather than pure water loss.',
+          'Look for hypertonic saline, sodium bicarbonate, salt poisoning, incorrect fluid, renal impairment, or iatrogenic sodium load.',
+          'Avoid routine saline-based correction unless there is shock.',
+          'Discuss urgently with senior pediatrician/PICU/nephrology.',
+          'Treatment usually requires controlled free water replacement, possible diuretic support, and careful sodium monitoring.',
+        ],
+      });
+    }
+
+    if (hasSevereSymptoms) {
+      management.push({
+        title: 'Severe Neurologic Symptoms',
+        recommendations: [
+          'Treat seizure, coma, or severe altered mental status as emergency.',
+          'Check bedside glucose immediately.',
+          'Manage airway, breathing, circulation, and seizure control according to local pediatric emergency protocol.',
+          'Do not rapidly overcorrect chronic or unknown-duration hypernatremia because of risk of cerebral edema.',
+          'Urgent senior/PICU review is recommended.',
+        ],
+      });
+    }
+
+    if (!hasShock && volumeStatus !== 'Hypervolemic') {
+      if (sodium >= 160) {
+        management.push({
+          title: 'Severe Hypernatremia Correction Plan',
+          recommendations: [
+            'Admit urgently. PICU or high-dependency care is preferred if available.',
+            correctionTarget,
+            `Calculated free water deficit: approximately ${plan.deficitML} mL.`,
+            `TBW factor used: ${plan.tbwFactor}.`,
+            `Estimated correction duration: ${plan.correctionHours} hours, approximately ${plan.correctionDays} day(s).`,
+            `Maintenance rate: approximately ${plan.maintenanceRate} mL/hr.`,
+            `Deficit replacement rate: approximately ${plan.deficitRate} mL/hr.`,
+            `Initial estimated total rate: approximately ${plan.totalRate} mL/hr.`,
+            `Suggested fluid: ${suggestedFluid}`,
+            'This is an initial estimate only. Adjust according to sodium trend every 2–4 hours.',
+          ],
+        });
+      } else if (sodium >= 150) {
+        management.push({
+          title: 'Moderate Hypernatremia Correction Plan',
+          recommendations: [
+            'Usually admit to pediatric ward for controlled correction and serial sodium monitoring.',
+            correctionTarget,
+            `Calculated free water deficit: approximately ${plan.deficitML} mL.`,
+            `Estimated correction duration: ${plan.correctionHours} hours.`,
+            `Maintenance rate: approximately ${plan.maintenanceRate} mL/hr.`,
+            `Deficit replacement rate: approximately ${plan.deficitRate} mL/hr.`,
+            `Initial estimated total rate: approximately ${plan.totalRate} mL/hr.`,
+            `Suggested fluid: ${suggestedFluid}`,
+            'If clinically stable and able to tolerate enteral fluids, discuss whether enteral correction is appropriate.',
+          ],
+        });
+      } else {
+        management.push({
+          title: 'Mild Hypernatremia Plan',
+          recommendations: [
+            'Mild hypernatremia may be managed with oral or enteral fluids if the child is alert, stable, and tolerating intake.',
+            'Use ORS or appropriate enteral fluid depending on clinical context.',
+            'Repeat sodium if symptoms persist, dehydration is significant, or follow-up reliability is uncertain.',
+            'Admit if young infant, poor intake, persistent vomiting, unreliable follow-up, abnormal neurologic status, or worsening sodium.',
+          ],
+        });
+      }
+    }
+
+    if (hasPolyuria || volumeStatus === 'Euvolemic') {
+      management.push({
+        title: 'Polyuria / Suspected Diabetes Insipidus Scenario',
+        recommendations: [
+          'Consider diabetes insipidus if hypernatremia persists with high urine output and dilute urine.',
+          'Check urine specific gravity, urine osmolality, serum osmolality, glucose, urea, creatinine, calcium, and potassium.',
+          'Strict input/output charting is essential.',
+          'Avoid empiric desmopressin unless diagnosis is clear or after senior/endocrine/PICU discussion.',
+          'If urine output is very high, replace ongoing urinary losses carefully while monitoring sodium trend.',
         ],
       });
     }
 
     if (hasOngoingLosses) {
       management.push({
-        title: '6) Ongoing Losses',
+        title: 'Ongoing Losses Scenario',
         recommendations: [
-          'Replace ongoing losses in addition to maintenance and calculated deficit.',
-          'Examples include diarrhea, vomiting, fever, burns, excessive sweating, or high stoma output.',
-          'Fluid type for ongoing losses depends on source and electrolyte composition.',
-          'Frequent reassessment is required because ongoing losses may prevent sodium from falling as expected.',
+          'Ongoing losses must be replaced in addition to maintenance and calculated deficit.',
+          'Examples: diarrhea, vomiting, fever, burns, excessive sweating, or high stoma output.',
+          'If sodium is not falling as expected, ongoing water loss may be exceeding the calculated replacement.',
+          'Reassess stool/vomit/stoma losses, urine output, and fluid balance frequently.',
+          'Fluid type for replacement depends on the source and electrolyte composition of the loss.',
         ],
       });
     }
 
     management.push({
-      title: '7) Pediatric Causes to Consider',
+      title: 'Monitoring',
       recommendations: [
-        'Gastroenteritis with inadequate free water intake.',
-        'Incorrect formula preparation.',
-        'Breastfeeding failure in neonates or young infants.',
-        'Diabetes insipidus.',
-        'Iatrogenic sodium load, hypertonic saline, sodium bicarbonate, or excessive salt intake.',
-        'Renal disease or impaired urinary concentrating ability.',
+        'Check serum sodium every 2–4 hours initially in moderate/severe cases.',
+        'Monitor glucose, potassium, chloride, bicarbonate, urea, creatinine, calcium, and osmolality if available.',
+        'Strict input/output charting and daily or more frequent weight are important.',
+        'Monitor neurologic status and signs of cerebral edema.',
+        'If sodium falls too fast: reduce free water delivery or increase sodium concentration of fluid.',
+        'If sodium does not fall: reassess ongoing losses, calculation, renal function, and diabetes insipidus.',
+        'Add potassium only after urine output is established and serum potassium is known.',
+      ],
+    });
+
+    management.push({
+      title: 'Final Decision',
+      recommendations: [
+        hasShock || hasSevereSymptoms || sodium >= 160 || volumeStatus === 'Hypervolemic'
+          ? 'Final decision: high-risk hypernatremia. Admit urgently and consider PICU/high-dependency care.'
+          : sodium >= 150
+          ? 'Final decision: moderate hypernatremia. Admit for controlled correction and serial sodium monitoring.'
+          : hasPolyuria
+          ? 'Final decision: mild hypernatremia but polyuria/DI concern. Senior review and possible admission are recommended.'
+          : 'Final decision: mild stable hypernatremia. Oral/enteral fluids may be considered if stable, tolerating intake, and reliable follow-up is available.',
       ],
     });
 
@@ -374,18 +471,29 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     const hasShock = Boolean(data.hasShock);
     const hasSevereSymptoms = Boolean(data.hasSevereSymptoms);
     const hasPolyuria = Boolean(data.hasPolyuria);
+    const volumeStatus = String(data.volumeStatus || '');
 
-    if (hasShock || hasSevereSymptoms || sodium >= 160 || severity.level === 'severe') {
+    if (!sodium || sodium <= 145) {
+      return ['No hypernatremia disposition required based on entered sodium.'];
+    }
+
+    if (
+      hasShock ||
+      hasSevereSymptoms ||
+      sodium >= 160 ||
+      volumeStatus === 'Hypervolemic' ||
+      severity.level === 'severe'
+    ) {
       return [
         'Admit urgently.',
-        'PICU or high-dependency care is recommended for Na ≥160 mEq/L, neurologic symptoms, shock, seizures, coma, rapid sodium change, or need for frequent monitoring.',
+        'PICU or high-dependency care is recommended for shock, neurologic symptoms, Na ≥160 mEq/L, hypervolemic sodium overload, rapid sodium change, or need for frequent monitoring.',
       ];
     }
 
     if (sodium >= 150 || severity.level === 'moderate') {
       return [
         'Admit to pediatric ward for controlled correction and serial sodium monitoring.',
-        'Consider PICU if sodium is rising, monitoring cannot be done frequently, or there are neurologic concerns.',
+        'Consider PICU if sodium is rising, monitoring cannot be done frequently, or neurologic concerns appear.',
       ];
     }
 
@@ -403,13 +511,13 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
 
   getRedFlags: () => [
     'Seizure, coma, altered mental status, or severe irritability.',
-    'Signs of shock or poor perfusion.',
+    'Shock or poor perfusion.',
     'Serum sodium ≥160 mEq/L.',
     'Serum sodium ≥170 mEq/L: very high risk, usually PICU-level care.',
     'Rapidly rising sodium.',
-    'Sodium falling faster than 0.5 mEq/L/hour in chronic or unknown-duration hypernatremia.',
+    'Sodium falling faster than 0.5 mEq/L/hr in chronic or unknown-duration hypernatremia.',
     'Polyuria or very dilute urine: suspect diabetes insipidus.',
-    'Neonate or young infant with poor feeding, weight loss, or breastfeeding failure.',
+    'Neonate or young infant with poor feeding, excessive weight loss, or breastfeeding failure.',
     'Renal impairment or oliguria.',
     'Hypervolemia or suspected sodium overload.',
   ],
@@ -419,82 +527,80 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
     const sodium = Number(data.sodiumLevel) || 0;
     const ageGroup = String(data.ageGroup || 'Child 1–12 years');
     const volumeStatus = String(data.volumeStatus || 'Hypovolemic');
+    const hasShock = Boolean(data.hasShock);
     const isAcute = Boolean(data.isAcute);
 
-    const {
-      deficit,
-      maintenanceRate,
-      deficitRate,
-      totalRate,
-      tbwFactor,
-      correctionHours,
-    } = calculateHypernatremiaFluids(weight, sodium, ageGroup, isAcute);
-
-    const recommendedFluid = getRecommendedFluid(sodium, volumeStatus);
-    const correctionDays =
-      correctionHours > 0 ? Math.round((correctionHours / 24) * 10) / 10 : 0;
+    const plan = calculateHypernatremiaPlan(weight, sodium, ageGroup, isAcute);
+    const suggestedFluid = getSuggestedFluid(sodium, volumeStatus, hasShock);
 
     return [
+      {
+        drugName: 'Shock Bolus',
+        dose:
+          weight > 0
+            ? `0.9% Normal Saline ${plan.shockBolus10}–${plan.shockBolus20} mL IV`
+            : '0.9% Normal Saline 10–20 mL/kg IV',
+        notes:
+          'Use only if shock or poor perfusion. Restore circulation before controlled sodium correction.',
+      },
       {
         drugName: 'Free Water Deficit',
         dose: 'TBW × weight × [(Na / 140) - 1]',
         notes:
           weight > 0 && sodium > 145
-            ? `Sodium unit: mEq/L. TBW factor used: ${tbwFactor}. Calculated deficit: ${deficit} mL.`
+            ? `TBW factor used: ${plan.tbwFactor}. Calculated deficit: ${plan.deficitML} mL.`
             : 'Enter weight and sodium >145 mEq/L to calculate.',
       },
       {
         drugName: 'Correction Duration',
-        dose: `${correctionHours} hours`,
+        dose:
+          sodium > 145
+            ? `${plan.correctionHours} hours`
+            : 'Enter sodium >145 mEq/L',
         notes:
           sodium > 145
-            ? `Estimated duration: approximately ${correctionDays} day(s). Higher sodium requires longer correction time.`
-            : 'Enter sodium >145 mEq/L to calculate correction duration.',
+            ? `Estimated duration: approximately ${plan.correctionDays} day(s).`
+            : 'No correction duration calculated.',
       },
       {
         drugName: 'Maintenance Fluid Rate',
-        dose: `${maintenanceRate} mL/hr`,
-        notes:
+        dose:
           weight > 0
-            ? 'Calculated using Holiday-Segar method.'
-            : 'Enter weight to calculate maintenance.',
+            ? `${plan.maintenanceRate} mL/hr`
+            : 'Enter weight to calculate',
+        notes: 'Calculated using Holiday-Segar method.',
       },
       {
         drugName: 'Deficit Replacement Rate',
-        dose: `${deficitRate} mL/hr`,
-        notes:
+        dose:
           weight > 0 && sodium > 145
-            ? `Deficit correction over ${correctionHours} hours.`
-            : 'Enter weight and sodium to calculate.',
+            ? `${plan.deficitRate} mL/hr`
+            : 'Enter weight and sodium to calculate',
+        notes: 'Replace deficit over the calculated correction duration.',
       },
       {
         drugName: 'Estimated Total IV Rate',
-        dose: `${totalRate} mL/hr`,
-        notes:
+        dose:
           weight > 0 && sodium > 145
-            ? 'Initial estimate = maintenance + deficit replacement. Adjust based on serial sodium.'
-            : 'Enter weight and sodium to calculate.',
-      },
-      {
-        drugName: 'Suggested Correction Fluid',
-        dose: recommendedFluid,
+            ? `${plan.totalRate} mL/hr`
+            : 'Enter weight and sodium to calculate',
         notes:
-          'Fluid choice must be adjusted according to sodium trend, volume status, urine output, and senior review.',
+          'Initial estimate = maintenance + deficit replacement. Adjust according to serial sodium.',
       },
       {
-        drugName: 'Correction Target',
+        drugName: 'Suggested Fluid',
+        dose: suggestedFluid,
+        notes:
+          'Fluid choice must be adjusted according to volume status, sodium trend, urine output, and senior review.',
+      },
+      {
+        drugName: 'Safe Correction Target',
         dose: isAcute
-          ? 'Acute: 1–2 mEq/L/hr only with senior/PICU supervision'
+          ? 'Acute <48h: faster correction only with senior/PICU supervision'
           : 'Chronic/unknown: ≤0.5 mEq/L/hr, usually ≤10–12 mEq/L/day',
         notes: isAcute
-          ? 'Only if truly acute <48 hours. If uncertain, treat as chronic.'
+          ? 'If duration is uncertain, treat as chronic.'
           : 'Slow correction reduces risk of cerebral edema.',
-      },
-      {
-        drugName: 'Shock Bolus',
-        dose: '0.9% Normal Saline 10–20 mL/kg IV',
-        notes:
-          'Use only if shock or poor perfusion. Restore circulation before controlled sodium correction.',
       },
     ];
   },
@@ -505,12 +611,12 @@ export const hypernatremiaProtocol: DiseaseProtocol = {
       url: 'https://www.rch.org.au/clinicalguide/guideline_index/Hypernatraemia/',
     },
     {
-      title: 'MSD Manual Professional: Hypernatremia in Children',
-      url: 'https://www.msdmanuals.com/professional/pediatrics/electrolyte-and-fluid-disorders-in-children/hypernatremia-in-children',
+      title: 'MSD Manual Professional: Hypernatremia',
+      url: 'https://www.msdmanuals.com/professional/nephrology/electrolyte-disorders/hypernatremia',
     },
     {
-      title: 'Nelson Textbook of Pediatrics: Hypernatremia and Disorders of Water Balance',
-      url: 'https://www.elsevier.com/books/nelson-textbook-of-pediatrics/9780323883054',
+      title: 'MSD Manual Professional: Neonatal Hypernatremia',
+      url: 'https://www.msdmanuals.com/professional/pediatrics/metabolic-electrolyte-and-toxic-disorders-in-neonates/neonatal-hypernatremia',
     },
   ],
 };
