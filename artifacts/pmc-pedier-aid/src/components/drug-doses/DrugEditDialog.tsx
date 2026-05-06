@@ -559,7 +559,7 @@ export default function DrugEditDialog({
           </button>
         </div>
 
-        <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div className="p-5 pb-6 space-y-5 max-h-[72vh] overflow-y-auto">
           {/* Drug info */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Drug Information</h3>
