@@ -538,7 +538,7 @@ export default function DrugEditDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-12">
-      <div className="w-full max-w-2xl bg-background rounded-2xl shadow-2xl border border-border overflow-hidden">
+      <div className="flex max-h-[calc(100vh-6rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/30">
           <div>
@@ -559,7 +559,7 @@ export default function DrugEditDialog({
           </button>
         </div>
 
-        <div className="p-5 pb-6 space-y-5 max-h-[72vh] overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 pb-8 space-y-5">
           {/* Drug info */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Drug Information</h3>
@@ -638,7 +638,7 @@ export default function DrugEditDialog({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border bg-muted/20">
+        <div className="flex items-center justify-end gap-2 border-t border-border bg-muted/20 px-5 py-4 shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
