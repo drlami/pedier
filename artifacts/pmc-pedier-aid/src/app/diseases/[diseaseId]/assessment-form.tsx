@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SeverityBadge } from '@/components/severity-badge';
 import { ResultCard } from '@/components/result-card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -291,8 +290,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
       </div>
 
       {/* ── Right column: results ── */}
-      <div className={showResults ? 'fixed inset-0 bg-background z-50 lg:static lg:block' : 'hidden lg:block'}>
-        <ScrollArea className="h-full">
+      <div className={showResults ? 'fixed inset-0 bg-background z-50 overflow-y-auto lg:static lg:block lg:overflow-visible' : 'hidden lg:block'}>
           <div className="space-y-4 p-4 lg:p-0">
 
             {/* Mobile close header */}
@@ -443,7 +441,6 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             </div>
 
           </div>
-        </ScrollArea>
       </div>
     </div>
   );
