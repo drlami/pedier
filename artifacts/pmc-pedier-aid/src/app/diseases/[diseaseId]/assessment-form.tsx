@@ -6,12 +6,9 @@ import { Link } from 'wouter';
 import { useProtocolById } from '@/contexts/protocols-context';
 
 import type { DiseaseProtocol, FormData, Question, Severity, SeverityLevel } from '@/lib/protocols/types';
-import {
-  classifyHyperkalemiaScenario,
-  type HyperkalemiaScenario,
-} from '@/lib/protocols/hyperkalemia';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,9 +28,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Zap,
-  Activity,
-  ClipboardList,
 } from 'lucide-react';
 
 interface AssessmentFormProps {
@@ -47,192 +41,6 @@ const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string 
   critical: { card: 'bg-red-50    border-2 border-red-200    text-red-900',    icon: 'text-red-600',    dot: 'bg-red-500' },
   unknown:  { card: 'bg-muted     border-2 border-border     text-muted-foreground', icon: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 };
-
-// ─── Hyperkalemia-specific scenario result display ────────────────────────────
-
-const URGENCY_STYLE = {
-  emergency: {
-    banner:  'bg-red-50 border-2 border-red-300 text-red-900',
-    badge:   'bg-red-600 text-white',
-    badgeLabel: '⚠ EMERGENCY',
-    icon:    'text-red-600',
-    dot:     'bg-red-500',
-    numBg:   'bg-red-100 text-red-700',
-    cardVariant: 'danger' as const,
-  },
-  high: {
-    banner:  'bg-orange-50 border-2 border-orange-200 text-orange-900',
-    badge:   'bg-orange-500 text-white',
-    badgeLabel: 'URGENT',
-    icon:    'text-orange-600',
-    dot:     'bg-orange-500',
-    numBg:   'bg-orange-100 text-orange-700',
-    cardVariant: 'management' as const,
-  },
-  moderate: {
-    banner:  'bg-amber-50 border-2 border-amber-200 text-amber-900',
-    badge:   'bg-amber-500 text-white',
-    badgeLabel: 'MODERATE',
-    icon:    'text-amber-600',
-    dot:     'bg-amber-500',
-    numBg:   'bg-amber-100 text-amber-700',
-    cardVariant: 'management' as const,
-  },
-  low: {
-    banner:  'bg-green-50 border-2 border-green-200 text-green-900',
-    badge:   'bg-green-600 text-white',
-    badgeLabel: 'LOW RISK',
-    icon:    'text-green-600',
-    dot:     'bg-green-500',
-    numBg:   'bg-green-100 text-green-700',
-    cardVariant: 'default' as const,
-  },
-};
-
-function HyperkalemiaResultsContent({
-  data,
-  severity,
-  protocol,
-  summaryUrl,
-  showRefs,
-  setShowRefs,
-}: {
-  data: FormData;
-  severity: Severity;
-  protocol: DiseaseProtocol;
-  summaryUrl: string;
-  showRefs: boolean;
-  setShowRefs: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
-  const allDoses = protocol.getDrugDoses(severity, data);
-  const scenario: HyperkalemiaScenario = classifyHyperkalemiaScenario(data, severity, allDoses);
-  const references = protocol.getReferences();
-  const style = URGENCY_STYLE[scenario.urgency];
-
-  return (
-    <>
-      {/* ── 1. Final Scenario Classification ── */}
-      <div className={cn('rounded-xl p-4 space-y-3', style.banner)}>
-        <div className="flex items-center gap-2">
-          <ClipboardList className={cn('h-4 w-4 shrink-0', style.icon)} />
-          <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
-            Final Scenario Classification
-          </span>
-        </div>
-        <div className="flex flex-wrap items-start gap-3">
-          <span className={cn('text-xs font-bold px-3 py-1.5 rounded-full shrink-0 tracking-wide', style.badge)}>
-            {style.badgeLabel}
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm leading-snug">{scenario.label}</p>
-            <p className="text-xs opacity-70 mt-0.5 leading-snug">{scenario.description}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. Immediate Actions ── */}
-      <ResultCard title="Immediate Actions" icon={Zap} variant={style.cardVariant}>
-        <ol className="space-y-2">
-          {scenario.immediateActions.map((action, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <span
-                className={cn(
-                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold',
-                  style.numBg,
-                )}
-              >
-                {i + 1}
-              </span>
-              <span className="flex-1 leading-snug">{action}</span>
-            </li>
-          ))}
-        </ol>
-      </ResultCard>
-
-      {/* ── 3. Medications — only rendered when indicated (Scenarios 2, 3, 5) ── */}
-      {scenario.medications && scenario.medications.length > 0 && (
-        <ResultCard title="Medications / Treatment" icon={Pill} variant="drug">
-          <div className="divide-y divide-border rounded-md overflow-hidden border">
-            {scenario.medications.map((drug, i) => (
-              <div key={i} className="px-3 py-3 bg-background">
-                <span className="font-semibold text-sm block leading-snug">{drug.drugName}</span>
-                <span className="text-sm text-foreground/80 block mt-1 leading-snug">{drug.dose}</span>
-                {drug.notes && (
-                  <p className="text-xs text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40 leading-snug">
-                    {drug.notes}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </ResultCard>
-      )}
-
-      {/* ── 4. Monitoring ── */}
-      <ResultCard title="Monitoring" icon={Activity} variant="default">
-        <ul className="space-y-2">
-          {scenario.monitoring.map((item, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className={cn('mt-1.5 h-1.5 w-1.5 rounded-full shrink-0', style.dot)} />
-              <span className="leading-snug">{item}</span>
-            </li>
-          ))}
-        </ul>
-      </ResultCard>
-
-      {/* ── 5. Final Decision ── */}
-      <ResultCard title="Final Decision" icon={Hospital} variant="decision">
-        <ul className="space-y-2">
-          {scenario.finalDecision.map((d, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="leading-snug">{d}</span>
-            </li>
-          ))}
-        </ul>
-      </ResultCard>
-
-      {/* ── References ── */}
-      {references.length > 0 && (
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowRefs((v) => !v)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
-            {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
-          </button>
-          {showRefs && (
-            <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
-              <ul className="list-disc list-inside space-y-1">
-                {references.map((ref, i) => (
-                  <li key={i}>
-                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {ref.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </ResultCard>
-          )}
-        </div>
-      )}
-
-      {/* Print summary link */}
-      <div className="no-print">
-        <Button asChild variant="outline" className="w-full">
-          <Link href={summaryUrl}>
-            <FileText className="mr-2 h-4 w-4" /> View Printable Summary
-          </Link>
-        </Button>
-      </div>
-    </>
-  );
-}
-
-// ─── Generic result display (all other protocols) ─────────────────────────────
 
 interface ResultsContentProps {
   diseaseId: string;
@@ -402,8 +210,6 @@ function ResultsContent({
   );
 }
 
-// ─── Main Assessment Form ─────────────────────────────────────────────────────
-
 export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const protocol = useProtocolById(diseaseId);
   const { control, watch } = useForm<FormData>();
@@ -441,7 +247,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const severityLevel = severity.level || 'unknown';
   const bannerStyle = SEVERITY_BANNER[severityLevel] ?? SEVERITY_BANNER.unknown;
 
-  // ─── Question renderers ───────────────────────────────────────────────────
+  // ─── Question renderers ────────────────────────────────────────────────────
 
   const renderQuestionInput = (question: Question, field: any) => {
     switch (question.type) {
@@ -602,11 +408,9 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     return `/diseases/${protocol.id}/summary?${params.toString()}`;
   }, [formData, protocol.id]);
 
-  const isHyperkalemia = diseaseId === 'hyperkalemia';
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* ── Left column: questions ── */}
+      {/* ── Left column: questions + desktop results ── */}
       <div className="space-y-3">
         {/* Paracetamol toxic dose alert */}
         {diseaseId === 'paracetamol-toxicity' && (
@@ -656,36 +460,26 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         <div className="space-y-2">
           {protocol.questions.map(renderQuestion)}
         </div>
+
       </div>
 
-      {/* ── Right column: results ── */}
+      {/* ── Right column: results — always visible, stacks below on mobile, side-by-side on desktop ── */}
       <div>
         <div className="space-y-4">
-          {isHyperkalemia ? (
-            <HyperkalemiaResultsContent
-              data={formData}
-              severity={severity}
-              protocol={protocol}
-              summaryUrl={summaryUrl}
-              showRefs={showRefs}
-              setShowRefs={setShowRefs}
-            />
-          ) : (
-            <ResultsContent
-              diseaseId={diseaseId}
-              bannerStyle={bannerStyle}
-              severityLevel={severityLevel}
-              severity={severity}
-              redFlags={redFlags}
-              management={management}
-              disposition={disposition}
-              drugDoses={drugDoses}
-              references={references}
-              showRefs={showRefs}
-              setShowRefs={setShowRefs}
-              summaryUrl={summaryUrl}
-            />
-          )}
+          <ResultsContent
+            diseaseId={diseaseId}
+            bannerStyle={bannerStyle}
+            severityLevel={severityLevel}
+            severity={severity}
+            redFlags={redFlags}
+            management={management}
+            disposition={disposition}
+            drugDoses={drugDoses}
+            references={references}
+            showRefs={showRefs}
+            setShowRefs={setShowRefs}
+            summaryUrl={summaryUrl}
+          />
         </div>
       </div>
     </div>
