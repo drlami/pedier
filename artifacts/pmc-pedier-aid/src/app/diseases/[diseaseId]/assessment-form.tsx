@@ -6,6 +6,7 @@ import { Link } from 'wouter';
 import { useProtocolById } from '@/contexts/protocols-context';
 
 import type { DiseaseProtocol, FormData, Question, Severity, SeverityLevel } from '@/lib/protocols/types';
+import { classifyHyperkalemiaScenario, type HyperkalemiaScenario, type HyperkalemiaUrgency } from '@/lib/protocols/hyperkalemia';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +29,11 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Zap,
+  Activity,
+  ClipboardList,
+  Eye,
+  AlertCircle,
 } from 'lucide-react';
 
 interface AssessmentFormProps {
@@ -41,6 +47,207 @@ const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string 
   critical: { card: 'bg-red-50    border-2 border-red-200    text-red-900',    icon: 'text-red-600',    dot: 'bg-red-500' },
   unknown:  { card: 'bg-muted     border-2 border-border     text-muted-foreground', icon: 'text-muted-foreground', dot: 'bg-muted-foreground' },
 };
+
+// ─── Hyperkalemia scenario-focused results ────────────────────────────────────
+
+const URGENCY_STYLE: Record<HyperkalemiaUrgency, {
+  card: string; badge: string; badgeText: string; icon: string; number: string;
+}> = {
+  low:       { card: 'bg-green-50  border-2 border-green-300',  badge: 'bg-green-100 text-green-800 border border-green-300',  badgeText: 'Non-Urgent',  icon: 'text-green-700',  number: 'bg-green-600'  },
+  moderate:  { card: 'bg-amber-50  border-2 border-amber-300',  badge: 'bg-amber-100 text-amber-800 border border-amber-300',  badgeText: 'Urgent',      icon: 'text-amber-700',  number: 'bg-amber-600'  },
+  high:      { card: 'bg-orange-50 border-2 border-orange-300', badge: 'bg-orange-100 text-orange-800 border border-orange-300', badgeText: 'High Priority', icon: 'text-orange-700', number: 'bg-orange-600' },
+  emergency: { card: 'bg-red-50    border-2 border-red-400',    badge: 'bg-red-600 text-white border border-red-700',           badgeText: '⚡ EMERGENCY', icon: 'text-red-700',    number: 'bg-red-600'    },
+};
+
+interface HyperkalemiaResultsContentProps {
+  data: FormData;
+  severity: Severity;
+  protocol: DiseaseProtocol;
+  summaryUrl: string;
+  showRefs: boolean;
+  setShowRefs: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function HyperkalemiaResultsContent({
+  data,
+  severity,
+  protocol,
+  summaryUrl,
+  showRefs,
+  setShowRefs,
+}: HyperkalemiaResultsContentProps) {
+  const scenario = useMemo(() => classifyHyperkalemiaScenario(data, severity), [data, severity]);
+  const references = useMemo(() => protocol.getReferences(), [protocol]);
+  const style = URGENCY_STYLE[scenario.urgency];
+  const isIncomplete = scenario.label === 'Assessment Incomplete';
+
+  return (
+    <>
+      {/* ── 1. Scenario Classification Banner ───────────────────────────────── */}
+      <div className={cn('rounded-xl p-4 shadow-sm', style.card)}>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <Activity className={cn('h-4 w-4 shrink-0', style.icon)} />
+            <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
+              Final Scenario Classification
+            </span>
+          </div>
+          <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full shrink-0', style.badge)}>
+            {style.badgeText}
+          </span>
+        </div>
+
+        {!isIncomplete && (
+          <div className={cn(
+            'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 mb-2',
+            scenario.urgency === 'emergency' ? 'bg-red-100' :
+            scenario.urgency === 'high' ? 'bg-orange-100' :
+            scenario.urgency === 'moderate' ? 'bg-amber-100' : 'bg-green-100',
+          )}>
+            <span className={cn('text-xs font-bold uppercase tracking-wide', style.icon)}>
+              Scenario {scenario.scenarioNumber}
+            </span>
+          </div>
+        )}
+
+        <h3 className={cn('text-base font-bold leading-snug mb-1', style.icon)}>
+          {scenario.label}
+        </h3>
+        <p className="text-sm opacity-75 leading-snug">{scenario.subtitle}</p>
+
+        {isIncomplete && (
+          <p className="mt-2 text-xs opacity-60 italic">
+            Answer the questions on the left to generate a scenario-based management plan.
+          </p>
+        )}
+      </div>
+
+      {/* ── 2. Immediate Actions ─────────────────────────────────────────────── */}
+      {!isIncomplete && scenario.immediateActions.length > 0 && (
+        <ResultCard
+          title={scenario.urgency === 'emergency' ? 'Immediate Emergency Actions' : 'Immediate Actions'}
+          icon={scenario.urgency === 'emergency' ? Zap : ClipboardList}
+          variant={scenario.urgency === 'emergency' ? 'danger' : 'management'}
+        >
+          <ol className="space-y-2.5">
+            {scenario.immediateActions.map((action, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className={cn(
+                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white',
+                  style.number,
+                )}>
+                  {i + 1}
+                </span>
+                <span className="flex-1 leading-snug text-sm">{action}</span>
+              </li>
+            ))}
+          </ol>
+        </ResultCard>
+      )}
+
+      {/* ── 3. Medications — only if indicated ──────────────────────────────── */}
+      {!isIncomplete && scenario.medications !== null && scenario.medications.length > 0 && (
+        <ResultCard
+          title="Medications / Treatment"
+          icon={Pill}
+          variant="drug"
+        >
+          <div className="divide-y divide-border rounded-lg overflow-hidden border">
+            {scenario.medications.map((drug, i) => (
+              <div key={i} className="px-3 py-3 bg-background">
+                <p className="font-semibold text-sm text-foreground mb-0.5">{drug.drugName}</p>
+                <p className="text-sm text-primary font-medium leading-snug">{drug.dose}</p>
+                {drug.notes && (
+                  <p className="text-xs text-muted-foreground mt-1 leading-snug">{drug.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </ResultCard>
+      )}
+
+      {/* Not indicated note for Scenarios 1 & 4 */}
+      {!isIncomplete && scenario.medications === null && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+          <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-green-800">No Emergency Medications Indicated</p>
+            <p className="text-xs text-green-700 mt-0.5">
+              Calcium, insulin, and salbutamol are NOT indicated for this scenario. Do not give unless the clinical picture changes (worsening K+, new ECG changes, or new symptoms).
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. Monitoring ───────────────────────────────────────────────────── */}
+      {!isIncomplete && scenario.monitoring.length > 0 && (
+        <ResultCard title="Monitoring" icon={Eye} variant="info">
+          <ul className="space-y-2">
+            {scenario.monitoring.map((m, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0" />
+                <span className="flex-1 leading-snug text-sm">{m}</span>
+              </li>
+            ))}
+          </ul>
+        </ResultCard>
+      )}
+
+      {/* ── 5. Final Decision ───────────────────────────────────────────────── */}
+      {!isIncomplete && scenario.finalDecision.length > 0 && (
+        <ResultCard title="Final Decision" icon={Hospital} variant="decision">
+          <ul className="space-y-2">
+            {scenario.finalDecision.map((d, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="leading-snug text-sm">{d}</span>
+              </li>
+            ))}
+          </ul>
+        </ResultCard>
+      )}
+
+      {/* ── References ──────────────────────────────────────────────────────── */}
+      {references.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowRefs((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
+            {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
+          </button>
+          {showRefs && (
+            <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
+              <ul className="list-disc list-inside space-y-1">
+                {references.map((ref, i) => (
+                  <li key={i}>
+                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      {ref.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </ResultCard>
+          )}
+        </div>
+      )}
+
+      {/* Print summary link */}
+      <div className="no-print">
+        <Button asChild variant="outline" className="w-full">
+          <Link href={summaryUrl}>
+            <FileText className="mr-2 h-4 w-4" /> View Printable Summary
+          </Link>
+        </Button>
+      </div>
+    </>
+  );
+}
+
+// ─── Generic results (all other protocols) ────────────────────────────────────
 
 interface ResultsContentProps {
   diseaseId: string;
@@ -209,6 +416,8 @@ function ResultsContent({
     </>
   );
 }
+
+// ─── Main assessment form ─────────────────────────────────────────────────────
 
 export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const protocol = useProtocolById(diseaseId);
@@ -408,9 +617,11 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     return `/diseases/${protocol.id}/summary?${params.toString()}`;
   }, [formData, protocol.id]);
 
+  const isHyperkalemia = diseaseId === 'hyperkalemia';
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* ── Left column: questions + desktop results ── */}
+      {/* ── Left column: questions ── */}
       <div className="space-y-3">
         {/* Paracetamol toxic dose alert */}
         {diseaseId === 'paracetamol-toxicity' && (
@@ -422,6 +633,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             </AlertDescription>
           </Alert>
         )}
+
         <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
@@ -430,7 +642,9 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                 Assessment Questions
               </h2>
               <p className="text-sm text-muted-foreground">
-                Answer the minimum required questions to update the protocol results in real time.
+                {isHyperkalemia
+                  ? 'Answer the questions to classify the scenario and see the matched management plan.'
+                  : 'Answer the minimum required questions to update the protocol results in real time.'}
               </p>
             </div>
             <span className={cn(
@@ -460,26 +674,36 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         <div className="space-y-2">
           {protocol.questions.map(renderQuestion)}
         </div>
-
       </div>
 
-      {/* ── Right column: results — always visible, stacks below on mobile, side-by-side on desktop ── */}
+      {/* ── Right column: results ── */}
       <div>
         <div className="space-y-4">
-          <ResultsContent
-            diseaseId={diseaseId}
-            bannerStyle={bannerStyle}
-            severityLevel={severityLevel}
-            severity={severity}
-            redFlags={redFlags}
-            management={management}
-            disposition={disposition}
-            drugDoses={drugDoses}
-            references={references}
-            showRefs={showRefs}
-            setShowRefs={setShowRefs}
-            summaryUrl={summaryUrl}
-          />
+          {isHyperkalemia ? (
+            <HyperkalemiaResultsContent
+              data={formData}
+              severity={severity}
+              protocol={protocol}
+              summaryUrl={summaryUrl}
+              showRefs={showRefs}
+              setShowRefs={setShowRefs}
+            />
+          ) : (
+            <ResultsContent
+              diseaseId={diseaseId}
+              bannerStyle={bannerStyle}
+              severityLevel={severityLevel}
+              severity={severity}
+              redFlags={redFlags}
+              management={management}
+              disposition={disposition}
+              drugDoses={drugDoses}
+              references={references}
+              showRefs={showRefs}
+              setShowRefs={setShowRefs}
+              summaryUrl={summaryUrl}
+            />
+          )}
         </div>
       </div>
     </div>
