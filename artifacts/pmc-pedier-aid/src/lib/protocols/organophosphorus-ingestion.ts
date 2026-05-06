@@ -5,7 +5,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
   name: 'Organophosphate / Carbamate Poisoning',
   system: 'Toxins and Poisoning',
   description:
-    'Severity-oriented management of cholinergic crisis due to organophosphate or carbamate insecticide poisoning. Focuses on ABC stabilization, atropinization endpoints, pralidoxime use, seizure control, and safe disposition.',
+    'Severity- and phenotype-oriented management of cholinergic crisis due to organophosphate or carbamate poisoning. Separates muscarinic, nicotinic, CNS, and respiratory toxicity to guide atropine, pralidoxime, airway support, and disposition.',
   image: {
     url: "https://picsum.photos/seed/organophosphorus-ingestion/600/400",
     hint: "pesticide warning"
@@ -18,50 +18,46 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       id: 'knownOrganophosphate',
       questionText: 'Known/suspected organophosphate exposure?',
       type: 'boolean',
-      info: 'Examples: pesticide/insecticide ingestion, inhalation, or skin exposure. Organophosphates usually require atropine + pralidoxime.'
+      info: 'Organophosphates usually require atropine for muscarinic toxicity and pralidoxime for nicotinic weakness.'
     },
     {
       id: 'suspectedCarbamate',
       questionText: 'Known/suspected carbamate exposure?',
       type: 'boolean',
-      info: 'Carbamates usually cause shorter reversible cholinesterase inhibition. Atropine is primary treatment; pralidoxime is usually reserved for severe/uncertain cases after toxicology advice.'
+      info: 'Carbamates are usually shorter acting. Atropine remains the main antidote; pralidoxime is usually reserved for severe or uncertain cases.'
     },
     {
       id: 'skinOrClothingContaminated',
       questionText: 'Skin/clothing contamination present?',
-      type: 'boolean',
-      info: 'Contaminated clothing and skin may continue exposing the patient and staff.'
+      type: 'boolean'
     },
 
     {
       id: 'muscarinicSigns',
-      questionText: 'Muscarinic cholinergic signs present?',
+      questionText: 'Muscarinic/wet cholinergic signs present?',
       type: 'boolean',
-      info: 'DUMBELS/SLUDGE: diarrhea, urination, miosis, bronchorrhea/bronchospasm/bradycardia, emesis, lacrimation, salivation.'
+      info: 'Salivation, lacrimation, bronchorrhea, bronchospasm, bradycardia, vomiting, diarrhea, sweating, miosis.'
     },
     {
       id: 'nicotinicSigns',
-      questionText: 'Nicotinic signs present?',
+      questionText: 'Nicotinic/dry weakness signs present?',
       type: 'boolean',
-      info: 'Muscle fasciculations, weakness, paralysis, tachycardia, hypertension.'
+      info: 'Fasciculations, muscle weakness, paralysis, tachycardia, hypertension. Atropine does NOT treat isolated nicotinic weakness.'
     },
     {
       id: 'copiousSecretions',
-      questionText: 'Copious oral/bronchial secretions or severe bronchorrhea?',
-      type: 'boolean',
-      info: 'This is a major severity marker. The main atropine endpoint is drying of bronchial secretions and improved oxygenation.'
+      questionText: 'Copious oral/bronchial secretions?',
+      type: 'boolean'
     },
     {
       id: 'bronchospasm',
       questionText: 'Bronchospasm/wheeze with respiratory symptoms?',
-      type: 'boolean',
-      info: 'Bronchospasm with bronchorrhea may rapidly progress to respiratory failure.'
+      type: 'boolean'
     },
     {
       id: 'respFailure',
       questionText: 'Respiratory failure or need for ventilatory support?',
-      type: 'boolean',
-      info: 'May be due to bronchorrhea, bronchospasm, CNS depression, or neuromuscular weakness.'
+      type: 'boolean'
     },
     {
       id: 'alteredMentalStatus',
@@ -84,7 +80,7 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     const severeFeatures: string[] = [];
     const moderateFeatures: string[] = [];
 
-    if (data.respFailure) severeFeatures.push("Respiratory failure or need for ventilatory support.");
+    if (data.respFailure) severeFeatures.push("Respiratory failure or ventilatory support needed.");
     if (data.seizures) severeFeatures.push("Seizures present.");
     if (data.copiousSecretions) severeFeatures.push("Copious bronchial/oral secretions.");
     if (data.alteredMentalStatus) severeFeatures.push("Altered mental status or coma.");
@@ -94,24 +90,24 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       return {
         level: 'severe',
         details: [
-          "SEVERE cholinergic toxicity.",
+          "SEVERE cholinesterase-inhibitor toxicity.",
           ...severeFeatures,
-          "Treat as life-threatening poisoning: airway support, aggressive atropinization, pralidoxime if organophosphate/unknown severe exposure, seizure control, and PICU care."
+          "Treat immediately with airway support, targeted atropine for muscarinic features, pralidoxime for organophosphate/unknown exposure or nicotinic weakness, benzodiazepines for seizures, and PICU care."
         ]
       };
     }
 
-    if (data.muscarinicSigns) moderateFeatures.push("Muscarinic signs present.");
-    if (data.nicotinicSigns) moderateFeatures.push("Nicotinic signs present.");
+    if (data.muscarinicSigns) moderateFeatures.push("Muscarinic/wet cholinergic signs present.");
+    if (data.nicotinicSigns) moderateFeatures.push("Nicotinic weakness/fasciculations present.");
     if (data.bronchospasm) moderateFeatures.push("Bronchospasm/wheeze present.");
 
     if (moderateFeatures.length > 0) {
       return {
         level: 'moderate',
         details: [
-          "MODERATE systemic cholinergic toxicity.",
+          "MODERATE systemic toxicity.",
           ...moderateFeatures,
-          "Requires antidotal therapy and close monitored admission."
+          "Management depends on phenotype: wet patient needs atropine; dry weak patient needs airway monitoring and pralidoxime."
         ]
       };
     }
@@ -120,95 +116,145 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
       level: 'mild',
       details: [
         "MILD or possible early exposure.",
-        "No systemic cholinergic toxicity selected.",
-        "Observe carefully because symptoms may evolve, especially after significant ingestion or unknown exposure."
+        "No systemic muscarinic, nicotinic, CNS, or respiratory toxicity selected.",
+        "Observe carefully because symptoms may evolve after significant exposure."
       ]
     };
   },
 
   getManagement: (severity, data) => {
+    const isMuscarinic = !!data.muscarinicSigns || !!data.copiousSecretions || !!data.bronchospasm || !!data.shockOrHypotension;
+    const isNicotinic = !!data.nicotinicSigns;
+    const isolatedNicotinic = isNicotinic && !isMuscarinic;
+    const mixedToxicity = isNicotinic && isMuscarinic;
+    const likelyOP = !!data.knownOrganophosphate || (!data.suspectedCarbamate && (severity.level === 'moderate' || severity.level === 'severe'));
+
     const management = [
       {
         title: "Immediate Safety, ABCs & Decontamination",
         recommendations: [
-          "This is a potential medical emergency. Staff must use PPE: gloves, gown, eye protection, and mask if aerosol/chemical risk.",
-          "Move patient away from the exposure source.",
-          "Assess ABCs immediately: airway, breathing, circulation.",
-          "Give high-flow oxygen if respiratory symptoms, bronchorrhea, bronchospasm, altered mental status, or shock.",
-          "Attach cardiorespiratory monitoring, pulse oximetry, and frequent blood pressure monitoring.",
+          "Use staff protection: gloves, gown, eye protection, and mask if contamination/aerosol risk.",
+          "Move patient away from exposure source.",
+          "Assess ABCs immediately.",
+          "Give oxygen if respiratory symptoms, secretions, weakness, altered mental status, seizure, or shock.",
+          "Attach cardiac monitor, pulse oximetry, and frequent blood pressure monitoring.",
           "Establish IV/IO access.",
-          "Check bedside glucose in any altered mental status or seizure.",
+          "Check bedside glucose in altered mental status or seizure.",
           data.skinOrClothingContaminated
-            ? "Decontaminate now: remove all clothing, double-bag contaminated clothes, and wash skin/hair thoroughly with soap and water. Irrigate exposed eyes with saline/water."
-            : "If exposure route is unclear, still inspect for contaminated clothes/skin and decontaminate if suspected."
+            ? "Decontaminate immediately: remove all clothing, double-bag contaminated clothes, wash skin/hair thoroughly with soap and water, and irrigate exposed eyes."
+            : "Inspect for skin/clothing contamination and decontaminate if suspected."
         ]
       },
       {
-        title: "Severity Result & Main Treatment Target",
+        title: "Calculator Interpretation",
         recommendations: [
           `Calculated severity: ${severity.level.toUpperCase()}.`,
-          "The key treatment target is NOT pupil size and NOT tachycardia.",
-          "Adequate atropinization means: drying of bronchial secretions, improved air entry, improved oxygen saturation, reduced bronchospasm/wheeze, and improved perfusion.",
-          "Tachycardia alone is NOT a contraindication to atropine if bronchorrhea/bronchospasm persists.",
-          "Miosis may persist despite adequate atropinization."
+          isolatedNicotinic
+            ? "Phenotype: PREDOMINANTLY NICOTINIC / DRY WEAK PATIENT."
+            : mixedToxicity
+              ? "Phenotype: MIXED MUSCARINIC + NICOTINIC TOXICITY."
+              : isMuscarinic
+                ? "Phenotype: PREDOMINANTLY MUSCARINIC / WET PATIENT."
+                : "Phenotype: NO CLEAR SYSTEMIC TOXICITY YET.",
+          "Wet patient = secretions, bronchospasm, bradycardia, vomiting/diarrhea → atropine is the key antidote.",
+          "Dry weak patient = fasciculations, weakness, paralysis without secretions → atropine has limited benefit; airway monitoring and pralidoxime are the priority.",
+          "Reassess frequently because the phenotype may evolve."
         ]
       }
     ];
 
     if (severity.level === 'mild') {
       management.push({
-        title: "Mild / Possible Early Exposure Management",
+        title: "Mild / Possible Early Exposure",
         recommendations: [
-          "Observe in ED with repeated respiratory and neurologic assessment.",
-          "No routine atropine if completely asymptomatic and no muscarinic respiratory signs.",
-          "If muscarinic symptoms develop, reclassify as MODERATE and start atropine.",
-          "If significant ingestion, intentional poisoning, unreliable history, or high-risk pesticide exposure: consult toxicology/poison center and consider admission/extended observation.",
-          "Avoid sending home early after a significant exposure because deterioration may be delayed."
+          "Observe in ED with repeated respiratory, neurologic, and cholinergic assessment.",
+          "No routine atropine if completely asymptomatic and no muscarinic/wet signs.",
+          "If muscarinic signs develop, start atropine and reclassify as moderate/severe.",
+          "If nicotinic weakness develops, monitor airway closely and consider pralidoxime if organophosphate/unknown exposure.",
+          "Consider admission or extended observation for significant ingestion, intentional poisoning, unknown agent, unreliable history, or poor follow-up."
         ]
       });
     }
 
-    if (severity.level === 'moderate') {
+    if (severity.level === 'moderate' || severity.level === 'severe') {
+      if (isolatedNicotinic) {
+        management.push({
+          title: "Predominantly Nicotinic Toxicity: Dry Weak Patient",
+          recommendations: [
+            "Main danger is respiratory muscle weakness/paralysis, not secretions.",
+            "Monitor respiratory effort, oxygen saturation, mental status, cough strength, bulbar weakness, and progression of weakness.",
+            "Prepare for early airway support if weakness progresses or ventilation becomes inadequate.",
+            "Pralidoxime is strongly recommended if organophosphate exposure is known/suspected or the agent is unknown.",
+            data.suspectedCarbamate && !data.knownOrganophosphate
+              ? "If pure carbamate exposure is confidently known, pralidoxime is less clearly beneficial; discuss with toxicology. If uncertain, severe, or mixed exposure, treat as organophosphate/unknown."
+              : "Give pralidoxime early because atropine does not reverse nicotinic weakness.",
+            "Atropine is NOT primary therapy for isolated weakness/fasciculations.",
+            "Start atropine immediately if muscarinic signs appear later: bronchorrhea, salivation, bronchospasm, bradycardia, vomiting, diarrhea, or wet chest."
+          ]
+        });
+      }
+
+      if (isMuscarinic && !isolatedNicotinic) {
+        management.push({
+          title: mixedToxicity ? "Mixed Toxicity: Wet + Weak Patient" : "Predominantly Muscarinic Toxicity: Wet Patient",
+          recommendations: [
+            "Atropine is the priority treatment for muscarinic/wet toxicity.",
+            severity.level === 'severe'
+              ? "Initial atropine dose: 0.05 mg/kg IV."
+              : "Initial atropine dose: 0.02 mg/kg IV.",
+            "Repeat atropine every 3–5 minutes and double each dose until bronchial secretions dry, bronchospasm improves, and oxygenation improves.",
+            "Do NOT titrate atropine to pupil size.",
+            "Tachycardia alone is NOT a contraindication to atropine if secretions or bronchospasm persist.",
+            mixedToxicity
+              ? "Because nicotinic weakness is also present, give pralidoxime early in addition to atropine."
+              : "Give pralidoxime if organophosphate/unknown exposure, moderate-to-severe toxicity, or any weakness/fasciculations."
+          ]
+        });
+      }
+
       management.push({
-        title: "Moderate Toxicity Management",
+        title: "Pralidoxime / 2-PAM Decision",
         recommendations: [
-          "Start atropine IV immediately if muscarinic signs are present, especially salivation, bronchorrhea, bronchospasm, bradycardia, vomiting, or diarrhea.",
-          "Initial atropine dose: 0.02 mg/kg IV. Repeat every 3–5 minutes and double the dose if secretions/bronchospasm persist.",
-          "Give pralidoxime if organophosphate exposure is known/suspected, if the agent is unknown with systemic toxicity, or if nicotinic signs are present.",
-          data.suspectedCarbamate && !data.knownOrganophosphate
-            ? "Because carbamate exposure is suspected: atropine is the main antidote. Pralidoxime is usually optional; use if severe toxicity, uncertain agent, mixed exposure, or after toxicology advice."
-            : "Pralidoxime is recommended when organophosphate exposure is suspected, especially with weakness/fasciculations or moderate-to-severe systemic toxicity.",
-          "Monitor for progression to respiratory failure, recurrent secretions, weakness, seizures, or shock."
+          likelyOP
+            ? "Organophosphate or unknown significant exposure: pralidoxime is recommended, especially with nicotinic weakness/fasciculations or moderate-to-severe toxicity."
+            : "Known carbamate exposure: atropine is usually the main treatment; pralidoxime is optional and should be discussed with toxicology unless severe/uncertain exposure.",
+          "Pralidoxime is most useful for nicotinic manifestations such as fasciculations, weakness, paralysis, and respiratory muscle weakness.",
+          "Do not delay airway support while waiting for pralidoxime effect."
         ]
       });
     }
 
     if (severity.level === 'severe') {
       management.push({
-        title: "Severe / Life-Threatening Toxicity Management",
+        title: "Severe / Life-Threatening Toxicity",
         recommendations: [
           "Call senior pediatrician/intensivist/anesthetist and toxicology/poison center immediately.",
-          "Prepare for early airway control if respiratory failure, copious secretions, coma, seizures, or inability to protect airway.",
-          "Suction aggressively. Treat bronchorrhea and bronchospasm with atropine titration.",
-          "Initial atropine dose: 0.05 mg/kg IV. Repeat every 3–5 minutes and double each dose until bronchial secretions dry and oxygenation improves.",
-          "There is no small fixed maximum atropine dose in severe poisoning; titrate to clinical atropinization endpoint under senior/toxicology guidance.",
-          "After adequate atropinization, consider atropine infusion if repeated boluses are required.",
-          "Give pralidoxime early if organophosphate or unknown severe cholinesterase-inhibitor poisoning is suspected.",
+          "Prepare for early intubation if respiratory failure, coma, seizures, severe bronchorrhea, bulbar weakness, or progressive muscle weakness.",
+          "Suction airway aggressively if wet secretions are present.",
           "Treat seizures with benzodiazepines.",
-          "Avoid succinylcholine for RSI because organophosphate poisoning may prolong paralysis. Prefer rocuronium if paralytic is required."
+          "Avoid succinylcholine for RSI because organophosphate poisoning may prolong paralysis; prefer rocuronium if paralytic is required.",
+          "PICU admission is required."
         ]
       });
     }
 
     management.push({
-      title: "Monitoring & Complications",
+      title: "Atropinization Endpoint",
+      recommendations: [
+        "Adequate atropinization = dry bronchial secretions, improved air entry, improved oxygen saturation, reduced bronchospasm, and improved perfusion.",
+        "Do NOT aim for normal pupils.",
+        "Miosis may persist despite adequate treatment.",
+        "If recurrent secretions, wheeze, sweating, bradycardia, or wet chest return, repeat atropine boluses and consider infusion."
+      ]
+    });
+
+    management.push({
+      title: "Monitoring & Delayed Complications",
       recommendations: [
         "Continuous pulse oximetry and cardiorespiratory monitoring.",
-        "Repeat assessment of secretions, air entry, oxygen saturation, respiratory effort, heart rate, blood pressure, mental status, and muscle strength.",
-        "Consider blood gas if respiratory distress, hypoventilation, shock, or altered mental status.",
-        "Consider electrolytes, glucose, renal/liver function, CK if prolonged weakness/seizure/rhabdomyolysis risk.",
-        "Cholinesterase levels may support diagnosis but should NOT delay treatment.",
-        "Monitor for recurrent cholinergic symptoms after atropine wears off.",
+        "Repeat assessment of secretions, air entry, oxygenation, respiratory effort, heart rate, blood pressure, mental status, and muscle strength.",
+        "Consider blood gas if respiratory distress, weakness, hypoventilation, shock, or altered mental status.",
+        "Cholinesterase levels may support diagnosis but must not delay treatment.",
         "Monitor for intermediate syndrome 24–96 hours after exposure: neck flexor weakness, proximal weakness, cranial nerve weakness, or respiratory muscle weakness.",
         "Delayed neuropathy may occur days to weeks later after some organophosphate exposures."
       ]
@@ -218,26 +264,37 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
   },
 
   getDisposition: (severity, data) => {
+    const isMuscarinic = !!data.muscarinicSigns || !!data.copiousSecretions || !!data.bronchospasm || !!data.shockOrHypotension;
+    const isolatedNicotinic = !!data.nicotinicSigns && !isMuscarinic;
+
     if (severity.level === 'severe') {
       return [
-        "PICU admission is required.",
-        "Indications: respiratory failure, copious secretions needing repeated atropine, seizures, coma/altered mental status, shock/hypotension, severe bradycardia, or significant nicotinic weakness.",
-        "Continue atropine/pralidoxime therapy and close respiratory monitoring."
+        "PICU admission required.",
+        "Indications: respiratory failure, copious secretions needing repeated atropine, seizures, coma/altered mental status, shock/hypotension, severe bradycardia, or significant/progressive nicotinic weakness.",
+        "Continue close respiratory monitoring and antidotal therapy."
       ];
     }
 
     if (severity.level === 'moderate') {
+      if (isolatedNicotinic) {
+        return [
+          "Admit for monitored care because isolated nicotinic weakness can progress to respiratory muscle paralysis.",
+          "Consider PICU if weakness is progressive, bulbar signs appear, gas exchange worsens, or airway support may be needed.",
+          "Toxicology/poison center consultation recommended."
+        ];
+      }
+
       return [
         "Admit for monitored care.",
-        "Consider PICU if repeated atropine boluses/infusion required, worsening secretions, bronchospasm, weakness, abnormal gas, or unstable vitals.",
+        "Consider PICU if repeated atropine boluses/infusion required, worsening secretions, bronchospasm, weakness, abnormal blood gas, or unstable vitals.",
         "Toxicology/poison center consultation recommended."
       ];
     }
 
     return [
       "Observe in ED if asymptomatic or minimally symptomatic.",
-      "Discharge only if clinically well after adequate observation, no evolving muscarinic/nicotinic symptoms, normal respiratory status, reliable caregivers, and poison center/senior clinician agrees.",
-      "Admit/observe longer if ingestion was intentional, significant, unknown agent, unreliable history, or poor follow-up."
+      "Discharge only if clinically well after adequate observation, no evolving muscarinic/nicotinic symptoms, normal respiratory status, reliable caregivers, and senior/toxicology agreement.",
+      "Admit or observe longer if ingestion was intentional, significant, unknown agent, unreliable history, or poor follow-up."
     ];
   },
 
@@ -246,17 +303,22 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     "Copious bronchorrhea/oral secretions",
     "Bronchospasm/wheeze with hypoxia",
     "Generalized muscle weakness, fasciculations, or paralysis",
+    "Bulbar weakness, weak cough, or poor airway protection",
     "Seizures",
     "Altered mental status or coma",
     "Bradycardia with hypotension/shock",
     "Need for repeated atropine boluses",
-    "Recurrent symptoms after initial atropinization",
-    "Intermediate syndrome signs 24–96 hours later: neck/proximal/respiratory muscle weakness"
+    "Recurrent wet chest after initial atropinization",
+    "Intermediate syndrome 24–96 hours later: neck/proximal/respiratory muscle weakness"
   ],
 
   getDrugDoses: (severity, data) => {
     const weight = Number(data.weight) || 0;
     const doses: DrugDose[] = [];
+
+    const isMuscarinic = !!data.muscarinicSigns || !!data.copiousSecretions || !!data.bronchospasm || !!data.shockOrHypotension;
+    const isNicotinic = !!data.nicotinicSigns;
+    const isolatedNicotinic = isNicotinic && !isMuscarinic;
 
     const roundDose = (value: number) => {
       if (value < 1) return value.toFixed(2);
@@ -265,93 +327,80 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
     };
 
     if (weight > 0) {
-      const atropineStartMg =
-        severity.level === 'severe'
-          ? Math.max(0.05 * weight, 0.1)
-          : Math.max(0.02 * weight, 0.1);
-
+      const atropineMgPerKg = severity.level === 'severe' ? 0.05 : 0.02;
+      const atropineStartMg = Math.max(atropineMgPerKg * weight, 0.1);
       const atropineDose2 = atropineStartMg * 2;
       const atropineDose3 = atropineStartMg * 4;
       const atropineDose4 = atropineStartMg * 8;
 
       doses.push({
         drugName: "Atropine IV",
-        dose:
-          severity.level === 'severe'
-            ? `${roundDose(atropineStartMg)} mg initial dose`
-            : `${roundDose(atropineStartMg)} mg initial dose`,
-        notes:
-          severity.level === 'mild'
+        dose: isolatedNicotinic
+          ? "Not primary therapy unless muscarinic signs develop"
+          : `${roundDose(atropineStartMg)} mg initial dose`,
+        notes: isolatedNicotinic
+          ? "Isolated nicotinic toxicity detected: atropine does not treat fasciculations, weakness, paralysis, or respiratory muscle weakness. Start atropine only if wet/muscarinic signs appear: bronchorrhea, salivation, bronchospasm, bradycardia, vomiting, diarrhea, or sweating."
+          : severity.level === 'mild'
             ? "Use only if muscarinic symptoms develop. Pediatric dose 0.02 mg/kg IV, minimum 0.1 mg."
-            : severity.level === 'moderate'
-              ? `Moderate toxicity: start 0.02 mg/kg IV. If secretions/bronchospasm persist, repeat every 3–5 min and double: ${roundDose(atropineStartMg)} mg → ${roundDose(atropineDose2)} mg → ${roundDose(atropineDose3)} mg → ${roundDose(atropineDose4)} mg. Endpoint: dry chest/improved oxygenation, not pupil size.`
-              : `Severe toxicity: start 0.05 mg/kg IV. Repeat every 3–5 min and double until adequate atropinization: ${roundDose(atropineStartMg)} mg → ${roundDose(atropineDose2)} mg → ${roundDose(atropineDose3)} mg → ${roundDose(atropineDose4)} mg. Endpoint: drying bronchial secretions and improved oxygenation.`
+            : `Repeat every 3–5 min and double if secretions/bronchospasm persist: ${roundDose(atropineStartMg)} mg → ${roundDose(atropineDose2)} mg → ${roundDose(atropineDose3)} mg → ${roundDose(atropineDose4)} mg. Endpoint: dry chest and improved oxygenation, not pupil size.`
       });
 
       doses.push({
         drugName: "Atropine infusion IV",
-        dose: "Consider after atropinization if repeated boluses are required",
-        notes:
-          "Common approach: start infusion at about 10–20% of the total atropine dose required for initial atropinization per hour, then titrate to keep chest dry and oxygenation stable. Use senior/toxicology guidance."
+        dose: isolatedNicotinic
+          ? "Usually not needed unless muscarinic signs develop"
+          : "Consider after adequate atropinization if repeated boluses are required",
+        notes: isolatedNicotinic
+          ? "Do not use atropine infusion for isolated dry weakness alone. Use if recurrent wet chest/bronchorrhea after atropinization."
+          : "Common approach: start infusion at about 10–20% of the total atropine dose required for initial atropinization per hour, then titrate to keep chest dry and oxygenation stable. Use senior/toxicology guidance."
       });
 
-      const pamLow = 25 * weight;
-      const pamHigh = 50 * weight;
-      const pamMaxLow = Math.min(pamLow, 2000);
-      const pamMaxHigh = Math.min(pamHigh, 2000);
+      const pamLow = Math.min(25 * weight, 2000);
+      const pamHigh = Math.min(50 * weight, 2000);
       const pamInfLow = 10 * weight;
       const pamInfHigh = 20 * weight;
 
       doses.push({
         drugName: "Pralidoxime / 2-PAM IV",
-        dose: `Loading: ${roundDose(pamMaxLow)}–${roundDose(pamMaxHigh)} mg IV over 30 min`,
+        dose: `Loading: ${roundDose(pamLow)}–${roundDose(pamHigh)} mg IV over 30 min`,
         notes:
           data.suspectedCarbamate && !data.knownOrganophosphate
-            ? `Carbamate suspected: pralidoxime is usually not routinely needed unless severe toxicity, unknown/mixed exposure, or toxicology recommends it. If used: 25–50 mg/kg IV loading, max 2 g, then ${roundDose(pamInfLow)}–${roundDose(pamInfHigh)} mg/hr infusion.`
-            : `Use early for organophosphate or unknown significant poisoning, especially with weakness/fasciculations. Dose 25–50 mg/kg IV loading, max 2 g, then continuous infusion 10–20 mg/kg/hr = ${roundDose(pamInfLow)}–${roundDose(pamInfHigh)} mg/hr. Most effective before enzyme aging.`
+            ? `Carbamate suspected: pralidoxime benefit is less certain. Use if severe, mixed/unknown exposure, or toxicology recommends. If used: loading 25–50 mg/kg IV max 2 g, then ${roundDose(pamInfLow)}–${roundDose(pamInfHigh)} mg/hr infusion.`
+            : `Recommended for organophosphate or unknown significant exposure, especially nicotinic weakness/fasciculations. Maintenance infusion: 10–20 mg/kg/hr = ${roundDose(pamInfLow)}–${roundDose(pamInfHigh)} mg/hr.`
       });
-
-      const diazepamLow = 0.1 * weight;
-      const diazepamHigh = 0.3 * weight;
 
       doses.push({
         drugName: "Diazepam IV",
-        dose: `${roundDose(diazepamLow)}–${roundDose(diazepamHigh)} mg IV`,
-        notes: "For seizures. Pediatric dose 0.1–0.3 mg/kg IV. Repeat as clinically required with airway support."
+        dose: `${roundDose(0.1 * weight)}–${roundDose(0.3 * weight)} mg IV`,
+        notes: "For seizures. Repeat as clinically required with airway support."
       });
 
-      const midazLow = 0.1 * weight;
       doses.push({
         drugName: "Midazolam",
-        dose: `${roundDose(midazLow)} mg IV/IM/IN`,
-        notes: "Alternative benzodiazepine for active seizure when diazepam is unavailable or IV access is delayed. Dose commonly 0.1 mg/kg; follow local seizure protocol."
+        dose: `${roundDose(0.1 * weight)} mg IV/IM/IN`,
+        notes: "Alternative benzodiazepine for active seizure when IV access is delayed. Follow local seizure protocol."
       });
 
       doses.push({
         drugName: "RSI paralytic warning",
         dose: "Avoid succinylcholine",
-        notes: "Use rocuronium if paralysis is required, because organophosphate poisoning may inhibit cholinesterase and prolong succinylcholine paralysis."
+        notes: "Prefer rocuronium if paralysis is required because organophosphate poisoning may prolong succinylcholine paralysis."
       });
     } else {
       doses.push({
         drugName: "Atropine IV",
-        dose: "Moderate: 0.02 mg/kg IV; Severe: 0.05 mg/kg IV",
-        notes:
-          "Minimum 0.1 mg. Repeat every 3–5 min and double each dose until bronchial secretions dry and oxygenation improves. Do not titrate to pupil size."
-      });
-
-      doses.push({
-        drugName: "Atropine infusion IV",
-        dose: "After atropinization if repeated boluses are required",
-        notes:
-          "Start around 10–20% of the total atropinizing dose per hour and titrate to clinical endpoint with senior/toxicology guidance."
+        dose: isolatedNicotinic
+          ? "Not primary therapy unless muscarinic signs develop"
+          : "Moderate: 0.02 mg/kg IV; Severe: 0.05 mg/kg IV",
+        notes: isolatedNicotinic
+          ? "Atropine does not reverse isolated nicotinic weakness/fasciculations. Use if bronchorrhea, bronchospasm, salivation, vomiting/diarrhea, sweating, bradycardia, or wet chest appear."
+          : "Minimum 0.1 mg. Repeat every 3–5 min and double until bronchial secretions dry and oxygenation improves."
       });
 
       doses.push({
         drugName: "Pralidoxime / 2-PAM IV",
         dose: "25–50 mg/kg IV over 30 min, max 2 g; then 10–20 mg/kg/hr infusion",
-        notes:
-          "Use for organophosphate or unknown moderate/severe poisoning, especially nicotinic weakness/fasciculations. Carbamate: usually optional unless severe/uncertain exposure."
+        notes: "Most important when nicotinic weakness/fasciculations are present in organophosphate or unknown exposure."
       });
 
       doses.push({
@@ -372,20 +421,20 @@ export const organophosphorusIngestionProtocol: DiseaseProtocol = {
 
   getReferences: () => [
     {
-      title: "MSD Manual Professional: Organophosphate and Carbamate Poisoning",
-      url: "https://www.msdmanuals.com/professional/injuries-poisoning/poisoning/organophosphate-poisoning-and-carbamate-poisoning"
+      title: "Merck Manual Professional: Organophosphate and Carbamate Poisoning",
+      url: "https://www.merckmanuals.com/professional/injuries-poisoning/poisoning/organophosphate-poisoning-and-carbamate-poisoning"
     },
     {
-      title: "Sydney Children's Hospitals Network: Organophosphate/Carbamate Exposure - Management",
+      title: "StatPearls: Organophosphate Toxicity",
+      url: "https://www.ncbi.nlm.nih.gov/books/NBK470430/"
+    },
+    {
+      title: "SCHN Guideline: Organophosphate/Carbamate Exposure - Management",
       url: "https://resources.schn.health.nsw.gov.au/policies/policies/pdf/2012-9045.pdf"
     },
     {
-      title: "Royal Children's Hospital Melbourne: Acute Poisoning Initial Management",
-      url: "https://www.rch.org.au/clinicalguide/guideline_index/Poisoning_-_Acute_Guidelines_For_Initial_Management/"
-    },
-    {
-      title: "EMA Guidance: Treatment in Chemical Agent Exposure",
-      url: "https://www.ema.europa.eu/en/documents/regulatory-procedural-guideline/ema-guidance-use-medicinal-products-treatment-case-exposure-chemical-agents-used-weapons-terrorism-crime-or-warfare_en.pdf"
+      title: "CHEMM: Pralidoxime",
+      url: "https://chemm.hhs.gov/countermeasure_pralidoxime.htm"
     }
   ],
 };
