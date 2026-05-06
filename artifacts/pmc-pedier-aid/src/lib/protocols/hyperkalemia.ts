@@ -13,9 +13,18 @@ export interface HyperkalemiaScenario {
   finalDecision: string[];
 }
 
-export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity): HyperkalemiaScenario {
+export function classifyHyperkalemiaScenario(
+  data: FormData,
+  _severity: Severity,
+  allDoses: DrugDose[],
+): HyperkalemiaScenario {
   const potassium = Number(data.potassiumLevel);
-  const weight = Number(data.weight) || 0;
+
+  // Helper: pick a dose entry by keyword match on drugName
+  const pick = (...keywords: string[]): DrugDose | undefined =>
+    allDoses.find((d) =>
+      keywords.some((kw) => d.drugName.toLowerCase().includes(kw.toLowerCase())),
+    );
 
   if (!potassium || potassium <= 0) {
     return {
@@ -30,100 +39,8 @@ export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity
     };
   }
 
-  // Weight-based dose strings
-  const caMin  = weight > 0 ? `${(0.5 * weight).toFixed(1)} mL` : '—';
-  const caMax  = weight > 0 ? `${Math.min(weight, 20).toFixed(1)} mL` : '—';
-  const ins    = weight > 0 ? `${(0.1 * weight).toFixed(2)} units` : '0.1 units/kg';
-  const d10    = weight > 0 ? `${(5 * weight).toFixed(1)} mL` : '5 mL/kg';
-  const d25    = weight > 0 ? `${(2 * weight).toFixed(1)} mL` : '2 mL/kg';
-  const dextG  = weight > 0 ? `${(0.5 * weight).toFixed(1)} g` : '0.5 g/kg';
-  const biMin  = weight > 0 ? `${(1 * weight).toFixed(1)} mEq` : '—';
-  const biMax  = weight > 0 ? `${(2 * weight).toFixed(1)} mEq` : '—';
-  const fuMin  = weight > 0 ? `${(1 * weight).toFixed(1)} mg` : '—';
-  const fuMax  = weight > 0 ? `${(2 * weight).toFixed(1)} mg` : '—';
-
-  // ── Scenario 3: Emergency — ECG changes, symptoms, or K+ ≥ 6.5 ──────────────
-  if (data.hasEkgChanges || data.hasMuscleWeakness || potassium >= 6.5) {
-    const meds: DrugDose[] = [
-      {
-        drugName: 'Calcium Gluconate 10% — GIVE FIRST',
-        dose: weight > 0
-          ? `0.5–1 mL/kg IV = ${caMin}–${caMax} IV over 5–10 min. Max 20 mL/dose.`
-          : '0.5–1 mL/kg IV over 5–10 min. Max 20 mL/dose.',
-        notes:
-          'Cardiac membrane stabilization ONLY — does NOT lower K+. Repeat after 5–10 min if ECG changes persist. Give via peripheral line.',
-      },
-      {
-        drugName: 'Regular Insulin + Dextrose',
-        dose: weight > 0
-          ? `Insulin 0.1 units/kg IV = ${ins} + dextrose ${dextG}: D10W ${d10} OR D25W ${d25}.`
-          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
-        notes: 'Shifts K+ intracellularly. Give dextrose with insulin. Monitor glucose every 30 min for ≥ 2–3 h.',
-      },
-      {
-        drugName: 'Salbutamol nebulized',
-        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
-        notes: 'Adjunct intracellular K+ shift. Do NOT rely on it alone. Watch tachycardia/tremor.',
-      },
-      ...(data.hasAcidosis
-        ? [
-            {
-              drugName: 'Sodium Bicarbonate (acidosis present)',
-              dose: weight > 0
-                ? `1–2 mEq/kg IV = ${biMin}–${biMax} IV slowly.`
-                : '1–2 mEq/kg IV slowly.',
-              notes: 'Only if significant metabolic acidosis confirmed on blood gas. Not routine for all hyperkalemia.',
-            },
-          ]
-        : []),
-      {
-        drugName: 'Furosemide (if urine output adequate)',
-        dose: weight > 0
-          ? `1–2 mg/kg IV = ${fuMin}–${fuMax} IV.`
-          : '1–2 mg/kg IV.',
-        notes: 'K+ removal — use ONLY if adequate urine output and renal function. Do not give if oliguria/anuria.',
-      },
-    ];
-
-    return {
-      scenarioNumber: 3,
-      label: 'Scenario 3 — EMERGENCY: Severe Hyperkalemia',
-      description: data.hasEkgChanges
-        ? 'ECG changes present — immediate cardiac membrane stabilization required.'
-        : data.hasMuscleWeakness
-        ? 'Symptoms (weakness / paralysis) present — emergency treatment required.'
-        : 'K+ ≥ 6.5 mEq/L — life-threatening hyperkalemia.',
-      urgency: 'emergency',
-      immediateActions: [
-        'Attach continuous cardiac monitor and obtain 12-lead ECG immediately.',
-        'Establish IV/IO access — draw repeat K+, glucose, calcium, creatinine, blood gas.',
-        'Give IV Calcium Gluconate NOW if ECG changes, arrhythmia, or severe instability — do not delay.',
-        'Stop ALL potassium sources: K-containing fluids, oral/IV K+, TPN K+, and K+-raising medications.',
-        ...(data.hasRenalFailure
-          ? ['Urgent nephrology AND PICU consultation — renal failure present, dialysis pathway required.']
-          : ['Urgent senior pediatrician involvement. Involve PICU/nephrology if refractory or deteriorating.']),
-        'Prepare for dialysis if refractory hyperkalemia, persistent ECG changes, or oliguria/anuria.',
-      ],
-      medications: meds,
-      monitoring: [
-        'Continuous ECG monitoring until K+ is safe and ECG normalized.',
-        'Repeat serum K+ 30–60 min after shifting therapy, then every 1–2 h until stable.',
-        'Blood glucose every 30 min for at least 2–3 h after insulin/dextrose.',
-        'Monitor for hypoglycemia — especially young children, renal failure, or poor oral intake.',
-        'Strict urine output monitoring.',
-        'Repeat 12-lead ECG after treatment and with each K+ recheck.',
-      ],
-      finalDecision: [
-        'PICU / high-dependency monitored admission.',
-        'Urgent senior pediatrician, PICU, and nephrology involvement.',
-        ...(data.hasRenalFailure
-          ? ['Active dialysis pathway — renal failure with severe hyperkalemia.']
-          : ['Dialysis pathway if refractory, persistent ECG changes, or oliguria/anuria develops.']),
-      ],
-    };
-  }
-
-  // ── Scenario 4: Pseudohyperkalemia — hemolyzed, clinically well, no ECG changes ──
+  // ── Scenario 4: Pseudohyperkalemia — hemolyzed, clinically well ─────────────
+  // Checked first so a well, hemolyzed child is not over-treated
   if (
     data.sampleHemolyzed &&
     !data.hasEkgChanges &&
@@ -158,27 +75,13 @@ export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity
   }
 
   // ── Scenario 5: Renal failure / oliguria / anuria ────────────────────────────
+  // Checked before Scenario 3 — renal failure patients need a dialysis pathway
+  // regardless of whether ECG changes are also present.
   if (data.hasRenalFailure && potassium >= 5.5) {
     const meds: DrugDose[] = [
-      {
-        drugName: 'Regular Insulin + Dextrose (temporizing)',
-        dose: weight > 0
-          ? `Insulin 0.1 units/kg IV = ${ins} + D10W ${d10} OR D25W ${d25}.`
-          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
-        notes: 'Intracellular K+ shift — temporizing only. Monitor glucose every 30 min for ≥ 2–3 h.',
-      },
-      {
-        drugName: 'Salbutamol nebulized (temporizing)',
-        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
-        notes: 'Adjunct temporizing measure. Watch tachycardia.',
-      },
-      {
-        drugName: 'Dialysis / Renal Replacement Therapy',
-        dose: 'Urgent nephrology consultation for dialysis planning.',
-        notes:
-          'Definitive K+ removal in renal failure with oliguria/anuria or refractory hyperkalemia. Furosemide is unreliable and likely ineffective in this setting.',
-      },
-    ];
+      pick('furosemide'),
+      pick('dialysis'),
+    ].filter((d): d is DrugDose => d !== undefined);
 
     return {
       scenarioNumber: 5,
@@ -191,9 +94,9 @@ export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity
         'Stop ALL potassium sources immediately.',
         'Begin temporizing medical measures while arranging nephrology review.',
         'Monitor strict urine output.',
-        'If ECG changes develop — escalate to Scenario 3 and give calcium immediately.',
+        'If ECG changes develop — give calcium immediately and escalate to Scenario 3.',
       ],
-      medications: meds,
+      medications: meds.length > 0 ? meds : null,
       monitoring: [
         'Continuous cardiac monitoring.',
         'Repeat K+ every 1–2 h and after each intervention.',
@@ -209,29 +112,56 @@ export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity
     };
   }
 
+  // ── Scenario 3: Emergency — ECG changes, symptoms, or K+ ≥ 6.5 ──────────────
+  if (data.hasEkgChanges || data.hasMuscleWeakness || potassium >= 6.5) {
+    const meds: DrugDose[] = [
+      pick('calcium'),
+      pick('insulin'),
+      pick('salbutamol'),
+      ...(data.hasAcidosis ? [pick('bicarbonate')] : []),
+    ].filter((d): d is DrugDose => d !== undefined);
+
+    return {
+      scenarioNumber: 3,
+      label: 'Scenario 3 — EMERGENCY: Severe Hyperkalemia',
+      description: data.hasEkgChanges
+        ? 'ECG changes present — immediate cardiac membrane stabilization required.'
+        : data.hasMuscleWeakness
+        ? 'Symptoms (weakness / paralysis) present — emergency treatment required.'
+        : 'K+ ≥ 6.5 mEq/L — life-threatening hyperkalemia.',
+      urgency: 'emergency',
+      immediateActions: [
+        'Attach continuous cardiac monitor and obtain 12-lead ECG immediately.',
+        'Establish IV/IO access — draw repeat K+, glucose, calcium, creatinine, blood gas.',
+        'Give IV Calcium Gluconate NOW if ECG changes, arrhythmia, or severe instability — do not delay.',
+        'Stop ALL potassium sources: K-containing fluids, oral/IV K+, TPN K+, and K+-raising medications.',
+        'Urgent senior pediatrician involvement. Involve PICU/nephrology if refractory or deteriorating.',
+        'Prepare for dialysis if refractory hyperkalemia, persistent ECG changes, or oliguria/anuria.',
+      ],
+      medications: meds.length > 0 ? meds : null,
+      monitoring: [
+        'Continuous ECG monitoring until K+ is safe and ECG normalized.',
+        'Repeat serum K+ 30–60 min after shifting therapy, then every 1–2 h until stable.',
+        'Blood glucose every 30 min for at least 2–3 h after insulin/dextrose.',
+        'Monitor for hypoglycemia — especially young children, renal failure, or poor oral intake.',
+        'Strict urine output monitoring.',
+        'Repeat 12-lead ECG after treatment and with each K+ recheck.',
+      ],
+      finalDecision: [
+        'PICU / high-dependency monitored admission.',
+        'Urgent senior pediatrician, PICU, and nephrology involvement.',
+        'Dialysis pathway if refractory, persistent ECG changes, or oliguria/anuria develops.',
+      ],
+    };
+  }
+
   // ── Scenario 2: Moderate — K 6.0–6.4, stable, no ECG changes ────────────────
   if (potassium >= 6.0) {
     const meds: DrugDose[] = [
-      {
-        drugName: 'Regular Insulin + Dextrose (if persistent or high-risk)',
-        dose: weight > 0
-          ? `Insulin 0.1 units/kg IV = ${ins} + D10W ${d10} OR D25W ${d25}.`
-          : 'Insulin 0.1 units/kg IV + D10W 5 mL/kg OR D25W 2 mL/kg.',
-        notes: 'Consider if K+ persists ≥ 6.0 or patient is high-risk. Monitor glucose every 30 min.',
-      },
-      {
-        drugName: 'Salbutamol nebulized (adjunct)',
-        dose: '2.5–5 mg nebulized (smaller child); 10 mg nebulized (larger child/adolescent).',
-        notes: 'Adjunct K+ shift alongside insulin/dextrose. Watch tachycardia.',
-      },
-      {
-        drugName: 'Furosemide (if urine output adequate)',
-        dose: weight > 0
-          ? `1–2 mg/kg IV = ${fuMin}–${fuMax} IV.`
-          : '1–2 mg/kg IV.',
-        notes: 'K+ removal via urine — only if good urine output and renal function. Not useful if oliguria.',
-      },
-    ];
+      pick('insulin'),
+      pick('salbutamol'),
+      pick('furosemide'),
+    ].filter((d): d is DrugDose => d !== undefined);
 
     return {
       scenarioNumber: 2,
@@ -246,7 +176,7 @@ export function classifyHyperkalemiaScenario(data: FormData, _severity: Severity
         ...(data.hasAcidosis ? ['Address metabolic acidosis — acidosis worsens hyperkalemia.'] : []),
         'If K+ is rising, renal failure develops, or ECG becomes abnormal — escalate to Scenario 3 immediately.',
       ],
-      medications: meds,
+      medications: meds.length > 0 ? meds : null,
       monitoring: [
         'Continuous cardiac monitoring.',
         'Repeat K+ every 1–2 h until stable and clearly improving.',

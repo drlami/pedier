@@ -104,7 +104,8 @@ function HyperkalemiaResultsContent({
   showRefs: boolean;
   setShowRefs: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const scenario: HyperkalemiaScenario = classifyHyperkalemiaScenario(data, severity);
+  const allDoses = protocol.getDrugDoses(severity, data);
+  const scenario: HyperkalemiaScenario = classifyHyperkalemiaScenario(data, severity, allDoses);
   const references = protocol.getReferences();
   const style = URGENCY_STYLE[scenario.urgency];
 
@@ -148,8 +149,8 @@ function HyperkalemiaResultsContent({
         </ol>
       </ResultCard>
 
-      {/* ── 3. Medications — only if indicated ── */}
-      {scenario.medications && scenario.medications.length > 0 ? (
+      {/* ── 3. Medications — only rendered when indicated (Scenarios 2, 3, 5) ── */}
+      {scenario.medications && scenario.medications.length > 0 && (
         <ResultCard title="Medications / Treatment" icon={Pill} variant="drug">
           <div className="divide-y divide-border rounded-md overflow-hidden border">
             {scenario.medications.map((drug, i) => (
@@ -165,17 +166,6 @@ function HyperkalemiaResultsContent({
             ))}
           </div>
         </ResultCard>
-      ) : (
-        scenario.scenarioNumber !== null && (
-          <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground flex items-start gap-2.5">
-            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-            <span>
-              {scenario.scenarioNumber === 4
-                ? 'Avoid hyperkalemia medications until repeat potassium confirms true hyperkalemia.'
-                : 'Emergency medications (calcium, insulin, salbutamol) are not indicated at this stage.'}
-            </span>
-          </div>
-        )
       )}
 
       {/* ── 4. Monitoring ── */}
