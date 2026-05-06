@@ -4,118 +4,433 @@ export const paracetamolToxicityProtocol: DiseaseProtocol = {
   id: 'paracetamol-toxicity',
   name: 'Paracetamol (Acetaminophen) Toxicity',
   system: 'Toxins and Poisoning',
-  description: 'Management of acute acetaminophen overdose. The toxic dose for a single ingestion in children is generally >150 mg/kg. This protocol uses the Rumack-Matthew nomogram and guides N-acetylcysteine (NAC) therapy.',
+  description:
+    'Pediatric-oriented assessment and management of paracetamol/acetaminophen overdose. Includes acute single ingestion, delayed/unknown presentation, pending serum level, repeated supratherapeutic ingestion, Rumack-Matthew nomogram guidance, and empiric NAC indications.',
+
   image: {
     url: "https://picsum.photos/seed/paracetamol-toxicity/600/400",
     hint: "liver pills"
   },
+
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'ingestedDose', questionText: 'Estimated single dose ingested', type: 'number', unit: 'mg/kg' },
-    { id: 'ingestionTime', questionText: 'Time since ingestion (if known)', type: 'number', unit: 'hours', info: 'Must be between 4 and 24 hours for nomogram use.' },
-    { id: 'paracetamolLevel', questionText: 'Acetaminophen Level (mcg/mL)', type: 'number', unit: 'mcg/mL' },
-    { id: 'isAcuteIngestion', questionText: 'Was this a single, acute ingestion?', type: 'boolean' },
-    { id: 'isConcerningHistory', questionText: 'Is there a history of massive ingestion (>30g or 500mg/kg) or unknown time?', type: 'boolean' },
+
+    {
+      id: 'ingestedDose',
+      questionText: 'Estimated dose ingested',
+      type: 'number',
+      unit: 'mg/kg',
+      info: 'For single acute ingestion. In children, ≥150 mg/kg is potentially toxic; ≥300 mg/kg suggests high-risk/massive ingestion.'
+    },
+
+    {
+      id: 'ingestionTime',
+      questionText: 'Time since ingestion',
+      type: 'number',
+      unit: 'hours',
+      info: 'Rumack-Matthew nomogram is valid only for single acute immediate-release ingestion with known time, using level drawn ≥4 hours.'
+    },
+
+    {
+      id: 'isAcuteIngestion',
+      questionText: 'Was this a single acute ingestion?',
+      type: 'boolean',
+      info: 'If NO, consider repeated supratherapeutic ingestion or staggered ingestion; nomogram is not reliable.'
+    },
+
+    {
+      id: 'isUnknownTime',
+      questionText: 'Is timing unknown, unreliable, or staggered?',
+      type: 'boolean',
+      info: 'Unknown or staggered ingestion cannot be interpreted safely using the Rumack-Matthew nomogram.'
+    },
+
+    {
+      id: 'isExtendedRelease',
+      questionText: 'Was extended-release paracetamol/acetaminophen possibly ingested?',
+      type: 'boolean',
+      info: 'Extended-release ingestion may require repeat levels and toxicology consultation.'
+    },
+
+    {
+      id: 'levelAvailable',
+      questionText: 'Is serum acetaminophen/paracetamol level available now?',
+      type: 'boolean',
+      info: 'If level is delayed and patient is high risk, NAC should not be delayed beyond 8 hours after ingestion.'
+    },
+
+    {
+      id: 'paracetamolLevel',
+      questionText: 'Serum acetaminophen/paracetamol level',
+      type: 'number',
+      unit: 'mcg/mL',
+      info: 'Use only if drawn ≥4 hours after a single acute ingestion with known timing.'
+    },
+
+    {
+      id: 'levelWillBeDelayed',
+      questionText: 'Will serum level result be unavailable before 8 hours post-ingestion?',
+      type: 'boolean',
+      info: 'If toxic ingestion is suspected and level will not return before 8 hours, start NAC empirically.'
+    },
+
+    {
+      id: 'hasSymptoms',
+      questionText: 'Any symptoms/signs of toxicity?',
+      type: 'boolean',
+      info: 'Vomiting, RUQ pain, lethargy, jaundice, altered mental status, hypoglycemia, acidosis, bleeding tendency.'
+    },
+
+    {
+      id: 'hasAbnormalLiverTests',
+      questionText: 'Any abnormal AST/ALT, INR, bilirubin, glucose, creatinine, or acidosis?',
+      type: 'boolean',
+      info: 'Abnormal liver tests or metabolic abnormalities suggest significant toxicity or delayed presentation.'
+    },
+
+    {
+      id: 'isRepeatedSupratherapeutic',
+      questionText: 'Repeated supratherapeutic ingestion / dosing error?',
+      type: 'boolean',
+      info: 'Repeated excessive dosing over >24 hours, accidental dosing error, multiple paracetamol-containing products, or staggered ingestion.'
+    },
+
+    {
+      id: 'hasHighRiskFactors',
+      questionText: 'Any high-risk factors?',
+      type: 'boolean',
+      info: 'Prolonged fasting, malnutrition, chronic liver disease, dehydration, chronic illness, enzyme-inducing drugs, or uncertain history.'
+    },
   ],
+
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
+
+    const weight = Number(data.weight);
     const time = Number(data.ingestionTime);
     const level = Number(data.paracetamolLevel);
     const ingestedDose = Number(data.ingestedDose);
 
-    if (data.isConcerningHistory) {
-        details.push("History of massive or unknown time of ingestion. Treat empirically.");
+    const acute = data.isAcuteIngestion === true;
+    const unknownTime = data.isUnknownTime === true;
+    const extendedRelease = data.isExtendedRelease === true;
+    const levelAvailable = data.levelAvailable === true;
+    const levelDelayed = data.levelWillBeDelayed === true;
+    const symptomatic = data.hasSymptoms === true;
+    const abnormalLabs = data.hasAbnormalLiverTests === true;
+    const rsti = data.isRepeatedSupratherapeutic === true;
+    const highRisk = data.hasHighRiskFactors === true;
+
+    if (!weight || weight <= 0) {
+      details.push("Enter a valid weight to support pediatric dosing and risk assessment.");
+    }
+
+    if (symptomatic || abnormalLabs) {
+      details.push(
+        "Symptoms or abnormal liver/metabolic tests are present. Treat as high-risk toxicity and start NAC while urgently consulting toxicology/poison center."
+      );
+      return { level: 'severe', details };
+    }
+
+    if (rsti) {
+      details.push(
+        "Repeated supratherapeutic ingestion or dosing error: Rumack-Matthew nomogram is NOT applicable."
+      );
+      details.push(
+        "Obtain acetaminophen level, AST/ALT, PT/INR, bilirubin, glucose, electrolytes/CO2, urea/creatinine."
+      );
+
+      if (levelAvailable && !isNaN(level) && level > 10) {
+        details.push(
+          `Detectable acetaminophen level (${level} mcg/mL) in repeated supratherapeutic ingestion. Consider/start NAC and discuss with toxicology.`
+        );
         return { level: 'severe', details };
-    }
-    
-    if (ingestedDose >= 150) {
-        details.push(`Potentially toxic ingestion of ${ingestedDose} mg/kg. Treatment will be guided by timed serum level.`);
+      }
+
+      details.push(
+        "If acetaminophen level is detectable, AST/ALT abnormal, INR elevated, or patient symptomatic → NAC indicated."
+      );
+      return { level: 'moderate', details };
     }
 
-    if (time >= 4 && time <= 24 && !isNaN(level)) {
-        // Treatment line on Rumack-Matthew nomogram (simplified log-linear formula)
-        // Treatment if level > 150 mcg/mL at 4 hours or level > 25 mcg/mL at 15 hours
-        const treatmentThreshold = 150 * Math.exp(-0.068 * (time - 4));
-        if (level >= treatmentThreshold) {
-            details.push(`Level of ${level} mcg/mL at ${time} hours is ABOVE the treatment line on the Rumack-Matthew nomogram.`);
-            return { level: 'severe', details };
-        } else {
-            details.push(`Level of ${level} mcg/mL at ${time} hours is below the treatment line.`);
-            return { level: 'mild', details };
+    if (!acute || unknownTime) {
+      details.push(
+        "Not a clear single acute ingestion or timing is unknown/unreliable. Rumack-Matthew nomogram is NOT applicable."
+      );
+      details.push(
+        "Start NAC if ingestion may be toxic, level is detectable, labs are abnormal, or reliable risk assessment cannot be completed promptly."
+      );
+      return { level: 'severe', details };
+    }
+
+    if (!isNaN(ingestedDose) && ingestedDose >= 300) {
+      details.push(
+        `High-risk/massive pediatric ingestion estimated at ${ingestedDose} mg/kg. Start NAC empirically while awaiting level and consult toxicology.`
+      );
+      return { level: 'severe', details };
+    }
+
+    if (!isNaN(ingestedDose) && ingestedDose >= 150) {
+      details.push(
+        `Potentially toxic pediatric ingestion estimated at ${ingestedDose} mg/kg. Timed serum level is required.`
+      );
+
+      if (!isNaN(time) && time >= 8 && (!levelAvailable || isNaN(level))) {
+        details.push(
+          "More than 8 hours since ingestion and level is unavailable. Start NAC immediately; do not wait for the result."
+        );
+        return { level: 'severe', details };
+      }
+
+      if (levelDelayed) {
+        details.push(
+          "Serum level will not be available before 8 hours post-ingestion. Start NAC empirically."
+        );
+        return { level: 'severe', details };
+      }
+
+      if (!levelAvailable || isNaN(level)) {
+        details.push(
+          "Level is pending/unavailable. If result will be available before 8 hours and patient is stable, wait for timed level; otherwise start NAC."
+        );
+        return { level: 'moderate', details };
+      }
+    }
+
+    if (extendedRelease) {
+      details.push(
+        "Possible extended-release ingestion. Consider repeat acetaminophen levels and toxicology consultation even if initial level is below treatment line."
+      );
+    }
+
+    if (levelAvailable && !isNaN(level)) {
+      if (!isNaN(time) && time < 4) {
+        details.push(
+          "Level drawn before 4 hours is not reliable for nomogram risk assessment. Repeat level at ≥4 hours after ingestion."
+        );
+        if (!isNaN(ingestedDose) && ingestedDose >= 150) {
+          details.push(
+            "Because the dose is potentially toxic, ensure result will be available before 8 hours; otherwise start NAC."
+          );
         }
-    }
-    
-    if (time < 4 && !isNaN(level)) {
-        details.push("Level drawn before 4 hours post-ingestion is not reliable for risk assessment. Re-check at or after 4 hours.");
         return { level: 'moderate', details };
+      }
+
+      if (!isNaN(time) && time >= 4 && time <= 24) {
+        const treatmentThreshold = 150 * Math.exp(-0.068 * (time - 4));
+
+        if (level >= treatmentThreshold) {
+          details.push(
+            `Level ${level} mcg/mL at ${time} hours is ON/ABOVE the treatment line. NAC indicated.`
+          );
+          return { level: 'severe', details };
+        }
+
+        details.push(
+          `Level ${level} mcg/mL at ${time} hours is below the treatment line. NAC not indicated if history is reliable, single acute immediate-release ingestion, and patient remains well.`
+        );
+
+        if (extendedRelease) {
+          details.push(
+            "Because extended-release ingestion is possible, repeat level may be required before clearance."
+          );
+          return { level: 'moderate', details };
+        }
+
+        return { level: 'mild', details };
+      }
+
+      if (!isNaN(time) && time > 24) {
+        details.push(
+          "Presentation is >24 hours after ingestion. Nomogram is not reliable; assess clinically and with liver/metabolic labs."
+        );
+        details.push(
+          "If acetaminophen level is detectable, AST/ALT abnormal, INR elevated, or symptoms present → start NAC."
+        );
+        return { level: 'moderate', details };
+      }
     }
 
-    if (ingestedDose >= 150 && isNaN(level)) {
-        details.push(`Potentially toxic ingestion of ${ingestedDose} mg/kg. Empiric treatment with NAC should be considered if a level cannot be obtained in a timely manner (within 8 hours of ingestion).`);
-        return { level: 'moderate', details };
+    if (!isNaN(ingestedDose) && ingestedDose < 150 && !highRisk) {
+      details.push(
+        `Estimated ingestion ${ingestedDose} mg/kg is below usual pediatric toxic threshold, with no high-risk factors.`
+      );
+      details.push(
+        "Observe clinically; consider level/labs if history unreliable, symptomatic, very young child, or co-ingestion concern."
+      );
+      return { level: 'mild', details };
     }
 
-    return { level: 'unknown', details: ["Cannot assess risk. Enter ingestion dose and/or a timed level (between 4-24h)."] };
+    if (highRisk) {
+      details.push(
+        "High-risk factors are present. Use lower threshold for labs, observation, toxicology discussion, and empiric NAC if risk assessment is delayed."
+      );
+      return { level: 'moderate', details };
+    }
+
+    details.push(
+      "Risk cannot be fully assessed. Enter dose, timing, ingestion type, level availability, and symptoms/labs."
+    );
+    return { level: 'unknown', details };
   },
+
   getManagement: (severity) => {
-    const management = [{
-        title: "Initial Management",
+    const management = [
+      {
+        title: "Initial Pediatric Assessment",
         recommendations: [
-            "Assess ABCs and stabilize the patient.",
-            "Consider activated charcoal (1 g/kg) if patient presents within 1-2 hours of a significant ingestion (>150 mg/kg).",
-            "Obtain acetaminophen level at 4 hours post-ingestion or as soon as possible thereafter (but not before 4 hours).",
-            "Obtain baseline labs: LFTs (AST/ALT), PT/INR, creatinine."
+          "Assess ABCs, vital signs, mental status, glucose, hydration, and co-ingestion risk.",
+          "Clarify formulation: immediate-release vs extended-release; single acute vs staggered/repeated dosing.",
+          "Check exact time of ingestion, estimated total dose in mg/kg, and reliability of caregiver history.",
+          "Do NOT use Rumack-Matthew nomogram for unknown time, staggered ingestion, repeated supratherapeutic ingestion, or delayed presentation with liver injury."
         ]
-    }];
+      },
+      {
+        title: "Labs / Monitoring",
+        recommendations: [
+          "Serum acetaminophen/paracetamol level: draw at 4 hours post-ingestion or immediately if presentation is after 4 hours.",
+          "Baseline labs: AST/ALT, PT/INR, bilirubin, glucose, electrolytes/CO2, urea/creatinine.",
+          "If delayed presentation, abnormal labs, symptoms, or NAC is started: repeat AST/ALT, INR, creatinine, glucose, and acetaminophen level according to local toxicology protocol.",
+          "For repeated supratherapeutic ingestion: obtain acetaminophen level and liver/metabolic labs; nomogram is not applicable."
+        ]
+      },
+      {
+        title: "Activated Charcoal",
+        recommendations: [
+          "Consider activated charcoal 1 g/kg PO/NG, max 50 g, if significant ingestion and presentation is usually within 1–4 hours.",
+          "Use only if airway is protected and aspiration risk is low.",
+          "Discuss with toxicology for massive ingestion, extended-release product, or delayed gastric emptying."
+        ]
+      }
+    ];
 
     if (severity.level === 'severe') {
       management.push({
-        title: "NAC Treatment Indicated",
+        title: "Final Decision: NAC Indicated / Start Now",
         recommendations: [
-          "Start N-acetylcysteine (NAC) immediately.",
-          "The 21-hour IV protocol is most commonly used in the hospital setting.",
-          "Continue to monitor LFTs, INR, and creatinine.",
-          "Consult toxicology or a poison control center."
-        ]
-      });
-    } else if (severity.level === 'mild') {
-        management.push({
-        title: "No Treatment Indicated (at this time)",
-        recommendations: [
-          "NAC is not currently indicated based on the nomogram.",
-          "Observe the patient and consider repeating labs if there is any clinical concern or if the history of ingestion is unreliable.",
+          "Start IV N-acetylcysteine immediately.",
+          "Do not delay NAC if level is unavailable and patient is >8 hours from potentially toxic ingestion.",
+          "Start NAC for level on/above treatment line, unknown/unreliable timing with possible toxic ingestion, symptoms, abnormal AST/ALT or INR, or repeated supratherapeutic ingestion with detectable level/abnormal labs.",
+          "Consult toxicology/poison control early.",
+          "Admit for NAC infusion and serial monitoring.",
+          "PICU if encephalopathy, hypoglycemia, severe acidosis, shock, INR significantly elevated, active bleeding, or acute liver failure concern."
         ]
       });
     } else if (severity.level === 'moderate') {
-         management.push({
-        title: "Awaiting Definitive Risk Assessment",
+      management.push({
+        title: "Final Decision: Awaiting Risk Stratification / Possible Empiric NAC",
         recommendations: [
-          "If level was drawn too early, repeat it at or after 4 hours post-ingestion.",
-          "If a level cannot be obtained within 8 hours of a potentially toxic ingestion (>150 mg/kg), empiric treatment with NAC is recommended."
+          "If ingestion is potentially toxic and acetaminophen level will not be available before 8 hours post-ingestion → start NAC empirically.",
+          "If level was drawn before 4 hours → repeat at ≥4 hours.",
+          "If extended-release ingestion possible → consider repeat level even if first level is below treatment line.",
+          "If repeated supratherapeutic ingestion → use labs and detectable level to decide NAC; do not use nomogram.",
+          "Observe in ED or admit depending on timing, reliability, symptoms, lab turnaround, and toxicology advice."
+        ]
+      });
+    } else if (severity.level === 'mild') {
+      management.push({
+        title: "Final Decision: Low Risk / NAC Usually Not Required",
+        recommendations: [
+          "NAC is not indicated if reliable single acute immediate-release ingestion, timed level is below treatment line, and child is asymptomatic.",
+          "If dose <150 mg/kg, child is well, and history is reliable, observation and discharge advice may be appropriate.",
+          "Give clear return precautions: vomiting, abdominal pain, lethargy, jaundice, bleeding, confusion, or worsening condition.",
+          "Ensure safe medication counseling: correct dose, avoid duplicate paracetamol-containing products, and safe storage."
+        ]
+      });
+    } else {
+      management.push({
+        title: "Final Decision: Incomplete Data",
+        recommendations: [
+          "Cannot safely classify risk without dose, timing, ingestion pattern, symptoms, and level/lab availability.",
+          "If history is unreliable or lab result is delayed beyond 8 hours after possible toxic ingestion, treat as high-risk and start NAC.",
+          "Discuss with toxicology/poison control."
         ]
       });
     }
 
     return management;
   },
+
   getDisposition: (severity) => {
     if (severity.level === 'severe') {
-        return ["Admission to the hospital is required for NAC infusion and monitoring.", "Patients with evidence of hepatic failure require PICU admission and consideration for liver transplant evaluation."];
+      return [
+        "Admit for NAC infusion and serial monitoring.",
+        "PICU if encephalopathy, hypoglycemia, metabolic acidosis, shock, INR significantly elevated, active bleeding, renal impairment, or acute liver failure concern.",
+        "Consider transfer to a center with pediatric toxicology/PICU/liver transplant capability if severe hepatotoxicity or liver failure develops."
+      ];
     }
+
     if (severity.level === 'moderate') {
-        return ["Observe in ED until a 4-hour level can be obtained and risk-stratified."];
+      return [
+        "Observe in ED or admit until acetaminophen level and liver/metabolic labs allow safe risk stratification.",
+        "Start NAC if results are delayed beyond 8 hours after potentially toxic ingestion.",
+        "Do not discharge if timing is unreliable, ingestion is staggered/repeated, extended-release ingestion possible, or follow-up is unsafe."
+      ];
     }
-    return ["If below the treatment line and asymptomatic, may be medically cleared for discharge after observation."];
+
+    if (severity.level === 'mild') {
+      return [
+        "May discharge if child is asymptomatic, history is reliable, ingestion is below toxic threshold OR timed level is below treatment line, and no concerning labs.",
+        "Provide medication safety counseling and return precautions."
+      ];
+    }
+
+    return [
+      "Disposition cannot be determined. Complete assessment and discuss with toxicology if risk remains unclear."
+    ];
   },
+
   getRedFlags: () => [
-    "Acetaminophen level on or above the treatment line on the Rumack-Matthew nomogram.",
-    "Single ingestion > 150 mg/kg.",
-    "History of massive ingestion (>30g or 500mg/kg).",
-    "Evidence of hepatotoxicity (markedly elevated AST/ALT, elevated INR, jaundice).",
-    "Altered mental status (hepatic encephalopathy)."
+    "Acetaminophen/paracetamol level on or above Rumack-Matthew treatment line.",
+    "Estimated acute ingestion ≥150 mg/kg in a child.",
+    "High-risk/massive ingestion ≥300 mg/kg.",
+    "Unknown time, unreliable history, staggered ingestion, or repeated supratherapeutic dosing.",
+    "Serum level unavailable before 8 hours after potentially toxic ingestion.",
+    "Vomiting, RUQ pain, lethargy, jaundice, altered mental status.",
+    "Elevated AST/ALT, elevated INR, hypoglycemia, metabolic acidosis, renal impairment.",
+    "Possible extended-release product or significant co-ingestion.",
+    "Any intentional overdose in adolescent."
   ],
-  getDrugDoses: () => [
-    { drugName: "N-acetylcysteine (NAC) IV - 21-hour protocol", dose: "1. Loading Dose: 150 mg/kg in 200mL D5W over 60 minutes.\n2. Second Dose: 50 mg/kg in 500mL D5W over 4 hours.\n3. Third Dose: 100 mg/kg in 1000mL D5W over 16 hours.", notes: "Doses and fluid volumes may be adjusted for pediatric patients. Consult pharmacy." }
+
+  getDrugDoses: (): DrugDose[] => [
+    {
+      drugName: "Activated Charcoal",
+      dose: "1 g/kg PO/NG once; maximum 50 g.",
+      notes:
+        "Consider within 1–4 hours of significant ingestion if airway protected. Discuss with toxicology for massive ingestion, extended-release product, or delayed gastric emptying."
+    },
+    {
+      drugName: "N-acetylcysteine (NAC) IV",
+      dose:
+        "Common 21-hour IV protocol: 150 mg/kg loading dose over 1 hour, then 50 mg/kg over 4 hours, then 100 mg/kg over 16 hours.",
+      notes:
+        "Use institution-specific pediatric fluid-adjusted dilution/infusion volumes. Avoid adult default fluid volumes in small children. Consult pharmacy/toxicology for infants, low-weight children, fluid restriction, renal/cardiac disease, or severe toxicity."
+    },
+    {
+      drugName: "N-acetylcysteine continuation",
+      dose:
+        "Continue beyond standard protocol if acetaminophen level remains detectable, AST/ALT rising, INR abnormal, acidosis/renal impairment present, or patient clinically unwell.",
+      notes:
+        "Stopping NAC should be based on clinical status, acetaminophen level, liver enzymes, INR, renal function, and toxicology advice."
+    }
   ],
-  getReferences: () => [{ title: "UpToDate: Acetaminophen (paracetamol) poisoning in children and adolescents", url: "https://www.uptodate.com/contents/acetaminophen-paracetamol-poisoning-in-children-and-adolescents" }],
+
+  getReferences: () => [
+    {
+      title: "Royal Children's Hospital Melbourne: Paracetamol poisoning guideline",
+      url: "https://www.rch.org.au/clinicalguide/guideline_index/paracetamol_poisoning/"
+    },
+    {
+      title: "FDA Acetadote label: start NAC if acetaminophen concentration unavailable within 8 hours",
+      url: "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/021539s019lbl.pdf"
+    },
+    {
+      title: "NSW Agency for Clinical Innovation: Management of paracetamol overdose",
+      url: "https://aci.health.nsw.gov.au/networks/eci/clinical/tools/paracetamol"
+    },
+    {
+      title: "Medical Journal of Australia: Updated guidelines for paracetamol poisoning",
+      url: "https://pubmed.ncbi.nlm.nih.gov/31786822/"
+    }
+  ],
 };
