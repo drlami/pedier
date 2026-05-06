@@ -9,138 +9,95 @@ export const snakeBiteProtocol: DiseaseProtocol = {
     url: "https://picsum.photos/seed/snake-bite/600/400",
     hint: "snake reptile"
   },
+
   questions: [
     { id: 'hasFangMarks', questionText: 'Are fang marks present?', type: 'boolean' },
 
-    { id: 'hasLocalSwelling', questionText: 'Is there any local swelling or local reaction?', type: 'boolean' },
+    { id: 'hasLocalSwelling', questionText: 'Is there local swelling?', type: 'boolean' },
 
-    { id: 'swellingExtent', questionText: 'If swelling is present, what is the extent?', type: 'select', options: [
+    { id: 'swellingExtent', questionText: 'Extent of swelling?', type: 'select', options: [
         { label: 'None', value: 'none' },
         { label: 'Local swelling only / around bite site', value: 'local_only' },
         { label: 'Swelling beyond the bite site', value: 'beyond_site' },
-        { label: 'Marked local reaction / >50% limb / rapidly progressing', value: 'marked' },
+        { label: 'Marked / rapidly progressive / >50% limb', value: 'marked' },
     ]},
 
-    { 
-      id: 'hasSystemicSigns', 
-      questionText: 'Are there systemic reactions?', 
-      type: 'boolean', 
-      info: 'Examples: vomiting, drowsiness, headache, bleeding, ptosis, weakness, shock, arrhythmia, respiratory distress, altered consciousness.' 
+    {
+      id: 'hasSystemicSigns',
+      questionText: 'Are systemic signs present?',
+      type: 'boolean',
+      info: 'Bleeding, vomiting, drowsiness, headache, ptosis, weakness, shock, arrhythmia, respiratory distress, altered consciousness.'
     },
 
-    { 
-      id: 'hasMarkedSystemicSigns', 
-      questionText: 'Are there MARKED systemic reactions?', 
-      type: 'boolean', 
-      info: 'Examples: bleeding diathesis, DIC, shock, ARDS, severe neurotoxicity, respiratory compromise, cardiovascular instability.' 
-    },
-
-    { 
-      id: 'hasLabAbnormalities', 
-      questionText: 'Are there laboratory changes?', 
-      type: 'boolean', 
-      info: 'Examples: low hematocrit, low fibrinogen, thrombocytopenia, abnormal coagulation profile, DIC, abnormal 20-minute whole blood clotting test.' 
-    },
-
-    { 
-      id: 'hasMarkedLabAbnormalities', 
-      questionText: 'Are there MARKED laboratory changes?', 
-      type: 'boolean', 
-      info: 'Examples: marked coagulopathy, DIC, severe thrombocytopenia, low fibrinogen, low hematocrit, persistent abnormal clotting.' 
+    {
+      id: 'hasLabAbnormalities',
+      questionText: 'Are laboratory abnormalities present?',
+      type: 'boolean',
+      info: 'Low hematocrit, low fibrinogen, thrombocytopenia, DIC, abnormal coagulation profile, abnormal 20-minute whole blood clotting test.'
     }
   ],
 
   calculateSeverity: (data: FormData): Severity => {
-    const hasMarkedLocalReaction = data.swellingExtent === 'marked';
+    const markedLocal = data.swellingExtent === 'marked';
+    const beyondSite = data.swellingExtent === 'beyond_site';
+    const localOnly = data.swellingExtent === 'local_only';
 
     // Grade III: Severe envenomation
-    // Final reference: Marked local reaction PLUS marked systemic reaction PLUS marked laboratory changes.
-    if (
-      hasMarkedLocalReaction &&
-      data.hasMarkedSystemicSigns &&
-      data.hasMarkedLabAbnormalities
-    ) {
+    if (markedLocal && data.hasSystemicSigns && data.hasLabAbnormalities) {
       return {
         level: 'severe',
         details: [
-          "Grade III = Severe envenomation.",
-          "Marked local reaction PLUS marked systemic reactions PLUS marked laboratory changes.",
-          "Recommended antivenin dose: 11–15 vials or more."
+          "🔴 GRADE III — SEVERE ENVENOMATION",
+          "Marked local reaction PLUS systemic signs PLUS laboratory abnormalities.",
+          "ASV dose: 11–15 vials or more."
         ]
       };
     }
 
     // Grade II: Moderate envenomation
-    // Final reference: Swelling beyond bite site PLUS systemic reactions OR laboratory changes.
-    if (
-      data.swellingExtent === 'beyond_site' &&
-      (data.hasSystemicSigns || data.hasLabAbnormalities)
-    ) {
+    if ((beyondSite || markedLocal) && (data.hasSystemicSigns || data.hasLabAbnormalities)) {
       return {
         level: 'moderate',
         details: [
-          "Grade II = Moderate envenomation.",
-          "Swelling beyond the bite site PLUS systemic reactions OR laboratory changes.",
-          "Recommended antivenin dose: 6–10 vials."
-        ]
-      };
-    }
-
-    // Marked swelling with any systemic/lab abnormality should not be missed.
-    // If marked local swelling is present but full Grade III criteria are not met,
-    // classify at least as moderate and escalate clinical monitoring.
-    if (
-      hasMarkedLocalReaction &&
-      (data.hasSystemicSigns || data.hasLabAbnormalities || data.hasMarkedSystemicSigns || data.hasMarkedLabAbnormalities)
-    ) {
-      return {
-        level: 'moderate',
-        details: [
-          "At least Grade II = Moderate envenomation.",
-          "Marked local reaction is present with systemic or laboratory abnormality, but full Grade III criteria are not complete.",
-          "Recommended antivenin dose: 6–10 vials. Reassess frequently for progression to Grade III."
+          "🟠 GRADE II — MODERATE ENVENOMATION",
+          "Swelling beyond the bite site PLUS systemic signs OR laboratory abnormalities.",
+          "ASV dose: 6–10 vials."
         ]
       };
     }
 
     // Grade I: Mild envenomation
-    // Final reference: Fang marks + local swelling + no systemic reactions.
     if (
       data.hasFangMarks &&
       data.hasLocalSwelling &&
-      (data.swellingExtent === 'local_only' || data.swellingExtent === 'beyond_site' || data.swellingExtent === 'marked') &&
+      (localOnly || beyondSite || markedLocal) &&
       !data.hasSystemicSigns &&
-      !data.hasMarkedSystemicSigns &&
-      !data.hasLabAbnormalities &&
-      !data.hasMarkedLabAbnormalities
+      !data.hasLabAbnormalities
     ) {
       return {
         level: 'mild',
         details: [
-          "Grade I = Mild envenomation.",
-          "Fang marks present with local swelling but no systemic reactions.",
-          "Recommended antivenin dose: 3–5 vials."
+          "🟡 GRADE I — MILD ENVENOMATION",
+          "Fang marks with local swelling only and no systemic signs.",
+          "ASV dose: 3–5 vials."
         ]
       };
     }
 
     // Grade 0: No envenomation
-    // Final reference: Fang marks + no local reaction + no systemic reaction.
     if (
       data.hasFangMarks &&
       !data.hasLocalSwelling &&
       data.swellingExtent === 'none' &&
       !data.hasSystemicSigns &&
-      !data.hasMarkedSystemicSigns &&
-      !data.hasLabAbnormalities &&
-      !data.hasMarkedLabAbnormalities
+      !data.hasLabAbnormalities
     ) {
       return {
         level: 'no',
         details: [
-          "Grade 0 = No envenomation.",
-          "Fang marks present, no local reaction, and no systemic reaction.",
-          "No antivenin indicated. Observe in emergency department for at least 4 hours."
+          "🟢 GRADE 0 — NO ENVENOMATION",
+          "Fang marks present, but no local reaction and no systemic reaction.",
+          "No ASV. Observe in ER for at least 4 hours."
         ]
       };
     }
@@ -148,96 +105,93 @@ export const snakeBiteProtocol: DiseaseProtocol = {
     return {
       level: 'unknown',
       details: [
-        "Unable to assign a clear grade.",
-        "Reassess fang marks, local swelling extent, systemic reactions, and laboratory changes.",
-        "If any local reaction is present, observe closely and consider admission according to protocol."
+        "⚠️ GRADE UNCLEAR",
+        "Reassess fang marks, local swelling, systemic signs, and laboratory abnormalities.",
+        "If local reaction, systemic signs, or lab abnormalities are present, observe closely and consider senior/PICU review."
       ]
     };
   },
 
   getManagement: (severity, data) => {
+    const gradeTitle =
+      severity.level === 'no'
+        ? "🟢 FINAL RESULT: GRADE 0 — NO ENVENOMATION"
+        : severity.level === 'mild'
+          ? "🟡 FINAL RESULT: GRADE I — MILD ENVENOMATION"
+          : severity.level === 'moderate'
+            ? "🟠 FINAL RESULT: GRADE II — MODERATE ENVENOMATION"
+            : severity.level === 'severe'
+              ? "🔴 FINAL RESULT: GRADE III — SEVERE ENVENOMATION"
+              : "⚠️ FINAL RESULT: GRADE UNCLEAR";
+
+    const asvRecommendation =
+      severity.level === 'no'
+        ? "No antivenin. Local care, tetanus if indicated, and observe in ER for at least 4 hours."
+        : severity.level === 'mild'
+          ? "Give antivenin 3–5 vials."
+          : severity.level === 'moderate'
+            ? "Give antivenin 6–10 vials."
+            : severity.level === 'severe'
+              ? "Give antivenin 11–15 vials or more."
+              : "Reassess clinically. If concern for envenomation, seek senior/PICU/toxicology guidance.";
+
     const management = [
+      {
+        title: gradeTitle,
+        recommendations: [
+          asvRecommendation,
+          ...severity.details
+        ]
+      },
       {
         title: "Initial ED Management",
         recommendations: [
-          "Follow ABCs: assess airway, breathing, and circulation.",
+          "Follow ABCs. Assess airway, breathing, and circulation.",
           "Reassure the patient.",
           "Immobilize the bitten limb as for a fractured limb.",
-          "Insert IV access.",
+          "Insert IV access immediately.",
           "Record baseline vital signs.",
           "Record circumference of the bitten extremity.",
           "Mark the border of swelling/ecchymosis on the limb to monitor progression.",
           "Clean the wound.",
           "Give tetanus prophylaxis if indicated.",
-          "Avoid incision, suction, ice packs, or harmful local measures.",
-          "Do not apply a tourniquet or constricting band."
+          "Avoid incision, suction, ice packs, tourniquet, or constricting bands."
         ]
       },
       {
-        title: "Final Grading & Antivenin Dose",
+        title: "Official Grade-Based Antivenin Dosing",
         recommendations: [
-          "Grade 0: Fang marks present, no local reaction, no systemic reaction → No antivenin.",
-          "Grade I: Fang marks present + local swelling + no systemic reaction → Antivenin 3–5 vials.",
-          "Grade II: Swelling beyond bite site PLUS systemic reactions OR laboratory changes → Antivenin 6–10 vials.",
-          "Grade III: Marked local reaction PLUS marked systemic reactions PLUS marked laboratory changes → Antivenin 11–15 vials or more.",
+          "Grade 0: Fang marks + no local reaction + no systemic reaction → No antivenin.",
+          "Grade I: Fang marks + local swelling + no systemic reaction → Antivenin 3–5 vials.",
+          "Grade II: Swelling beyond bite site PLUS systemic signs OR laboratory abnormalities → Antivenin 6–10 vials.",
+          "Grade III: Marked local reaction PLUS systemic signs PLUS laboratory abnormalities → Antivenin 11–15 vials or more.",
           "Children receive the same antivenin vial dose as adults."
+        ]
+      },
+      {
+        title: "Antivenin Administration",
+        recommendations: [
+          asvRecommendation,
+          "Dilute antivenin in normal saline and infuse over 1 hour according to local hospital policy.",
+          "Monitor closely during infusion for anaphylactoid reaction.",
+          "Skin testing is not routinely recommended because it has poor predictive value."
         ]
       },
       {
         title: "Investigations & Monitoring",
         recommendations: [
           "CBC with platelet count.",
-          "PT, PTT, INR if available.",
+          "PT, PTT/INR.",
           "Fibrinogen and fibrin degradation products if available.",
-          "BUN, creatinine, and renal function.",
-          "Creatine phosphokinase if significant tissue injury or myotoxicity is suspected.",
+          "BUN, creatinine, renal function.",
+          "Creatine phosphokinase if significant tissue injury is suspected.",
           "Urinalysis for hemoglobinuria or myoglobinuria.",
           "20-minute whole blood clotting test if viper envenomation or coagulopathy is suspected.",
-          "Repeat investigations according to severity and progression."
+          "Repeat labs according to severity and progression.",
+          "Hourly monitoring of vital signs, neuro status, urine output, and limb circumference."
         ]
       },
       {
-        title: "Supportive Treatment",
-        recommendations: [
-          "Neurotoxic envenomation: consider neostigmine with atropine.",
-          "Prepare for airway support and mechanical ventilation if respiratory paralysis, bulbar weakness, absent gag reflex, pooling secretions, or respiratory distress occurs.",
-          "Monitor urine output closely.",
-          "Manage renal failure supportively; dialysis may be required.",
-          "Antibiotics are not routine; give only if secondary infection is suspected.",
-          "Surgical debridement may be needed later if tissue necrosis develops."
-        ]
-      },
-      {
-        title: "Observation / Admission",
-        recommendations: [
-          "Grade 0: observe in the emergency department for at least 4 hours.",
-          "Absence of local reactions within 30–60 minutes makes significant envenomation less likely.",
-          "If any local reaction is present, observe/admit for 24 hours.",
-          "PICU observation is preferred for patients with local reaction, systemic reaction, lab abnormality, or need for antivenin."
-        ]
-      }
-    ];
-
-    if (severity.level === 'mild' || severity.level === 'moderate' || severity.level === 'severe') {
-      management.splice(2, 0, {
-        title: "Antivenin Administration",
-        recommendations: [
-          "Give antivenin according to grade-based dose.",
-          severity.level === 'mild'
-            ? "Current grade: Grade I mild envenomation → give 3–5 vials."
-            : severity.level === 'moderate'
-              ? "Current grade: Grade II moderate envenomation → give 6–10 vials."
-              : "Current grade: Grade III severe envenomation → give 11–15 vials or more.",
-          "Dilute in normal saline and infuse over 1 hour according to local hospital policy.",
-          "Monitor closely for anaphylactoid reaction during infusion.",
-          "Skin testing is not routinely recommended because it has poor predictive value and may sensitize the patient.",
-          "If reaction occurs: stop antivenin temporarily, give IM adrenaline, add hydrocortisone and antihistamine according to local protocol, then restart slowly once recovered."
-        ]
-      });
-    }
-
-    if (severity.level === 'moderate' || severity.level === 'severe') {
-      management.splice(3, 0, {
         title: "When to Repeat Antivenin",
         recommendations: [
           "Repeat antivenin if blood remains incoagulable after 6 hours.",
@@ -246,8 +200,32 @@ export const snakeBiteProtocol: DiseaseProtocol = {
           "Repeat antivenin if cardiovascular signs worsen after 1–2 hours.",
           "Reassess clinically and with labs before giving additional doses."
         ]
-      });
-    }
+      },
+      {
+        title: "Supportive Treatment",
+        recommendations: [
+          "Neurotoxic envenomation: consider neostigmine with atropine.",
+          "Prepare for airway support and mechanical ventilation if respiratory paralysis, bulbar weakness, absent gag reflex, pooling secretions, or respiratory distress occurs.",
+          "Local wound management: clean wound thoroughly and leave open.",
+          "Record hourly progression of edema.",
+          "Tetanus prophylaxis: give booster dose if indicated.",
+          "Renal failure: monitor urine output closely. Dialysis may be required.",
+          "Antibiotics: only if secondary infection is suspected; not for routine use.",
+          "Surgical debridement may be needed later if tissue necrosis develops."
+        ]
+      },
+      {
+        title: "Antivenin Reaction Management",
+        recommendations: [
+          "Watch for urticaria, itching, fever, chills, nausea, vomiting, diarrhea, abdominal cramps, tachycardia, hypotension, bronchospasm, or angioedema.",
+          "If reaction occurs: stop antivenin temporarily.",
+          "Give IM adrenaline for significant reaction.",
+          "Add hydrocortisone and antihistamine according to local hospital protocol.",
+          "If no improvement or worsening after 10–15 minutes, repeat IM adrenaline.",
+          "Once recovered, restart antivenin slowly for 10–15 minutes under close monitoring, then resume normal drip rate."
+        ]
+      }
+    ];
 
     return management;
   },
@@ -255,36 +233,37 @@ export const snakeBiteProtocol: DiseaseProtocol = {
   getDisposition: (severity) => {
     if (severity.level === 'no') {
       return [
-        "Grade 0: observe in the emergency department for at least 4 hours.",
+        "🟢 Grade 0: observe in emergency department for at least 4 hours.",
         "If no local or systemic reaction develops, discharge may be considered with clear return precautions."
       ];
     }
 
     if (severity.level === 'mild') {
       return [
-        "Grade I: admit/observe for 24 hours because local reaction is present.",
-        "Monitor limb swelling, vital signs, neurological status, urine output, and labs."
+        "🟡 Grade I: local reaction is present. Observe/admit for 24 hours.",
+        "Give antivenin 3–5 vials.",
+        "Monitor swelling progression, vital signs, neurological status, urine output, and labs."
       ];
     }
 
     if (severity.level === 'moderate') {
       return [
-        "Grade II: admit for close monitoring.",
-        "PICU observation is preferred.",
-        "Give antivenin 6–10 vials according to protocol."
+        "🟠 Grade II: admit for close monitoring.",
+        "Give antivenin 6–10 vials.",
+        "PICU observation is preferred."
       ];
     }
 
     if (severity.level === 'severe') {
       return [
-        "Grade III: urgent admission, preferably PICU.",
-        "Give antivenin 11–15 vials or more according to protocol.",
-        "Prepare for airway support, shock management, blood product support if indicated, and renal monitoring."
+        "🔴 Grade III: urgent admission, preferably PICU.",
+        "Give antivenin 11–15 vials or more.",
+        "Prepare for airway support, shock management, renal monitoring, and blood product support if indicated."
       ];
     }
 
     return [
-      "Disposition unclear: reassess grading.",
+      "⚠️ Grade unclear: reassess grading.",
       "If any local reaction, systemic reaction, or lab abnormality is present, observe/admit and monitor closely."
     ];
   },
@@ -341,17 +320,17 @@ export const snakeBiteProtocol: DiseaseProtocol = {
       {
         drugName: "Adrenaline / Epinephrine IM",
         dose: "0.01 mg/kg IM, max 0.5 mg",
-        notes: "For significant anaphylactoid reaction. Repeat after 10–15 minutes if not improving or worsening."
+        notes: "For significant antivenin reaction. Repeat after 10–15 minutes if not improving or worsening."
       },
       {
         drugName: "Hydrocortisone IV",
         dose: "According to local hospital protocol",
-        notes: "Adjunct after adrenaline for longer-term protection against anaphylactoid reaction."
+        notes: "Adjunct after adrenaline."
       },
       {
         drugName: "Antihistamine IV/IM",
         dose: "According to local hospital protocol",
-        notes: "Adjunct treatment for urticaria/itching or anaphylactoid reaction."
+        notes: "Adjunct for urticaria, itching, or anaphylactoid reaction."
       }
     ];
 
@@ -359,13 +338,7 @@ export const snakeBiteProtocol: DiseaseProtocol = {
   },
 
   getReferences: () => [
-    {
-      title: "Pediatric Department Snake Envenomation Management Protocol",
-      url: "Local hospital protocol"
-    },
-    {
-      title: "Approach to Snake Bite Lecture",
-      url: "Dr Mohammad Naqib lecture"
-    }
+    { title: "Pediatric Department Snake Envenomation Management Protocol", url: "Local hospital protocol" },
+    { title: "Approach to Snake Bite Lecture", url: "Dr Mohammad Naqib lecture" }
   ],
 };
