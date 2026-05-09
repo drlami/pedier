@@ -31,15 +31,31 @@ export async function recordActivity(opts: {
 
   try {
     await db.insert(activityLogsTable).values({ ...base, userId: opts.userId });
-  } catch {
-    // If the userId FK constraint fails (e.g. stale JWT pointing to a deleted
-    // user), retry with userId = null so the event is never silently lost.
-    try {
-      await db.insert(activityLogsTable).values({ ...base, userId: null });
-    } catch (err2) {
-      // Last-resort: log to console but don't propagate — activity logging must
-      // never break the request that triggered it.
-      console.error('[activity-log] Failed to record event:', err2);
+  } catch (err) {
+    // PostgreSQL error code 23503 = foreign_key_violation.
+    // This happens when the JWT contains a user_id that was deleted/re-seeded.
+    // In that case retry with userId = null so the event is never silently lost.
+    const isFkViolation =
+      typeof err === 'object' && err !== null && (err as Record<string, unknown>)['code'] === '23503';
+
+    if (isFkViolation) {
+      try {
+        await db.insert(activityLogsTable).values({ ...base, userId: null });
+      } catch (err2) {
+        console.error('[activity-log] Failed to record event (null-user fallback):', {
+          event: opts.event,
+          username: opts.username,
+          error: String(err2),
+        });
+      }
+    } else {
+      // Unexpected DB error — log with structured metadata but don't propagate.
+      // Activity logging must never break the request that triggered it.
+      console.error('[activity-log] Unexpected error recording event:', {
+        event: opts.event,
+        username: opts.username,
+        error: String(err),
+      });
     }
   }
 }
