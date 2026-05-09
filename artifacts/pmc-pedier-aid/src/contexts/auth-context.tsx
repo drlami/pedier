@@ -21,6 +21,13 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const TOKEN_KEY = "pmc-auth-token";
 const API_BASE = "/api";
 
+function fireAppOpen(token: string) {
+  fetch(`${API_BASE}/activity-logs/open`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {});
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  // On mount: resume an existing session and log the page open.
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
@@ -45,10 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .then((data: AuthUser) => {
         setUser(data);
-        fetch(`${API_BASE}/activity-logs/open`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => {});
+        fireAppOpen(token);
       })
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY);
@@ -69,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data: { token: string; user: AuthUser } = await res.json();
     localStorage.setItem(TOKEN_KEY, data.token);
     setUser(data.user);
+    // Fire app_open for this fresh login session too, not only on page reload.
+    fireAppOpen(data.token);
   }, []);
 
   return (
