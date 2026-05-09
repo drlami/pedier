@@ -28,16 +28,22 @@ const DiffDiagOutputSchema = z.object({
 export type DiffDiagInput = z.infer<typeof DiffDiagInputSchema>;
 export type DiffDiagOutput = z.infer<typeof DiffDiagOutputSchema>;
 
-const prompt = ai.definePrompt({
-  name: "differentialDiagnosisPrompt",
-  input: { schema: DiffDiagInputSchema },
-  output: { schema: DiffDiagOutputSchema },
-  prompt: `You are an expert pediatric emergency physician. Your task is to provide a structured differential diagnosis and clinical guidance for a pediatric patient based on the provided symptoms.
+const differentialDiagnosisFlow = ai.defineFlow(
+  {
+    name: "differentialDiagnosisFlow",
+    inputSchema: DiffDiagInputSchema,
+    outputSchema: DiffDiagOutputSchema,
+  },
+  async (input) => {
+    const historyLine = input.history
+      ? `\n- Medical History: ${input.history}`
+      : "";
+
+    const promptText = `You are an expert pediatric emergency physician. Your task is to provide a structured differential diagnosis and clinical guidance for a pediatric patient based on the provided symptoms.
 
 Input:
-- Age: {{{age}}}
-- Symptoms: {{{symptoms}}}
-{{#if history}}- Medical History: {{{history}}}{{/if}}
+- Age: ${input.age}
+- Symptoms: ${input.symptoms}${historyLine}
 
 Please provide:
 1. **differentials**: A list of potential diagnoses. Include high-priority/life-threatening conditions (must-not-miss) as well as more likely benign causes.
@@ -47,17 +53,12 @@ Please provide:
 
 Focus on pediatric-specific conditions. Be concise and practical.
 
-IMPORTANT SAFETY RULE: This is a decision support tool for clinicians. Do not provide definitive diagnoses. The information must be used in conjunction with clinical judgment and physical examination.`,
-});
+IMPORTANT SAFETY RULE: This is a decision support tool for clinicians. Do not provide definitive diagnoses. The information must be used in conjunction with clinical judgment and physical examination.`;
 
-const differentialDiagnosisFlow = ai.defineFlow(
-  {
-    name: "differentialDiagnosisFlow",
-    inputSchema: DiffDiagInputSchema,
-    outputSchema: DiffDiagOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await ai.generate({
+      prompt: promptText,
+      output: { schema: DiffDiagOutputSchema },
+    });
     if (!output) throw new Error("AI failed to generate a differential diagnosis.");
     return output;
   }

@@ -58,11 +58,18 @@ const InputSchema = z.object({
   system: z.string().optional().describe("Clinical system category to assign the protocol to"),
 });
 
-const prompt = ai.definePrompt({
-  name: "draftCustomProtocolPrompt",
-  input: { schema: InputSchema },
-  output: { schema: CustomProtocolOutputSchema },
-  prompt: `You are a clinical informatics assistant helping a pediatric emergency physician build structured clinical decision support protocols. Generate a complete, accurate, evidence-based protocol in the required JSON schema.
+const draftCustomProtocolFlow = ai.defineFlow(
+  {
+    name: "draftCustomProtocolFlow",
+    inputSchema: InputSchema,
+    outputSchema: CustomProtocolOutputSchema,
+  },
+  async (input) => {
+    const systemLine = input.system
+      ? `\n- The protocol's "system" field MUST be set to exactly: "${input.system}"`
+      : "";
+
+    const promptText = `You are a clinical informatics assistant helping a pediatric emergency physician build structured clinical decision support protocols. Generate a complete, accurate, evidence-based protocol in the required JSON schema.
 
 IMPORTANT RULES:
 - Use only established, evidence-based medical information
@@ -71,21 +78,15 @@ IMPORTANT RULES:
 - Include at least 3 assessment questions (always include 'weight' as a number question in kg if drug doses are weight-based)
 - Severity rules must use the exact question IDs defined in the questions array
 - Include comprehensive management recommendations
-- Red flags should be clinical warning signs that require immediate escalation
-{{#if system}}- The protocol's "system" field MUST be set to exactly: "{{system}}"{{/if}}
+- Red flags should be clinical warning signs that require immediate escalation${systemLine}
 
 Generate a complete protocol for the following:
-{{{description}}}`,
-});
+${input.description}`;
 
-const draftCustomProtocolFlow = ai.defineFlow(
-  {
-    name: "draftCustomProtocolFlow",
-    inputSchema: InputSchema,
-    outputSchema: CustomProtocolOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await ai.generate({
+      prompt: promptText,
+      output: { schema: CustomProtocolOutputSchema },
+    });
     if (!output) throw new Error("AI returned no output.");
     // Always enforce the chosen system if one was provided
     if (input.system) {
