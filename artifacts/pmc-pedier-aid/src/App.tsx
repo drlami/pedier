@@ -28,6 +28,7 @@ import WelcomePage from "@/pages/welcome";
 import HyperbilirubinemiaCal from "@/pages/hyperbilirubinemia";
 import MetabolicCrisisPage from "@/pages/metabolic-crisis";
 import NotFound from "@/pages/not-found";
+import FirebaseTestPage from "@/pages/firebase-test";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -160,6 +161,7 @@ function Router() {
       <Route path="/calculators">
         {() => <ProtectedRoute component={CalculatorsPage} />}
       </Route>
+      <Route path="/firebase-test" component={FirebaseTestPage} />
       <Route path="/neonatology/hyperbilirubinemia">
         {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
       </Route>
