@@ -11,7 +11,7 @@ import { Trash2, PlusCircle, Save, Loader2 } from "lucide-react";
 import type { SerializableProtocol, Question } from "@/lib/protocols/types";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { getAuthToken } from "@/contexts/auth-context";
+import { useProtocolsContext } from "@/contexts/protocols-context";
 
 interface ProtocolEditorProps {
   protocol: SerializableProtocol | null;
@@ -34,6 +34,7 @@ function toApiQuestion(q: Question): Record<string, unknown> {
 
 export function ProtocolEditor({ protocol, onSaved }: ProtocolEditorProps) {
   const { toast } = useToast();
+  const { saveProtocol } = useProtocolsContext();
   const [, setLocation] = useLocation();
   const [saving, setSaving] = useState(false);
 
@@ -56,31 +57,12 @@ export function ProtocolEditor({ protocol, onSaved }: ProtocolEditorProps) {
   const isEditing = !!protocol;
 
   const onSubmit = async (data: SerializableProtocol) => {
-    const token = getAuthToken();
     setSaving(true);
-
     const questions = (data.questions ?? []).map(toApiQuestion);
-
     try {
-      let res: Response;
-
-      if (isEditing) {
-        res = await fetch(`/api/protocols/${data.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ name: data.name, system: data.system, description: data.description, questions }),
-        });
-      } else {
-        res = await fetch("/api/protocols", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
+      const payload = isEditing
+        ? { ...protocol, name: data.name, system: data.system, description: data.description, questions }
+        : {
             id: data.id,
             name: data.name,
             system: data.system,
@@ -93,30 +75,19 @@ export function ProtocolEditor({ protocol, onSaved }: ProtocolEditorProps) {
             redFlags: [],
             drugDoses: [],
             references: [],
-          }),
-        });
-      }
-
-      if (res.ok) {
-        toast({
-          title: isEditing ? "Protocol updated!" : "Protocol saved!",
-          description: `The protocol "${data.name}" has been successfully saved.`,
-        });
-        onSaved?.();
-        setLocation("/admin/protocols");
-      } else {
-        const json = await res.json();
-        toast({
-          variant: "destructive",
-          title: "Save failed",
-          description: json.message || "Could not save the protocol.",
-        });
-      }
+          };
+      saveProtocol(payload as any);
+      toast({
+        title: isEditing ? "Protocol updated!" : "Protocol saved!",
+        description: `The protocol "${data.name}" has been successfully saved.`,
+      });
+      onSaved?.();
+      setLocation("/admin/protocols");
     } catch {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to connect to the server.",
+        description: "Failed to save the protocol.",
       });
     } finally {
       setSaving(false);

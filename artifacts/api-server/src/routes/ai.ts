@@ -1,9 +1,16 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow";
 import { checkDrugSafety } from "../ai/drug-safety-flow";
 import { draftDiseaseProtocol } from "../ai/draft-protocol-flow";
 import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow";
 const router = Router();
+
+function requireLocalAdmin(req: Request, res: Response, next: NextFunction) {
+  const auth = req.headers.authorization ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  if (token === "local-session:admin") return next();
+  return res.status(403).json({ message: "Admin access required." });
+}
 
 router.post("/ai/differential-diagnosis", async (req, res) => {
   try {
@@ -47,7 +54,7 @@ router.post("/ai/draft-protocol", async (req, res) => {
   }
 });
 
-router.post("/ai/draft-custom-protocol", async (req, res) => {
+router.post("/ai/draft-custom-protocol", requireLocalAdmin, async (req, res) => {
   try {
     const { description, system } = req.body;
     if (!description || String(description).trim().length < 20) {

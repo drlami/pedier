@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getAuthToken } from "@/contexts/auth-context";
+import { useProtocolsContext } from "@/contexts/protocols-context";
 import type { CustomProtocol } from "@/lib/custom-protocol-types";
 import { CLINICAL_SYSTEMS } from "@/lib/protocols";
 import { Link } from "wouter";
@@ -42,6 +43,7 @@ interface ProtocolDrafterProps {
 
 export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps) {
   const { toast } = useToast();
+  const { saveProtocol } = useProtocolsContext();
   const [description, setDescription] = useState("");
   const [selectedSystem, setSelectedSystem] = useState<string>("");
   const [customSystem, setCustomSystem] = useState("");
@@ -93,24 +95,11 @@ export function ProtocolDrafter({ onDraftReady, onSaved }: ProtocolDrafterProps)
 
   const handleSaveDirectly = async () => {
     if (!draft) return;
-    const token = getAuthToken();
     setSaving(true);
     try {
-      const res = await fetch("/api/protocols", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(draft),
-      });
-      if (res.ok) {
-        toast({ title: "Protocol saved!", description: `"${draft.name}" is now live.` });
-        onSaved?.();
-      } else {
-        const json = await res.json();
-        toast({ variant: "destructive", title: "Save failed", description: json.message });
-      }
+      saveProtocol(draft as any);
+      toast({ title: "Protocol saved!", description: `"${draft.name}" is now live.` });
+      onSaved?.();
     } catch {
       toast({ variant: "destructive", title: "Error", description: "Failed to save." });
     } finally {

@@ -90,5 +90,12 @@ export function useAuth(): AuthContextValue {
 }
 
 export function getAuthToken(): string | null {
-  return localStorage.getItem(SESSION_KEY) ? "local-session" : null;
+  const raw = localStorage.getItem(SESSION_KEY);
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw) as { role?: string };
+    return `local-session:${session.role ?? "user"}`;
+  } catch {
+    return "local-session:user";
+  }
 }
