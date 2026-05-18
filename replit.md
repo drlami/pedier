@@ -21,24 +21,26 @@ artifacts/
 - **TypeScript version**: 5.9
 - **Frontend**: React + Vite, Wouter (routing), TanStack Query, Tailwind v4, shadcn/ui
 - **API framework**: Express 5
-- **Database**: Replit PostgreSQL via Drizzle ORM (`lib/db/` package, `@workspace/db`)
+- **Database**: None — all persistence is client-side localStorage
 - **AI**: Google Genkit (`genkit`, `@genkit-ai/google-genai`) with Gemini 2.5 Flash
 - **Build**: esbuild (ESM bundle for API server)
 
-## Database
+## Data Storage (No Database)
 
-All persistent data is stored in PostgreSQL (Replit managed). Schema defined with Drizzle ORM in `lib/db/src/schema/`:
+All persistent data lives in the browser via localStorage:
 
-| Table | Contents |
-|-------|----------|
-| `users` | Staff login accounts (id, username, password_hash, role, created_at) |
-| `custom_protocols` | Admin-created protocols (id, data JSONB, created_at, updated_at) |
-| `hidden_protocols` | IDs of built-in protocols hidden by admin |
-| `custom_drugs` | Custom + edited drug entries (id, data JSONB, is_custom, timestamps) |
+| Key | Contents |
+|-----|----------|
+| `pmc-auth-session` | JSON session object `{id, username, role}` — set on login |
+| `pmc-custom-drugs-v2` | Custom + edited drug entries (array of DrugEntry objects) |
+| `pmc-custom-protocols-v1` | Admin-created protocols (array of CustomProtocol objects) |
+| `pmc-hidden-protocols-v1` | Array of built-in protocol IDs hidden by admin |
 
-- Schema push: `pnpm --filter @workspace/db run push` (dev) or `push-force`
-- `DATABASE_URL` is set automatically by Replit when the database is provisioned
-- Admin user (`drlamiqurt`) is seeded automatically on API server startup
+**Auth** — Passwords are verified client-side with bcryptjs against hardcoded bcrypt hashes in `src/lib/static-users.ts`. Two accounts: `drlamiqurt` (admin) and `drsamer` (specialist).
+
+**Custom drugs** — Pre-seeded on first load with 5 entries (Amoxicillin-Clavulanate, Amoxicillin override, Cefdinir, Cefixime, Metronidazole override). Managed in `src/lib/drug-store.ts`.
+
+**Protocols** — Managed via `src/contexts/protocols-context.tsx`. Custom protocols and hidden protocol IDs are stored in localStorage.
 
 ## Key Features
 
@@ -66,35 +68,23 @@ All persistent data is stored in PostgreSQL (Replit managed). Schema defined wit
 | `/admin/protocols` | `src/pages/admin-protocols.tsx` |
 | `/admin/protocols/:protocolId` | `src/pages/admin-protocol-editor.tsx` |
 
-## API Routes (Express)
+## API Routes (Express — AI only, no DB)
 
 - `GET /api/health` — health check
 - `POST /api/ai/differential-diagnosis` — AI diff diagnosis
 - `POST /api/ai/drug-safety` — AI drug safety check
 - `POST /api/ai/draft-protocol` — AI protocol drafting
 
-## API Routes (additional)
-
-- `GET /api/custom-drugs` — list all custom/edited drugs (requireAuth)
-- `PUT /api/custom-drugs/:id` — upsert a custom drug (requireAuth)
-- `DELETE /api/custom-drugs/:id` — delete a custom drug (requireAuth)
-- `GET /api/protocols` — list custom protocols (requireAuth)
-- `POST/PUT/DELETE /api/protocols/:id` — manage custom protocols (requireAdmin)
-- `GET /api/users` — list users (requireAdmin)
-- `POST/PUT/DELETE /api/users/:id` — manage users (requireAdmin)
-
 ## Drug Doses Page
 
 - Built-in drugs are hardcoded in `artifacts/pmc-pedier-aid/src/lib/drug-doses.ts` (DRUGS array)
-- Custom/edited drugs are stored in the database and fetched via API on page load
-- `fetchCustomStore()` in `drug-store.ts` fetches from `GET /api/custom-drugs`
+- Custom/edited drugs are stored in localStorage key `pmc-custom-drugs-v2`
+- `loadCustomStore()` / `saveCustomStore()` in `drug-store.ts` read/write localStorage
 - `getMergedDrugs(store)` in `drug-doses.ts` merges built-in + custom drugs
-- One-time migration from `localStorage["pmc-custom-drugs-v1"]` to DB on first load
 
 ## Environment Variables / Secrets
 
 - `GOOGLE_GENAI_API_KEY` — required for all AI features (Gemini via Genkit)
-- `DATABASE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` — set automatically by Replit PostgreSQL provisioning
 
 ## Key Commands
 
@@ -111,3 +101,9 @@ Migrated from Next.js/Vercel to Replit pnpm monorepo:
 - `useActionState`/`useFormStatus` → custom `useState`/`fetch` hooks
 - Tailwind v3 CSS variables → Tailwind v4 `@theme inline` with HSL values
 - Protocol library is pure client-side TypeScript, no database needed
+
+Migrated from PostgreSQL to localStorage:
+- DB auth (bcrypt + JWT + sessions) → client-side bcryptjs against static hashes in `static-users.ts`
+- DB custom drugs → localStorage `pmc-custom-drugs-v2` (pre-seeded)
+- DB custom/hidden protocols → localStorage via `protocols-context.tsx`
+- Express auth/users/protocols/drugs/activity-logs routes → removed; API server is AI-only

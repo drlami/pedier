@@ -36,51 +36,174 @@ export interface CustomDrugStore {
   edits: Record<string, StoredDrug>;
 }
 
-const API_BASE = "/api";
-const TOKEN_KEY = "pmc-auth-token";
+const STORE_KEY = "pmc-custom-drugs-v2";
 
-function authHeaders(): HeadersInit {
-  const token = localStorage.getItem(TOKEN_KEY);
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+const SEEDED_DRUGS: StoredDrug[] = [
+  {
+    id: "custom-1778079731951",
+    name: "Amoxicillin - Cavulanate",
+    category: "Antibiotics",
+    isCustom: true,
+    indication: "Pneumonis , otitis media , tonsillitis",
+    warning: "Check penicillin allergy",
+    doses: [
+      {
+        id: "my5g4iy",
+        type: "oral-suspension",
+        route: "Oral",
+        frequency: "Twice daily (BD)",
+        maxDoseMg: 1000,
+        dosePerKgMg: 25,
+        dosePerKgMgMax: 50,
+        oralConcentrations: [
+          { label: "600 mg / 5 ml", mgPerMl: 120 },
+          { label: "400 mg / 5 ml", mgPerMl: 80 },
+          { label: "250 mg / 5 ml", mgPerMl: 50 },
+          { label: "125 mg / 5 ml", mgPerMl: 25 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "amoxicillin",
+    name: "Amoxicillin",
+    category: "Antibiotics",
+    isCustom: false,
+    indication: "Chest infection, otitis media, strep throat",
+    doses: [
+      {
+        id: "kt4em37",
+        type: "oral",
+        route: "Oral",
+        frequency: "Every 8 hours",
+        maxDoseMg: 500,
+        dosePerKgMg: 25,
+        oralConcentrations: [
+          { label: "125 mg / 5 ml", mgPerMl: 25 },
+          { label: "250 mg / 5 ml", mgPerMl: 50 },
+          { label: "400 mg / 5 ml", mgPerMl: 80 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "custom-1778079952391",
+    name: "Cefdinir",
+    category: "Antibiotics",
+    isCustom: true,
+    indication: "Otitis media  , UTI",
+    doses: [
+      {
+        id: "3zvrcml",
+        type: "other",
+        route: "Oral",
+        frequency: "Every 12 hours",
+        maxDoseMg: 500,
+        dosePerKgMg: 7,
+        dosePerKgMgMax: 7,
+        oralConcentrations: [
+          { label: "125 mg / 5 ml", mgPerMl: 25 },
+          { label: "250 mg / 5 ml", mgPerMl: 50 },
+        ],
+      },
+    ],
+  },
+  {
+    id: "custom-1778080053540",
+    name: "Cefixime",
+    category: "Antibiotics",
+    isCustom: true,
+    indication: "pneumonia , UTI",
+    doses: [
+      {
+        id: "knhrm5z",
+        type: "oral-suspension",
+        route: "Oral",
+        frequency: "Once daily (OD)",
+        maxDoseMg: 400,
+        dosePerKgMg: 8,
+        dosePerKgMgMax: 8,
+        oralConcentrations: [{ label: "100 mg / 5 ml", mgPerMl: 20 }],
+      },
+    ],
+  },
+  {
+    id: "metronidazole",
+    name: "Metronidazole",
+    category: "Antibiotics",
+    isCustom: false,
+    indication: "Anaerobic infections, abdominal sepsis",
+    doses: [
+      {
+        id: "mfkykjw",
+        type: "iv",
+        route: "IV over 20 min",
+        frequency: "Every 8 hours",
+        maxDoseMg: 500,
+        dosePerKgMg: 7.5,
+        ivAdminRate: "over 20 min",
+        ivConcentrationMgPerMl: 5,
+      },
+      {
+        id: "9phrxns",
+        type: "oral",
+        route: "Oral",
+        frequency: "Every 8 hours",
+        maxDoseMg: 400,
+        dosePerKgMg: 7.5,
+        oralConcentrations: [{ label: "125 mg / 5 ml (40 mg/ml)", mgPerMl: 25 }],
+      },
+    ],
+  },
+];
+
+function loadStore(): CustomDrugStore {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw) as CustomDrugStore;
+  } catch {}
+  const seeded: CustomDrugStore = { additions: [], edits: {} };
+  for (const drug of SEEDED_DRUGS) {
+    if (drug.isCustom) {
+      seeded.additions.push(drug);
+    } else {
+      seeded.edits[drug.id] = drug;
+    }
+  }
+  localStorage.setItem(STORE_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+
+function persistStore(store: CustomDrugStore): void {
+  localStorage.setItem(STORE_KEY, JSON.stringify(store));
 }
 
 export async function fetchCustomStore(): Promise<CustomDrugStore> {
-  try {
-    const res = await fetch(`${API_BASE}/custom-drugs`, {
-      headers: authHeaders(),
-    });
-    if (!res.ok) return { additions: [], edits: {} };
-    const drugs: StoredDrug[] = await res.json();
-    const store: CustomDrugStore = { additions: [], edits: {} };
-    for (const drug of drugs) {
-      if (drug.isCustom) {
-        store.additions.push(drug);
-      } else {
-        store.edits[drug.id] = drug;
-      }
-    }
-    return store;
-  } catch {
-    return { additions: [], edits: {} };
-  }
+  return loadStore();
 }
 
 export async function saveCustomDrug(drug: StoredDrug): Promise<void> {
-  await fetch(`${API_BASE}/custom-drugs/${drug.id}`, {
-    method: "PUT",
-    headers: authHeaders(),
-    body: JSON.stringify(drug),
-  });
+  const store = loadStore();
+  if (drug.isCustom) {
+    const idx = store.additions.findIndex((d) => d.id === drug.id);
+    if (idx >= 0) {
+      store.additions[idx] = drug;
+    } else {
+      store.additions.push(drug);
+    }
+    delete store.edits[drug.id];
+  } else {
+    store.edits[drug.id] = drug;
+    store.additions = store.additions.filter((d) => d.id !== drug.id);
+  }
+  persistStore(store);
 }
 
 export async function deleteCustomDrug(id: string): Promise<void> {
-  await fetch(`${API_BASE}/custom-drugs/${id}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
+  const store = loadStore();
+  store.additions = store.additions.filter((d) => d.id !== id);
+  delete store.edits[id];
+  persistStore(store);
 }
 
 export async function resetBuiltinDrug(id: string): Promise<void> {

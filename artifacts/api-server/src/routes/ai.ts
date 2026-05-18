@@ -3,8 +3,6 @@ import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow";
 import { checkDrugSafety } from "../ai/drug-safety-flow";
 import { draftDiseaseProtocol } from "../ai/draft-protocol-flow";
 import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow";
-import { requireAdmin } from "../middleware/auth.js";
-
 const router = Router();
 
 router.post("/ai/differential-diagnosis", async (req, res) => {
@@ -49,7 +47,7 @@ router.post("/ai/draft-protocol", async (req, res) => {
   }
 });
 
-router.post("/ai/draft-custom-protocol", requireAdmin, async (req, res) => {
+router.post("/ai/draft-custom-protocol", async (req, res) => {
   try {
     const { description, system } = req.body;
     if (!description || String(description).trim().length < 20) {

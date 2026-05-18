@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { getAuthToken } from "@/contexts/auth-context";
+import { useProtocolsContext } from "@/contexts/protocols-context";
 import type {
   CustomProtocol,
   CustomQuestion,
@@ -154,6 +154,7 @@ interface ProtocolBuilderProps {
 
 export function ProtocolBuilder({ initialData, onSaved, isClone = false }: ProtocolBuilderProps) {
   const { toast } = useToast();
+  const { saveProtocol } = useProtocolsContext();
   const [form, setForm] = useState<BuilderState>(() => makeInitialState(initialData));
   const [activeTab, setActiveTab] = useState("basics");
   const [saving, setSaving] = useState(false);
@@ -190,7 +191,6 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
       setActiveTab("basics");
       return;
     }
-    const token = getAuthToken();
     setSaving(true);
     const payload = {
       ...form,
@@ -200,22 +200,11 @@ export function ProtocolBuilder({ initialData, onSaved, isClone = false }: Proto
     delete (payload as any).redFlagsText;
 
     try {
-      const url = isEditing ? `/api/protocols/${form.id}` : "/api/protocols";
-      const method = isEditing ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        toast({ title: isEditing ? "Protocol updated!" : "Protocol saved!", description: `"${form.name}" is now live.` });
-        onSaved?.();
-      } else {
-        const json = await res.json();
-        toast({ variant: "destructive", title: "Save failed", description: json.message || "Unknown error" });
-      }
+      saveProtocol(payload as any);
+      toast({ title: isEditing ? "Protocol updated!" : "Protocol saved!", description: `"${form.name}" is now live.` });
+      onSaved?.();
     } catch {
-      toast({ variant: "destructive", title: "Error", description: "Failed to connect to server." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to save protocol." });
     } finally {
       setSaving(false);
     }

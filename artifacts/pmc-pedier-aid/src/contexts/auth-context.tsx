@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import bcrypt from "bcryptjs";
+import { STATIC_USERS } from "@/lib/static-users";
 
 export type UserRole = "admin" | "specialist" | "resident";
 
@@ -18,64 +20,52 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = "pmc-auth-token";
-const API_BASE = "/api";
-
-function fireAppOpen(token: string) {
-  fetch(`${API_BASE}/activity-logs/open`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  }).catch(() => {});
-}
+const SESSION_KEY = "pmc-auth-session";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
   }, []);
 
-  // On mount: resume an existing session and log the page open.
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as AuthUser;
+        const known = STATIC_USERS.find(
+          (u) => u.id === parsed.userId && u.username === parsed.username,
+        );
+        if (known) {
+          setUser(parsed);
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+    } finally {
       setIsLoading(false);
-      return;
     }
-    fetch(`${API_BASE}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Token invalid");
-        return res.json();
-      })
-      .then((data: AuthUser) => {
-        setUser(data);
-        fireAppOpen(token);
-      })
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-      })
-      .finally(() => setIsLoading(false));
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.message || "Login failed");
-    }
-    const data: { token: string; user: AuthUser } = await res.json();
-    localStorage.setItem(TOKEN_KEY, data.token);
-    setUser(data.user);
-    // Fire app_open for this fresh login session too, not only on page reload.
-    fireAppOpen(data.token);
+    const found = STATIC_USERS.find(
+      (u) => u.username.toLowerCase() === username.toLowerCase(),
+    );
+    if (!found) throw new Error("Invalid username or password");
+    const ok = await bcrypt.compare(password, found.passwordHash);
+    if (!ok) throw new Error("Invalid username or password");
+    const session: AuthUser = {
+      userId: found.id,
+      username: found.username,
+      role: found.role,
+    };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    setUser(session);
   }, []);
 
   return (
@@ -100,5 +90,5 @@ export function useAuth(): AuthContextValue {
 }
 
 export function getAuthToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(SESSION_KEY) ? "local-session" : null;
 }

@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/collapsible";
 import { allProtocols } from "@/lib/protocols";
 import { useProtocolsContext } from "@/contexts/protocols-context";
-import { getAuthToken } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus,
@@ -38,7 +37,7 @@ import {
 
 export default function ProtocolListPage() {
   const [, navigate] = useLocation();
-  const { rawCustomProtocols, hiddenBuiltInIds, refetch, hideBuiltIn, unhideBuiltIn } =
+  const { rawCustomProtocols, hiddenBuiltInIds, refetch, deleteProtocol, hideBuiltIn, unhideBuiltIn } =
     useProtocolsContext();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,21 +91,12 @@ export default function ProtocolListPage() {
 
   const handleDeleteCustom = async () => {
     if (!deleteTarget) return;
-    const token = getAuthToken();
     setDeleting(true);
     try {
-      const res = await fetch(`/api/protocols/${deleteTarget.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        toast({ title: "Protocol deleted", description: `"${deleteTarget.name}" has been removed.` });
-        await refetch();
-      } else {
-        toast({ variant: "destructive", title: "Delete failed", description: "Could not delete the protocol." });
-      }
+      deleteProtocol(deleteTarget.id);
+      toast({ title: "Protocol deleted", description: `"${deleteTarget.name}" has been removed.` });
     } catch {
-      toast({ variant: "destructive", title: "Error", description: "Failed to connect to server." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete protocol." });
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
