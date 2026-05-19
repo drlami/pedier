@@ -16,12 +16,13 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
     { id: 'apnea', questionText: 'Apnea present?', type: 'boolean' },
     { id: 'cyanosis', questionText: 'Cyanosis present?', type: 'boolean' },
     { id: 'feedingAdequacy', questionText: 'Feeding Adequacy', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Reduced (<50%)', value: 'reduced'}, {label: 'Poor/None', value: 'poor'}] },
-    { id: 'dehydration', questionText: 'Dehydration', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Mild', value: 'mild'}, {label: 'Moderate', value: 'moderate'}] },
+    { id: 'dehydration', questionText: 'Dehydration', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Mild', value: 'mild'}, {label: 'Moderate', value: 'moderate'}, {label: 'Severe / poor perfusion', value: 'severe'}] },
     { id: 'chestRetractions', questionText: 'Chest Retractions', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Mild', value: 'mild'}, {label: 'Moderate', value: 'moderate'}, {label: 'Severe', value: 'severe'}] },
     { id: 'nasalFlaring', questionText: 'Nasal Flaring?', type: 'boolean' },
     { id: 'grunting', questionText: 'Grunting?', type: 'boolean' },
     { id: 'mentalStatus', questionText: 'Mental Status', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Irritable', value: 'irritable'}, {label: 'Lethargic', value: 'lethargic'}] },
     { id: 'highRisk', questionText: 'High-risk conditions?', type: 'boolean', info: 'Prematurity, congenital heart disease, chronic lung disease, immunodeficiency' },
+    { id: 'oxygenNeed', questionText: 'Persistent oxygen requirement or escalating oxygen need?', type: 'boolean', info: 'Persistent desaturation despite positioning/suctioning or need for supplemental oxygen/HFNC.' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     let score = 0;
@@ -45,14 +46,17 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
 
     if (data.feedingAdequacy === 'poor') { score += 2; details.push("Poor feeding"); }
     else if (data.feedingAdequacy === 'reduced') { score += 1; details.push("Reduced feeding"); }
+    if (data.dehydration === 'severe') { score += 4; details.push("Severe dehydration/poor perfusion"); }
+    else if (data.dehydration === 'moderate') { score += 2; details.push("Moderate dehydration"); }
 
     if (data.mentalStatus === 'lethargic') { score += 3; details.push("Lethargic"); }
     else if (data.mentalStatus === 'irritable') { score += 1; details.push("Irritable"); }
 
     if (data.highRisk) { score += 1; details.push("High-risk condition"); }
+    if (data.oxygenNeed) { score += 2; details.push("Persistent/escalating oxygen requirement"); }
     if (Number(data.ageMonths) < 3) { score += 1; details.push("Age < 3 months"); }
 
-    if (score >= 9 || data.mentalStatus === 'lethargic' || data.apnea || data.cyanosis || Number(data.oxygenSaturation) < 90) {
+    if (score >= 9 || data.mentalStatus === 'lethargic' || data.apnea || data.cyanosis || data.dehydration === 'severe' || Number(data.oxygenSaturation) < 90) {
       return { level: 'severe', score, details };
     }
     if (score >= 4) {
@@ -66,14 +70,23 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
         title: "Supportive Care",
         recommendations: [
           "Nasal suctioning as needed, especially before feeds and sleep.",
-          "Maintain hydration. Encourage oral fluids. Consider NG/IV fluids if oral intake is inadequate."
+          "Maintain hydration. Encourage oral fluids if safe. Consider NG or IV fluids if oral intake is inadequate, respiratory distress is significant, or dehydration is present."
         ]
       },
       {
         title: "Oxygen Therapy",
         recommendations: [
-          "Administer supplemental oxygen to maintain SpO2 ≥ 90-92%.",
-          "Consider high-flow nasal cannula (HFNC) for moderate to severe distress or escalating oxygen needs."
+          "Administer supplemental oxygen for persistent hypoxemia after positioning and suctioning. Target SpO2 per local policy, commonly ≥ 90% or ≥ 92% in high-risk infants.",
+          "Consider HFNC for moderate to severe distress, recurrent apnea, persistent hypoxemia despite low-flow oxygen, or escalating oxygen needs.",
+          "Escalate to PICU/CPAP/intubation pathway if HFNC fails, apnea persists, exhaustion develops, or mental status worsens."
+        ]
+      },
+      {
+        title: "Investigations to Avoid Routinely",
+        recommendations: [
+          "Routine chest X-ray is not recommended unless severe disease, atypical features, focal findings, or concern for complication/alternate diagnosis.",
+          "Routine viral testing, blood tests, and antibiotics are not needed in typical bronchiolitis.",
+          "Do not use bronchodilators or corticosteroids routinely; consider alternate diagnosis if there is repeated clear bronchodilator response."
         ]
       },
       {
@@ -92,7 +105,7 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
         recommendations: [
           "Admit to hospital, potentially to a higher level of care (PICU).",
           "Continuous cardiorespiratory and pulse oximetry monitoring.",
-          "Prepare for potential escalation to CPAP or mechanical ventilation if respiratory failure is impending."
+          "Prepare for escalation to HFNC, CPAP, or mechanical ventilation if respiratory failure is impending."
         ]
       });
     } else if (severity.level === 'moderate') {
@@ -118,13 +131,13 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
   getDisposition: (severity, data) => {
     const criteria: string[] = [];
     if (severity.level === 'severe') {
-      criteria.push("Admission to PICU should be strongly considered for any of the following:", "Impending respiratory failure", "Persistent apnea", "Persistent SpO2 < 90% despite supplemental oxygen.");
+      criteria.push("Admission to PICU/HDU should be strongly considered for any of the following:", "Impending respiratory failure or exhaustion", "Persistent/recurrent apnea", "Persistent SpO2 < 90% despite supplemental oxygen", "Need for HFNC/CPAP or rapidly escalating oxygen support", "Lethargy or poor perfusion.");
     }
     if (severity.level === 'moderate' || severity.level === 'severe') {
-      criteria.push("Consider Admission for:", "Persistent oxygen requirement (SpO2 < 92%)", "Moderate to severe dehydration or inadequate oral intake", "Marked respiratory distress (RR > 70, severe retractions, grunting)", "Apnea episodes", "Concern for safe monitoring at home or significant high-risk comorbidities.");
+      criteria.push("Consider Admission for:", "Persistent oxygen requirement after suctioning/positioning", "Moderate to severe dehydration or inadequate oral intake", "Marked respiratory distress (RR > 70, severe retractions, grunting)", "Apnea episodes", "Age < 3 months, prematurity, cardiopulmonary disease, immunodeficiency, or concern for safe monitoring at home.");
     }
     if (severity.level === 'mild') {
-      criteria.push("Consider Discharge if:", "Clinically stable with mild work of breathing", "Maintaining SpO2 > 92% on room air", "Adequate oral hydration", "Family can manage at home and has clear return instructions.");
+      criteria.push("Consider Discharge if:", "Clinically stable with mild work of breathing", "Maintaining acceptable SpO2 on room air according to local policy, including during sleep/feeding observation when appropriate", "Adequate oral hydration", "No apnea/cyanosis and no high-risk features requiring observation", "Family can manage at home and has clear return instructions.");
     }
     return criteria;
   },

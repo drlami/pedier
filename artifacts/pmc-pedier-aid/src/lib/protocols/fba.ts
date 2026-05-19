@@ -10,6 +10,7 @@ export const fbaProtocol: DiseaseProtocol = {
     hint: "child choking"
   },
   questions: [
+    { id: 'activeObstruction', questionText: 'Active complete/severe airway obstruction now?', type: 'boolean', info: 'Unable to cry/speak/cough effectively, cyanosis, severe distress, silent cough, or deteriorating consciousness.' },
     { id: 'witnessedEvent', questionText: 'Witnessed choking or gagging episode?', type: 'boolean' },
     { id: 'age', questionText: 'Age (6mo - 4yr is highest risk)?', type: 'number', unit: 'years' },
     { id: 'symptomOnset', questionText: 'Sudden onset of cough, wheeze, or stridor?', type: 'boolean' },
@@ -21,6 +22,10 @@ export const fbaProtocol: DiseaseProtocol = {
     // Severity here relates to the likelihood of FBA requiring bronchoscopy
     const details: string[] = [];
     let score = 0;
+
+    if (data.activeObstruction) {
+      return { level: 'impending respiratory failure', details: ["Active complete/severe airway obstruction. Immediate choking/resuscitation pathway required."] };
+    }
     
     if (data.witnessedEvent) { score += 3; details.push("Witnessed choking event"); }
     if (data.symptomOnset) { score += 1; details.push("Sudden onset of symptoms"); }
@@ -41,6 +46,19 @@ export const fbaProtocol: DiseaseProtocol = {
   },
   getManagement: (severity, data) => {
     const management = [];
+    if(severity.level === 'impending respiratory failure'){
+      management.push({
+        title: "EMERGENCY: Active Airway Obstruction",
+        recommendations: [
+          "Call resuscitation team, anesthesia/ENT, and prepare for immediate airway intervention.",
+          "If ineffective cough or complete obstruction: follow pediatric choking algorithm immediately (back blows/chest thrusts for infants; abdominal thrusts for children when appropriate).",
+          "If unconscious: start CPR and inspect mouth only when opening airway; remove visible object only.",
+          "Do NOT perform blind finger sweeps.",
+          "Prepare for rigid bronchoscopy or surgical airway if obstruction cannot be relieved."
+        ]
+      });
+      return management;
+    }
     if(severity.level === 'severe' || severity.level === 'moderate'){
       management.push({
         title: "High/Moderate Suspicion of FBA",
@@ -48,7 +66,8 @@ export const fbaProtocol: DiseaseProtocol = {
           "Consult ENT or Pulmonology immediately.",
           "Prepare patient for rigid bronchoscopy in the operating room. This is both diagnostic and therapeutic.",
           "Keep patient NPO.",
-          "Monitor closely for worsening respiratory distress."
+          "A normal CXR does NOT exclude FBA; do not delay bronchoscopy when clinical suspicion is high.",
+          "Monitor closely for worsening respiratory distress and escalate immediately if obstruction becomes unstable."
         ]
       })
     }
@@ -75,6 +94,9 @@ export const fbaProtocol: DiseaseProtocol = {
     return management;
   },
   getDisposition: (severity, data) => {
+    if (severity.level === 'impending respiratory failure') {
+      return ["Immediate resuscitation area management with airway/ENT/anesthesia involvement. Do not transfer away from monitored emergency care until airway is secure."];
+    }
     if (severity.level === 'severe' || severity.level === 'moderate') {
       return ["Admit to hospital for rigid bronchoscopy."];
     }
@@ -82,6 +104,7 @@ export const fbaProtocol: DiseaseProtocol = {
   },
   getRedFlags: () => [
     "History of choking/gagging followed by respiratory symptoms (cough, wheeze, stridor) is the biggest red flag.",
+    "Unable to cry/speak/cough effectively, cyanosis, or deteriorating consciousness indicates complete obstruction.",
     "New-onset unilateral wheezing in a toddler.",
     "Cyanosis or severe distress (indicates high-grade obstruction - an emergency).",
     "Symptoms refractory to standard asthma/croup treatment."

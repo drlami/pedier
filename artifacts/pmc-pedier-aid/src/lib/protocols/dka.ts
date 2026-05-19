@@ -91,6 +91,7 @@ export const dkaProtocol: DiseaseProtocol = {
         "BAG A (0% Dextrose): 500 mL of 0.9% Normal Saline + 20 mEq KCl.",
         "BAG B (10% Dextrose): 500 mL of D10% in 0.9% Normal Saline + 20 mEq KCl.",
         "Note: Adding 20 mEq KCl to 500 mL results in the standard 40 mEq/L concentration.",
+        "POTASSIUM CAUTION: Do NOT add KCl if initial K+ is >5.5 mEq/L or urine output is not confirmed. Add potassium only after K+ falls and renal output is adequate.",
         "INFUSION: Run both bags on separate pumps, Y-connected into ONE IV line."
       ]
     });

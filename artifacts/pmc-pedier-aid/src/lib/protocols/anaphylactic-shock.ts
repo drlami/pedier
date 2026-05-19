@@ -156,10 +156,11 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
     const doses: DrugDose[] = [];
 
     if (weight > 0) {
+        const imEpinephrineMg = Math.min(0.01 * weight, 0.5);
         // First Line
         doses.push({
             drugName: "Epinephrine IM (1:1,000 Stock)",
-            dose: `0.01 mg/kg (max 0.5 mg) = ${(0.01 * weight).toFixed(2)} mL IM`,
+            dose: `0.01 mg/kg (max 0.5 mg) = ${imEpinephrineMg.toFixed(2)} mg = ${imEpinephrineMg.toFixed(2)} mL IM`,
             notes: "INDICATION: First-line for all systemic signs. Give UNDILUTED IM into mid-outer thigh. May repeat q5-15 min."
         });
 

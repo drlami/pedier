@@ -10,6 +10,7 @@ export const asthmaProtocol: DiseaseProtocol = {
     hint: "inhaler"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'age', questionText: 'Age', type: 'number', unit: 'years' },
     { id: 'speech', questionText: 'Speech', type: 'select', options: [{label: 'Normal sentences', value: 'normal'}, {label: 'Short phrases', value: 'phrases'}, {label: 'Single words', value: 'words'}] },
     { id: 'respiratoryRate', questionText: 'Respiratory Rate', type: 'number', unit: 'breaths/min' },
@@ -18,6 +19,7 @@ export const asthmaProtocol: DiseaseProtocol = {
     { id: 'accessoryMuscleUse', questionText: 'Accessory Muscle Use', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Mild', value: 'mild'}, {label: 'Marked', value: 'marked'}] },
     { id: 'mentalStatus', questionText: 'Mental Status', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Agitated/Anxious', value: 'agitated'}, {label: 'Drowsy/Confused', value: 'drowsy'}] },
     { id: 'pef', questionText: 'PEF (% predicted/personal best)', type: 'number', unit: '%', info: 'If available and child is >5 years old' },
+    { id: 'highRiskHistory', questionText: 'High-risk asthma history?', type: 'boolean', info: 'Previous ICU/intubation, recent admission, frequent SABA use, poor access to care, or poor response to initial treatment.' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
@@ -36,6 +38,7 @@ export const asthmaProtocol: DiseaseProtocol = {
     if (Number(data.oxygenSaturation) < 92) { severeCount++; details.push("O2 Sat < 92%"); }
     if (data.wheeze === 'severe') { severeCount++; details.push("Severe wheezing"); }
     if (Number(data.pef) < 50) { severeCount++; details.push("PEF < 50%"); }
+    if (data.highRiskHistory) { severeCount++; details.push("High-risk asthma history"); }
 
     if (severeCount > 0) return { level: 'severe', details };
     
@@ -57,11 +60,13 @@ export const asthmaProtocol: DiseaseProtocol = {
          management.push({
             title: "Initial Treatment (Severe / Impending RF)",
             recommendations: [
-                "Continuous Albuterol + Ipratropium nebulization for 1 hour.",
+                "Call senior clinician/PICU early. Place on continuous monitoring and give oxygen to maintain SpO2 ≥ 94%.",
+                "Continuous or back-to-back Albuterol + Ipratropium nebulization for the first hour.",
                 "Systemic Corticosteroids: Administer immediately.",
                 "IV Magnesium Sulfate over 20-30 minutes.",
-                "Consider IV fluid bolus for dehydration/work of breathing.",
-                "Prepare for non-invasive (BiPAP/CPAP) or invasive ventilation. Consult PICU."
+                "Reassess work of breathing, air entry, mental status, SpO2, and need for bronchodilator every 15-20 minutes.",
+                "Consider IV fluid bolus only if dehydrated or poor perfusion; avoid overhydration.",
+                "If fatigue, rising CO2, altered mental status, persistent hypoxemia, or poor response: prepare for non-invasive or invasive ventilation with PICU/anesthesia."
             ]
         });
     }
@@ -71,6 +76,7 @@ export const asthmaProtocol: DiseaseProtocol = {
             recommendations: [
                 "Albuterol + Ipratropium MDI with spacer (or nebulizer) x 3 doses every 20 minutes.",
                 "Systemic Corticosteroids: Administer immediately.",
+                "Give oxygen if needed to maintain SpO2 ≥ 94%.",
                 "Re-assess after 1 hour. If improving, continue albuterol every 1-4 hours as needed."
             ]
         });
@@ -89,12 +95,12 @@ export const asthmaProtocol: DiseaseProtocol = {
   },
   getDisposition: (severity, data) => {
     if(severity.level === 'impending respiratory failure' || severity.level === 'severe'){
-        return ["Immediate admission to PICU."];
+        return ["Admit for ongoing bronchodilator therapy and monitoring. PICU/HDU is required for impending respiratory failure, persistent hypoxemia, exhaustion, altered mental status, need for continuous albuterol, magnesium/IV therapy, or poor response after the first hour."];
     }
     if(severity.level === 'moderate'){
         return ["Admit to hospital if poor response to initial therapy, persistent hypoxia, or inability to tolerate q4h albuterol.", "Consider discharge if significant improvement, tolerating q4h albuterol, and SpO2 >94% on room air."];
     }
-    return ["Discharge home with clear action plan if good response to treatment.", "Ensure patient has medications and understands usage.", "Follow up with primary care within 2-5 days."];
+    return ["Discharge home with clear action plan if good response to treatment, minimal work of breathing, stable SpO2 on room air, and bronchodilator need spaced to at least every 3-4 hours.", "Ensure patient has controller/rescue medications, spacer technique review, and understands return precautions.", "Follow up with primary care/asthma clinic within 2-5 days."];
   },
   getRedFlags: () => [
     "Silent chest",
@@ -103,16 +109,23 @@ export const asthmaProtocol: DiseaseProtocol = {
     "Cyanosis",
     "Poor respiratory effort or fatigue"
   ],
-  getDrugDoses: (severity) => {
+  getDrugDoses: (severity, data) => {
+      const weight = Number(data.weight) || 0;
+      const predMin = weight > 0 ? Math.min(1 * weight, 60).toFixed(0) : "";
+      const predMax = weight > 0 ? Math.min(2 * weight, 60).toFixed(0) : "";
+      const dexDose = weight > 0 ? Math.min(0.6 * weight, 16).toFixed(1) : "";
+      const magMin = weight > 0 ? Math.min(25 * weight, 2000).toFixed(0) : "";
+      const magMax = weight > 0 ? Math.min(75 * weight, 2000).toFixed(0) : "";
+      const continuousAlbuterol = weight > 0 ? Math.min(0.5 * weight, 20).toFixed(1) : "";
       const doses = [
         { drugName: "Albuterol (MDI 90mcg/puff)", dose: "4-8 puffs q20min x3 doses, then as needed" },
         { drugName: "Ipratropium Bromide (MDI)", dose: "4-8 puffs q20min x3 doses (with albuterol)" },
-        { drugName: "Prednisone/Prednisolone", dose: "1-2 mg/kg (max 60mg), oral" },
-        { drugName: "Dexamethasone", dose: "0.6 mg/kg (max 16mg), oral/IM/IV" },
+        { drugName: "Prednisone/Prednisolone", dose: weight > 0 ? `1-2 mg/kg (max 60mg) = ${predMin}-${predMax} mg PO` : "1-2 mg/kg (max 60mg), oral" },
+        { drugName: "Dexamethasone", dose: weight > 0 ? `0.6 mg/kg (max 16mg) = ${dexDose} mg PO/IM/IV` : "0.6 mg/kg (max 16mg), oral/IM/IV" },
       ];
       if (severity.level === 'severe' || severity.level === 'impending respiratory failure') {
-          doses.push({ drugName: "Magnesium Sulfate", dose: "25-75 mg/kg (max 2g) IV over 20-30 min" });
-          doses.push({ drugName: "Continuous Albuterol", dose: "0.5 mg/kg/hr (max 15-20 mg/hr)"});
+          doses.push({ drugName: "Magnesium Sulfate", dose: weight > 0 ? `25-75 mg/kg (max 2g) = ${magMin}-${magMax} mg IV over 20-30 min` : "25-75 mg/kg (max 2g) IV over 20-30 min" });
+          doses.push({ drugName: "Continuous Albuterol", dose: weight > 0 ? `0.5 mg/kg/hr (max 15-20 mg/hr) = ${continuousAlbuterol} mg/hr` : "0.5 mg/kg/hr (max 15-20 mg/hr)"});
       }
       return doses;
   },

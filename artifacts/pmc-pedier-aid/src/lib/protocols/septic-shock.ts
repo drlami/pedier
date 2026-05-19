@@ -121,9 +121,25 @@ export const septicShockProtocol: DiseaseProtocol = {
 
       return management;
   },
-  getDisposition: () => [
-      "ADMIT TO PICU: All patients in septic shock require immediate admission to the Pediatric Intensive Care Unit."
-  ],
+  getDisposition: (severity) => {
+      if (severity.level === 'severe') {
+          return [
+              "ADMIT TO PICU: All patients in septic shock require immediate admission to the Pediatric Intensive Care Unit.",
+              "If PICU is not available locally, arrange urgent transfer while continuing resuscitation and vasoactive support."
+          ];
+      }
+
+      if (severity.level === 'moderate') {
+          return [
+              "ADMIT / MONITORED OBSERVATION: Sepsis without shock requires close monitoring for progression, source control, and reassessment after fluids/antibiotics.",
+              "Escalate to PICU urgently if hypotension, altered mental status, abnormal perfusion, rising lactate, respiratory failure, or persistent tachycardia develops."
+          ];
+      }
+
+      return [
+          "Disposition depends on infection likelihood, perfusion, vital signs, labs, source, response to treatment, and senior clinical assessment."
+      ];
+  },
   getRedFlags: () => [
     "Hypotension (Late, ominous sign)",
     "Altered Mental Status",
