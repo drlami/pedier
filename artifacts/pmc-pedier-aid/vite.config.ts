@@ -24,15 +24,20 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: "auto",
       devOptions: {
         enabled: true,
+        type: "module",
       },
-      includeAssets: ["favicon.svg", "opengraph.jpg"],
+      includeAssets: ["favicon.svg", "opengraph.jpg", "robots.txt"],
       manifest: {
         name: "PMC PediER Aid",
         short_name: "PediER",
         description: "Pediatric Clinical Decision Support System",
         theme_color: "#FF3C00",
+        background_color: "#ffffff",
+        display: "standalone",
+        orientation: "portrait",
         icons: [
           {
             src: "favicon.svg",
@@ -49,9 +54,12 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,woff,woff2}"],
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        sourcemap: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -60,7 +68,7 @@ export default defineConfig({
               cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // <--- 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -74,10 +82,21 @@ export default defineConfig({
               cacheName: "gstatic-fonts-cache",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // <--- 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
               cacheableResponse: {
                 statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Cache clinical icons and static assets with StaleWhileRevalidate
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "clinical-assets",
+              expiration: {
+                maxEntries: 50,
               },
             },
           },
