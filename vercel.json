@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "nodejs": "22.x",
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/pmc-pedier-aid run build",
   "outputDirectory": "artifacts/pmc-pedier-aid/dist/public",
