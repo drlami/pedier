@@ -10,6 +10,8 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
     hint: "congested lungs"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'poorPerfusion', questionText: 'Poor perfusion, hypotension, or altered mental status?', type: 'boolean' },
     { id: 'respDistress', questionText: 'Is there respiratory distress?', type: 'boolean', info: 'Tachypnea, retractions, grunting.' },
     { id: 'feedingHistory', questionText: 'Is there a history of poor feeding, sweating with feeds, or poor weight gain (in an infant)?', type: 'boolean' },
     { id: 'exerciseIntolerance', questionText: 'Is there exercise intolerance or easy fatigability (in an older child)?', type: 'boolean' },
@@ -22,8 +24,9 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
     const details: string[] = [];
     
     // Decompensated HF (Cardiogenic Shock)
-    if (data.respDistress) {
-      details.push("Respiratory distress is a sign of decompensated heart failure.");
+    if (data.respDistress || data.poorPerfusion) {
+      if (data.respDistress) details.push("Respiratory distress is a sign of decompensated heart failure.");
+      if (data.poorPerfusion) details.push("Poor perfusion, hypotension, or altered mental status suggests cardiogenic shock.");
       return { level: 'severe', details };
     }
 
@@ -45,12 +48,12 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
         return [{
           title: "Management of Decompensated Heart Failure / Cardiogenic Shock",
           recommendations: [
-            "This is a medical emergency. Treat as Cardiogenic Shock.",
+            "Move to monitored/resuscitation area. Treat as cardiogenic shock.",
             "Provide immediate respiratory support (oxygen, non-invasive ventilation or intubation).",
             "BE JUDICIOUS WITH IV FLUIDS. Avoid large boluses; give 5-10 mL/kg only if clear hypovolemia exists.",
-            "Prioritize early Inotropic support: Start Milrinone or Dobutamine infusion early to improve contractility.",
-            "Administer IV Furosemide to relieve pulmonary and systemic congestion.",
             "Establish multi-disciplinary care: Page Pediatric Cardiology and PICU immediately.",
+            "Prioritize early vasoactive/inotropic support if poor perfusion persists.",
+            "Administer IV Furosemide only if pulmonary/systemic congestion is present and BP is adequate.",
             "Continuous invasive/non-invasive blood pressure monitoring."
           ]
         }];
@@ -90,12 +93,18 @@ export const suspectedHeartFailureProtocol: DiseaseProtocol = {
     "Failure to thrive/poor weight gain in infants.",
     "Abrupt onset of symptoms following a viral illness (suspect Myocarditis)."
   ],
-  getDrugDoses: () => [
-    { drugName: "Furosemide (Lasix)", dose: "1 mg/kg IV (Max 40-80 mg initial dose)", notes: "First-line to reduce preload/congestion." },
-    { drugName: "Milrinone Infusion", dose: "0.25 - 0.75 mcg/kg/min", notes: "Inotrope and afterload reducer. Loading dose (50mcg/kg) is often omitted in the ED to avoid hypotension." },
-    { drugName: "Dobutamine Infusion", dose: "2 - 10 mcg/kg/min", notes: "Pure inotrope. Titrate to effect." },
-    { drugName: "Spironolactone", dose: "1 - 2 mg/kg/day PO", notes: "Aldosterone antagonist, often added by Cardiology for long-term management." }
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    const furosemide = Math.min(weight, 40);
+    const spironolactone = weight;
+
+    return [
+      { drugName: "Furosemide IV", dose: weight > 0 ? `${furosemide.toFixed(0)} mg IV` : "1 mg/kg IV, max 40 mg initially", notes: "For congestion if BP is adequate." },
+      { drugName: "Milrinone Infusion", dose: "0.25-0.75 mcg/kg/min", notes: "Avoid loading dose in ED if hypotensive." },
+      { drugName: "Dobutamine Infusion", dose: "2-10 mcg/kg/min", notes: "Titrate with PICU/Cardiology." },
+      { drugName: "Spironolactone PO", dose: weight > 0 ? `${spironolactone.toFixed(0)} mg/day PO` : "1 mg/kg/day PO", notes: "Long-term/add-on therapy by Cardiology." }
+    ];
+  },
   getReferences: () => [
     { title: "ISHLT: Guidelines for the management of pediatric heart failure", url: "https://ishlt.org/" },
     { title: "UpToDate: Heart failure in children: Management", url: "https://www.uptodate.com/contents/heart-failure-in-children-management" }

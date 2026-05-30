@@ -18,9 +18,18 @@ export interface Question {
 
 export type SeverityLevel = 'mild' | 'moderate' | 'severe' | 'some' | 'no' | 'impending respiratory failure' | 'unknown';
 
+export interface StandardizedScore {
+  systemName: string; // e.g., "PRAM Score"
+  totalScore: number;
+  interpretation: string; // e.g., "Moderate Exacerbation"
+  maxScore?: number;
+  referenceTable?: { range: string; meaning: string }[];
+}
+
 export interface Severity {
   level: SeverityLevel;
   score?: number;
+  scoreDetails?: StandardizedScore;
   details: string[];
 }
 

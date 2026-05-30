@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
-import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight, Baby } from "lucide-react";
+import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight, Baby, Calculator } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { SearchModal } from "@/components/search-modal";
 import { useAllProtocols, useProtocolById } from "@/contexts/protocols-context";
@@ -38,11 +38,10 @@ export function MobileBottomNav() {
       ? (searchParams.get("system") ?? systems[0] ?? "")
       : (diseaseProtocol?.system ?? "");
 
-  const isProtocols = pathname === "/" || pathname.startsWith("/diseases/");
-  const isDrugDoses = pathname === "/drug-doses";
-  const isAIDx      = pathname === "/differential-diagnosis";
-  const isBili      = pathname === "/neonatology/hyperbilirubinemia";
-  const isArrest    = pathname === "/cardiac-arrest";
+  const isProtocols  = (pathname === "/" && !search) || pathname.startsWith("/diseases/");
+  const isDrugDoses  = pathname === "/drug-doses";
+  const isCalculators = pathname.startsWith("/calculators");
+  const isArrest      = pathname === "/cardiac-arrest";
 
   const handleSystemSelect = (system: string) => {
     setLocation(`/?system=${encodeURIComponent(system)}`);
@@ -51,7 +50,7 @@ export function MobileBottomNav() {
 
   const tabCls = (active: boolean, emergency = false) =>
     cn(
-      "relative flex flex-1 flex-col items-center justify-center gap-1 select-none transition-colors",
+      "relative flex flex-1 flex-col items-center justify-center gap-1 select-none transition-all active:scale-90",
       active ? (emergency ? "text-red-600" : "text-primary") : "text-muted-foreground",
     );
 
@@ -96,16 +95,10 @@ export function MobileBottomNav() {
           {isProtocols && <Indicator />}
         </button>
 
-        <Link href="/differential-diagnosis" className={tabCls(isAIDx)}>
-          <Brain className={iconCls(isAIDx)} />
-          <span className={labelCls(isAIDx)}>AI Dx</span>
-          {isAIDx && <Indicator />}
-        </Link>
-
-        <Link href="/neonatology/hyperbilirubinemia" className={tabCls(isBili)}>
-          <Baby className={iconCls(isBili)} />
-          <span className={labelCls(isBili)}>Bili</span>
-          {isBili && <Indicator />}
+        <Link href="/calculators" className={tabCls(isCalculators)}>
+          <Calculator className={iconCls(isCalculators)} />
+          <span className={labelCls(isCalculators)}>PediCalc</span>
+          {isCalculators && <Indicator />}
         </Link>
 
         <Link href="/cardiac-arrest" className={tabCls(isArrest, true)}>

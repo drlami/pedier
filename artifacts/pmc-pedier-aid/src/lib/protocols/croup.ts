@@ -1,117 +1,185 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const croupProtocol: DiseaseProtocol = {
   id: 'croup',
   name: 'Croup (Laryngotracheitis)',
   system: 'Respiratory',
-  description: 'Assessment and management of croup.',
+  description: 'Assessment and management of viral croup using the Westley Croup Score.',
    image: {
     url: "https://picsum.photos/seed/croup/600/400",
     hint: "child coughing"
   },
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'stridorAtRest', questionText: 'Stridor at rest?', type: 'boolean' },
-    { id: 'barkyCough', questionText: 'Barky cough?', type: 'boolean' },
-    { id: 'retractions', questionText: 'Retractions', type: 'select', options: [{label: 'None', value: 'none', score: 0}, {label: 'Mild', value: 'mild', score: 1}, {label: 'Moderate', value: 'moderate', score: 2}, {label: 'Severe', value: 'severe', score: 3}] },
-    { id: 'agitationLethargy', questionText: 'Agitation or lethargy?', type: 'boolean' },
-    { id: 'cyanosis', questionText: 'Cyanosis?', type: 'boolean' },
-    { id: 'drooling', questionText: 'Drooling or unable to handle secretions?', type: 'boolean', info: 'Consider epiglottitis, bacterial tracheitis, deep neck infection, or foreign body.' },
-    { id: 'toxicAppearance', questionText: 'Toxic appearance or high fever?', type: 'boolean', info: 'Consider bacterial tracheitis or epiglottitis rather than simple viral croup.' },
-    { id: 'airEntry', questionText: 'Air Entry', type: 'select', options: [{label: 'Normal', value: 'normal', score: 0}, {label: 'Decreased', value: 'decreased', score: 1}, {label: 'Markedly Decreased', value: 'markedly_decreased', score: 2}] },
+    { 
+      id: 'stridor', 
+      questionText: 'Stridor', 
+      type: 'select', 
+      options: [
+        {label: 'None', value: '0', score: 0}, 
+        {label: 'With agitation', value: '1', score: 1},
+        {label: 'At rest', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'retractions', 
+      questionText: 'Chest Wall Retractions', 
+      type: 'select', 
+      options: [
+        {label: 'None', value: '0', score: 0}, 
+        {label: 'Mild', value: '1', score: 1},
+        {label: 'Moderate', value: '2', score: 2},
+        {label: 'Severe', value: '3', score: 3}
+      ] 
+    },
+    { 
+      id: 'airEntry', 
+      questionText: 'Air Entry', 
+      type: 'select', 
+      options: [
+        {label: 'Normal', value: '0', score: 0}, 
+        {label: 'Decreased', value: '1', score: 1},
+        {label: 'Markedly decreased', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'cyanosis', 
+      questionText: 'Cyanosis', 
+      type: 'select', 
+      options: [
+        {label: 'None', value: '0', score: 0}, 
+        {label: 'With agitation', value: '4', score: 4},
+        {label: 'At rest', value: '5', score: 5}
+      ] 
+    },
+    { 
+      id: 'mentalStatus', 
+      questionText: 'Level of Consciousness', 
+      type: 'select', 
+      options: [
+        {label: 'Normal (Alert)', value: '0', score: 0}, 
+        {label: 'Disoriented / Altered', value: '5', score: 5}
+      ] 
+    },
+    { id: 'drooling', questionText: 'Drooling or dysphagia?', type: 'boolean', info: 'WARNING: Consider Epiglottitis or deep neck infection.' },
+    { id: 'toxic', questionText: 'Toxic appearance?', type: 'boolean', info: 'WARNING: Consider Bacterial Tracheitis.' },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    // Westley Croup Score
-    let score = 0;
     const details: string[] = [];
     
-    if (data.stridorAtRest) { score += 2; details.push("Stridor at rest"); }
-    if (data.retractions === 'mild') { score += 1; details.push("Mild retractions"); }
-    if (data.retractions === 'moderate') { score += 2; details.push("Moderate retractions"); }
-    if (data.retractions === 'severe') { score += 3; details.push("Severe retractions"); }
-    if (data.airEntry === 'decreased') { score += 1; details.push("Decreased air entry"); }
-    if (data.airEntry === 'markedly_decreased') { score += 2; details.push("Markedly decreased air entry"); }
-    if (data.cyanosis) { score += 5; details.push("Cyanosis present"); }
-    if (data.agitationLethargy) { score += 5; details.push("Altered level of consciousness"); }
-    if (data.drooling) details.push("Drooling/unable to handle secretions: consider alternative airway emergency");
-    if (data.toxicAppearance) details.push("Toxic appearance/high fever: consider bacterial tracheitis or epiglottitis");
+    const s1 = Number(data.stridor || 0);
+    const s2 = Number(data.retractions || 0);
+    const s3 = Number(data.airEntry || 0);
+    const s4 = Number(data.cyanosis || 0);
+    const s5 = Number(data.mentalStatus || 0);
+    
+    const totalScore = s1 + s2 + s3 + s4 + s5;
+    
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Mild Croup';
+    
+    if (totalScore >= 12) {
+      level = 'impending respiratory failure';
+      interpretation = 'Impending Respiratory Failure';
+    } else if (totalScore >= 8) {
+      level = 'severe';
+      interpretation = 'Severe Croup';
+    } else if (totalScore >= 3) {
+      level = 'moderate';
+      interpretation = 'Moderate Croup';
+    }
 
-    if (score >= 12) return { level: 'impending respiratory failure', score, details };
-    if (score >= 8) return { level: 'severe', score, details };
-    if (score >= 3) return { level: 'moderate', score, details };
-    return { level: 'mild', score, details };
+    if (data.drooling === true || data.toxic === true) {
+      details.push("CRITICAL ALERT: Clinical features atypical for croup. Urgently rule out Epiglottitis or Bacterial Tracheitis.");
+    }
+
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "Westley Croup Score",
+        totalScore: totalScore,
+        maxScore: 17,
+        interpretation,
+        referenceTable: [
+          { range: "0 - 2", meaning: "Mild Croup" },
+          { range: "3 - 7", meaning: "Moderate Croup" },
+          { range: "8 - 11", meaning: "Severe Croup" },
+          { range: "≥ 12", meaning: "Impending Respiratory Failure" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
+    const weight = Number(data.weight || 0);
     const management = [];
-    if(severity.level === 'mild') {
-        management.push({ title: 'Mild Croup (Score 0-2)', recommendations: [
-            'Administer single dose of oral Dexamethasone.',
-            'Discharge home with education on supportive care (cool mist, hydration) and return precautions.',
-            'No epinephrine needed if there is no stridor at rest or significant distress.'
-        ]});
+
+    if (data.drooling || data.toxic) {
+        management.push({
+            title: "EMERGENCY: Atypical Airway Obstruction",
+            recommendations: [
+                "Minimize agitation (keep child on parent's lap).",
+                "DO NOT examine the throat.",
+                "Involve Anesthesia and ENT immediately.",
+                "Prepare for controlled airway management in OR."
+            ]
+        });
     }
-    if(severity.level === 'moderate') {
-        management.push({ title: 'Moderate Croup (Score 3-7)', recommendations: [
-            'Administer single dose of oral/IM/IV Dexamethasone.',
-            'Administer nebulized Racemic Epinephrine.',
-            'Keep child calm with caregiver; avoid unnecessary procedures and agitation.',
-            'Observe for 2-4 hours post-epinephrine for rebound symptoms.',
-            'Patient may be discharged if they remain improved, otherwise admit.'
-        ]});
-    }
-    if(severity.level === 'severe') {
-        management.push({ title: 'Severe Croup (Score 8-11)', recommendations: [
-            'Administer IM/IV Dexamethasone.',
-            'Administer nebulized Racemic Epinephrine. May repeat dose.',
-            'Provide supplemental oxygen if tolerated without agitation.',
-            'Keep child calm with caregiver and avoid upsetting examination.',
-            'Admit to hospital. Consider PICU if repeated epinephrine doses are required.'
-        ]});
-    }
-    if(severity.level === 'impending respiratory failure') {
-        management.push({ title: 'Impending Respiratory Failure (Score ≥12)', recommendations: [
-            'Immediate PICU consultation.',
-            'Administer IM/IV Dexamethasone and nebulized Racemic Epinephrine.',
-            'Provide high-concentration oxygen if tolerated. Consider Heliox where available.',
-            'Prepare for endotracheal intubation with an ETT 0.5-1 size smaller than predicted.'
-        ]});
-    }
-    if (data.drooling || data.toxicAppearance) {
-        management.push({ title: 'Alternative Airway Emergency Warning', recommendations: [
-            'Drooling, toxic appearance, high fever, tripod posture, poor response to epinephrine, or inability to handle secretions is not typical simple croup.',
-            'Minimize agitation and urgently involve anesthesia/ENT/PICU if epiglottitis, bacterial tracheitis, deep neck infection, or foreign body is possible.',
-            'Do not force throat examination if epiglottitis is suspected.'
-        ]});
+
+    switch (severity.level) {
+      case 'mild':
+        management.push({
+          title: "Mild Croup Management",
+          recommendations: [
+            "Dexamethasone 0.15 mg/kg - 0.6 mg/kg (max 16mg) single dose PO.",
+            "Education on humidified air and hydration.",
+            "Discharge with return precautions."
+          ]
+        });
+        break;
+      case 'moderate':
+        management.push({
+          title: "Moderate Croup Management",
+          recommendations: [
+            "Dexamethasone 0.6 mg/kg PO/IM.",
+            "Nebulized Epinephrine (L-Epi 1:1000) 0.5 mL/kg (max 5mL).",
+            "Observe for 4 hours for rebound symptoms."
+          ]
+        });
+        break;
+      case 'severe':
+      case 'impending respiratory failure':
+        management.push({
+          title: "Severe Management",
+          recommendations: [
+            "Nebulized Epinephrine immediately; repeat as needed.",
+            "Dexamethasone IM/IV.",
+            "Oxygen support (keep child calm).",
+            "Early PICU consultation."
+          ]
+        });
+        break;
     }
     return management;
   },
-  getDisposition: (severity, data) => {
-    if(severity.level === 'impending respiratory failure' || severity.level === 'severe') {
-        return ['Admit to hospital, likely PICU for impending respiratory failure.'];
-    }
-    if(severity.level === 'moderate') {
-        return ['Observe for 2-4 hours after epinephrine.', 'Admit if requiring repeated epinephrine, persistent distress, or poor oral intake.', 'Discharge if stable off oxygen, no stridor at rest, and good air exchange.'];
-    }
-    return ['Discharge home after Dexamethasone if clinically well with no high-risk features.'];
+  getDisposition: (severity) => {
+    if (severity.level === 'mild') return ["Discharge home after steroid dose."];
+    if (severity.level === 'moderate') return ["Observe for 4 hours. Admit if stridor at rest persists or recurs."];
+    return ["Admit to PICU/HDU."];
   },
-  getRedFlags: () => [
-    'Altered mental status (lethargy, agitation, or confusion)',
-    'Severe stridor at rest',
-    'Marked retractions and poor air entry',
-    'Cyanosis',
-    'Fatigue or exhaustion',
-    'Inability to handle secretions (drooling)'
-  ],
+  getRedFlags: () => ["Drooling", "Toxic appearance", "Stridor at rest", "Cyanosis", "Altered mental status"],
   getDrugDoses: (severity, data) => {
-    const weight = Number(data.weight) || 0;
-    const dexDose = weight > 0 ? Math.min(0.6 * weight, 16).toFixed(1) : "";
-    const lEpiDose = weight > 0 ? Math.min(0.5 * weight, 5).toFixed(1) : "";
+      const weight = Number(data.weight) || 0;
+      const dexDose = weight > 0 ? Math.min(0.6 * weight, 16).toFixed(1) : "0.6 mg/kg";
+      const epiDose = weight > 0 ? Math.min(0.5 * weight, 5).toFixed(1) : "0.5 mL/kg";
 
-    return [
-      { drugName: "Dexamethasone", dose: weight > 0 ? `0.6 mg/kg (max 16mg) = ${dexDose} mg oral, IM, or IV, single dose` : "0.6 mg/kg oral, IM, or IV (max 16mg), single dose" },
-      { drugName: "Racemic Epinephrine 2.25%", dose: "0.5 mL diluted in 3 mL normal saline, nebulized over 15 min" },
-      { drugName: "L-Epinephrine 1:1000", dose: weight > 0 ? `0.5 mL/kg (max 5 mL) = ${lEpiDose} mL nebulized over 15 min (if racemic not available)` : "0.5 mL/kg (max 5 mL) nebulized over 15 min (if racemic not available)" },
-    ];
+      return [
+        { drugName: "Dexamethasone (PO/IM/IV)", dose: `${dexDose} mg (0.6 mg/kg)`, notes: "Single dose." },
+        { drugName: "Nebulized Epinephrine (1:1000)", dose: `${epiDose} mL (0.5 mL/kg)`, notes: "Max 5 mL. Observe for 4 hours." }
+      ];
   },
-  getReferences: () => [{ title: "Alberta Clinical Practice Guideline: Croup", url: "https://act.albertadoctors.org/cpgs/Lists/CPGSCF/DispForm.aspx?ID=60" }],
+  getReferences: () => [
+    { title: "Westley Croup Score and Management", url: "https://www.mdcalc.com/westley-croup-score" },
+    { title: "CPS Position Statement: Management of Croup", url: "https://cps.ca/en/documents/position/management-of-croup" }
+  ],
 };

@@ -1,85 +1,121 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const alteredMentalStatusProtocol: DiseaseProtocol = {
   id: 'altered-mental-status',
-  name: 'Altered Mental Status',
+  name: 'Altered Mental Status (AMS)',
   system: 'Neurology',
-  description: 'A systematic approach to the child with altered mental status, using the "AEIOU-TIPS" mnemonic.',
+  description: 'Systematic approach to the unconscious or confused child using AEIOU-TIPS and GCS.',
   image: {
-    url: "https://picsum.photos/seed/altered-mental-status/600/400",
+    url: "https://picsum.photos/seed/ams/600/400",
     hint: "confused child"
   },
   questions: [
-    { id: 'gcs', questionText: 'Glasgow Coma Scale (GCS) Score', type: 'number' },
-    { id: 'fever', questionText: 'Is there a fever?', type: 'boolean' },
-    { id: 'trauma', questionText: 'Any history or signs of trauma?', type: 'boolean' },
-    { id: 'seizure', questionText: 'Is the patient actively seizing or in a post-ictal state?', type: 'boolean' },
-    { id: 'ingestion', questionText: 'Could there be a toxic ingestion?', type: 'boolean' },
-    { id: 'glucose', questionText: 'Point-of-care glucose level', type: 'number', unit: 'mg/dL' },
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'gcs', questionText: 'Glasgow Coma Scale (GCS)', type: 'number', placeholder: '3-15' },
+    { id: 'glucose', questionText: 'Blood Glucose', type: 'number', unit: 'mg/dL' },
+    { id: 'hypertension', questionText: 'Hypertension for age?', type: 'boolean' },
+    { id: 'bradycardia', questionText: 'Bradycardia for age?', type: 'boolean' },
+    { id: 'irregularBreathing', questionText: 'Irregular/Cheyne-Stokes breathing?', type: 'boolean' },
+    { id: 'pupilReactive', questionText: 'Pupils reactive and equal?', type: 'boolean' },
+    { id: 'traumaSign', questionText: 'Signs of Head Trauma?', type: 'boolean' },
+    { id: 'ingestionPossible', questionText: 'Possible toxic ingestion?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    const gcs = Number(data.gcs);
-    if (gcs <= 8) {
-      return { level: 'severe', details: ["GCS ≤ 8 indicates coma and requires immediate airway protection."] };
+    const details: string[] = [];
+    const gcs = Number(data.gcs || 15);
+    const glucose = Number(data.glucose || 100);
+
+    // Cushing's Triad Check
+    const cushingCount = [data.hypertension, data.bradycardia, data.irregularBreathing].filter(Boolean).length;
+    
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Mild Alteration';
+
+    if (gcs <= 8 || cushingCount >= 2 || data.pupilReactive === false) {
+      level = 'severe';
+      interpretation = 'CRITICAL: COMA / IMPENDING HERNIATION';
+      if (cushingCount >= 2) details.push("SUSPECT CUSHING'S TRIAD: High risk of brain herniation.");
+      if (gcs <= 8) details.push("GCS ≤ 8: Airway protection required.");
+    } else if (gcs <= 12 || glucose < 60 || data.traumaSign === true) {
+      level = 'moderate';
+      interpretation = 'Moderate AMS / High Risk';
     }
-    if (gcs <= 12) {
-      return { level: 'moderate', details: ["Significant alteration in mental status (GCS 9-12). Urgent evaluation required."] };
-    }
-    return { level: 'mild', details: ["Mild alteration in mental status (GCS 13-14)."] };
+
+    if (glucose < 60) details.push("HYPOGLYCEMIA detected. Treat immediately.");
+
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "Glasgow Coma Scale (GCS)",
+        totalScore: gcs,
+        maxScore: 15,
+        interpretation,
+        referenceTable: [
+          { range: "13 - 15", meaning: "Mild / Concussion level" },
+          { range: "9 - 12", meaning: "Moderate / Significant Impairment" },
+          { range: "3 - 8", meaning: "Severe / Coma (Secure Airway)" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
-    const management = [{
-        title: "Immediate Stabilization (ABCs)",
+    const management = [
+      {
+        title: "Immediate Stabilization (ABCDE)",
         recommendations: [
-            "Assess Airway, Breathing, Circulation. If GCS ≤ 8, prepare for intubation.",
-            "Administer 100% oxygen.",
-            "Establish IV/IO access.",
-            "Check a rapid blood glucose. If hypoglycemic, administer dextrose.",
-            "Consider Naloxone if opioid overdose is suspected."
+          "Airway: If GCS ≤ 8, prepare for intubation.",
+          "Breathing: 100% O2 via NRB.",
+          "Circulation: Establish 2 large-bore IVs or IO.",
+          "Disability: Rapid glucose check; Pupils; GCS.",
+          "Exposure: Fully undress to look for trauma or rashes."
         ]
-    }];
+      }
+    ];
+
+    if (severity.level === 'severe') {
+      management.push({
+        title: "Emergency ICP Management",
+        recommendations: [
+          "Elevate head of bed to 30 degrees.",
+          "Maintain midline neck position.",
+          "Hyperosmolar therapy: 3% Saline (3-5 mL/kg) or Mannitol (0.5-1 g/kg).",
+          "Urgently obtain Head CT and Neurosurgery consult."
+        ]
+      });
+    }
 
     management.push({
-        title: "Differential Diagnosis & Workup (AEIOU-TIPS)",
-        recommendations: [
-            "A (Alcohol, Abuse): Consider ingestion and non-accidental trauma.",
-            "E (Epilepsy, Encephalopathy, Electrolytes): Check for post-ictal state, signs of CNS infection, and check labs.",
-            "I (Insulin): Check for hypoglycemia or DKA.",
-            "O (Overdose, Oxygen): Consider toxicology and check for hypoxia.",
-            "U (Uremia): Consider renal failure.",
-            "T (Trauma, Temperature): Full trauma evaluation and check for fever/hypothermia.",
-            "I (Infection): Sepsis, meningitis, encephalitis are key considerations. Perform workup as indicated.",
-            "P (Psychiatric, Poison): Consider psychiatric causes and various poisons.",
-            "S (Stroke, Shock, Space-occupying lesion): Evaluate for signs of stroke, shock, or increased ICP."
-        ]
-    });
-    
-    management.push({
-        title: "Initial Diagnostic Workup",
-        recommendations: [
-            "Labs: CBC, comprehensive metabolic panel, ammonia, lactate, blood gas, coagulation studies, toxicology screen, blood culture.",
-            "Imaging: Head CT for trauma, suspected bleed, or signs of increased ICP.",
-            "Lumbar Puncture: For suspected CNS infection, after ruling out increased ICP.",
-            "EEG: For suspected non-convulsive status epilepticus."
-        ]
+      title: "Diagnostic Search (AEIOU TIPS)",
+      recommendations: [
+        "A: Alcohol / Acidosis",
+        "E: Epilepsy (Post-ictal or Non-convulsive SE) / Electrolytes",
+        "I: Insulin (Hypoglycemia / DKA)",
+        "O: Overdose / Oxygen (Hypoxia)",
+        "U: Uremia",
+        "T: Trauma (NAT/Accidental) / Tumor",
+        "I: Infection (Meningitis/Sepsis)",
+        "P: Poisoning / Psychiatric",
+        "S: Stroke / Shock / Shunt Malfunction"
+      ]
     });
 
     return management;
   },
-  getDisposition: (severity, data) => {
-    return ["All children with a persistent, unexplained change in mental status require hospital admission for diagnosis and management.", "Patients with a GCS ≤ 8 require PICU admission."];
+  getDisposition: (severity) => {
+    if (severity.level === 'severe') return ["Immediate PICU Admission."];
+    return ["Admit for observation and workup."];
   },
-  getRedFlags: () => [
-    "GCS ≤ 8",
-    "Signs of impending herniation (Cushing's triad: hypertension, bradycardia, irregular respirations; pupillary changes).",
-    "Non-convulsive seizure activity on EEG.",
-    "Rapidly deteriorating mental status.",
-    "Signs of non-accidental trauma."
-  ],
-  getDrugDoses: () => [
-    { drugName: "Dextrose (D10W for <1yr)", dose: "5 mL/kg", notes: "For hypoglycemia." },
-    { drugName: "Dextrose (D25W for >1yr)", dose: "2 mL/kg", notes: "For hypoglycemia." },
-    { drugName: "Naloxone (Narcan)", dose: "0.1 mg/kg (max 2 mg)", notes: "For suspected opioid overdose. Can be repeated." },
-  ],
-  getReferences: () => [{ title: "UpToDate: Evaluation of stupor and coma in children", url: "https://www.uptodate.com/contents/evaluation-of-stupor-and-coma-in-children" }],
+  getRedFlags: () => ["Cushing's Triad", "GCS ≤ 8", "Fixed/Dilated pupil", "Hypoglycemia", "Bulging fontanelle"],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    const doses = [];
+    if (weight > 0) {
+        doses.push({ drugName: "Dextrose 10% (D10)", dose: `${(5 * weight).toFixed(0)} mL IV`, notes: "For hypoglycemia." });
+        doses.push({ drugName: "3% Hypertonic Saline", dose: `${(3 * weight).toFixed(0)} mL IV`, notes: "For suspected increased ICP." });
+        doses.push({ drugName: "Naloxone (Narcan)", dose: `${(0.1 * weight).toFixed(1)} mg (max 2mg)`, notes: "If opioid overdose suspected." });
+    }
+    return doses;
+  },
+  getReferences: () => [{ title: "PALS: Management of the Unconscious Child", url: "https://cpr.heart.org/" }],
 };

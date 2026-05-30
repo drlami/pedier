@@ -466,19 +466,19 @@ export default function HyperbilirubinemiaCal() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <UILabel className="text-xs">Rate of Rise (mg/dL/h)</UILabel>
-                <Input type="number" step={0.01} min={0} placeholder="e.g. 0.15"
+                <Input type="number" inputMode="decimal" step={0.01} min={0} placeholder="e.g. 0.15"
                   value={rateOfRise} onChange={(e) => setRateOfRise(e.target.value)} />
                 <p className="text-[10px] text-muted-foreground">&gt;0.2 mg/dL/h = rapid</p>
               </div>
               <div className="space-y-1.5">
                 <UILabel className="text-xs">Direct/Conj. Bilirubin (mg/dL)</UILabel>
-                <Input type="number" step={0.1} min={0} placeholder="e.g. 0.5"
+                <Input type="number" inputMode="decimal" step={0.1} min={0} placeholder="e.g. 0.5"
                   value={directBili} onChange={(e) => setDirectBili(e.target.value)} />
                 <p className="text-[10px] text-muted-foreground">&gt;1.0 = evaluate cholestasis</p>
               </div>
               <div className="space-y-1.5">
                 <UILabel className="text-xs">Baby Weight (kg)</UILabel>
-                <Input type="number" step={0.1} min={0} placeholder="e.g. 3.2"
+                <Input type="number" inputMode="decimal" step={0.1} min={0} placeholder="e.g. 3.2"
                   value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
               </div>
               <div className="space-y-3 pt-1">

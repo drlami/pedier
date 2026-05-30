@@ -10,6 +10,7 @@ export const chronicRenalFailureProtocol: DiseaseProtocol = {
     hint: "dialysis"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'knownCKD', questionText: 'Is there a known history of CKD or end-stage renal disease (ESRD)?', type: 'boolean' },
     { id: 'presentingComplaint', questionText: 'What is the primary acute complaint?', type: 'select', options: [
         { label: 'Fluid overload / Respiratory distress', value: 'fluid' },
@@ -36,7 +37,8 @@ export const chronicRenalFailureProtocol: DiseaseProtocol = {
         return [{
           title: "Management of Fluid Overload / Pulmonary Edema",
           recommendations: [
-            "Provide respiratory support: High-flow oxygen, non-invasive positive pressure ventilation (BiPAP), or intubation.",
+            "Move to monitored/resuscitation area if respiratory distress is present.",
+            "Provide respiratory support: oxygen, non-invasive positive pressure ventilation (BiPAP), or intubation.",
             "Administer high-dose IV loop diuretics (e.g., Furosemide), if the patient is not anuric.",
             "Urgent consultation with Pediatric Nephrology for emergent dialysis is required if diuretics are ineffective or patient is anuric."
           ]
@@ -45,7 +47,7 @@ export const chronicRenalFailureProtocol: DiseaseProtocol = {
         return [{
           title: "Management of Hypertensive Emergency",
           recommendations: [
-            "Goal is to lower blood pressure in a controlled manner (reduce by ~25% in the first 8 hours).",
+            "Goal is controlled BP reduction; avoid rapid overcorrection. Typical target is no more than ~25% reduction in the first 8 hours.",
             "Administer IV antihypertensives such as Labetalol or Nicardipine infusion.",
             "Admit to PICU for continuous BP monitoring.",
             "Consult Nephrology urgently."
@@ -55,8 +57,8 @@ export const chronicRenalFailureProtocol: DiseaseProtocol = {
         return [{
           title: "Management of Severe Hyperkalemia",
           recommendations: [
-            "This is a medical emergency. Please refer to the specific 'Hyperkalemia' protocol for detailed step-by-step management.",
-            "Key steps: Stabilize myocardium with IV Calcium Gluconate, shift potassium with insulin/dextrose and albuterol, and prepare for emergent dialysis to remove potassium."
+            "This is a medical emergency. Place on monitor and obtain immediate ECG.",
+            "Stabilize myocardium with IV Calcium Gluconate if ECG changes, shift potassium with insulin/dextrose and albuterol, and prepare for emergent dialysis to remove potassium."
           ]
         }];
       case 'sepsis':
@@ -82,10 +84,13 @@ export const chronicRenalFailureProtocol: DiseaseProtocol = {
     "EKG changes of hyperkalemia",
     "Fever in a patient on dialysis (high risk for line infection)"
   ],
-  getDrugDoses: () => [
-    { drugName: "Furosemide (IV)", dose: "1-2 mg/kg per dose. Higher doses may be needed in CKD.", notes: "For fluid overload." },
-    { drugName: "Labetalol (IV)", dose: "0.2-1 mg/kg bolus (max 20mg), or 0.25-3 mg/kg/hr infusion.", notes: "For hypertensive emergency." },
-    { drugName: "Nicardipine (IV)", dose: "Start 0.5-1 mcg/kg/min infusion, titrate up.", notes: "For hypertensive emergency." },
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    return [
+      { drugName: "Furosemide IV", dose: weight > 0 ? `${(1 * weight).toFixed(0)}-${(2 * weight).toFixed(0)} mg IV` : "1-2 mg/kg IV", notes: "For fluid overload if not anuric; higher doses may be needed in CKD with nephrology guidance." },
+      { drugName: "Labetalol IV Bolus", dose: weight > 0 ? `${Math.min(0.2 * weight, 20).toFixed(1)}-${Math.min(1 * weight, 20).toFixed(1)} mg IV` : "0.2-1 mg/kg IV, max 20 mg", notes: "For hypertensive emergency; monitor BP/HR." },
+      { drugName: "Nicardipine Infusion", dose: "Start 0.5-1 mcg/kg/min IV", notes: "Titrate in PICU/monitored setting for hypertensive emergency." },
+    ];
+  },
   getReferences: () => [{ title: "KDOQI Clinical Practice Guidelines for CKD", url: "https://www.kidney.org/professionals/guidelines/guidelines_commentaries" }],
 };

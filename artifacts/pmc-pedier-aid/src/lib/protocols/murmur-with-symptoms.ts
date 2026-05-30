@@ -10,6 +10,7 @@ export const murmurWithSymptomsProtocol: DiseaseProtocol = {
     hint: "stethoscope heart"
   },
   questions: [
+    { id: 'unstable', questionText: 'Cyanosis, respiratory distress, poor perfusion, or shock?', type: 'boolean' },
     { id: 'isSymptomatic', questionText: 'Are there any concerning symptoms?', type: 'boolean', info: 'e.g., Failure to thrive, sweating with feeds (infants), exercise intolerance, syncope, chest pain (older children).'},
     { id: 'murmurTiming', questionText: 'Murmur Timing', type: 'select', options: [{label: 'Systolic', value: 'systolic'}, {label: 'Diastolic', value: 'diastolic'}, {label: 'Continuous', value: 'continuous'}]},
     { id: 'murmurGrade', questionText: 'Murmur Grade (loudness)', type: 'select', options: [{label: 'Grade 1-2/6 (soft)', value: 'soft'}, {label: 'Grade ≥ 3/6 (loud)', value: 'loud'}]},
@@ -19,6 +20,10 @@ export const murmurWithSymptomsProtocol: DiseaseProtocol = {
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
+
+    if (data.unstable) {
+      return { level: 'severe', details: ["Murmur with cyanosis, respiratory distress, poor perfusion, or shock suggests critical structural heart disease."] };
+    }
     
     // Pathologic features
     if (data.isSymptomatic) details.push("Symptomatic");
@@ -37,6 +42,17 @@ export const murmurWithSymptomsProtocol: DiseaseProtocol = {
     return { level: 'mild', details };
   },
   getManagement: (severity, data) => {
+    if (severity.level === 'severe') {
+      return [{
+        title: "Unstable Child with Murmur",
+        recommendations: [
+          "Move to resuscitation area. Call PICU and Pediatric Cardiology immediately.",
+          "Give oxygen/ventilatory support as needed and establish IV/IO access.",
+          "Obtain 12-lead EKG, chest X-ray, blood gas/lactate, glucose, and urgent bedside echocardiogram.",
+          "If neonate/young infant with suspected duct-dependent lesion, start prostaglandin E1 urgently with specialist guidance."
+        ]
+      }];
+    }
     if (severity.level === 'moderate') {
       return [{
         title: "Management of Pathologic Murmur",
@@ -59,6 +75,9 @@ export const murmurWithSymptomsProtocol: DiseaseProtocol = {
     }];
   },
   getDisposition: (severity, data) => {
+    if (severity.level === 'severe') {
+      return ["Immediate PICU admission/transfer with urgent Pediatric Cardiology evaluation is required."];
+    }
     if (severity.level === 'moderate' && data.isSymptomatic) {
       return ["Admission for urgent cardiology evaluation is required for symptomatic patients."];
     }
@@ -74,6 +93,8 @@ export const murmurWithSymptomsProtocol: DiseaseProtocol = {
     "A murmur that does not change with position",
     "Associated symptoms: cyanosis, failure to thrive, syncope, exercise intolerance"
   ],
-  getDrugDoses: () => [],
+  getDrugDoses: () => [
+    { drugName: "No routine drug therapy", dose: "Treat underlying cause", notes: "If duct-dependent lesion suspected in neonate/young infant, start PGE1 only with senior/Cardiology guidance." }
+  ],
   getReferences: () => [{ title: "UpToDate: Approach to the infant or child with a heart murmur", url: "https://www.uptodate.com/contents/approach-to-the-infant-or-child-with-a-heart-murmur" }],
 };

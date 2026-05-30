@@ -32,7 +32,7 @@ export const bradycardiaProtocol: DiseaseProtocol = {
           recommendations: [
             "Maintain airway, assist breathing as needed with bag-mask ventilation, and provide oxygen.",
             "If HR remains < 60/min with poor perfusion despite effective oxygenation and ventilation, START CPR.",
-            "Administer Adrenaline IV/IO.",
+            "Give Adrenaline IV/IO every 3-5 minutes while CPR continues.",
             "Adrenaline Preparation (1:1,000 Stock): Dilute 1 mL (1 mg) Adrenaline with 9 mL NS to make 10 mL of 0.1 mg/mL (1:10,000).",
             "Consider Atropine for increased vagal tone or primary AV block.",
             "Consider transcutaneous pacing.",
@@ -74,13 +74,13 @@ export const bradycardiaProtocol: DiseaseProtocol = {
     if (weight > 0) {
         doses.push({
             drugName: "Adrenaline 0.1 mg/mL (1:10,000 diluted)",
-            dose: `0.1 mL/kg. Calculated dose: ${(0.1 * weight).toFixed(2)} mL.`,
+            dose: `${(0.1 * weight).toFixed(2)} mL IV/IO`,
             notes: `Repeat every 3-5 minutes. (Stock 1:1,000 MUST be diluted 1:10 first).`
         });
         doses.push({
             drugName: "Atropine",
-            dose: `0.02 mg/kg (Min dose 0.1 mg, Max single dose 0.5 mg). May repeat once.`,
-            notes: `Calculated Dose: ${(0.02 * weight).toFixed(2)} mg. Primarily for increased vagal tone or AV block.`
+            dose: `${Math.min(Math.max(0.02 * weight, 0.1), 0.5).toFixed(2)} mg IV/IO`,
+            notes: `May repeat once. Primarily for increased vagal tone or AV block.`
         });
     } else {
         doses.push({ drugName: "Adrenaline 0.1 mg/mL (1:10,000)", dose: `0.1 mL/kg IV/IO.`, notes: "Dilute 1mg Adrenaline (1:1,000) with 9mL NS." });

@@ -1,70 +1,81 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const raisedIcpSuspicionProtocol: DiseaseProtocol = {
   id: 'raised-icp-suspicion',
-  name: 'Raised ICP Suspicion',
+  name: 'Increased ICP & Herniation Response',
   system: 'Neurology',
-  description: 'Recognition and emergency management of suspected increased intracranial pressure (ICP), a neurologic emergency.',
+  description: 'Emergency management of increased intracranial pressure and impending brain herniation.',
   image: {
     url: "https://picsum.photos/seed/raised-icp-suspicion/600/400",
     hint: "brain pressure"
   },
   questions: [
-    { id: 'hasCushingsTriad', questionText: 'Cushing\'s Triad present?', type: 'boolean', info: 'Hypertension, bradycardia, and irregular respirations. A late and ominous sign.' },
-    { id: 'pupilChanges', questionText: 'Pupillary changes?', type: 'boolean', info: 'e.g., unilateral dilated pupil, sluggish reaction.' },
-    { id: 'posturing', questionText: 'Posturing present?', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Decorticate (flexor)', value: 'decorticate'}, {label: 'Decerebrate (extensor)', value: 'decerebrate'}] },
-    { id: 'gcs', questionText: 'Glasgow Coma Scale (GCS) Score', type: 'number' },
-    { id: 'headacheVomiting', questionText: 'Headache, especially if worse in the morning or with Valsalva?', type: 'boolean' },
-    { id: 'bulgingFontanelle', questionText: 'Bulging, tense fontanelle (in infants)?', type: 'boolean' },
-    { id: 'papilledema', questionText: 'Papilledema on fundoscopic exam?', type: 'boolean' },
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'gcs', questionText: 'Current GCS Score', type: 'number', placeholder: '3-15' },
+    { id: 'hypertension', questionText: 'Hypertension (Cushing Triad 1)', type: 'boolean' },
+    { id: 'bradycardia', questionText: 'Bradycardia (Cushing Triad 2)', type: 'boolean' },
+    { id: 'irregularBreathing', questionText: 'Irregular Breathing (Cushing Triad 3)', type: 'boolean' },
+    { id: 'pupilChange', questionText: 'Unilateral fixed/dilated pupil?', type: 'boolean' },
+    { id: 'posturing', questionText: 'Posturing? (Decerebrate/Decorticate)', type: 'boolean' },
+    { id: 'fontanelle', questionText: 'Bulging fontanelle?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
-    if (data.hasCushingsTriad || data.pupilChanges || data.posturing !== 'none' || Number(data.gcs) <= 8) {
-      if (data.hasCushingsTriad) details.push("Cushing's Triad present.");
-      if (data.pupilChanges) details.push("Abnormal pupillary exam.");
-      if (data.posturing !== 'none') details.push("Posturing present.");
-      if (Number(data.gcs) <= 8) details.push("GCS <= 8.");
-      details.push("Signs of impending or active brain herniation. This is a critical emergency.");
-      return { level: 'severe', details };
+    const gcs = Number(data.gcs || 15);
+    
+    const cushingCount = [data.hypertension, data.bradycardia, data.irregularBreathing].filter(Boolean).length;
+    
+    let level: SeverityLevel = 'moderate';
+    let interpretation = 'Elevated ICP - High Risk';
+
+    if (gcs <= 8 || cushingCount >= 2 || data.pupilChange === true || data.posturing === true) {
+      level = 'severe';
+      interpretation = 'CRITICAL: IMPENDING HERNIATION';
+      details.push("Life-threatening emergency. Rapid decompression required.");
     }
 
-    if (data.headacheVomiting || data.bulgingFontanelle || data.papilledema) {
-        details.push("Signs of increased ICP present, but no signs of active herniation.");
-        return { level: 'moderate', details };
-    }
-    
-    return { level: 'unknown', details: ["Assess for signs and symptoms to determine risk."] };
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "ICP Severity Status",
+        totalScore: cushingCount,
+        maxScore: 3,
+        interpretation,
+        referenceTable: [
+          { range: "Herniation Signs", meaning: "Pupil change, GCS drop, Cushing's Triad" },
+          { range: "Hyperosmolar Rx", meaning: "Indications for Mannitol or 3% Saline" },
+          { range: "Hard Stop", meaning: "NO Lumbar Puncture" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
     return [{
-      title: "EMERGENCY Management of Increased ICP",
+      title: "Immediate Herniation Response",
       recommendations: [
-        "This is a neurologic emergency. Activate emergency response and consult PICU/Neurosurgery immediately.",
-        "Stabilize ABCs. Provide 100% oxygen. Intubate to secure airway if GCS <= 8 or signs of herniation, avoiding ketamine and using agents that don't raise ICP (e.g., etomidate, rocuronium).",
-        "Elevate head of bed to 30 degrees with head in midline position.",
-        "Maintain normothermia, normoglycemia, and normal blood pressure.",
-        "Treat agitation and pain, as they can raise ICP. Ensure adequate sedation in intubated patients.",
-        "Initiate hyperosmolar therapy: Administer either 3% Hypertonic Saline or Mannitol.",
-        "Obtain emergent non-contrast Head CT as soon as patient is stabilized to identify cause (e.g., bleed, hydrocephalus, mass).",
-        "Avoid lumbar puncture until a space-occupying lesion has been ruled out by imaging.",
-        "Consider hyperventilation to a target pCO2 of 30-35 mmHg as a temporary bridge to definitive treatment in cases of active herniation."
+        "Elevate head of bed to 30° and maintain neck in midline position.",
+        "Urgently assemble Neurosurgery and Anesthesia.",
+        "Hyperosmolar Therapy: Start 3% Hypertonic Saline OR Mannitol immediately.",
+        "Hyperventilation (Bridge only): Aim for pCO2 30-35 mmHg for 30-60 min.",
+        "Secure airway (RSI) if GCS ≤ 8; maintain deep sedation/analgesia.",
+        "HARD STOP: Lumbar Puncture is CONTRAINDICATED until imaging rules out mass effect.",
+        "Obtain URGENT Head CT without contrast."
       ]
     }];
   },
-  getDisposition: (severity, data) => {
-    return ["Immediate admission to the Pediatric Intensive Care Unit (PICU) is mandatory for all patients with suspected or confirmed increased ICP."];
+  getDisposition: (severity) => ["Immediate PICU Admission with Neurosurgical involvement."],
+  getRedFlags: () => ["Cushing's Triad", "Fixed/dilated pupil", "Decerebrate posturing", "Sudden GCS drop"],
+  getDrugDoses: (severity, data) => {
+      const weight = Number(data.weight) || 0;
+      if (weight <= 0) return [];
+      
+      return [
+        { drugName: "3% Hypertonic Saline", dose: `${(3 * weight).toFixed(0)} - ${(5 * weight).toFixed(0)} mL IV`, notes: "Give over 10-20 min. Monitor Na+." },
+        { drugName: "Mannitol 20%", dose: `${(0.5 * weight).toFixed(1)} - ${(1 * weight).toFixed(1)} g IV`, notes: "Requires filter. Monitor BP for hypotension." }
+      ];
   },
-  getRedFlags: () => [
-    "Cushing's Triad: Hypertension, Bradycardia, Irregular Respirations",
-    "Unilateral or bilaterally fixed and dilated pupils",
-    "Decorticate or decerebrate posturing",
-    "A drop in GCS of 2 or more points",
-    "Papilledema"
+  getReferences: () => [
+    { title: "PALS: Management of Elevated ICP", url: "https://cpr.heart.org/" }
   ],
-  getDrugDoses: () => [
-    { drugName: "3% Hypertonic Saline", dose: "3-5 mL/kg bolus over 10-20 minutes", notes: "Can be given via peripheral IV. Check sodium levels." },
-    { drugName: "Mannitol 20%", dose: "0.25-1 g/kg IV bolus over 10-20 minutes", notes: "Requires a central line for administration. May cause hypotension and electrolyte shifts." }
-  ],
-  getReferences: () => [{ title: "Brain Trauma Foundation: Guidelines for the Management of Severe TBI", url: "https://braintrauma.org/guidelines/guidelines-for-the-management-of-severe-tbi-4th-ed" }],
 };

@@ -17,6 +17,7 @@ import CardiacArrestPage from "@/pages/cardiac-arrest";
 import DiffDiagPage from "@/pages/differential-diagnosis";
 import DrugSafetyPage from "@/pages/drug-safety";
 import DrugDosesPage from "@/pages/drug-doses";
+import ResuscitationDosesPage from "@/pages/resuscitation-doses";
 import CalculatorsPage from "@/pages/calculators";
 import AdminPage from "@/pages/admin";
 import ProtocolListPage from "@/pages/admin-protocols";
@@ -26,7 +27,33 @@ import ActivityLogsPage from "@/pages/activity-logs";
 import LoginPage from "@/pages/login";
 import WelcomePage from "@/pages/welcome";
 import HyperbilirubinemiaCal from "@/pages/hyperbilirubinemia";
+import AdvancedFluidsPage from "@/pages/advanced-fluids";
+import GfrCalculatorPage from "@/pages/gfr-calculator";
+import GcsCalculatorPage from "@/pages/gcs-calculator";
+import SodiumCorrectionPage from "@/pages/sodium-correction";
+import KocherCriteriaPage from "@/pages/kocher-criteria";
+import AnionGapPage from "@/pages/anion-gap";
+import AbgInterpreterPage from "@/pages/abg-interpreter";
+import ApgarScorePage from "@/pages/apgar-score";
+import ChildPughCalculatorPage from "@/pages/child-pugh-calculator";
+import BsaCalculatorPage from "@/pages/bsa-calculator";
+import QtcCalculatorPage from "@/pages/qtc-calculator";
+import CalciumCorrectionPage from "@/pages/calcium-correction";
+import GrowthChartsPage from "@/pages/growth-charts";
+import BpPercentilesPage from "@/pages/bp-percentiles";
+import ParklandCalculatorPage from "@/pages/parkland-calculator";
 import MetabolicCrisisPage from "@/pages/metabolic-crisis";
+import OxygenationIndexPage from "@/pages/oxygenation-index";
+import MapCalculatorPage from "@/pages/map-calculator";
+import EttDepthPage from "@/pages/ett-depth";
+import UacUvcLengthPage from "@/pages/uac-uvc-length";
+import WeightLossPage from "@/pages/weight-loss";
+import BallardScorePage from "@/pages/ballard-score";
+import GestationalAgePage from "@/pages/gestational-age";
+import EosRiskPage from "@/pages/eos-risk";
+import NrpTimerPage from "@/pages/nrp-timer";
+import TpnCalculatorPage from "@/pages/tpn-calculator";
+import FentonChartsPage from "@/pages/fenton-charts";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -157,8 +184,92 @@ function Router() {
       <Route path="/drug-doses">
         {() => <ProtectedRoute component={DrugDosesPage} />}
       </Route>
+      <Route path="/calculators/resuscitation-doses">
+        {() => <ProtectedRoute component={ResuscitationDosesPage} />}
+      </Route>
       <Route path="/calculators">
         {() => <ProtectedRoute component={CalculatorsPage} />}
+      </Route>
+      <Route path="/calculators/advanced-fluids">
+        {() => <ProtectedRoute component={AdvancedFluidsPage} />}
+      </Route>
+      <Route path="/calculators/gfr">
+        {() => <ProtectedRoute component={GfrCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/parkland">
+        {() => <ProtectedRoute component={ParklandCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/gcs">
+        {() => <ProtectedRoute component={GcsCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/sodium-correction">
+        {() => <ProtectedRoute component={SodiumCorrectionPage} />}
+      </Route>
+      <Route path="/calculators/kocher-criteria">
+        {() => <ProtectedRoute component={KocherCriteriaPage} />}
+      </Route>
+      <Route path="/calculators/anion-gap">
+        {() => <ProtectedRoute component={AnionGapPage} />}
+      </Route>
+      <Route path="/calculators/abg-interpreter">
+        {() => <ProtectedRoute component={AbgInterpreterPage} />}
+      </Route>
+      <Route path="/calculators/apgar">
+        {() => <ProtectedRoute component={ApgarScorePage} />}
+      </Route>
+      <Route path="/calculators/child-pugh">
+        {() => <ProtectedRoute component={ChildPughCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/bsa">
+        {() => <ProtectedRoute component={BsaCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/qtc">
+        {() => <ProtectedRoute component={QtcCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/calcium-correction">
+        {() => <ProtectedRoute component={CalciumCorrectionPage} />}
+      </Route>
+      <Route path="/calculators/growth-charts">
+        {() => <ProtectedRoute component={GrowthChartsPage} />}
+      </Route>
+      <Route path="/calculators/bp-percentiles">
+        {() => <ProtectedRoute component={BpPercentilesPage} />}
+      </Route>
+      <Route path="/calculators/hyperbilirubinemia">
+        {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
+      </Route>
+      <Route path="/calculators/oxygenation-index">
+        {() => <ProtectedRoute component={OxygenationIndexPage} />}
+      </Route>
+      <Route path="/calculators/map-calculator">
+        {() => <ProtectedRoute component={MapCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/ett-depth">
+        {() => <ProtectedRoute component={EttDepthPage} />}
+      </Route>
+      <Route path="/calculators/uac-uvc-length">
+        {() => <ProtectedRoute component={UacUvcLengthPage} />}
+      </Route>
+      <Route path="/calculators/weight-loss">
+        {() => <ProtectedRoute component={WeightLossPage} />}
+      </Route>
+      <Route path="/calculators/ballard-score">
+        {() => <ProtectedRoute component={BallardScorePage} />}
+      </Route>
+      <Route path="/calculators/gestational-age">
+        {() => <ProtectedRoute component={GestationalAgePage} />}
+      </Route>
+      <Route path="/calculators/eos-risk">
+        {() => <ProtectedRoute component={EosRiskPage} />}
+      </Route>
+      <Route path="/calculators/nrp-timer">
+        {() => <ProtectedRoute component={NrpTimerPage} />}
+      </Route>
+      <Route path="/calculators/tpn-calculator">
+        {() => <ProtectedRoute component={TpnCalculatorPage} />}
+      </Route>
+      <Route path="/calculators/fenton-charts">
+        {() => <ProtectedRoute component={FentonChartsPage} />}
       </Route>
       <Route path="/neonatology/hyperbilirubinemia">
         {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}

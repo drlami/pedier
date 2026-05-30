@@ -10,6 +10,8 @@ export const palpitationsProtocol: DiseaseProtocol = {
     hint: "heart rhythm"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'currentlyTachycardic', questionText: 'Is the patient currently in tachycardia on monitor/EKG?', type: 'boolean' },
     { id: 'associatedSyncope', questionText: 'Associated with syncope or presyncope?', type: 'boolean', info: 'Loss of consciousness or feeling of "blacking out" is a major red flag.' },
     { id: 'withExercise', questionText: 'Onset during peak exercise?', type: 'boolean', info: 'Palpitations DURING exertion are high-risk for dangerous arrhythmias or coronary anomalies.' },
     { id: 'isSuddenAbrupt', questionText: 'Abrupt onset and termination (like a "light switch")?', type: 'boolean', info: 'Suggestive of re-entrant tachycardias like SVT.' },
@@ -21,7 +23,8 @@ export const palpitationsProtocol: DiseaseProtocol = {
     const details: string[] = [];
     
     // High-Risk Features
-    if (data.associatedSyncope || data.withExercise || data.cardiacHistory || data.ekgAbnormal || data.hasChestPain) {
+    if (data.currentlyTachycardic || data.associatedSyncope || data.withExercise || data.cardiacHistory || data.ekgAbnormal || data.hasChestPain) {
+      if (data.currentlyTachycardic) details.push("Currently tachycardic on monitor/EKG");
       if (data.associatedSyncope) details.push("Associated with syncope/presyncope");
       if (data.withExercise) details.push("Occurs DURING peak exertion");
       if (data.cardiacHistory) details.push("Concerning personal/family cardiac history");
@@ -50,7 +53,7 @@ export const palpitationsProtocol: DiseaseProtocol = {
             "Perform a repeat 12-lead EKG and compare with prior EKGs if available.",
             "Check point-of-care glucose and serum electrolytes (Potassium, Magnesium, Calcium).",
             "Maintain bed rest until the patient is cleared by Cardiology for exertion.",
-            "If currently in tachycardia, follow the specific SVT or Tachycardia algorithm."
+            "If currently in tachycardia, follow the SVT or Tachycardia algorithm immediately."
           ]
         }];
       case 'moderate':
@@ -100,9 +103,16 @@ export const palpitationsProtocol: DiseaseProtocol = {
     "Abnormal EKG findings (Pre-excitation, prolonged QTc).",
     "Presence of a significant heart murmur or known structural heart disease."
   ],
-  getDrugDoses: () => [
-      { drugName: "Adenosine", dose: "0.1 mg/kg IV (max 6mg) then 0.2 mg/kg IV (max 12mg)", notes: "For acute conversion if SVT is present. See SVT Protocol." }
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    const adeno1 = Math.min(0.1 * weight, 6);
+    const adeno2 = Math.min(0.2 * weight, 12);
+
+    return [
+      { drugName: "Adenosine 1st dose", dose: weight > 0 ? `${adeno1.toFixed(2)} mg rapid IV/IO push` : "0.1 mg/kg rapid IV/IO, max 6 mg", notes: "Only if SVT is present." },
+      { drugName: "Adenosine 2nd dose", dose: weight > 0 ? `${adeno2.toFixed(2)} mg rapid IV/IO push` : "0.2 mg/kg rapid IV/IO, max 12 mg", notes: "Only if first dose fails and SVT persists." }
+    ];
+  },
   getReferences: () => [
       { title: "UpToDate: Palpitations in children", url: "https://www.uptodate.com/contents/palpitations-in-children" },
       { title: "AAP: Evaluation and Management of the Child with Palpitations", url: "https://publications.aap.org/pediatrics" }

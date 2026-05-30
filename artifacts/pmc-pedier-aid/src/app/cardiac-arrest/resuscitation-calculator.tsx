@@ -69,11 +69,22 @@ const getBlade = (ageInYears?: number) => {
 
   const category = getAgeCategory(ageInYears);
 
-  if (category === "neonate") return "Miller 0–1";
+  if (category === "neonate") return "Miller 0 (preterm) to 1 (term)";
   if (category === "infant") return "Miller 1";
-  if (category === "toddler") return "Miller 1.5–2";
-  if (category === "child") return "Mac 2–3";
-  return "Mac 3";
+  if (category === "toddler") return "Miller 2 or Mac 2";
+  if (category === "child") return "Mac 2–3 or Miller 2–3";
+  return "Mac 3–4";
+};
+
+const getLma = (weight?: number) => {
+  if (!weight) return "N/A";
+  if (weight < 5) return "Size 1";
+  if (weight < 10) return "Size 1.5";
+  if (weight < 20) return "Size 2";
+  if (weight < 30) return "Size 2.5";
+  if (weight < 50) return "Size 3";
+  if (weight < 70) return "Size 4";
+  return "Size 5";
 };
 
 const getEtt = (ageInYears?: number, weight?: number) => {
@@ -97,6 +108,9 @@ const getEtt = (ageInYears?: number, weight?: number) => {
 
   const category = getAgeCategory(ageInYears);
 
+  // Helper to round to nearest 0.5
+  const roundToHalf = (num: number) => (Math.round(num * 2) / 2).toFixed(1);
+
   if (category === "neonate") {
     let size = 3.5;
     if (weight < 1) size = 2.5;
@@ -106,30 +120,30 @@ const getEtt = (ageInYears?: number, weight?: number) => {
 
     return {
       uncuffed: size.toFixed(1),
-      cuffed: "Usually uncuffed / neonatal tube",
+      cuffed: size >= 3.0 ? "3.0" : "Uncuffed preferred",
       depth: `${round(weight + 6, 1)} cm`,
-      note: "Neonate estimate: depth ≈ weight + 6 cm. Confirm clinically + ETCO₂ + CXR.",
+      note: "Neonate (Weight + 6 cm rule). NTD + 1 cm may be more accurate. Confirm clinically.",
     };
   }
 
   if (category === "infant") {
     return {
-      uncuffed: "3.5–4.0",
-      cuffed: "3.0–3.5",
-      depth: "10–12 cm",
-      note: "Prepare chosen tube + 0.5 smaller + 0.5 larger.",
+      uncuffed: "3.5 - 4.0",
+      cuffed: "3.0 - 3.5",
+      depth: "10 - 12 cm",
+      note: "PALS 2020: Cuffed tubes are preferred for all ages to reduce air leak. Monitor cuff pressure < 20-25 cm H2O.",
     };
   }
 
   const uncuffed = ageInYears / 4 + 4;
   const cuffed = ageInYears / 4 + 3.5;
-  const depth = cuffed * 3;
+  const depth = (Math.round(cuffed * 2) / 2) * 3; // Depth is 3x the standard size
 
   return {
-    uncuffed: round(uncuffed, 1).toFixed(1),
-    cuffed: round(cuffed, 1).toFixed(1),
+    uncuffed: roundToHalf(uncuffed),
+    cuffed: roundToHalf(cuffed),
     depth: `${round(depth, 1)} cm`,
-    note: "Prepare selected tube + 0.5 smaller + 0.5 larger. Confirm with ETCO₂ and CXR.",
+    note: "PALS 2020: Cuffed tubes preferred. Formula: (Age/4)+3.5. Prepare 0.5 smaller & larger.",
   };
 };
 
@@ -292,6 +306,9 @@ export function ResuscitationCalculator() {
 
   const epinephrineMg = Math.min(0.01 * finalWeight, 1);
   const epinephrineMl = epinephrineMg / 0.1;
+  const atropineMax = ageCategory === "adolescent" ? 1 : 0.5;
+  const atropineMg = Math.min(Math.max(0.02 * finalWeight, 0.1), atropineMax);
+  const magnesiumMg = Math.min(50 * finalWeight, 2000);
 
   return (
     <div className="space-y-6">
@@ -363,8 +380,9 @@ export function ResuscitationCalculator() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>During cardiac arrest</AlertTitle>
           <AlertDescription className="text-sm">
-            Prioritize high-quality CPR, oxygenation with BVM, rhythm check every 2 minutes,
-            defibrillation if shockable, and epinephrine. Do not delay CPR for intubation.
+            Start high-quality CPR immediately. Attach monitor/defibrillator, give oxygen with BVM,
+            establish IV/IO, identify rhythm every 2 minutes, shock if shockable, and give
+            epinephrine without delaying CPR.
           </AlertDescription>
         </Alert>
 
@@ -386,6 +404,42 @@ export function ResuscitationCalculator() {
             3–5 minutes.
           </AlertDescription>
         </Alert>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-red-700">First 60 seconds</p>
+              <ol className="mt-2 list-decimal list-inside space-y-1 text-sm text-red-900">
+                <li>Call code team / assign roles.</li>
+                <li>Start CPR and BVM oxygen.</li>
+                <li>Attach defibrillator pads.</li>
+                <li>Get IV/IO access.</li>
+              </ol>
+            </CardContent>
+          </Card>
+
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-700">Shockable VF/pVT</p>
+              <ol className="mt-2 list-decimal list-inside space-y-1 text-sm text-amber-900">
+                <li>Shock, then CPR 2 min.</li>
+                <li>Shock, CPR, epinephrine.</li>
+                <li>Shock, CPR, amiodarone/lidocaine.</li>
+              </ol>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-slate-50">
+            <CardContent className="p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-700">PEA / Asystole</p>
+              <ol className="mt-2 list-decimal list-inside space-y-1 text-sm text-slate-900">
+                <li>CPR continuously.</li>
+                <li>Epinephrine ASAP, then q3-5 min.</li>
+                <li>Treat reversible Hs & Ts.</li>
+              </ol>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ResultCard title="Patient" icon={Stethoscope}>
@@ -481,7 +535,7 @@ export function ResuscitationCalculator() {
                 </p>
                 <ResultRow
                   label="Atropine"
-                  value={Math.max(0.02 * finalWeight, 0.1).toFixed(2)}
+                  value={atropineMg.toFixed(2)}
                   unit="mg"
                 />
                 <ResultRow
@@ -494,6 +548,14 @@ export function ResuscitationCalculator() {
                   value={Math.min(0.5 * finalWeight, 20).toFixed(1)}
                   unit="mL"
                 />
+                <ResultRow
+                  label="Magnesium sulfate"
+                  value={(magnesiumMg / 1000).toFixed(2)}
+                  unit="g IV/IO"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Magnesium is for torsades/polymorphic VT with suspected hypomagnesemia; usual dose 25-50 mg/kg, max 2 g.
+                </p>
               </div>
             )}
           </ResultCard>
@@ -503,6 +565,7 @@ export function ResuscitationCalculator() {
             <ResultRow label="Cuffed ETT" value={ett.cuffed} />
             <ResultRow label="Oral depth estimate" value={ett.depth} />
             <ResultRow label="Blade" value={getBlade(ageInYears)} />
+            <ResultRow label="LMA Size" value={getLma(finalWeight)} />
             <p className="text-xs text-muted-foreground mt-2">{ett.note}</p>
           </ResultCard>
 
@@ -519,34 +582,69 @@ export function ResuscitationCalculator() {
             </p>
           </ResultCard>
 
-          <ResultCard title="Hs & Ts Reminder" icon={AlertTriangle}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-              <ul className="list-disc list-inside">
-                <li>Hypoxia</li>
-                <li>Hypovolemia</li>
-                <li>Hydrogen ion / acidosis</li>
-                <li>Hypo-/hyperkalemia</li>
-                <li>Hypothermia</li>
-              </ul>
-              <ul className="list-disc list-inside">
-                <li>Tension pneumothorax</li>
-                <li>Tamponade</li>
-                <li>Toxins</li>
-                <li>Thrombosis pulmonary</li>
-                <li>Thrombosis coronary</li>
-              </ul>
-            </div>
-          </ResultCard>
+          <div className="md:col-span-2">
+            <ResultCard title="Reversible Causes (H's and T's)" icon={AlertTriangle}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div className="space-y-3">
+                  <h4 className="font-bold text-red-800 uppercase tracking-widest text-[10px] border-b pb-1">The H's</h4>
+                  <ul className="space-y-2">
+                    <li className="flex flex-col"><span className="font-bold">Hypovolemia</span><span className="text-xs text-muted-foreground">Give 20 mL/kg NS/RL bolus; check for hemorrhage.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Hypoxia</span><span className="text-xs text-muted-foreground">Ensure patent airway, 100% O₂, bilateral breath sounds.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Hydrogen Ion (Acidosis)</span><span className="text-xs text-muted-foreground">Adequate ventilation; consider Bicarb for severe metabolic cases.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Hypoglycemia</span><span className="text-xs text-muted-foreground">Check CBG. Give D10W (5 mL/kg) or D25W (2 mL/kg).</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Hypo-/Hyperkalemia</span><span className="text-xs text-muted-foreground">HyperK: Calcium Gluconate, Bicarb, Insulin+Glucose. HypoK: Potassium replacement.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Hypothermia</span><span className="text-xs text-muted-foreground">Active warming measures (warm fluids, blankets).</span></li>
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-bold text-slate-800 uppercase tracking-widest text-[10px] border-b pb-1">The T's</h4>
+                  <ul className="space-y-2">
+                    <li className="flex flex-col"><span className="font-bold">Tension Pneumothorax</span><span className="text-xs text-muted-foreground">Needle decompression (2nd ICS mid-clavicular), then chest tube.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Tamponade (Cardiac)</span><span className="text-xs text-muted-foreground">Echocardiogram; Pericardiocentesis.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Toxins</span><span className="text-xs text-muted-foreground">Antidotes (Naloxone, Atropine, Flumazenil, Lipid Emulsion).</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Thrombosis (Pulmonary)</span><span className="text-xs text-muted-foreground">Consider fibrinolytics/thrombolytics if suspected massive PE.</span></li>
+                    <li className="flex flex-col"><span className="font-bold">Thrombosis (Coronary)</span><span className="text-xs text-muted-foreground">Rare in pediatrics; consult cardiology.</span></li>
+                  </ul>
+                </div>
+              </div>
+            </ResultCard>
+          </div>
 
           <div className="md:col-span-2">
-            <ResultCard title="Post-ROSC Checklist" icon={HeartPulse}>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Airway and oxygenation: avoid hypoxia; titrate oxygen after stabilization.</li>
-                <li>Ventilation: avoid severe hyperventilation.</li>
-                <li>Blood pressure/perfusion: treat shock, consider vasoactive support.</li>
-                <li>Glucose and temperature control.</li>
-                <li>12-lead ECG, labs, CXR, and search for cause of arrest.</li>
-              </ul>
+            <ResultCard title="Post-ROSC Care & Stabilization" icon={Activity}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
+                  <p className="font-bold text-blue-800 mb-1 flex items-center gap-1"><Wind className="h-3.5 w-3.5"/> Oxygenation & Ventilation</p>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1">
+                    <li>Titrate FiO₂ to target SpO₂ <strong>94% - 99%</strong> (Avoid 100% to prevent reperfusion injury).</li>
+                    <li>Target PaCO₂ to normal for patient (usually 35-45 mmHg).</li>
+                    <li>Avoid excessive hyperventilation (decreases cerebral perfusion).</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-rose-50/50 rounded-lg border border-rose-100">
+                  <p className="font-bold text-rose-800 mb-1 flex items-center gap-1"><HeartPulse className="h-3.5 w-3.5"/> Hemodynamics</p>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1">
+                    <li>Target systolic BP {'>'} 5th percentile for age.</li>
+                    <li>Treat hypotension with IV fluid boluses (10-20 mL/kg).</li>
+                    <li>Start inotropes/vasopressors (Epinephrine/Norepinephrine) if fluid refractory.</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-emerald-50/50 rounded-lg border border-emerald-100">
+                  <p className="font-bold text-emerald-800 mb-1 flex items-center gap-1"><Droplets className="h-3.5 w-3.5"/> Glucose & Electrolytes</p>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1">
+                    <li>Monitor BG closely; treat hypoglycemia immediately.</li>
+                    <li>Correct Calcium and Potassium abnormalities.</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="font-bold text-slate-800 mb-1 flex items-center gap-1"><Activity className="h-3.5 w-3.5"/> Temperature Management</p>
+                  <ul className="list-disc list-inside text-xs text-slate-700 space-y-1">
+                    <li>Maintain normothermia (36°C - 37.5°C).</li>
+                    <li>Aggressively treat fever (increases cerebral metabolic demand).</li>
+                    <li>Consider Targeted Temperature Management (TTM) if comatose.</li>
+                  </ul>
+                </div>
+              </div>
             </ResultCard>
           </div>
 

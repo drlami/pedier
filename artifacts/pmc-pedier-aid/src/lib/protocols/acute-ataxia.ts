@@ -1,94 +1,98 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const acuteAtaxiaProtocol: DiseaseProtocol = {
   id: 'acute-ataxia',
-  name: 'Acute Ataxia',
+  name: 'Acute Ataxia (Unsteady Gait)',
   system: 'Neurology',
-  description: 'Evaluation of a child presenting with acute ataxia (unsteady gait), with a focus on differentiating benign from life-threatening causes.',
+  description: 'Assessment of acute imbalance or gait abnormality in children.',
   image: {
-    url: "https://picsum.photos/seed/acute-ataxia/600/400",
+    url: "https://picsum.photos/seed/ataxia/600/400",
     hint: "child stumbling"
   },
   questions: [
-    { id: 'mentalStatus', questionText: 'Is there altered mental status, confusion, or lethargy?', type: 'boolean' },
-    { id: 'fever', questionText: 'Is there a fever?', type: 'boolean' },
-    { id: 'headacheVomiting', questionText: 'Is there headache or vomiting, especially if worse in the morning?', type: 'boolean' },
-    { id: 'focalDeficit', questionText: 'Are there any other focal neurologic signs (e.g., cranial nerve palsies, weakness)?', type: 'boolean' },
-    { id: 'trauma', questionText: 'Any history of recent head or neck trauma?', type: 'boolean' },
-    { id: 'ingestion', questionText: 'Any possibility of toxic ingestion (e.g., alcohol, benzodiazepines, anticonvulsants)?', type: 'boolean' },
-    { id: 'opsoclonusMyoclonus', questionText: 'Are there opsoclonus (chaotic eye movements) or myoclonus (jerking)?', type: 'boolean', info: "Suggests neuroblastoma" },
+    { id: 'age', questionText: 'Patient Age', type: 'number', unit: 'years' },
+    { id: 'onset', questionText: 'Sudden onset?', type: 'boolean' },
+    { id: 'focalDeficit', questionText: 'Focal deficit? (e.g. cranial nerve palsy, weakness)', type: 'boolean' },
+    { id: 'increasedIcp', questionText: 'Signs of increased ICP? (e.g. morning vomiting, headache)', type: 'boolean' },
+    { id: 'toxicPossible', questionText: 'Possibility of toxic ingestion? (Ethanol, Anticonvulsants)', type: 'boolean' },
+    { id: 'opsoclonus', questionText: 'Opsoclonus-Myoclonus? (Chaotic eye movements)', type: 'boolean', info: 'Highly suggestive of Neuroblastoma.' },
+    { id: 'recentInfection', questionText: 'Recent viral infection or varicella?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
-    if (data.mentalStatus || data.headacheVomiting || data.focalDeficit || data.trauma) {
-      if(data.mentalStatus) details.push("Altered mental status");
-      if(data.headacheVomiting) details.push("Headache/vomiting (concern for increased ICP)");
-      if(data.focalDeficit) details.push("Focal neurologic deficits");
-      if(data.trauma) details.push("History of trauma");
-      details.push("Red flags present, indicating a potentially life-threatening cause. Urgent workup needed.");
-      return { level: 'severe', details };
+    let riskCount = 0;
+
+    if (data.focalDeficit) riskCount += 2;
+    if (data.increasedIcp) riskCount += 2;
+    if (data.opsoclonus) riskCount += 3;
+
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Likely Post-Infectious Cerebellitis';
+
+    if (riskCount >= 2 || data.opsoclonus === true) {
+      level = 'severe';
+      interpretation = 'URGENT STRUCTURAL/NEOPLASTIC CONCERN';
+      if (data.opsoclonus) details.push("Opsoclonus-Myoclonus identified: URGENT screening for Neuroblastoma required.");
+    } else if (data.toxicPossible === true) {
+      level = 'moderate';
+      interpretation = 'SUSPECTED TOXIC INGESTION';
     }
 
-    if (data.ingestion) {
-      details.push("Suspicion for toxic ingestion. Requires specific management.");
-      return { level: 'moderate', details };
-    }
-
-    if(data.fever) {
-      details.push("Fever is present. Consider post-infectious cerebellitis.");
-    }
-    
-    details.push("Isolated ataxia in a well-appearing child. Post-infectious cerebellitis is the most common cause, which is a diagnosis of exclusion.");
-    return { level: 'mild', details };
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "Ataxia Differential Risk",
+        totalScore: riskCount,
+        maxScore: 7,
+        interpretation,
+        referenceTable: [
+          { range: "Opsoclonus", meaning: "Suspect Neuroblastoma" },
+          { range: "Focal/ICP signs", meaning: "Suspect Tumor or Hemorrhage" },
+          { range: "Toxic", meaning: "Ethanol, Benzos, or Anticonvulsants" },
+          { range: "Isolated", meaning: "Post-Infectious (Most common)" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
-    switch(severity.level) {
+    switch (severity.level) {
       case 'severe':
         return [{
-          title: "Urgent Management of Ataxia with Red Flags",
+          title: "Urgent Neuro-Oncology Workup",
           recommendations: [
-            "This is a neurologic emergency. Stabilize ABCs.",
-            "Obtain emergent neuroimaging (Head CT for trauma, MRI for posterior fossa tumor suspicion).",
-            "Obtain urgent Neurology consultation.",
-            "If trauma, maintain C-spine precautions.",
-            "If increased ICP suspected, initiate measures to lower ICP (head elevation, hyperosmolar therapy)."
+            "Urgently obtain Brain MRI (Post-fossa focus).",
+            "Consult Neurology and Oncology.",
+            "If Opsoclonus: Search for Neuroblastoma (Chest/Abd CT, Urine catecholamines).",
+            "Monitor for neurological deterioration."
           ]
         }];
       case 'moderate':
         return [{
-          title: "Management of Suspected Toxic Ingestion",
+          title: "Toxicology Management",
           recommendations: [
-            "Obtain toxicology screen (urine and serum). Check specific levels if a known ingestion is suspected (e.g., ethanol, phenytoin).",
-            "Provide supportive care.",
-            "Consult toxicology or poison control center.",
-            "Admission for observation is required."
+            "Check serum Ethanol, Anticonvulsant levels.",
+            "Comprehensive Toxicology Screen (Urine/Serum).",
+            "Maintain safety; monitor for respiratory depression.",
+            "Consult Poison Control Center."
           ]
         }];
-      default: // mild
+      default:
         return [{
-          title: "Management of Suspected Post-Infectious Cerebellitis",
+          title: "Post-Infectious Management",
           recommendations: [
-            "This is a diagnosis of exclusion. Life-threatening causes must be ruled out.",
-            "A period of observation is warranted.",
-            "Neurology consultation is recommended.",
-            "Neuroimaging (MRI) is often performed to rule out structural lesions, even in well-appearing children.",
-            "Lumbar puncture may be considered to rule out infectious/inflammatory causes.",
-            "If symptoms are classic and workup is negative, supportive care is the mainstay of treatment. Most children recover fully."
+            "Clinical observation is key.",
+            "Most cases resolve in 2-4 weeks without treatment.",
+            "Ensure child is at baseline except for the ataxia.",
+            "Follow-up with Pediatrics in 48-72h."
           ]
         }];
     }
   },
-  getDisposition: (severity, data) => {
-    return ["All children with a new onset of acute ataxia require hospital admission for observation and diagnostic evaluation to rule out life-threatening conditions."];
-  },
-  getRedFlags: () => [
-    "Altered mental status or lethargy",
-    "Signs of increased intracranial pressure (persistent vomiting, headache, papilledema)",
-    "Focal neurologic deficits (e.g., cranial nerve palsies)",
-    "History of head trauma",
-    "Opsoclonus-myoclonus (concern for neuroblastoma)",
-    "Acute onset of ataxia following a streptococcal infection (Sydenham chorea)"
-  ],
+  getDisposition: (severity) => ["All new-onset ataxia cases require expert review. Moderate/Severe cases require admission."],
+  getRedFlags: () => ["Morning vomiting", "Opsoclonus (chaotic eyes)", "Cranial nerve palsies", "History of trauma"],
   getDrugDoses: () => [],
-  getReferences: () => [{ title: "UpToDate: Acute ataxia in children", url: "https://www.uptodate.com/contents/acute-ataxia-in-children-approach-to-the-patient" }],
+  getReferences: () => [
+    { title: "UpToDate: Acute ataxia in children", url: "https://www.uptodate.com/" }
+  ],
 };

@@ -1,91 +1,171 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const dehydrationGastroenteritisProtocol: DiseaseProtocol = {
   id: 'dehydration-gastroenteritis',
-  name: 'Dehydration (from Gastroenteritis)',
+  name: 'Dehydration (Gastroenteritis)',
   system: 'Gastrointestinal',
-  description: 'Assessment and management of dehydration from acute gastroenteritis using the Clinical Dehydration Scale (CDS).',
+  description: 'Assessment and management of dehydration using the 4-item Clinical Dehydration Scale (CDS) / Gorelick Scale.',
    image: {
     url: "https://picsum.photos/seed/gastroenteritis/600/400",
     hint: "stomach ache"
   },
   questions: [
-    { id: 'vomitingFrequency', questionText: 'Vomiting episodes in last 24h', type: 'number' },
-    { id: 'diarrheaFrequency', questionText: 'Diarrhea episodes in last 24h', type: 'number' },
-    { id: 'oralIntake', questionText: 'Oral Intake', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Slightly Decreased', value: 'decreased'}, {label: 'Poor/None', value: 'poor'}] },
-    { id: 'tears', questionText: 'Tears present when crying?', type: 'select', options: [{label: 'Normal', value: 'present'}, {label: 'Decreased', value: 'decreased'}, {label: 'Absent', value: 'absent'}] },
-    { id: 'urineOutput', questionText: 'Urine Output', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Reduced', value: 'reduced'}, {label: 'None in >8h', value: 'none'}] },
-    { id: 'capRefill', questionText: 'Capillary Refill', type: 'select', options: [{label: '< 2 seconds', value: 'normal'}, {label: '2-3 seconds', value: 'delayed'}, {label: '> 3 seconds', value: 'very_delayed'}] },
-    { id: 'mentalState', questionText: 'Mental State', type: 'select', options: [{label: 'Alert', value: 'alert'}, {label: 'Irritable/Thirsty', value: 'irritable'}, {label: 'Lethargic/Drowsy', value: 'lethargic'}] },
-    { id: 'sunkenEyes', questionText: 'Sunken Eyes?', type: 'boolean' },
-    { id: 'skinTurgor', questionText: 'Skin Turgor', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Reduced (tents briefly)', value: 'reduced'}] },
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+    { 
+      id: 'appearance', 
+      questionText: 'General Appearance', 
+      type: 'select', 
+      options: [
+        {label: 'Normal', value: '0', score: 0}, 
+        {label: 'Restless, irritable, or thirsty', value: '1', score: 1},
+        {label: 'Lethargic, limp, or cold/sweaty', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'eyes', 
+      questionText: 'Eyes', 
+      type: 'select', 
+      options: [
+        {label: 'Normal', value: '0', score: 0}, 
+        {label: 'Slightly sunken', value: '1', score: 1},
+        {label: 'Very sunken', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'mucousMembranes', 
+      questionText: 'Mucous Membranes (Tongue)', 
+      type: 'select', 
+      options: [
+        {label: 'Moist', value: '0', score: 0}, 
+        {label: 'Sticky', value: '1', score: 1},
+        {label: 'Dry', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'tears', 
+      questionText: 'Tears', 
+      type: 'select', 
+      options: [
+        {label: 'Normal', value: '0', score: 0}, 
+        {label: 'Decreased', value: '1', score: 1},
+        {label: 'Absent', value: '2', score: 2}
+      ] 
+    },
+    { id: 'capRefill', questionText: 'Capillary Refill > 2 seconds?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    // Clinical Dehydration Scale (CDS)
-    let score = 0;
     const details: string[] = [];
+    
+    const s1 = Number(data.appearance || 0);
+    const s2 = Number(data.eyes || 0);
+    const s3 = Number(data.mucousMembranes || 0);
+    const s4 = Number(data.tears || 0);
+    
+    const totalScore = s1 + s2 + s3 + s4;
+    
+    let level: SeverityLevel = 'no';
+    let interpretation = 'No/Minimal Dehydration (< 3%)';
+    
+    if (totalScore >= 5) {
+      level = 'severe';
+      interpretation = 'Severe Dehydration (> 9%)';
+    } else if (totalScore >= 1) {
+      level = 'some';
+      interpretation = 'Mild-Moderate Dehydration (3-9%)';
+    } else {
+      level = 'no';
+      interpretation = 'No/Minimal Dehydration (< 3%)';
+    }
 
-    if (data.mentalState === 'irritable') { score += 1; details.push("Irritable"); }
-    if (data.mentalState === 'lethargic') { score += 2; details.push("Lethargic"); }
+    if (data.capRefill === true || s1 === 2) {
+      details.push("High clinical suspicion for significant dehydration regardless of score.");
+    }
 
-    if (data.sunkenEyes) { score += 1; details.push("Sunken eyes"); }
-
-    if (data.tears === 'decreased') { score += 1; details.push("Decreased tears"); }
-    if (data.tears === 'absent') { score += 2; details.push("Absent tears"); }
-
-    // Using cap refill as a proxy for mucous membranes
-    if (data.capRefill === 'delayed') { score += 1; details.push("Delayed cap refill"); }
-    if (data.capRefill === 'very_delayed') { score += 2; details.push("Very delayed cap refill"); }
-
-    if (score >= 5) return { level: 'severe', score, details: [...details, "Severe dehydration (>=5)"] };
-    if (score >= 1) return { level: 'some', score, details: [...details, "Mild-moderate dehydration (1-4)"] };
-    return { level: 'no', score, details: [...details, "No/minimal dehydration (0)"] };
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "Clinical Dehydration Scale",
+        totalScore: totalScore,
+        maxScore: 8,
+        interpretation,
+        referenceTable: [
+          { range: "0", meaning: "No Dehydration (< 3%)" },
+          { range: "1 - 4", meaning: "Mild-Moderate Dehydration (3-9%)" },
+          { range: "5 - 8", meaning: "Severe Dehydration (> 9%)" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
-    const management = [];
-    if (severity.level === 'no') {
-        management.push({ title: "No/Minimal Dehydration", recommendations: [
-            "Continue regular diet. Encourage oral fluids.",
-            "For ongoing losses: Oral Rehydration Solution (ORS) 10 mL/kg for each diarrheal stool and 2 mL/kg for each emesis.",
-            "Consider Ondansetron if vomiting is a barrier to hydration."
-        ]});
+    const weight = Number(data.weight || 0);
+    switch (severity.level) {
+      case 'severe':
+        return [{
+          title: "Severe Dehydration Management (>9%)",
+          recommendations: [
+            "Immediate IV/IO access.",
+            "Normal Saline (NS) or LR bolus: 20 mL/kg (max 1L).",
+            "Repeat boluses as needed until perfusion improves.",
+            "Once stable, calculate maintenance + 50% replacement over 24h.",
+            "Check electrolytes and glucose immediately."
+          ]
+        }];
+      case 'some':
+        return [{
+          title: "Mild-Moderate Dehydration Management (3-9%)",
+          recommendations: [
+            "Oral Rehydration Solution (ORS) trial: 50-100 mL/kg over 4 hours.",
+            "Give small frequent amounts (5-10 mL every 5 min).",
+            "Ondansetron ODT to facilitate ORS if vomiting.",
+            "If failing ORS, consider IV NS bolus (20 mL/kg) and re-evaluate."
+          ]
+        }];
+      case 'no':
+        return [{
+          title: "No/Minimal Dehydration Management (<3%)",
+          recommendations: [
+            "Continue regular diet and fluids.",
+            "Replace ongoing losses: 10 mL/kg ORS per diarrheal stool; 2 mL/kg per emesis.",
+            "Educate parents on red flags and when to return."
+          ]
+        }];
+      default:
+        return [{ title: 'Awaiting Assessment', recommendations: ['Complete clinical scoring to determine management.'] }];
     }
-    if (severity.level === 'some') {
-        management.push({ title: "Mild to Moderate Dehydration", recommendations: [
-            "Administer Ondansetron ODT.",
-            "Begin ORS trial in ED: 5 mL every 2-5 minutes, gradually increasing volume. Goal is 50-100 mL/kg over 4 hours.",
-            "If ORS trial fails (persistent vomiting, refusal), consider IV fluid bolus (20 mL/kg NS or LR) and repeat trial.",
-        ]});
-    }
-    if (severity.level === 'severe') {
-        management.push({ title: "Severe Dehydration", recommendations: [
-            "Administer IV fluid bolus: 20 mL/kg Normal Saline or Lactated Ringer's. May repeat up to 2-3 times.",
-            "Correct electrolyte abnormalities (check labs).",
-            "Administer Ondansetron IV.",
-            "Plan for admission and ongoing IV fluid therapy."
-        ]});
-    }
-    return management;
   },
-  getDisposition: (severity, data) => {
+  getDisposition: (severity) => {
     if (severity.level === 'severe') {
-        return ['Admit for IV hydration and monitoring. Consider PICU if in shock.'];
+        return ['Admit for IV rehydration and correction of electrolyte disturbances.'];
     }
     if (severity.level === 'some') {
-        return ['Admit if ORS trial fails, persistent vomiting, or significant comorbidities.', 'Discharge if ORS is tolerated, patient is rehydrated, and caregivers are comfortable.'];
+        return ['Discharge home if ORS is tolerated and patient shows improvement.', 'Admit if failing ORS, persistent vomiting, or caregiver concerns.'];
     }
-    return ['Discharge home with clear instructions for hydration and diet.'];
+    return ['Discharge home with hydration instructions and return precautions.'];
   },
   getRedFlags: () => [
-    'Signs of shock (lethargy, hypotension, very delayed capillary refill)',
-    'Bilious or bloody emesis',
-    'Severe abdominal pain',
-    'Inability to tolerate any oral intake despite antiemetics',
-    'Significant underlying medical condition'
+    "Lethargy or altered mental status",
+    "Capillary refill > 3 seconds",
+    "Persistent vomiting despite antiemetics",
+    "Absence of urine output > 8-12 hours",
+    "Bloody diarrhea or severe abdominal pain"
   ],
-  getDrugDoses: (severity) => [
-      { drugName: "Ondansetron (Zofran)", dose: "0.15 mg/kg (max 8mg) PO/ODT/IV", notes: "Give 15-30 min before attempting ORS" },
-      { drugName: "IV Fluid Bolus", dose: "20 mL/kg Normal Saline or Lactated Ringer's", notes: "Administer over 20-60 min, or faster if in shock" }
+  getDrugDoses: (severity, data) => {
+      const weight = Number(data.weight) || 0;
+      const doses = [];
+      
+      if (weight > 0) {
+        const ondansetronDose = weight < 15 ? 2 : weight < 30 ? 4 : 8;
+        doses.push({ drugName: "Ondansetron (ODT/PO)", dose: `${ondansetronDose} mg once`, notes: "Facilitates ORS by reducing vomiting" });
+        doses.push({ drugName: "IV NS/LR Bolus", dose: `${(weight * 20).toFixed(0)} mL (20 mL/kg)`, notes: "Over 20-60 min" });
+      } else {
+        doses.push({ drugName: "Ondansetron", dose: "0.15 mg/kg (max 8mg)", notes: "Facilitates ORS" });
+        doses.push({ drugName: "IV NS/LR Bolus", dose: "20 mL/kg", notes: "For moderate/severe dehydration" });
+      }
+      return doses;
+  },
+  getReferences: () => [
+    { title: "Clinical Dehydration Scale for Children", url: "https://www.mdcalc.com/clinical-dehydration-scale-children" },
+    { title: "NICE Guideline: Diarrhoea and vomiting caused by gastroenteritis in under 5s", url: "https://www.nice.org.uk/guidance/cg84" }
   ],
-  getReferences: () => [{ title: "CDC: Gastroenteritis ('Stomach Flu')", url: "https://www.cdc.gov/gastroenteritis/index.html" }],
 };

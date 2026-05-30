@@ -7,7 +7,7 @@ export const viralVsBacterialProtocol: DiseaseProtocol = {
   description: 'A cognitive aid summarizing clinical and laboratory findings to help differentiate between likely viral and bacterial etiologies of fever.',
   image: {
     url: "https://picsum.photos/seed/viral-vs-bacterial/600/400",
-    imageHint: "microscope virus"
+    hint: "microscope virus"
   },
   questions: [
     { id: 'isToxic', questionText: 'Is the child ill- or toxic-appearing (YOS > 10)?', type: 'boolean' },

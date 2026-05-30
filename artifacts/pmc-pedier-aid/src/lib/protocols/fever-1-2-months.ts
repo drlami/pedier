@@ -7,7 +7,7 @@ export const fever1To2MonthsProtocol: DiseaseProtocol = {
   description: 'Evaluation and management of well-appearing febrile infants aged 29 to 60 days, based on the AAP 2021 guidelines.',
   image: {
     url: "https://picsum.photos/seed/fever-1-2-months/600/400",
-    imageHint: "infant temperature"
+    hint: "infant temperature"
   },
   questions: [
     { id: 'isWellAppearing', questionText: 'Is the infant well-appearing and previously healthy?', type: 'boolean', info: 'Well-appearing means active, alert, good tone, normal color.' },

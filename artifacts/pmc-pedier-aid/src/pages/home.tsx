@@ -1,28 +1,26 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useSearch } from "wouter";
 import { Input } from "@/components/ui/input";
 import type { DiseaseProtocol } from "@/lib/protocols/types";
 import {
-  Activity,
   AlertTriangle,
-  Baby,
   Calculator,
   ChevronRight,
   HeartPulse,
-  Pill,
+  Pin,
+  PinOff,
   Search,
-  ShieldAlert,
-  Sparkles,
-  Stethoscope,
+  Star,
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import {
   CALCULATOR_SHORTCUTS,
   EMERGENCY_SHORTCUTS,
-  PRESENTATION_GROUPS,
   type DashboardAccent,
 } from "@/lib/clinical-dashboard";
 import { cn } from "@/lib/utils";
+
+const PINNED_PROTOCOLS_KEY = "pmc-pinned-protocols-v1";
 
 const accentStyles: Record<DashboardAccent, { card: string; icon: string; bar: string; text: string }> = {
   red: {
@@ -66,9 +64,13 @@ const accentStyles: Record<DashboardAccent, { card: string; icon: string; bar: s
 function ProtocolCard({
   protocol,
   compact = false,
+  pinned = false,
+  onTogglePin,
 }: {
   protocol: DiseaseProtocol;
   compact?: boolean;
+  pinned?: boolean;
+  onTogglePin?: (id: string) => void;
 }) {
   return (
     <Link
@@ -92,7 +94,26 @@ function ProtocolCard({
             )}
           </span>
         </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/60 shrink-0 transition-colors" />
+        <span className="flex items-center gap-1 shrink-0">
+          {onTogglePin && (
+            <button
+              type="button"
+              className={cn(
+                "rounded-md p-1.5 transition-colors hover:bg-muted",
+                pinned ? "text-amber-600" : "text-muted-foreground/40 hover:text-amber-600",
+              )}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onTogglePin(protocol.id);
+              }}
+              aria-label={pinned ? "Unpin protocol" : "Pin protocol"}
+            >
+              {pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+            </button>
+          )}
+          <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
+        </span>
       </div>
     </Link>
   );
@@ -118,10 +139,10 @@ function EmergencyShortcutCard({
 }) {
   const styles = accentStyles[shortcut.accent];
   return (
-    <Link href={shortcut.href} className={cn("group block rounded-xl border p-4 shadow-sm transition-all hover:shadow-md", styles.card)}>
+    <Link href={shortcut.href} className={cn("group block rounded-xl border p-3 shadow-sm transition-all hover:shadow-md", styles.card)}>
       <div className="flex items-start gap-3">
-        <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg shrink-0", styles.icon)}>
-          <AlertTriangle className="h-4.5 w-4.5" />
+        <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg shrink-0", styles.icon)}>
+          <AlertTriangle className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
           <span className={cn("block text-sm font-bold leading-tight", styles.text)}>
@@ -137,58 +158,14 @@ function EmergencyShortcutCard({
   );
 }
 
-function PresentationCard({
-  group,
-  protocols,
-}: {
-  group: (typeof PRESENTATION_GROUPS)[number];
-  protocols: DiseaseProtocol[];
-}) {
-  const styles = accentStyles[group.accent];
-  const primaryProtocol = protocols[0];
-  const href = primaryProtocol ? `/diseases/${primaryProtocol.id}` : "/";
-  return (
-    <Link href={href} className="group block">
-      <div className="h-full rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/30">
-        <div className="flex items-start gap-3">
-          <span className={cn("mt-0.5 h-10 w-10 rounded-lg flex items-center justify-center shrink-0", styles.icon)}>
-            <Stethoscope className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm font-bold leading-tight text-foreground group-hover:text-primary">{group.title}</h3>
-              <span className="text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-2 py-0.5 shrink-0">
-                {protocols.length}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 leading-snug">{group.description}</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {protocols.slice(0, 3).map((protocol) => (
-                <span key={protocol.id} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {protocol.name}
-                </span>
-              ))}
-              {protocols.length > 3 && (
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  +{protocols.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 function CalculatorCard({ shortcut }: { shortcut: (typeof CALCULATOR_SHORTCUTS)[number] }) {
   const styles = accentStyles[shortcut.accent];
   return (
     <Link href={shortcut.href} className="group block">
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/30 h-full">
+      <div className="rounded-xl border border-border bg-card p-3 shadow-sm transition-all hover:shadow-md hover:border-primary/30 h-full">
         <div className="flex items-start gap-3">
-          <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg shrink-0", styles.icon)}>
-            <Calculator className="h-4.5 w-4.5" />
+          <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg shrink-0", styles.icon)}>
+            <Calculator className="h-4 w-4" />
           </span>
           <span className="min-w-0">
             <span className="block text-sm font-bold text-foreground group-hover:text-primary leading-tight">{shortcut.label}</span>
@@ -211,12 +188,12 @@ function SystemBrowse({
   }, [allProtocols]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+    <div className="grid grid-cols-1 gap-2">
       {systems.map((system) => {
         const count = allProtocols.filter((p) => p.system === system).length;
         return (
           <Link key={system} href={`/?system=${encodeURIComponent(system)}`} className="group block">
-            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-foreground group-hover:text-primary truncate">{system}</div>
                 <div className="text-[11px] text-muted-foreground">{count} protocol{count !== 1 ? "s" : ""}</div>
@@ -260,7 +237,17 @@ function LegacySystemView({
 export default function Home() {
   const routeSearch = useSearch();
   const [searchTerm, setSearchTerm] = useState("");
+  const [pinnedProtocolIds, setPinnedProtocolIds] = useState<string[]>([]);
   const allProtocols = useAllProtocols();
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PINNED_PROTOCOLS_KEY);
+      setPinnedProtocolIds(raw ? JSON.parse(raw) as string[] : []);
+    } catch {
+      setPinnedProtocolIds([]);
+    }
+  }, []);
 
   const protocolById = useMemo(() => {
     return new Map(allProtocols.map((protocol) => [protocol.id, protocol]));
@@ -283,6 +270,20 @@ export default function Home() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [searchTerm, allProtocols]);
 
+  const pinnedProtocols = useMemo(() => {
+    return pinnedProtocolIds
+      .map((id) => protocolById.get(id))
+      .filter((protocol): protocol is DiseaseProtocol => Boolean(protocol));
+  }, [pinnedProtocolIds, protocolById]);
+
+  const togglePinnedProtocol = (id: string) => {
+    setPinnedProtocolIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((item) => item !== id) : [id, ...prev];
+      localStorage.setItem(PINNED_PROTOCOLS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
   const emergencyAvailability = useMemo(() => {
     return new Map(EMERGENCY_SHORTCUTS.map((shortcut) => [
       shortcut.label,
@@ -290,61 +291,41 @@ export default function Home() {
     ]));
   }, [protocolById]);
 
-  const presentationGroups = useMemo(() => {
-    return PRESENTATION_GROUPS.map((group) => ({
-      group,
-      protocols: group.protocolIds
-        .map((id) => protocolById.get(id))
-        .filter((protocol): protocol is DiseaseProtocol => Boolean(protocol)),
-    })).filter(({ protocols }) => protocols.length > 0);
-  }, [protocolById]);
-
   return (
-    <div className="max-w-6xl mx-auto space-y-7">
-      <section className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-background p-5 md:p-6 shadow-sm">
-        <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary mb-3">
-              <Sparkles className="h-3.5 w-3.5" />
-              Bedside ER dashboard
+    <div className="max-w-5xl mx-auto space-y-4">
+      <section className="grid gap-3 md:grid-cols-[240px_minmax(0,1fr)]">
+        <Link href="/cardiac-arrest" className="group block rounded-2xl border border-red-300 bg-red-600 p-5 text-white shadow-md transition-all hover:bg-red-700 hover:shadow-lg">
+          <div className="flex h-full min-h-[118px] flex-col justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                <HeartPulse className="h-6 w-6" />
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wide text-red-100">Emergency</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight text-foreground">
-              Find the right pediatric ER protocol fast.
-            </h1>
-            <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-              Start with a symptom, emergency pathway, calculator, drug dose, or presentation group.
-            </p>
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-card border border-border p-3">
-              <HeartPulse className="h-5 w-5 text-red-600 mx-auto mb-1" />
-              <div className="text-lg font-bold">{EMERGENCY_SHORTCUTS.length}</div>
-              <div className="text-[10px] text-muted-foreground font-medium uppercase">Emergency</div>
-            </div>
-            <div className="rounded-xl bg-card border border-border p-3">
-              <Activity className="h-5 w-5 text-primary mx-auto mb-1" />
-              <div className="text-lg font-bold">{allProtocols.length}</div>
-              <div className="text-[10px] text-muted-foreground font-medium uppercase">Protocols</div>
-            </div>
-            <div className="rounded-xl bg-card border border-border p-3">
-              <Pill className="h-5 w-5 text-orange-600 mx-auto mb-1" />
-              <div className="text-lg font-bold">{CALCULATOR_SHORTCUTS.length}</div>
-              <div className="text-[10px] text-muted-foreground font-medium uppercase">Tools</div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight">ARREST</h1>
+              <p className="mt-1 text-xs font-medium text-red-100">Resuscitation drugs, equipment, RSI</p>
             </div>
           </div>
-        </div>
-      </section>
+        </Link>
 
-      <section className="space-y-3">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search disease, symptom, drug, emergency, or system..."
-            className="w-full pl-12 pr-4 py-6 text-base rounded-xl bg-card border-border shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-background to-background p-4 shadow-sm">
+          <h2 className="text-xl md:text-2xl font-bold font-headline tracking-tight text-foreground">
+            Pediatric ER protocols
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Search, open favorites, or use a time-critical shortcut.
+          </p>
+          <div className="relative mt-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search disease, symptom, drug, emergency, or system..."
+              className="w-full pl-12 pr-4 py-5 text-base rounded-xl bg-card border-border shadow-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </section>
 
@@ -354,7 +335,12 @@ export default function Home() {
           {searchResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
               {searchResults.map((protocol) => (
-                <ProtocolCard key={protocol.id} protocol={protocol} />
+                <ProtocolCard
+                  key={protocol.id}
+                  protocol={protocol}
+                  pinned={pinnedProtocolIds.includes(protocol.id)}
+                  onTogglePin={togglePinnedProtocol}
+                />
               ))}
             </div>
           ) : (
@@ -367,70 +353,59 @@ export default function Home() {
       ) : selectedSystem ? (
         <LegacySystemView system={selectedSystem} allProtocols={allProtocols} />
       ) : (
-        <>
-          <section className="space-y-4">
-            <SectionHeader title="Emergency Shortcuts" description="One-tap access to time-critical pathways." />
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {EMERGENCY_SHORTCUTS.map((shortcut) => (
-                <EmergencyShortcutCard
-                  key={shortcut.label}
-                  shortcut={shortcut}
-                  available={emergencyAvailability.get(shortcut.label) ?? true}
-                />
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeader title="Common ER Presentations" description="Browse the way residents think during duty." />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-              {presentationGroups.map(({ group, protocols }) => (
-                <PresentationCard key={group.id} group={group} protocols={protocols} />
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeader title="Calculators & Bedside Tools" description="Fast access to dosing, resuscitation, bilirubin, and safety tools." />
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {CALCULATOR_SHORTCUTS.map((shortcut) => (
-                <CalculatorCard key={shortcut.label} shortcut={shortcut} />
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeader title="Browse by System" description="Keep the original system-based library available." />
-            <SystemBrowse allProtocols={allProtocols} />
-          </section>
-
-          <section className="grid gap-3 md:grid-cols-2">
-            <Link href="/neonatology/hyperbilirubinemia" className="group block rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
-                  <Baby className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold text-emerald-800">Neonatal Hyperbilirubinemia</h3>
-                  <p className="text-xs text-muted-foreground mt-1">AAP threshold calculator and management support.</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-emerald-700/50 group-hover:text-emerald-700" />
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+          <section className="space-y-3">
+            <SectionHeader title="Pinned Favorites" description="Pin commonly used subjects from search results." />
+            {pinnedProtocols.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {pinnedProtocols.map((protocol) => (
+                  <ProtocolCard
+                    key={protocol.id}
+                    protocol={protocol}
+                    compact
+                    pinned
+                    onTogglePin={togglePinnedProtocol}
+                  />
+                ))}
               </div>
-            </Link>
-            <Link href="/differential-diagnosis" className="group block rounded-xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm transition-all hover:shadow-md">
-              <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100 text-violet-700 shrink-0">
-                  <ShieldAlert className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-sm font-bold text-violet-800">AI Differential Diagnosis</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Use as a cognitive aid after stabilization and assessment.</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-violet-700/50 group-hover:text-violet-700" />
+            ) : (
+              <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
+                <Star className="mx-auto h-7 w-7 text-muted-foreground/30" />
+                <p className="mt-2 text-sm font-medium text-foreground">No pinned subjects yet</p>
+                <p className="mt-1 text-xs text-muted-foreground">Search for a protocol, then press the pin icon.</p>
               </div>
-            </Link>
+            )}
           </section>
-        </>
+
+          <aside className="space-y-4">
+            <section className="space-y-3">
+              <SectionHeader title="Emergency" />
+              <div className="grid grid-cols-1 gap-2">
+                {EMERGENCY_SHORTCUTS.filter((shortcut) => shortcut.href !== "/cardiac-arrest").map((shortcut) => (
+                  <EmergencyShortcutCard
+                    key={shortcut.label}
+                    shortcut={shortcut}
+                    available={emergencyAvailability.get(shortcut.label) ?? true}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <SectionHeader title="Tools" />
+              <div className="grid grid-cols-1 gap-2">
+                {CALCULATOR_SHORTCUTS.filter((shortcut) => shortcut.href !== "/cardiac-arrest").slice(0, 4).map((shortcut) => (
+                  <CalculatorCard key={shortcut.label} shortcut={shortcut} />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <SectionHeader title="Browse by System" />
+              <SystemBrowse allProtocols={allProtocols} />
+            </section>
+          </aside>
+        </div>
       )}
     </div>
   );

@@ -7,7 +7,7 @@ export const fever2To3MonthsProtocol: DiseaseProtocol = {
   description: 'Evaluation and management of well-appearing febrile infants aged 61 to 90 days.',
   image: {
     url: "https://picsum.photos/seed/fever-2-3-months/600/400",
-    imageHint: "baby temperature"
+    hint: "baby temperature"
   },
   questions: [
     { id: 'isWellAppearing', questionText: 'Is the infant well-appearing and previously healthy?', type: 'boolean', info: 'Well-appearing means active, alert, good tone, normal color.' },

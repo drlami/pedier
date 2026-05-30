@@ -1,6 +1,6 @@
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import { getDatabase, type Database } from "firebase/database";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, type Auth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 const PEDIER_APP_NAME = "pedier-app";
 
@@ -64,7 +64,13 @@ export function getPedierDb(): Database {
 }
 
 export function getPedierAuth(): Auth {
-  if (!_auth) _auth = getAuth(getPedierApp());
+  if (!_auth) {
+    _auth = getAuth(getPedierApp());
+    // Ensure persistence is set to local storage for offline access
+    setPersistence(_auth, browserLocalPersistence).catch((err) => {
+      console.error("Firebase Auth persistence error:", err);
+    });
+  }
   return _auth;
 }
 

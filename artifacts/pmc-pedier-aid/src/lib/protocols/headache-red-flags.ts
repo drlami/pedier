@@ -1,83 +1,94 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const headacheRedFlagsProtocol: DiseaseProtocol = {
   id: 'headache-red-flags',
-  name: 'Headache Red Flags',
+  name: 'Headache Red Flags (SNOOPP)',
   system: 'Neurology',
-  description: 'A cognitive aid to identify "red flag" signs and symptoms in a child presenting with a headache, suggesting serious underlying pathology.',
+  description: 'Screening for secondary causes of pediatric headache using formal red flag criteria.',
   image: {
-    url: "https://picsum.photos/seed/headache-red-flags/600/400",
+    url: "https://picsum.photos/seed/headache/600/400",
     hint: "headache pain"
   },
   questions: [
-    { id: 'isWorstHeadache', questionText: 'Is this the "worst headache of their life" (thunderclap onset)?', type: 'boolean' },
-    { id: 'hasFocalDeficit', questionText: 'Are there any focal neurologic deficits on exam?', type: 'boolean' },
-    { id: 'hasPapilledema', questionText: 'Is papilledema present on fundoscopic exam?', type: 'boolean' },
-    { id: 'isPositional', questionText: 'Is the headache worse when lying down or in the morning?', type: 'boolean' },
-    { id: 'wakesFromSleep', questionText: 'Does the headache awaken the child from sleep?', type: 'boolean' },
-    { id: 'hasAlteredMentalStatus', questionText: 'Is there associated confusion or altered mental status?', type: 'boolean' },
-    { id: 'hasFeverStiffness', questionText: 'Is there fever and neck stiffness?', type: 'boolean' },
-    { id: 'hasTrauma', questionText: 'Recent significant head trauma?', type: 'boolean' },
-    { id: 'isProgressive', questionText: 'Is the headache pattern progressively worsening over days/weeks?', type: 'boolean' },
-    { id: 'ageUnder5', questionText: 'Is the child under 5 years old?', type: 'boolean' },
+    { id: 'systemic', questionText: 'Systemic symptoms? (Fever, weight loss, cancer hx)', type: 'boolean' },
+    { id: 'neurologic', questionText: 'Neurologic signs? (Focal deficit, ataxia, papilledema)', type: 'boolean' },
+    { id: 'onset', questionText: 'Onset sudden? (Thunderclap/Peak in <1 min)', type: 'boolean' },
+    { id: 'ageYoung', questionText: 'Age < 5 years?', type: 'boolean' },
+    { id: 'progressive', questionText: 'Progressive pattern? (Increasing frequency/severity)', type: 'boolean' },
+    { id: 'positional', questionText: 'Positional? (Worse when lying down or in morning)', type: 'boolean' },
+    { id: 'precipitated', questionText: 'Precipitated by cough, valsalva, or exercise?', type: 'boolean' },
+    { id: 'wakesFromSleep', questionText: 'Headache awakens child from sleep?', type: 'boolean' },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    const redFlags: string[] = [];
-    if (data.isWorstHeadache) redFlags.push("Thunderclap onset (worst headache of life)");
-    if (data.hasFocalDeficit) redFlags.push("Focal neurologic deficits");
-    if (data.hasPapilledema) redFlags.push("Papilledema");
-    if (data.isPositional) redFlags.push("Positional changes (worse lying down)");
-    if (data.wakesFromSleep) redFlags.push("Wakes from sleep");
-    if (data.hasAlteredMentalStatus) redFlags.push("Altered mental status");
-    if (data.hasFeverStiffness) redFlags.push("Fever and neck stiffness");
-    if (data.hasTrauma) redFlags.push("Recent head trauma");
-    if (data.isProgressive) redFlags.push("Progressively worsening pattern");
-    if (data.ageUnder5) redFlags.push("Age < 5 years");
+    const details: string[] = [];
+    let redFlagCount = 0;
 
-    if (redFlags.length > 0) {
-      return { level: 'severe', details: ["Red flag(s) present, warranting urgent investigation.", ...redFlags] };
+    const flags = [
+        data.systemic, data.neurologic, data.onset, data.ageYoung,
+        data.progressive, data.positional, data.precipitated, data.wakesFromSleep
+    ];
+    redFlagCount = flags.filter(Boolean).length;
+
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Likely Primary Headache (Migraine/Tension)';
+
+    if (data.onset === true || data.neurologic === true || data.positional === true) {
+      level = 'severe';
+      interpretation = 'URGENT SECONDARY CONCERN';
+      details.push("High risk for structural lesion, hemorrhage, or increased ICP.");
+    } else if (redFlagCount >= 1) {
+      level = 'moderate';
+      interpretation = 'Requires Further Investigation';
     }
-    
-    return { level: 'mild', details: ["No red flags identified. Likely a primary headache disorder (e.g., migraine, tension-type)."] };
+
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "Headache Red Flags (SNOOPP)",
+        totalScore: redFlagCount,
+        maxScore: 8,
+        interpretation,
+        referenceTable: [
+          { range: "Onset/Positional", meaning: "URGENT CT/MRI indicated" },
+          { range: "1+ Flags", meaning: "Consider semi-urgent MRI" },
+          { range: "0 Flags", meaning: "Treat as primary headache" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
     if (severity.level === 'severe') {
       return [{
-        title: "Management of Headache with Red Flags",
+        title: "Secondary Headache Management",
         recommendations: [
-          "Urgent neuroimaging is indicated. Emergent non-contrast head CT is the first step for thunderclap headache or trauma.",
-          "MRI with and without contrast is the preferred study for most other red flags (suspicion of tumor, abscess, hydrocephalus).",
-          "Neurology consultation is required.",
-          "If fever and neck stiffness are present, evaluate for meningitis/encephalitis (consider LP after imaging if signs of increased ICP).",
-          "If thunderclap headache, consider CT angiography to rule out subarachnoid hemorrhage from aneurysm or AVM.",
-          "Provide symptomatic treatment for pain while workup is proceeding."
+          "Obtain emergent Neuroimaging: CT for sudden onset (bleed); MRI for positional/progressive (tumor).",
+          "Perform fundoscopy to rule out papilledema.",
+          "Consult Neurology.",
+          "If fever present, evaluate for Meningitis (LP after imaging)."
         ]
       }];
     }
     return [{
-      title: "Management of Primary Headache",
+      title: "Primary Headache Management",
       recommendations: [
-        "Treat symptomatically with analgesics (e.g., Ibuprofen, Acetaminophen).",
-        "For suspected migraine, consider triptans in appropriate age groups.",
-        "Provide a quiet, dark environment.",
-        "Arrange for outpatient follow-up with primary care or neurology.",
-        "Discuss headache diary and lifestyle modifications (hydration, sleep)."
+        "Symptomatic relief: Ibuprofen 10mg/kg or Paracetamol 15mg/kg.",
+        "Provide quiet, dark environment.",
+        "Identify triggers (sleep, hydration, screen time).",
+        "Maintain a headache diary."
       ]
     }];
   },
-  getDisposition: (severity, data) => {
-    if (severity.level === 'severe') {
-      return ["Admission to the hospital is required for urgent neuroimaging, specialist consultation, and further management."];
-    }
-    return ["Discharge home with analgesics and close follow-up is appropriate if red flags are absent and the headache is improving.", "Provide strict return precautions."];
+  getDisposition: (severity) => {
+    if (severity.level === 'severe') return ["Admit for workup and monitoring."];
+    return ["Discharge home with primary care follow-up."];
   },
-  getRedFlags: () => [
-    "SNOOPPP: Systemic symptoms (fever, weight loss), Neurologic signs/symptoms, Onset (sudden/thunderclap), Older age (new headache in >50, but for peds think <5), Papilledema, Positional, Pattern change, Precipitated by cough/valsalva, Progressive."
+  getRedFlags: () => ["Morning vomiting", "Thunderclap onset", "Papilledema", "Wakes from sleep", "Personality change"],
+  getDrugDoses: (severity, data) => [
+      { drugName: "Ibuprofen (Oral)", dose: "10 mg/kg per dose" },
+      { drugName: "Paracetamol (Oral)", dose: "15 mg/kg per dose" }
   ],
-  getDrugDoses: () => [
-      { drugName: "Ibuprofen", dose: "10 mg/kg per dose" },
-      { drugName: "Acetaminophen", dose: "15 mg/kg per dose" },
-      { drugName: "Sumatriptan (nasal or subcutaneous)", dose: "Age and weight dependent, consult formulary", notes: "For migraine treatment in adolescents."}
+  getReferences: () => [
+    { title: "AAN: Evaluation of recurrent headaches in children", url: "https://www.aan.com/" }
   ],
-  getReferences: () => [{ title: "American Academy of Neurology: Practice parameter: evaluation of children and adolescents with recurrent headaches", url: "https://www.aan.com/Guidelines/home/GuidelineDetail/85" }],
 };

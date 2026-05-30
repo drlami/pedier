@@ -19,6 +19,8 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
     ]},
     { id: 'hasRespDistress', questionText: 'Respiratory distress from ascites or pleural effusions?', type: 'boolean' },
     { id: 'hasAbdominalPain', questionText: 'Fever and/or severe abdominal pain?', type: 'boolean', info: 'Concern for Spontaneous Bacterial Peritonitis (SBP).'},
+    { id: 'hasPoorPerfusion', questionText: 'Poor perfusion, shock, or suspected intravascular depletion?', type: 'boolean' },
+    { id: 'hasThrombosisConcern', questionText: 'Concern for thrombosis?', type: 'boolean', info: 'Unilateral limb swelling, sudden chest pain, dyspnea, neurologic deficit.' },
     { id: 'isNewDiagnosis', questionText: 'Is this a first presentation or a relapse?', type: 'select', options: [{label: 'New Diagnosis', value: 'new'}, {label: 'Relapse', value: 'relapse'}] },
   ],
   calculateSeverity: (data: FormData): Severity => {
@@ -27,8 +29,10 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
       return { level: 'unknown', details: ["Massive proteinuria (3+ to 4+) is required for diagnosis."] };
     }
     
-    if (data.hasRespDistress) {
-      details.push("Respiratory distress from anasarca.");
+    if (data.hasRespDistress || data.hasPoorPerfusion || data.hasThrombosisConcern) {
+      if (data.hasRespDistress) details.push("Respiratory distress from anasarca/effusion.");
+      if (data.hasPoorPerfusion) details.push("Poor perfusion or suspected intravascular depletion.");
+      if (data.hasThrombosisConcern) details.push("Possible thrombosis.");
       return { level: 'severe', details };
     }
     if (data.hasAbdominalPain) {
@@ -50,9 +54,10 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
          management.push({
             title: "Management of New Onset Nephrotic Syndrome",
             recommendations: [
-                "Admit to the hospital for diagnosis and initiation of therapy.",
+                "Admit for diagnostic confirmation, complications screen, and treatment plan.",
                 "Consult Pediatric Nephrology.",
-                "Initiate high-dose daily corticosteroids (Prednisone).",
+                "Do not start steroids until infection/secondary causes are considered and nephrology plan is clear.",
+                "Send urinalysis/urine protein:creatinine, serum albumin, creatinine/electrolytes, cholesterol, CBC, and consider complements if atypical features.",
                 "Provide education to the family about the disease, diet (low salt), and monitoring (daily urine protein).",
             ]
         });
@@ -60,7 +65,8 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
          management.push({
             title: "Management of Relapse",
             recommendations: [
-                "Restart or increase dose of daily corticosteroids as per the patient's specific regimen.",
+                "Confirm relapse with urine protein and assess for edema, infection, thrombosis, AKI, and hypertension.",
+                "Restart or increase daily corticosteroids only according to known nephrology plan or after nephrology discussion.",
                 "Mild relapses can often be managed as an outpatient in consultation with the patient's nephrologist."
             ]
         });
@@ -69,9 +75,10 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
     management.push({
         title: "Management of Complications",
         recommendations: [
-            "Severe Edema/Anasarca: For intravascularly deplete patients (tachycardia, poor perfusion), consider IV Albumin 25% followed by IV Furosemide.",
-            "Spontaneous Bacterial Peritonitis (SBP): If fever/abdominal pain, perform a diagnostic paracentesis and start broad-spectrum IV antibiotics (e.g., a third-generation cephalosporin).",
-            "Thrombosis: Patients are hypercoagulable. Maintain a high index of suspicion for DVT/PE."
+            "Severe edema/anasarca: restrict sodium, carefully assess intravascular volume, and discuss albumin + furosemide with nephrology.",
+            "Poor perfusion/shock: move to resuscitation area; avoid routine large fluid boluses; consider albumin if intravascular depletion suspected with nephrology/senior input.",
+            "SBP concern: if fever/abdominal pain, obtain cultures and start IV third-generation cephalosporin promptly.",
+            "Thrombosis concern: urgent imaging/specialist input; do not miss DVT/PE/cerebral venous thrombosis."
         ]
     });
     
@@ -89,10 +96,14 @@ export const nephroticSyndromeProtocol: DiseaseProtocol = {
     "Signs of thrombosis (sudden onset chest pain, unilateral leg swelling)",
     "Severe hypertension or gross hematuria (may suggest an alternative diagnosis to minimal change disease)"
   ],
-  getDrugDoses: () => [
-    { drugName: "Prednisone (for new diagnosis/relapse)", dose: "2 mg/kg/day (max 60 mg/day)", notes: "Consult nephrology for duration and taper schedule." },
-    { drugName: "Albumin 25%", dose: "0.5 - 1 g/kg IV over 2-4 hours", notes: "For intravascularly deplete patients with severe edema. Must be followed by a diuretic." },
-    { drugName: "Furosemide", dose: "1-2 mg/kg IV", notes: "Give after albumin infusion to promote diuresis." },
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    return [
+      { drugName: "Prednisone/Prednisolone", dose: weight > 0 ? `${Math.min(2 * weight, 60).toFixed(0)} mg/day PO` : "2 mg/kg/day PO, max 60 mg/day", notes: "Start only per nephrology/local steroid plan; avoid if infection not assessed." },
+      { drugName: "Albumin 25%", dose: weight > 0 ? `${(0.5 * weight).toFixed(1)}-${(1 * weight).toFixed(1)} g IV over 2-4 hr` : "0.5-1 g/kg IV over 2-4 hr", notes: "For severe edema with intravascular depletion; nephrology/senior input." },
+      { drugName: "Furosemide IV", dose: weight > 0 ? `${(1 * weight).toFixed(0)}-${(2 * weight).toFixed(0)} mg IV` : "1-2 mg/kg IV", notes: "Usually after albumin or for overload; monitor BP/renal function." },
+      { drugName: "Ceftriaxone IV/IM", dose: weight > 0 ? `${Math.min(50 * weight, 2000).toFixed(0)} mg q24h` : "50 mg/kg q24h, max 2 g", notes: "If SBP/sepsis concern after cultures when possible." },
+    ];
+  },
   getReferences: () => [{ title: "KDIGO Clinical Practice Guideline for Glomerular Diseases", url: "https://kdigo.org/guidelines/glomerular-diseases/" }],
 };

@@ -1,136 +1,131 @@
-import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const statusEpilepticusProtocol: DiseaseProtocol = {
   id: 'acute-seizure',
   name: 'Acute Seizure (Status Epilepticus)',
   system: 'Neurology',
-  description: 'A time-based, tiered approach to the emergency management of a seizure lasting > 5 minutes (Status Epilepticus), based on recent guidelines from the AES, AAP, and NICE.',
+  description: 'A time-based emergency algorithm for seizures lasting > 5 minutes.',
   image: {
     url: "https://picsum.photos/seed/status-epilepticus/600/400",
-    hint: "paramedics ambulance"
+    hint: "emergency rescue"
   },
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'seizureDuration', questionText: 'Current seizure duration', type: 'number', unit: 'minutes' },
-    { id: 'ivAccess', questionText: 'Is IV/IO access available?', type: 'boolean' },
-    { id: 'benzosGiven', questionText: 'How many doses of benzodiazepines given?', type: 'select', options: [{label: '0', value: 0}, {label: '1', value: 1}, {label: '2 or more', value: 2}] },
+    { id: 'duration', questionText: 'Current Seizure Duration (Minutes)', type: 'number', unit: 'min' },
+    { id: 'ivAccess', questionText: 'IV or IO access available?', type: 'boolean' },
+    { 
+      id: 'benzosGiven', 
+      questionText: 'Benzodiazepine doses already given?', 
+      type: 'select', 
+      options: [
+        {label: '0', value: '0', score: 0}, 
+        {label: '1', value: '1', score: 1},
+        {label: '2 or more', value: '2', score: 2}
+      ] 
+    },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    // Severity here relates to the stage of Status Epilepticus (SE)
-    const duration = Number(data.seizureDuration);
-    
-    if (duration >= 40) {
-      return { level: 'severe', details: ["Refractory Status Epilepticus (>40 min): Persists after 2nd-line agent. Requires PICU-level care and anesthetic infusions."] };
+    const details: string[] = [];
+    const duration = Number(data.duration || 0);
+    const benzos = Number(data.benzosGiven || 0);
+
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Impending Status Epilepticus';
+
+    if (duration >= 40 || benzos >= 2) {
+      level = 'severe';
+      interpretation = 'REFRACTORY STATUS EPILEPTICUS';
+    } else if (duration >= 20 || benzos >= 1) {
+      level = 'moderate';
+      interpretation = 'ESTABLISHED STATUS EPILEPTICUS';
+    } else if (duration >= 5) {
+      level = 'mild';
+      interpretation = 'EARLY STATUS EPILEPTICUS';
     }
-    if (duration >= 20) {
-      return { level: 'moderate', details: ["Established Status Epilepticus (20-40 min): Seizure has failed first-line therapy. Requires urgent second-line anticonvulsant."] };
-    }
-    if (duration >= 5) {
-      return { level: 'mild', details: ["Early Status Epilepticus (5-20 min): Seizure requires urgent first-line benzodiazepine therapy."] };
-    }
-    return { level: 'no', details: ["Impending Status Epilepticus (<5 min): Stabilize patient and prepare for intervention if seizure continues."] };
+
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "AES Status Epilepticus Phases",
+        totalScore: duration,
+        interpretation,
+        referenceTable: [
+          { range: "0 - 5 min", meaning: "Stabilization Phase" },
+          { range: "5 - 20 min", meaning: "Initial Therapy (Benzos)" },
+          { range: "20 - 40 min", meaning: "Second-Line Therapy (Keppra/PHT)" },
+          { range: "> 40 min", meaning: "Third-Line (PICU / Anesthesia)" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
     const management = [];
-    
+    const duration = Number(data.duration || 0);
+
     management.push({
-        title: "Step 1: Stabilization Phase (0–5 minutes)",
+        title: "Phase 1: Stabilization (0-5 min)",
         recommendations: [
-            "Follow ABCs: Position child in lateral decubitus, clear airway, provide O₂, and attach monitors.",
-            "Check capillary glucose immediately. If <60 mg/dL, give Dextrose.",
+            "ABCs: Position in lateral decubitus, suction, O2 10-15L NRB.",
+            "Check Capillary Glucose immediately.",
             "Establish IV/IO access.",
-            "Send labs if seizure is prolonged: electrolytes, calcium, magnesium, CBC.",
-            "Treat fever if present with antipyretics."
+            "Monitor HR, RR, SpO2, BP."
         ]
     });
 
-    management.push({
-        title: "Step 2: First-Line Therapy (Seizure > 5 minutes)",
-        recommendations: [
-            "Administer a benzodiazepine. DO NOT give more than 2 doses.",
-            data.ivAccess 
-                ? "IV Access: LORAZEPAM 0.1 mg/kg IV (max 4 mg) OR DIAZEPAM 0.15-0.2 mg/kg IV. Repeat once after 5 mins if needed."
-                : "No IV Access: MIDAZOLAM 0.2 mg/kg IM/IN/Buccal OR DIAZEPAM 0.5 mg/kg Rectal."
-        ]
-    });
-    
-    management.push({
-        title: "Step 3: Second-Line Therapy (Seizure persists after 2 Benzo doses, ~20-40 minutes)",
-        recommendations: [
-            "Choose ONE second-line anticonvulsant:",
-            "- LEVETIRACETAM 60 mg/kg IV (max 4500 mg) - increasingly preferred.",
-            "- FOSPHENYTOIN 20 mg PE/kg IV (requires cardiac monitoring).",
-            "- VALPROIC ACID 40 mg/kg IV.",
-            "If seizure continues, consider giving another second-line agent from a different class in consultation with neurology/PICU."
-        ]
-    });
-    
-    management.push({
-        title: "Step 4: Third-Line Therapy / Refractory SE (>40 minutes)",
-        recommendations: [
-            "This is Refractory Status Epilepticus. Transfer to PICU.",
-            "Start continuous anesthetic infusion with EEG monitoring (e.g., Midazolam, Propofol, Pentobarbital)."
-        ]
-    });
+    if (duration >= 5) {
+        management.push({
+            title: "Phase 2: Initial Therapy (5-20 min)",
+            recommendations: [
+                data.ivAccess 
+                    ? "Give IV Lorazepam (Ativan) 0.1 mg/kg (max 4mg)." 
+                    : "Give IM/IN Midazolam (Versed) 0.2 mg/kg (max 10mg).",
+                "May repeat benzo dose once after 5 minutes if seizure continues.",
+                "DO NOT give more than 2 total doses of benzodiazepines."
+            ]
+        });
+    }
 
-    management.push({
-        title: "Etiology-Specific Treatments",
-        recommendations: [
-            "Hypoglycemia: Dextrose",
-            "Hypocalcemia: Calcium gluconate 10% (2 ml/kg IV)",
-            "Hyponatremia: 3% saline 3–5 ml/kg",
-            "INH toxicity: Pyridoxine"
-        ]
-    });
+    if (duration >= 20 || Number(data.benzosGiven) >= 1) {
+        management.push({
+            title: "Phase 3: Second-Line Therapy (20-40 min)",
+            recommendations: [
+                "Give IV Levetiracetam (Keppra) 60 mg/kg (max 4.5g).",
+                "Alternative: IV Fosphenytoin 20 mg PE/kg (requires cardiac monitor).",
+                "Notify PICU and Anesthesia immediately."
+            ]
+        });
+    }
+
+    if (duration >= 40 || Number(data.benzosGiven) >= 2) {
+        management.push({
+            title: "Phase 4: Third-Line / Refractory (>40 min)",
+            recommendations: [
+                "Transfer to PICU for continuous EEG.",
+                "Prepare for intubation and anesthetic infusion (Midazolam or Propofol)."
+            ]
+        });
+    }
 
     return management;
   },
-  getDisposition: (severity, data) => {
-    return [
-        "Admission is indicated for: first seizure, focal seizure, prolonged seizure >10-15 min, incomplete recovery, age <6 months, suspected CNS infection, status epilepticus, or abnormal neuro exam.",
-        "For simple febrile seizures <5 min with full recovery, discharge with reassurance may be appropriate.",
-        "Consider providing discharge 'rescue medication' (e.g., buccal midazolam, rectal diazepam) for patients with recurrent prolonged seizures."
-    ];
-  },
-  getRedFlags: () => [
-    "Seizure lasting longer than 5 minutes.",
-    "Airway compromise or hypoventilation.",
-    "Hemodynamic instability.",
-    "Failure to respond to adequate first-line benzodiazepine therapy.",
-    "Failure to return to baseline mental status after seizure cessation (prolonged post-ictal state)."
-  ],
+  getDisposition: (severity) => ["All patients with Status Epilepticus require admission; refractory cases require PICU."],
+  getRedFlags: () => ["Seizure > 5 min", "Respiratory depression", "Hypoglycemia", "Cyanosis"],
   getDrugDoses: (severity, data) => {
-    const weight = Number(data.weight) || 0;
-    const doses: DrugDose[] = [];
+      const weight = Number(data.weight) || 0;
+      if (weight <= 0) return [];
 
-    // Stabilization
-    doses.push({ drugName: "--- Stabilization ---", dose: "" });
-    doses.push({ drugName: "Dextrose 10% (D10)", dose: "5 mL/kg IV/IO", notes: weight > 0 ? `Calculated dose: ${(5 * weight).toFixed(1)} mL` : "" });
-    doses.push({ drugName: "Dextrose 25% (D25)", dose: "2 mL/kg IV/IO", notes: weight > 0 ? `Calculated dose: ${(2 * weight).toFixed(1)} mL` : "" });
-    
-    // First Line
-    doses.push({ drugName: "--- First Line Therapy (Choose ONE, max 2 doses) ---", dose: "" });
-    doses.push({ drugName: "IV Lorazepam", dose: "0.1 mg/kg (max 4 mg/dose)", notes: weight > 0 ? `Calculated dose: ${Math.min(0.1 * weight, 4).toFixed(2)} mg.` : "" });
-    doses.push({ drugName: "IV Diazepam", dose: "0.15-0.2 mg/kg (max 10 mg/dose)", notes: weight > 0 ? `Calculated dose: ${Math.min(0.2 * weight, 10).toFixed(2)} mg.` : ""});
-    doses.push({ drugName: "IM/IN/Buccal Midazolam", dose: "0.2 mg/kg (max 10 mg/dose)", notes: weight > 0 ? `Calculated dose: ${Math.min(0.2 * weight, 10).toFixed(2)} mg.` : "" });
-    doses.push({ drugName: "Rectal Diazepam", dose: "0.5 mg/kg", notes: weight > 0 ? `Calculated dose: ${(0.5 * weight).toFixed(2)} mg.` : ""});
-    
-    // Second Line
-    doses.push({ drugName: "--- Second Line Therapy (Choose ONE) ---", dose: "" });
-    doses.push({ drugName: "IV Levetiracetam (Keppra)", dose: "60 mg/kg (max 4500 mg)", notes: weight > 0 ? `Calculated dose: ${Math.min(60 * weight, 4500).toFixed(1)} mg.` : "" });
-    doses.push({ drugName: "IV Fosphenytoin", dose: "20 mg PE/kg (max 1500 mg PE)", notes: weight > 0 ? `Calculated dose: ${Math.min(20 * weight, 1500).toFixed(1)} mg PE.` : "" });
-    doses.push({ drugName: "IV Valproic Acid", dose: "40 mg/kg (max 3000 mg)", notes: weight > 0 ? `Calculated dose: ${Math.min(40 * weight, 3000).toFixed(1)} mg.` : "" });
+      const lorazepamMg = Math.min(0.1 * weight, 4);
+      const midazolamMg = Math.min(0.2 * weight, 10);
+      const keppraMg = Math.min(60 * weight, 4500);
 
-    // Third Line
-    doses.push({ drugName: "--- Third Line / Refractory SE ---", dose: "" });
-    doses.push({ drugName: "Midazolam Infusion", dose: "Load 0.2 mg/kg, then 1-10 mcg/kg/min continuous infusion." });
-    
-    // Etiology-Specific
-    doses.push({ drugName: "--- Etiology-Specific ---", dose: "" });
-    doses.push({ drugName: "Calcium Gluconate 10%", dose: "2 mL/kg IV" });
-    doses.push({ drugName: "3% Hypertonic Saline", dose: "3-5 mL/kg IV" });
-    
-    return doses;
+      return [
+        { drugName: "IV Lorazepam (Ativan)", dose: `${lorazepamMg.toFixed(1)} mg`, notes: "Concentration: 2mg/mL. Volume: " + (lorazepamMg/2).toFixed(2) + " mL." },
+        { drugName: "IM/IN Midazolam (Versed)", dose: `${midazolamMg.toFixed(1)} mg`, notes: "Concentration: 5mg/mL. Volume: " + (midazolamMg/5).toFixed(2) + " mL." },
+        { drugName: "IV Levetiracetam (Keppra)", dose: `${keppraMg.toFixed(0)} mg`, notes: "Dilute in NS/D5W. Infuse over 15 min." }
+      ];
   },
-  getReferences: () => [{ title: "Glauser T, et al. Evidence-Based Guideline: Treatment of Convulsive Status Epilepticus in Children and Adults. Epilepsy Currents, 2016.", url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4749120/" }],
+  getReferences: () => [
+    { title: "AES Evidence-Based Guideline: Status Epilepticus", url: "https://www.aesnet.org/" }
+  ],
 };

@@ -10,6 +10,7 @@ export const syncopeProtocol: DiseaseProtocol = {
     hint: "fainting person"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'withExercise', questionText: 'Did the syncope occur DURING exercise (not after)?', type: 'boolean', info: 'Syncope DURING exercise is a major cardiac red flag. Syncope after exercise is more often vasovagal.' },
     { id: 'hasProdrome', questionText: 'Was there a classic prodrome?', type: 'boolean', info: 'Lightheadedness, blurry vision, "tunnel vision", nausea, warmth, or pallor before the event.' },
     { id: 'isTriggered', questionText: 'Clear trigger identified?', type: 'select', options: [
@@ -120,9 +121,12 @@ export const syncopeProtocol: DiseaseProtocol = {
     "Known structural heart disease or cardiac surgery.",
     "Abnormal EKG findings (especially prolonged QTc or WPW)."
   ],
-  getDrugDoses: () => [
-      { drugName: "Normal Saline Bolus", dose: "10-20 mL/kg IV", notes: "If hypovolemic or orthostatic symptoms are severe." }
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    return [
+      { drugName: "Normal Saline Bolus", dose: weight > 0 ? `${(10 * weight).toFixed(0)}-${(20 * weight).toFixed(0)} mL IV` : "10-20 mL/kg IV", notes: "Only if hypovolemic or orthostatic symptoms are severe." }
+    ];
+  },
   getReferences: () => [
       { title: "2017 ACC/AHA/HRS Guideline for the Evaluation and Management of Patients With Syncope", url: "https://www.jacc.org/doi/10.1016/j.jacc.2017.03.584" },
       { title: "AAP: Syncope in Children and Adolescents", url: "https://publications.aap.org/pediatricsinreview/article/39/11/530/34758/Syncope-in-Children-and-Adolescents" }

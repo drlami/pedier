@@ -1,133 +1,186 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const asthmaProtocol: DiseaseProtocol = {
   id: 'asthma',
   name: 'Asthma Exacerbation',
   system: 'Respiratory',
-  description: 'Assessment and management of acute asthma exacerbations in children.',
+  description: 'Assessment and management of acute asthma exacerbations in children using the PRAM score.',
    image: {
     url: "https://picsum.photos/seed/asthma/600/400",
     hint: "inhaler"
   },
   questions: [
     { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'age', questionText: 'Age', type: 'number', unit: 'years' },
-    { id: 'speech', questionText: 'Speech', type: 'select', options: [{label: 'Normal sentences', value: 'normal'}, {label: 'Short phrases', value: 'phrases'}, {label: 'Single words', value: 'words'}] },
-    { id: 'respiratoryRate', questionText: 'Respiratory Rate', type: 'number', unit: 'breaths/min' },
-    { id: 'oxygenSaturation', questionText: 'Oxygen Saturation', type: 'number', unit: '%' },
-    { id: 'wheeze', questionText: 'Wheeze', type: 'select', options: [{label: 'None/Mild end-expiratory', value: 'mild'}, {label: 'Moderate', value: 'moderate'}, {label: 'Severe, inspiratory and expiratory', value: 'severe'}, {label: 'Silent Chest', value: 'silent'}] },
-    { id: 'accessoryMuscleUse', questionText: 'Accessory Muscle Use', type: 'select', options: [{label: 'None', value: 'none'}, {label: 'Mild', value: 'mild'}, {label: 'Marked', value: 'marked'}] },
-    { id: 'mentalStatus', questionText: 'Mental Status', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Agitated/Anxious', value: 'agitated'}, {label: 'Drowsy/Confused', value: 'drowsy'}] },
-    { id: 'pef', questionText: 'PEF (% predicted/personal best)', type: 'number', unit: '%', info: 'If available and child is >5 years old' },
-    { id: 'highRiskHistory', questionText: 'High-risk asthma history?', type: 'boolean', info: 'Previous ICU/intubation, recent admission, frequent SABA use, poor access to care, or poor response to initial treatment.' },
+    { 
+      id: 'suprasternalRetractions', 
+      questionText: 'Suprasternal Retractions', 
+      type: 'select', 
+      options: [
+        {label: 'Absent', value: '0', score: 0}, 
+        {label: 'Present', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'scaleneMuscleContraction', 
+      questionText: 'Scalene Muscle Contraction', 
+      type: 'select', 
+      options: [
+        {label: 'Absent', value: '0', score: 0}, 
+        {label: 'Present', value: '2', score: 2}
+      ] 
+    },
+    { 
+      id: 'airEntry', 
+      questionText: 'Air Entry', 
+      type: 'select', 
+      options: [
+        {label: 'Normal', value: '0', score: 0}, 
+        {label: 'Decreased at bases', value: '1', score: 1},
+        {label: 'Widespread decrease', value: '2', score: 2},
+        {label: 'Absent/Minimal', value: '3', score: 3}
+      ] 
+    },
+    { 
+      id: 'wheeze', 
+      questionText: 'Wheezing', 
+      type: 'select', 
+      options: [
+        {label: 'Absent', value: '0', score: 0}, 
+        {label: 'Expiratory only', value: '1', score: 1},
+        {label: 'Inspiratory and expiratory', value: '2', score: 2},
+        {label: 'Audible without stethoscope / Silent chest', value: '3', score: 3}
+      ] 
+    },
+    { 
+      id: 'oxygenSaturation', 
+      questionText: 'Oxygen Saturation (Room Air)', 
+      type: 'select', 
+      options: [
+        {label: '≥ 95%', value: '0', score: 0}, 
+        {label: '92% - 94%', value: '1', score: 1},
+        {label: '< 92%', value: '2', score: 2}
+      ] 
+    },
+    { id: 'highRiskHistory', questionText: 'High-risk asthma history?', type: 'boolean', info: 'Previous ICU/intubation, recent admission, frequent SABA use.' },
   ],
   calculateSeverity: (data: FormData): Severity => {
     const details: string[] = [];
     
-    if (data.mentalStatus === 'drowsy' || data.wheeze === 'silent') {
-        details.push("Drowsiness or silent chest indicates impending respiratory failure.");
-        return { level: 'impending respiratory failure', details };
+    const s1 = Number(data.suprasternalRetractions || 0);
+    const s2 = Number(data.scaleneMuscleContraction || 0);
+    const s3 = Number(data.airEntry || 0);
+    const s4 = Number(data.wheeze || 0);
+    const s5 = Number(data.oxygenSaturation || 0);
+    
+    const totalPram = s1 + s2 + s3 + s4 + s5;
+    
+    let level: SeverityLevel = 'mild';
+    let interpretation = 'Mild Exacerbation';
+    
+    if (totalPram >= 8) {
+      level = 'severe';
+      interpretation = 'Severe Exacerbation';
+      details.push("High risk of respiratory failure. Intensify therapy.");
+    } else if (totalPram >= 4) {
+      level = 'moderate';
+      interpretation = 'Moderate Exacerbation';
+    } else {
+      level = 'mild';
+      interpretation = 'Mild Exacerbation';
     }
-    
-    let severeCount = 0;
-    let moderateCount = 0;
 
-    if (data.speech === 'words') { severeCount++; details.push("Speaks in single words"); }
-    if (data.accessoryMuscleUse === 'marked') { severeCount++; details.push("Marked accessory muscle use"); }
-    if (data.mentalStatus === 'agitated') { severeCount++; details.push("Agitated"); }
-    if (Number(data.oxygenSaturation) < 92) { severeCount++; details.push("O2 Sat < 92%"); }
-    if (data.wheeze === 'severe') { severeCount++; details.push("Severe wheezing"); }
-    if (Number(data.pef) < 50) { severeCount++; details.push("PEF < 50%"); }
-    if (data.highRiskHistory) { severeCount++; details.push("High-risk asthma history"); }
+    if (data.wheeze === '3' && data.airEntry === '3') {
+        details.push("CRITICAL: Silent chest identified. Impending respiratory failure.");
+        level = 'impending respiratory failure';
+    }
 
-    if (severeCount > 0) return { level: 'severe', details };
-    
-    if (data.speech === 'phrases') { moderateCount++; details.push("Speaks in phrases"); }
-    if (data.accessoryMuscleUse === 'mild') { moderateCount++; details.push("Mild accessory muscle use"); }
-    if (Number(data.oxygenSaturation) >= 92 && Number(data.oxygenSaturation) <= 95) { moderateCount++; details.push("O2 Sat 92-95%"); }
-    if (data.wheeze === 'moderate') { moderateCount++; details.push("Moderate wheezing"); }
-    if (Number(data.pef) >= 50 && Number(data.pef) <= 70) { moderateCount++; details.push("PEF 50-70%"); }
-
-    if (moderateCount > 0) return { level: 'moderate', details };
-    
-    details.push("Mild symptoms");
-    return { level: 'mild', details };
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "PRAM Score",
+        totalScore: totalPram,
+        maxScore: 12,
+        interpretation,
+        referenceTable: [
+          { range: "0 - 3", meaning: "Mild Exacerbation" },
+          { range: "4 - 7", meaning: "Moderate Exacerbation" },
+          { range: "8 - 12", meaning: "Severe Exacerbation" }
+        ]
+      },
+      details 
+    };
   },
-  getManagement: (severity, data) => {
-    const management = [];
-    
+  getManagement: (severity) => {
+    switch (severity.level) {
+      case 'impending respiratory failure':
+      case 'severe':
+        return [{
+          title: "Severe Exacerbation Management (PRAM 8-12)",
+          recommendations: [
+            "Oxygen to maintain SpO2 ≥ 92-94%.",
+            "Continuous SABA (Salbutamol) via nebulizer.",
+            "Ipratropium Bromide nebulization every 20 min x 3 doses.",
+            "Systemic Corticosteroids (Prednisolone 2mg/kg, max 60mg) - IV/IM if vomiting.",
+            "Consider Magnesium Sulfate (IV) 40-50 mg/kg (max 2g) over 20 min.",
+            "Prepare for escalation (NIV or Intubation if failing)."
+          ]
+        }];
+      case 'moderate':
+        return [{
+          title: "Moderate Exacerbation Management (PRAM 4-7)",
+          recommendations: [
+            "Salbutamol (SABA) 6-10 puffs via spacer every 20 min x 3, or nebulized.",
+            "Ipratropium Bromide 4-8 puffs via spacer every 20 min x 3.",
+            "Oral Corticosteroids (Prednisolone 1-2 mg/kg, max 40-60mg).",
+            "Reassess PRAM score after 1 hour of treatment."
+          ]
+        }];
+      case 'mild':
+        return [{
+          title: "Mild Exacerbation Management (PRAM 0-3)",
+          recommendations: [
+            "Salbutamol (SABA) 2-6 puffs via spacer every 20 min as needed.",
+            "Consider oral corticosteroids if symptoms persist or previous history of rapid escalation.",
+            "Discharge if PRAM remains ≤ 3 after 1-2 hours with clear home plan."
+          ]
+        }];
+      default:
+        return [{ title: 'Awaiting Assessment', recommendations: ['Complete PRAM scoring to determine management.'] }];
+    }
+  },
+  getDisposition: (severity) => {
     if(severity.level === 'impending respiratory failure' || severity.level === 'severe'){
-         management.push({
-            title: "Initial Treatment (Severe / Impending RF)",
-            recommendations: [
-                "Call senior clinician/PICU early. Place on continuous monitoring and give oxygen to maintain SpO2 ≥ 94%.",
-                "Continuous or back-to-back Albuterol + Ipratropium nebulization for the first hour.",
-                "Systemic Corticosteroids: Administer immediately.",
-                "IV Magnesium Sulfate over 20-30 minutes.",
-                "Reassess work of breathing, air entry, mental status, SpO2, and need for bronchodilator every 15-20 minutes.",
-                "Consider IV fluid bolus only if dehydrated or poor perfusion; avoid overhydration.",
-                "If fatigue, rising CO2, altered mental status, persistent hypoxemia, or poor response: prepare for non-invasive or invasive ventilation with PICU/anesthesia."
-            ]
-        });
+        return ["Admit for ongoing bronchodilator therapy and monitoring. PICU/HDU is required for impending respiratory failure."];
     }
     if(severity.level === 'moderate'){
-         management.push({
-            title: "Initial Treatment (Moderate)",
-            recommendations: [
-                "Albuterol + Ipratropium MDI with spacer (or nebulizer) x 3 doses every 20 minutes.",
-                "Systemic Corticosteroids: Administer immediately.",
-                "Give oxygen if needed to maintain SpO2 ≥ 94%.",
-                "Re-assess after 1 hour. If improving, continue albuterol every 1-4 hours as needed."
-            ]
-        });
+        return ["Admit to hospital if poor response to initial therapy, persistent hypoxia, or high-risk history.", "Consider discharge ONLY if significant improvement and PRAM ≤ 3."];
     }
-    if(severity.level === 'mild'){
-         management.push({
-            title: "Initial Treatment (Mild)",
-            recommendations: [
-                "Albuterol MDI with spacer, 2-6 puffs every 4-6 hours as needed.",
-                "Consider a short course of oral corticosteroids, especially if no immediate response to albuterol or recent exacerbation."
-            ]
-        });
-    }
-    
-    return management;
-  },
-  getDisposition: (severity, data) => {
-    if(severity.level === 'impending respiratory failure' || severity.level === 'severe'){
-        return ["Admit for ongoing bronchodilator therapy and monitoring. PICU/HDU is required for impending respiratory failure, persistent hypoxemia, exhaustion, altered mental status, need for continuous albuterol, magnesium/IV therapy, or poor response after the first hour."];
-    }
-    if(severity.level === 'moderate'){
-        return ["Admit to hospital if poor response to initial therapy, persistent hypoxia, or inability to tolerate q4h albuterol.", "Consider discharge if significant improvement, tolerating q4h albuterol, and SpO2 >94% on room air."];
-    }
-    return ["Discharge home with clear action plan if good response to treatment, minimal work of breathing, stable SpO2 on room air, and bronchodilator need spaced to at least every 3-4 hours.", "Ensure patient has controller/rescue medications, spacer technique review, and understands return precautions.", "Follow up with primary care/asthma clinic within 2-5 days."];
+    return ["Discharge home with clear action plan if PRAM remains ≤ 3 after treatment.", "Ensure patient has spacer technique review and understands return precautions."];
   },
   getRedFlags: () => [
     "Silent chest",
     "Drowsiness or confusion (altered mental status)",
-    "Inability to speak in full sentences (or single words in severe cases)",
-    "Cyanosis",
+    "PRAM Score ≥ 8",
+    "Persistent O2 saturation < 92% despite therapy",
     "Poor respiratory effort or fatigue"
   ],
   getDrugDoses: (severity, data) => {
       const weight = Number(data.weight) || 0;
-      const predMin = weight > 0 ? Math.min(1 * weight, 60).toFixed(0) : "";
-      const predMax = weight > 0 ? Math.min(2 * weight, 60).toFixed(0) : "";
-      const dexDose = weight > 0 ? Math.min(0.6 * weight, 16).toFixed(1) : "";
-      const magMin = weight > 0 ? Math.min(25 * weight, 2000).toFixed(0) : "";
-      const magMax = weight > 0 ? Math.min(75 * weight, 2000).toFixed(0) : "";
-      const continuousAlbuterol = weight > 0 ? Math.min(0.5 * weight, 20).toFixed(1) : "";
+      const predMg = weight > 0 ? Math.min(2 * weight, 60) : 0;
+      const magMin = weight > 0 ? Math.min(40 * weight, 2000).toFixed(0) : "";
+      
       const doses = [
-        { drugName: "Albuterol (MDI 90mcg/puff)", dose: "4-8 puffs q20min x3 doses, then as needed" },
-        { drugName: "Ipratropium Bromide (MDI)", dose: "4-8 puffs q20min x3 doses (with albuterol)" },
-        { drugName: "Prednisone/Prednisolone", dose: weight > 0 ? `1-2 mg/kg (max 60mg) = ${predMin}-${predMax} mg PO` : "1-2 mg/kg (max 60mg), oral" },
-        { drugName: "Dexamethasone", dose: weight > 0 ? `0.6 mg/kg (max 16mg) = ${dexDose} mg PO/IM/IV` : "0.6 mg/kg (max 16mg), oral/IM/IV" },
+        { drugName: "Salbutamol (Nebulized)", dose: "2.5-5 mg every 20 min or continuous" },
+        { drugName: "Ipratropium Bromide (Nebulized)", dose: "250-500 mcg every 20 min x 3 doses" },
+        { drugName: "Prednisolone (Oral)", dose: weight > 0 ? `${predMg.toFixed(0)} mg (2 mg/kg)` : "2 mg/kg, max 60 mg" },
       ];
       if (severity.level === 'severe' || severity.level === 'impending respiratory failure') {
-          doses.push({ drugName: "Magnesium Sulfate", dose: weight > 0 ? `25-75 mg/kg (max 2g) = ${magMin}-${magMax} mg IV over 20-30 min` : "25-75 mg/kg (max 2g) IV over 20-30 min" });
-          doses.push({ drugName: "Continuous Albuterol", dose: weight > 0 ? `0.5 mg/kg/hr (max 15-20 mg/hr) = ${continuousAlbuterol} mg/hr` : "0.5 mg/kg/hr (max 15-20 mg/hr)"});
+          doses.push({ drugName: "Magnesium Sulfate (IV)", dose: weight > 0 ? `${magMin} mg (40-50 mg/kg) over 20 min` : "40-50 mg/kg (max 2g) IV" });
       }
       return doses;
   },
-  getReferences: () => [{ title: "Global Initiative for Asthma (GINA) Reports", url: "https://ginasthma.org/gina-reports/" }],
+  getReferences: () => [
+    { title: "Pediatric Respiratory Assessment Measure (PRAM) for predicting hospitalization", url: "https://pubmed.ncbi.nlm.nih.gov/18413344/" },
+    { title: "GINA 2023 Pocket Guide for Asthma Management and Prevention", url: "https://ginasthma.org/" }
+  ],
 };

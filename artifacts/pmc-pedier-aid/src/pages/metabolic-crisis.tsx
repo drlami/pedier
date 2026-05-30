@@ -613,7 +613,7 @@ function LabField({ label, value, onChange, unit, placeholder, interpret }: {
         {interp && <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded border', interp.cls)}>{interp.label}</span>}
       </div>
       <div className="relative">
-        <Input type="number" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)}
+        <Input type="number" inputMode="decimal" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)}
           className={cn('text-sm', unit ? 'pr-16' : '')} />
         {unit && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground pointer-events-none">{unit}</span>}
       </div>
@@ -860,7 +860,7 @@ export default function MetabolicCrisisPage() {
               <div className="space-y-1 col-span-1">
                 <label className="text-xs font-semibold">Weight</label>
                 <div className="relative">
-                  <Input type="number" placeholder="e.g. 8" value={weight} onChange={e => setWeight(e.target.value)} className="pr-8 text-sm" />
+                  <Input type="number" inputMode="decimal" placeholder="e.g. 8" value={weight} onChange={e => setWeight(e.target.value)} className="pr-8 text-sm" />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">kg</span>
                 </div>
               </div>
@@ -928,14 +928,14 @@ export default function MetabolicCrisisPage() {
                 <div className="space-y-1">
                   <label className="text-xs font-semibold">Target GIR</label>
                   <div className="relative">
-                    <Input type="number" value={girTarget} onChange={e => setGirTarget(e.target.value)} className="pr-20 text-sm" />
+                    <Input type="number" inputMode="decimal" value={girTarget} onChange={e => setGirTarget(e.target.value)} className="pr-20 text-sm" />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">mg/kg/min</span>
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-semibold">Weight (uses patient weight)</label>
                   <div className="relative">
-                    <Input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="kg" className="pr-8 text-sm" />
+                    <Input type="number" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} placeholder="kg" className="pr-8 text-sm" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">kg</span>
                   </div>
                 </div>

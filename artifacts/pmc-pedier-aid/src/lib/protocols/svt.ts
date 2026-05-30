@@ -43,7 +43,7 @@ export const svtProtocol: DiseaseProtocol = {
             "1. PERFORM 12-LEAD EKG IMMEDIATELY: Must be done as soon as SVT is suspected to confirm diagnosis and QRS width.",
             "2. CONSULT PEDIATRIC CARDIOLOGY: A consultation must be made for ALL patients with suspected or confirmed SVT, regardless of stability.",
             "3. Place on continuous cardiac monitor, pulse oximetry, and frequent BP cycling.",
-            "4. Provide 100% supplemental oxygen."
+            "4. Give oxygen only if hypoxemic, distressed, or unstable; avoid delaying rhythm treatment."
         ]
     });
 
@@ -52,7 +52,7 @@ export const svtProtocol: DiseaseProtocol = {
         title: "UNSTABLE SVT: Emergency Intervention",
         recommendations: [
           "1. ACT FAST: Call for the Resuscitation Team and reiterate urgency to Cardiology.",
-          "2. SYNCHRONIZED CARDIOVERSION: Perform immediately if EKG confirms SVT. Initial dose: 0.5-1 J/kg. If unsuccessful, increase to 2 J/kg.",
+          "2. SYNCHRONIZED CARDIOVERSION NOW: Initial 0.5-1 J/kg. If unsuccessful, increase to 2 J/kg.",
           "3. CRITICAL: Ensure 'SYNC' mode is selected on the monitor before every shock to avoid inducing Ventricular Fibrillation.",
           "4. ADENOSINE: If IV/IO access is already available, you can try Adenosine (0.1 mg/kg) while the defibrillator is charging, but DO NOT delay cardioversion.",
           "5. SEDATION: If the patient is conscious, provide brief sedation before cardioversion, but ONLY if it does not delay the life-saving procedure."
@@ -62,7 +62,7 @@ export const svtProtocol: DiseaseProtocol = {
       management.push({
         title: "STABLE SVT: Stepwise Management",
         recommendations: [
-          "1. VAGAL MANEUVERS: Attempt while preparing for medications. Infants: Ice pack to the upper face (forehead/nose) for 15-20 seconds. Children: Blowing into a 10mL syringe, or performing a Valsalva maneuver.",
+          "1. VAGAL MANEUVERS while preparing IV/IO. Infants: ice to upper face 15-20 sec. Children: Valsalva/blow into 10 mL syringe.",
           "2. IV/IO ACCESS: Establish access immediately. Ideally use a large-bore IV in the right antecubital fossa (closest to the heart).",
           "3. ADENOSINE: First-line medication. Must be given via RAPID IV PUSH using the two-syringe technique (medication followed immediately by a 10-20mL saline flush).",
           "4. REPEAT ADENOSINE: If first dose fails, give a second, larger dose (0.2 mg/kg) after 2 minutes.",
@@ -107,22 +107,22 @@ export const svtProtocol: DiseaseProtocol = {
 
         doses.push({
             drugName: "Adenosine (1st dose)",
-            dose: `0.1 mg/kg (max 6 mg) = ${adeno1.toFixed(2)} mg`,
+            dose: `${adeno1.toFixed(2)} mg rapid IV/IO push`,
             notes: "RAPID IV push followed by rapid 10-20mL saline flush. Use two-syringe technique."
         });
         doses.push({
             drugName: "Adenosine (2nd dose)",
-            dose: `0.2 mg/kg (max 12 mg) = ${adeno2.toFixed(2)} mg`,
+            dose: `${adeno2.toFixed(2)} mg rapid IV/IO push`,
             notes: "Give if 1st dose fails. RAPID IV push."
         });
         doses.push({
             drugName: "Synchronized Cardioversion",
-            dose: `Initial: 0.5 - 1 J/kg (${(0.5*weight).toFixed(0)}-${(1*weight).toFixed(0)} J). 2nd: 2 J/kg (${(2*weight).toFixed(0)} J).`,
+            dose: `Initial ${(0.5*weight).toFixed(0)}-${(1*weight).toFixed(0)} J; then ${(2*weight).toFixed(0)} J`,
             notes: "Must be in 'SYNC' mode. Ensure Cardiology is consulted."
         });
         doses.push({
             drugName: "Amiodarone (Refractory SVT)",
-            dose: `5 mg/kg = ${amio.toFixed(1)} mg IV`,
+            dose: `${amio.toFixed(1)} mg IV over 20-60 min`,
             notes: "INDICATIONS: SVT refractory to Adenosine/Cardioversion. ADMINISTRATION: Infuse over 20-60 minutes. WARNING: Monitor for hypotension and bradycardia. Requires Cardiology consultation."
         });
     } else {

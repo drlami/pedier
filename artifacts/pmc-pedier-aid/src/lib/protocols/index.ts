@@ -77,12 +77,20 @@ import { urinaryTractInfectionProtocol } from './urinary-tract-infection';
 import { metabolicCrisisProtocol } from './metabolic-crisis';
 
 
+import { headTraumaProtocol } from './head-trauma';
+import { smokeInhalationProtocol } from './smoke-inhalation-burns';
+import { oxygenEscalationProtocol } from './oxygen-escalation-guide';
+import { vpShuntMalfunctionProtocol } from './vp-shunt-malfunction';
+
 export const allProtocols: DiseaseProtocol[] = [
   bronchiolitisProtocol,
   asthmaProtocol,
   croupProtocol,
   dehydrationGastroenteritisProtocol,
+  headTraumaProtocol,
   pneumoniaProtocol,
+  smokeInhalationProtocol,
+  oxygenEscalationProtocol,
   tracheitisProtocol,
   epiglottitisProtocol,
   fbaProtocol,
@@ -111,6 +119,7 @@ export const allProtocols: DiseaseProtocol[] = [
   acuteAtaxiaProtocol,
   raisedIcpSuspicionProtocol,
   pedsStrokeProtocol,
+  vpShuntMalfunctionProtocol,
   persistentVomitingProtocol,
   biliousVomitingProtocol,
   abdominalPainProtocol,

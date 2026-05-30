@@ -10,10 +10,13 @@ export const chestPainInChildrenProtocol: DiseaseProtocol = {
     hint: "child chest"
   },
   questions: [
+    { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
     { id: 'painOnExertion', questionText: 'Does the pain occur DURING exercise (not just after)?', type: 'boolean', info: 'Pain during peak exertion is a major red flag for anomalous coronary arteries or outflow obstruction.' },
     { id: 'associatedSyncope', questionText: 'Is the pain associated with syncope or palpitations?', type: 'boolean' },
     { id: 'isSharpLocalized', questionText: 'Is the pain sharp, localized, and reproducible with palpation?', type: 'boolean', info: 'Reproducible pain is highly suggestive of costochondritis or musculoskeletal causes.' },
     { id: 'hasFever', questionText: 'Is there a fever and does the child appear ill?', type: 'boolean', info: 'Suggestive of myocarditis, pericarditis, or pneumonia.' },
+    { id: 'ekgAbnormal', questionText: 'Is the EKG abnormal?', type: 'boolean', info: 'ST changes, T-wave inversion, WPW, long QTc, ventricular hypertrophy, or arrhythmia.' },
+    { id: 'troponinElevated', questionText: 'Is Troponin elevated?', type: 'boolean' },
     { id: 'cardiacHistory', questionText: 'Concerning personal or family history?', type: 'boolean', info: 'Family history of sudden unexplained death <40y, cardiomyopathy, or significant arrhythmia.' },
     { id: 'isCrushing', questionText: 'Is the pain "crushing," radiating to the jaw/arm, or associated with diaphoresis?', type: 'boolean', info: 'Classic anginal symptoms are rare in children but very high risk.' },
   ],
@@ -21,11 +24,13 @@ export const chestPainInChildrenProtocol: DiseaseProtocol = {
     const details: string[] = [];
     
     // High-Risk Cardiac Features
-    if (data.painOnExertion || data.associatedSyncope || data.cardiacHistory || data.isCrushing) {
+    if (data.painOnExertion || data.associatedSyncope || data.cardiacHistory || data.isCrushing || data.ekgAbnormal || data.troponinElevated) {
       if (data.painOnExertion) details.push("Exertional chest pain (High risk for coronary anomalies)");
       if (data.associatedSyncope) details.push("Associated syncope or palpitations");
       if (data.cardiacHistory) details.push("Concerning personal/family cardiac history");
       if (data.isCrushing) details.push("Classic anginal-type symptoms");
+      if (data.ekgAbnormal) details.push("Abnormal EKG");
+      if (data.troponinElevated) details.push("Elevated Troponin");
       return { level: 'severe', details: [...details, "Potential cardiac emergency. Urgent workup required."] };
     }
     
@@ -107,10 +112,16 @@ export const chestPainInChildrenProtocol: DiseaseProtocol = {
     "Abnormal findings on cardiac exam (new murmur, gallop, distant heart sounds).",
     "Known history of Kawasaki Disease (risk of coronary aneurysms)."
   ],
-  getDrugDoses: () => [
-    { drugName: "Ibuprofen", dose: "10 mg/kg per dose (max 600-800mg)", notes: "For costochondritis or musculoskeletal pain." },
-    { drugName: "Acetaminophen", dose: "15 mg/kg per dose", notes: "For supportive care." }
-  ],
+  getDrugDoses: (severity, data) => {
+    const weight = Number(data.weight) || 0;
+    const ibuprofen = Math.min(10 * weight, 600);
+    const acetaminophen = Math.min(15 * weight, 1000);
+
+    return [
+      { drugName: "Ibuprofen", dose: weight > 0 ? `${ibuprofen.toFixed(0)} mg PO` : "10 mg/kg PO, max 600 mg", notes: "For clear musculoskeletal pain only; avoid if myocarditis/pericarditis concern until senior review." },
+      { drugName: "Acetaminophen", dose: weight > 0 ? `${acetaminophen.toFixed(0)} mg PO/PR` : "15 mg/kg PO/PR, max 1000 mg", notes: "Supportive analgesia." }
+    ];
+  },
   getReferences: () => [
     { title: "AAP: Evaluation and Management of Children and Adolescents With Chest Pain", url: "https://publications.aap.org/pediatrics/article/148/5/e2021053428/182962/Evaluation-and-Management-of-Children-and" },
     { title: "UpToDate: Evaluation of chest pain in children", url: "https://www.uptodate.com/contents/evaluation-of-chest-pain-in-children" }

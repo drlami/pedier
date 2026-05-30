@@ -1,114 +1,117 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types';
 
 export const fbaProtocol: DiseaseProtocol = {
   id: 'fba',
   name: 'Foreign Body Aspiration (Suspected)',
   system: 'Respiratory',
-  description: 'Evaluation of suspected foreign body aspiration in a stable child.',
+  description: 'Evaluation and emergency management of suspected foreign body aspiration.',
   image: {
     url: "https://picsum.photos/seed/fba/600/400",
     hint: "child choking"
   },
   questions: [
-    { id: 'activeObstruction', questionText: 'Active complete/severe airway obstruction now?', type: 'boolean', info: 'Unable to cry/speak/cough effectively, cyanosis, severe distress, silent cough, or deteriorating consciousness.' },
+    { id: 'activeObstruction', questionText: 'Active complete/severe airway obstruction now?', type: 'boolean', info: 'Unable to speak/cough, silent cough, cyanosis, or deteriorating consciousness.' },
     { id: 'witnessedEvent', questionText: 'Witnessed choking or gagging episode?', type: 'boolean' },
-    { id: 'age', questionText: 'Age (6mo - 4yr is highest risk)?', type: 'number', unit: 'years' },
+    { id: 'ageMonths', questionText: 'Age in months', type: 'number', unit: 'months' },
     { id: 'symptomOnset', questionText: 'Sudden onset of cough, wheeze, or stridor?', type: 'boolean' },
     { id: 'unilateralWheeze', questionText: 'Unilateral wheeze on exam?', type: 'boolean' },
     { id: 'unilateralAirEntry', questionText: 'Decreased air entry on one side?', type: 'boolean' },
     { id: 'cxrFindings', questionText: 'CXR findings?', type: 'select', options: [{label: 'Normal', value: 'normal'}, {label: 'Unilateral hyperinflation', value: 'hyperinflation'}, {label: 'Atelectasis', value: 'atelectasis'}, {label: 'Radio-opaque object seen', value: 'object_seen'}] },
   ],
   calculateSeverity: (data: FormData): Severity => {
-    // Severity here relates to the likelihood of FBA requiring bronchoscopy
     const details: string[] = [];
-    let score = 0;
+    let totalScore = 0;
 
-    if (data.activeObstruction) {
-      return { level: 'impending respiratory failure', details: ["Active complete/severe airway obstruction. Immediate choking/resuscitation pathway required."] };
+    if (data.activeObstruction === true) {
+      return { level: 'impending respiratory failure', details: ["ACTIVE COMPLETE OBSTRUCTION: Immediate choking algorithm required."] };
     }
     
-    if (data.witnessedEvent) { score += 3; details.push("Witnessed choking event"); }
-    if (data.symptomOnset) { score += 1; details.push("Sudden onset of symptoms"); }
-    if (data.unilateralWheeze) { score += 2; details.push("Unilateral wheeze"); }
-    if (data.unilateralAirEntry) { score += 2; details.push("Unilateral decreased air entry"); }
-    if (data.cxrFindings === 'hyperinflation' || data.cxrFindings === 'atelectasis' || data.cxrFindings === 'object_seen') { score += 2; details.push("Positive CXR findings"); }
+    if (data.witnessedEvent === true) totalScore += 3;
+    if (data.symptomOnset === true) totalScore += 1;
+    if (data.unilateralWheeze === true) totalScore += 2;
+    if (data.unilateralAirEntry === true) totalScore += 2;
+    if (data.cxrFindings !== 'normal' && data.cxrFindings !== undefined) totalScore += 2;
 
-    if (data.cxrFindings === 'object_seen' || (data.witnessedEvent && (data.unilateralWheeze || data.unilateralAirEntry))) {
-      return { level: 'severe', score, details: [...details, "High probability of FBA"] };
+    let level: SeverityLevel = 'no';
+    let interpretation = 'Very Low Probability';
+
+    if (totalScore >= 5 || data.cxrFindings === 'object_seen') {
+      level = 'severe';
+      interpretation = 'High Probability of FBA';
+    } else if (totalScore >= 3) {
+      level = 'moderate';
+      interpretation = 'Moderate Probability of FBA';
+    } else if (totalScore > 0) {
+      level = 'mild';
+      interpretation = 'Low Probability (Observe)';
     }
-    if (score >= 3) {
-      return { level: 'moderate', score, details: [...details, "Moderate probability of FBA"] };
+
+    if (data.cxrFindings === 'normal' && totalScore >= 3) {
+        details.push("Reminder: A normal CXR does NOT rule out a foreign body aspiration.");
     }
-    if (score > 0) {
-      return { level: 'mild', score, details: [...details, "Low probability of FBA"] };
-    }
-    return { level: 'no', details };
+
+    return { 
+      level, 
+      scoreDetails: {
+        systemName: "FBA Probability Score",
+        totalScore: totalScore,
+        interpretation,
+        referenceTable: [
+          { range: "≥ 5", meaning: "High Probability (Indication for OR)" },
+          { range: "3 - 4", meaning: "Moderate Probability (Consult ENT)" },
+          { range: "1 - 2", meaning: "Low Probability (Monitor/Repeat CXR)" }
+        ]
+      },
+      details 
+    };
   },
   getManagement: (severity, data) => {
+    const isInfant = Number(data.ageMonths || 0) < 12;
     const management = [];
-    if(severity.level === 'impending respiratory failure'){
+
+    if (severity.level === 'impending respiratory failure') {
       management.push({
-        title: "EMERGENCY: Active Airway Obstruction",
+        title: "EMERGENCY: CHOKING ALGORITHM",
         recommendations: [
-          "Call resuscitation team, anesthesia/ENT, and prepare for immediate airway intervention.",
-          "If ineffective cough or complete obstruction: follow pediatric choking algorithm immediately (back blows/chest thrusts for infants; abdominal thrusts for children when appropriate).",
-          "If unconscious: start CPR and inspect mouth only when opening airway; remove visible object only.",
-          "Do NOT perform blind finger sweeps.",
-          "Prepare for rigid bronchoscopy or surgical airway if obstruction cannot be relieved."
+          "Call resuscitation team, Anesthesia, and ENT immediately.",
+          isInfant 
+            ? "Infant (<1 yr): 5 Back Blows followed by 5 Chest Thrusts. Repeat until object relieved or unconscious."
+            : "Child (>1 yr): Abdominal Thrusts (Heimlich Maneuver). Repeat until object relieved or unconscious.",
+          "If unconscious: Start CPR. Inspect airway before breaths. REMOVE visible objects only; no blind sweeps.",
+          "Prepare for rigid bronchoscopy or surgical airway."
         ]
       });
-      return management;
-    }
-    if(severity.level === 'severe' || severity.level === 'moderate'){
+    } else if (severity.level === 'severe' || severity.level === 'moderate') {
       management.push({
-        title: "High/Moderate Suspicion of FBA",
+        title: "High/Moderate Probability Management",
         recommendations: [
-          "Consult ENT or Pulmonology immediately.",
-          "Prepare patient for rigid bronchoscopy in the operating room. This is both diagnostic and therapeutic.",
-          "Keep patient NPO.",
-          "A normal CXR does NOT exclude FBA; do not delay bronchoscopy when clinical suspicion is high.",
-          "Monitor closely for worsening respiratory distress and escalate immediately if obstruction becomes unstable."
+          "Consult ENT/Pulmonology immediately for rigid bronchoscopy.",
+          "Keep NPO.",
+          "A normal CXR does NOT rule out FBA; do not delay if clinical suspicion is high.",
+          "Continuous monitoring for sudden airway obstruction."
         ]
-      })
+      });
+    } else {
+        management.push({
+            title: "Low Probability Management",
+            recommendations: [
+                "Consider observation and repeat imaging (inspiratory/expiratory views).",
+                "Discuss with ENT if symptoms persist.",
+                "Ensure clear discharge return precautions for any respiratory distress."
+            ]
+        });
     }
-    if(severity.level === 'mild') {
-       management.push({
-        title: "Low Suspicion of FBA",
-        recommendations: [
-          "Consider Chest X-ray (inspiratory/expiratory views or bilateral decubitus). A normal CXR does NOT rule out FBA.",
-          "Period of observation in the ED.",
-          "Discuss with ENT/Pulmonology; decision for bronchoscopy is based on combined clinical picture.",
-          "If discharging, provide strict return precautions for any respiratory distress."
-        ]
-      })
-    }
-    if(severity.level === 'no'){
-       management.push({
-        title: "Very Low Suspicion of FBA",
-        recommendations: [
-          "If history and exam are not suggestive, consider alternative diagnoses.",
-          "Discharge with clear return precautions."
-        ]
-      })
-    }
+
     return management;
   },
-  getDisposition: (severity, data) => {
-    if (severity.level === 'impending respiratory failure') {
-      return ["Immediate resuscitation area management with airway/ENT/anesthesia involvement. Do not transfer away from monitored emergency care until airway is secure."];
-    }
-    if (severity.level === 'severe' || severity.level === 'moderate') {
-      return ["Admit to hospital for rigid bronchoscopy."];
-    }
-    return ["Discharge may be considered for low-suspicion cases after a period of observation and discussion with consultants, with strict return precautions."];
+  getDisposition: (severity) => {
+    if (severity.level === 'impending respiratory failure') return ["Immediate Resuscitation Room."];
+    if (severity.level === 'severe' || severity.level === 'moderate') return ["Admit for Bronchoscopy."];
+    return ["Discharge with strict return instructions if symptoms resolve."];
   },
-  getRedFlags: () => [
-    "History of choking/gagging followed by respiratory symptoms (cough, wheeze, stridor) is the biggest red flag.",
-    "Unable to cry/speak/cough effectively, cyanosis, or deteriorating consciousness indicates complete obstruction.",
-    "New-onset unilateral wheezing in a toddler.",
-    "Cyanosis or severe distress (indicates high-grade obstruction - an emergency).",
-    "Symptoms refractory to standard asthma/croup treatment."
-  ],
+  getRedFlags: () => ["Sudden onset choking", "Unilateral wheeze", "Stridor", "Cyanosis", "Ineffective cough"],
   getDrugDoses: () => [],
-  getReferences: () => [{ title: "American Thoracic Society: Management of Suspected Foreign Body Aspiration in Children", url: "https://www.thoracic.org/statements/resources/pediatric-critical-care/management-of-suspected-foreign-body-aspiration-in-children.pdf" }],
+  getReferences: () => [
+    { title: "ATS Management of Suspected FBA in Children", url: "https://www.thoracic.org/" }
+  ],
 };

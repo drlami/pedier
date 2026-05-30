@@ -11,6 +11,8 @@ export const cardiogenicShockProtocol: DiseaseProtocol = {
   },
   questions: [
       { id: 'weight', questionText: 'Patient Weight', type: 'number', unit: 'kg' },
+      { id: 'poorPerfusion', questionText: 'Poor perfusion or hypotension?', type: 'boolean' },
+      { id: 'respiratoryDistress', questionText: 'Respiratory distress or pulmonary edema?', type: 'boolean' },
       { id: 'hasRales', questionText: 'Are rales (crackles) present on lung exam?', type: 'boolean' },
       { id: 'hasHepatomegaly', questionText: 'Is hepatomegaly present?', type: 'boolean' },
       { id: 'hasMurmur', questionText: 'New or significant heart murmur?', type: 'boolean' },
@@ -24,9 +26,11 @@ export const cardiogenicShockProtocol: DiseaseProtocol = {
       const details = [];
       if(data.hasRales) details.push("Rales present (pulmonary edema).");
       if(data.hasHepatomegaly) details.push("Hepatomegaly (venous congestion).");
+      if(data.poorPerfusion) details.push("Poor perfusion/hypotension.");
+      if(data.respiratoryDistress) details.push("Respiratory distress/pulmonary edema.");
       if(data.cxrFindings === 'positive') details.push("CXR shows cardiomegaly or pulmonary edema.");
 
-      if (details.length > 0) {
+      if (data.poorPerfusion || data.respiratoryDistress || details.length > 0) {
           return { level: 'severe', details: [...details, "Signs of heart failure are present, highly suggestive of cardiogenic shock."] };
       }
       return { level: 'unknown', details: ['Suspect Cardiogenic Shock? Use the "Shock Classification Tool" if undifferentiated.'] };
@@ -34,10 +38,11 @@ export const cardiogenicShockProtocol: DiseaseProtocol = {
   getManagement: () => [{
       title: "Management of Cardiogenic Shock",
       recommendations: [
-          "This is a PICU and Cardiology emergency.",
-          "BE JUDICIOUS WITH FLUIDS. Large-volume fluid resuscitation will worsen pulmonary edema and pump failure.",
+          "Move to resuscitation/monitored area. Call PICU and Pediatric Cardiology immediately.",
+          "Give oxygen/ventilatory support as needed; avoid excessive work of breathing.",
+          "BE JUDICIOUS WITH FLUIDS. Large-volume fluid resuscitation may worsen pulmonary edema and pump failure.",
           "Administer small fluid boluses (5-10 mL/kg over 15-30 minutes) only if there is clear evidence of hypovolemia and no signs of fluid overload.",
-          "Prioritize starting INOTROPIC infusions early to improve cardiac contractility.",
+          "Start vasoactive/inotropic infusion early if poor perfusion or hypotension persists.",
           "Adrenaline (epinephrine) is often a good first choice in undifferentiated shock as it provides both inotropy and vasoconstriction.",
           "Milrinone is a good choice if afterload reduction is desired (inodilator), but can cause hypotension.",
           "Obtain EKG and urgent bedside echocardiogram.",
@@ -55,10 +60,10 @@ export const cardiogenicShockProtocol: DiseaseProtocol = {
     const weight = Number(data.weight) || 0;
     if (weight > 0) {
         return [
-            { drugName: "Cautious Fluid Bolus", dose: `5-10 mL/kg = ${(5 * weight).toFixed(0)}-${(10 * weight).toFixed(0)} mL over 30 min` },
+            { drugName: "Cautious Fluid Bolus", dose: `${(5 * weight).toFixed(0)}-${(10 * weight).toFixed(0)} mL IV over 15-30 min` },
             { drugName: "Adrenaline Infusion", dose: "Start at 0.05-0.1 mcg/kg/min" },
             { drugName: "Milrinone Infusion", dose: "0.25-0.75 mcg/kg/min", notes: "Afterload reducer. Use with caution if hypotensive." },
-            { drugName: "Furosemide", dose: `${weight.toFixed(0)} mg IV (1 mg/kg)`, notes: "Only for fluid overload if stable." }
+            { drugName: "Furosemide IV", dose: `${Math.min(weight, 40).toFixed(0)} mg IV`, notes: "1 mg/kg; only for fluid overload if BP stable." }
         ];
     }
     return [

@@ -310,6 +310,59 @@ function ResultsContent({
         </div>
       </div>
 
+      {/* 1b. Standardized Score Badge */}
+      {severity.scoreDetails && (
+        <div className="space-y-3">
+          <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-primary">
+                <ClipboardList className="h-4 w-4" />
+                <span className="text-xs font-bold uppercase tracking-wider">{severity.scoreDetails.systemName}</span>
+              </div>
+              <p className="text-sm font-bold">{severity.scoreDetails.interpretation}</p>
+            </div>
+            <div className="flex flex-col items-center justify-center bg-primary text-white rounded-lg px-3 py-2 min-w-[70px]">
+              <span className="text-2xl font-black leading-none">{severity.scoreDetails.totalScore}</span>
+              {severity.scoreDetails.maxScore && (
+                <span className="text-[10px] font-bold opacity-80 mt-1 uppercase border-t border-white/30 pt-1 w-full text-center">
+                  Out of {severity.scoreDetails.maxScore}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Reference Table for Score Interpretation */}
+          {severity.scoreDetails.referenceTable && (
+            <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
+              <div className="bg-muted px-3 py-1.5 border-b border-border flex items-center gap-2">
+                <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Score Interpretation Reference</span>
+              </div>
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border bg-background/50">
+                    <th className="px-3 py-1.5 font-bold text-muted-foreground w-1/3">Score Range</th>
+                    <th className="px-3 py-1.5 font-bold text-muted-foreground">Clinical Meaning</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {severity.scoreDetails.referenceTable.map((row, idx) => {
+                    // Check if current score falls in this range (rough check for highlighting)
+                    const isSelected = severity.scoreDetails?.interpretation.toLowerCase().includes(row.meaning.toLowerCase().split(' ')[0]);
+                    return (
+                      <tr key={idx} className={cn("border-b border-border last:border-0", isSelected ? "bg-primary/5 font-medium" : "bg-background")}>
+                        <td className="px-3 py-2 text-primary font-bold">{row.range}</td>
+                        <td className="px-3 py-2">{row.meaning}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 2. RED FLAGS */}
       <Alert className="border-red-200 bg-red-50 text-red-900">
         <TriangleAlert className="h-4 w-4 text-red-600" />

@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CardiacArrestPage() {
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-5">
       <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-5 flex items-start gap-4">
         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-100 border border-red-200 shrink-0 mt-0.5">
           <HeartPulse className="h-5 w-5 text-red-600" />
@@ -28,8 +28,8 @@ export default function CardiacArrestPage() {
 
       <Tabs defaultValue="resuscitation" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="resuscitation">Resuscitation</TabsTrigger>
-          <TabsTrigger value="rsi">Rapid Sequence Intubation</TabsTrigger>
+          <TabsTrigger value="resuscitation">Arrest / PALS</TabsTrigger>
+          <TabsTrigger value="rsi">Airway / RSI</TabsTrigger>
         </TabsList>
         <TabsContent value="resuscitation" className="mt-6">
           <ResuscitationCalculator />
