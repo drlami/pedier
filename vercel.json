@@ -2,7 +2,7 @@
   "version": 2,
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/pmc-pedier-aid run build",
-  "outputDirectory": "artifacts/pmc-pedier-aid/dist/public",
+  "outputDirectory": "artifacts/pmc-pedier-aid/dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/server" }
   ],
