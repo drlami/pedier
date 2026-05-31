@@ -44,7 +44,7 @@ router.put('/users/:id', requireAdmin, async (req: AuthRequest, res) => {
     res.status(400).json({ message: 'You cannot change your own role' });
     return;
   }
-  const updated = await updateUserRole(req.params.id, role);
+  const updated = await updateUserRole(req.params.id as string, role);
   if (!updated) {
     res.status(404).json({ message: 'User not found' });
     return;
@@ -57,7 +57,7 @@ router.delete('/users/:id', requireAdmin, async (req: AuthRequest, res) => {
     res.status(400).json({ message: 'You cannot delete your own account' });
     return;
   }
-  const deleted = await deleteUser(req.params.id);
+  const deleted = await deleteUser(req.params.id as string);
   if (!deleted) {
     res.status(404).json({ message: 'User not found' });
     return;

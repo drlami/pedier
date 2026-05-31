@@ -23,7 +23,7 @@ router.post('/hidden-protocols', requireAdmin, async (req, res) => {
 });
 
 router.delete('/hidden-protocols/:id', requireAdmin, async (req, res) => {
-  await unhideProtocol(req.params.id);
+  await unhideProtocol(req.params.id as string);
   res.status(204).send();
 });
 

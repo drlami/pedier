@@ -2,8 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
-    "types": ["node"]
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@workspace/db": ["../../lib/db/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

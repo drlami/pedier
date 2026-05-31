@@ -25,7 +25,7 @@ router.put('/custom-drugs/:id', requireAuth, async (req, res) => {
 });
 
 router.delete('/custom-drugs/:id', requireAuth, async (req, res) => {
-  await deleteCustomDrug(req.params.id);
+  await deleteCustomDrug(req.params.id as string);
   res.status(204).send();
 });
 

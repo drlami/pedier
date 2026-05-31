@@ -15,7 +15,7 @@ router.get('/protocols', requireAuth, async (_req, res) => {
 });
 
 router.get('/protocols/:id', requireAuth, async (req, res) => {
-  const protocol = await getCustomProtocolById(req.params.id);
+  const protocol = await getCustomProtocolById(req.params.id as string);
   if (!protocol) {
     res.status(404).json({ message: 'Protocol not found' });
     return;
@@ -43,7 +43,7 @@ router.post('/protocols', requireAdmin, async (req, res) => {
 });
 
 router.put('/protocols/:id', requireAdmin, async (req, res) => {
-  const updated = await updateCustomProtocol(req.params.id, req.body);
+  const updated = await updateCustomProtocol(req.params.id as string, req.body);
   if (!updated) {
     res.status(404).json({ message: 'Protocol not found' });
     return;
@@ -52,7 +52,7 @@ router.put('/protocols/:id', requireAdmin, async (req, res) => {
 });
 
 router.delete('/protocols/:id', requireAdmin, async (req, res) => {
-  const deleted = await deleteCustomProtocol(req.params.id);
+  const deleted = await deleteCustomProtocol(req.params.id as string);
   if (!deleted) {
     res.status(404).json({ message: 'Protocol not found' });
     return;
