@@ -5,9 +5,9 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { VitePWA } from "vite-plugin-pwa";
 
-// In Replit dev these must be set. In Firebase App Hosting CI they are not
-// needed (the dev server is never started), so we fall back to safe defaults.
-const rawPort = process.env.PORT ?? "3000";
+// Use port 5173 (Vite default) to avoid conflicts with services on 3000.
+// Override PORT=3000 if set, since that conflicts with v0/Vercel preview.
+const rawPort = process.env.PORT === "3000" ? "5173" : (process.env.PORT ?? "5173");
 const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
