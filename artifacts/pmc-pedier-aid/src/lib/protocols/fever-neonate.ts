@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const feverNeonateProtocol: DiseaseProtocol = {
   id: 'fever-neonate',
   name: 'Fever in Neonate (≤28 days)',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Management of fever in a neonate (age 28 days or less), which is considered a medical emergency.',
   image: {
     url: "https://picsum.photos/seed/fever-neonate/600/400",

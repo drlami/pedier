@@ -1,17 +1,23 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Calculator, Search, Droplets, Activity, Brain, 
   Baby, Thermometer, FlaskConical, Flame, ArrowRight,
-  Info, AlertCircle, Wind, Stethoscope, TrendingUp, HeartPulse, ShieldAlert, Ruler,
-  Clock, Syringe, Calendar, Zap, Scale, Scissors
+  Info, Wind, Stethoscope, TrendingUp, HeartPulse, ShieldAlert, Ruler,
+  Clock, Scissors, Scale, Calendar, Pin, PinOff, Pill, Apple, TrendingDown
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+
+const PINNED_ITEMS_KEY = "pmc-pinned-items-v2";
+
+type PinnedItem = 
+  | { type: "protocol"; id: string }
+  | { type: "calculator"; href: string };
 
 // --- Calculator Definitions ---
 
@@ -19,11 +25,22 @@ interface CalcTool {
   id: string;
   name: string;
   description: string;
-  category: "Emergency" | "Fluids" | "Renal" | "Endocrine" | "Visual" | "Gastrointestinal" | "Neonatal";
+  category: "Emergency" | "Fluids" | "Renal" | "Endocrine" | "Visual" | "Gastrointestinal" | "Neonatal" | "Growth";
   icon: any;
   href?: string;
   tags: string[];
 }
+
+const CATEGORY_METADATA: Record<string, { label: string, icon: any, color: string }> = {
+  "Emergency": { label: "Emergency & Critical Care", icon: ShieldAlert, color: "red" },
+  "Neonatal": { label: "Neonatal Intensive Care", icon: Baby, color: "blue" },
+  "Fluids": { label: "Fluids & Electrolytes", icon: Droplets, color: "sky" },
+  "Endocrine": { label: "Endocrine & Diabetes", icon: Flame, color: "orange" },
+  "Growth": { label: "Growth & Nutrition", icon: Apple, color: "emerald" },
+  "Gastrointestinal": { label: "Gastrointestinal", icon: Activity, color: "amber" },
+  "Renal": { label: "Renal & Urology", icon: Activity, color: "indigo" },
+  "Visual": { label: "Visual & Radiology Aids", icon: Ruler, color: "slate" },
+};
 
 const CALCULATORS: CalcTool[] = [
   {
@@ -34,6 +51,24 @@ const CALCULATORS: CalcTool[] = [
     icon: ShieldAlert,
     href: "/calculators/resuscitation-doses",
     tags: ["code", "arrest", "adrenaline", "pals"]
+  },
+  {
+    id: "suspension-dosing",
+    name: "Suspension Dosing",
+    description: "Calculate oral suspension volumes (mL) based on concentration and weight.",
+    category: "Emergency",
+    icon: Pill,
+    href: "/calculators/suspension-dosing",
+    tags: ["dosing", "suspension", "liquid", "oral"]
+  },
+  {
+    id: "drug-tapering",
+    name: "Drug Tapering",
+    description: "Generate professional weaning schedules for steroids and chronic medications.",
+    category: "Emergency",
+    icon: TrendingDown,
+    href: "/calculators/tapering-calculator",
+    tags: ["taper", "weaning", "steroid", "prednisolone"]
   },
   {
     id: "bili",
@@ -120,7 +155,7 @@ const CALCULATORS: CalcTool[] = [
     id: "fenton",
     name: "Fenton Growth Charts",
     description: "Growth monitoring for preterm infants (Weight, Length, HC).",
-    category: "Neonatal",
+    category: "Growth",
     icon: TrendingUp,
     href: "/calculators/fenton-charts",
     tags: ["neonatal", "growth", "preterm"]
@@ -196,6 +231,15 @@ const CALCULATORS: CalcTool[] = [
     icon: Thermometer,
     href: "/calculators/sodium-correction",
     tags: ["dka", "diabetes", "sodium"]
+  },
+  {
+    id: "dka-transition",
+    name: "DKA Insulin Transition",
+    description: "Physiological Basal-Bolus transition roadmap from IV to Subcutaneous insulin.",
+    category: "Endocrine",
+    icon: Activity,
+    href: "/calculators/dka-transition",
+    tags: ["dka", "diabetes", "insulin", "transition"]
   },
   {
     id: "anion-gap",
@@ -274,15 +318,54 @@ const CALCULATORS: CalcTool[] = [
     name: "BP Percentiles",
     description: "Screen for pediatric hypertension by age and sex.",
     category: "Visual",
-    icon: HeartPulse,
+    icon: TrendingUp,
     href: "/calculators/bp-percentiles",
     tags: ["cardiology", "hypertension", "bp"]
+  },
+  {
+    id: "nutritional-recovery",
+    name: "Nutritional Recovery",
+    description: "Exhaustive catch-up growth roadmap with Waterlow calculations and food matrix.",
+    category: "Growth",
+    icon: Apple,
+    href: "/calculators/nutritional-recovery",
+    tags: ["nutrition", "growth", "faltering", "calories"]
   }
 ];
 
 export default function CalculatorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PINNED_ITEMS_KEY);
+      if (raw) setPinnedItems(JSON.parse(raw));
+    } catch {
+      setPinnedItems([]);
+    }
+  }, []);
+
+  const togglePin = (href: string) => {
+    const item: PinnedItem = { type: "calculator", href };
+    setPinnedItems((prev) => {
+      const isPinned = prev.some(p => p.type === "calculator" && p.href === href);
+      const next = isPinned 
+        ? prev.filter(p => !(p.type === "calculator" && p.href === href))
+        : [item, ...prev];
+      localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const isPinned = (href: string) => {
+    return pinnedItems.some(p => p.type === "calculator" && p.href === href);
+  };
+
+  const pinnedTools = useMemo(() => {
+    return CALCULATORS.filter(calc => calc.href && isPinned(calc.href));
+  }, [pinnedItems]);
 
   const filteredCalculators = useMemo(() => {
     return CALCULATORS.filter(calc => {
@@ -293,110 +376,198 @@ export default function CalculatorsPage() {
     });
   }, [searchQuery, activeTab]);
 
+  const groupedCalculators = useMemo(() => {
+    const groups: Record<string, CalcTool[]> = {};
+    filteredCalculators.forEach(calc => {
+      if (!groups[calc.category]) groups[calc.category] = [];
+      groups[calc.category].push(calc);
+    });
+    return groups;
+  }, [filteredCalculators]);
+
+  // Order categories for display
+  const categoryOrder: CalcTool["category"][] = [
+    "Emergency", "Neonatal", "Fluids", "Endocrine", "Growth", "Gastrointestinal", "Renal", "Visual"
+  ];
+
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="container max-w-6xl mx-auto py-8 px-4 space-y-10">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      {/* 1. Header & Search */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline tracking-tight mb-1">PediCalc Engine</h1>
-          <p className="text-muted-foreground">Validated clinical calculators and visual decision support tools.</p>
+          <h1 className="text-4xl font-black font-headline tracking-tighter mb-1">PediCalc Engine</h1>
+          <p className="text-muted-foreground text-sm font-medium">Validated clinical calculators and professional decision tools.</p>
         </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
           <Input 
-            placeholder="Search calculators..." 
-            className="pl-9 h-11"
+            placeholder="Search by name or clinical tag..." 
+            className="pl-11 h-12 rounded-2xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/20 shadow-none transition-all text-base"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="all" className="mb-8 w-full max-w-full" onValueChange={setActiveTab}>
-        <div className="w-full overflow-x-auto scrollbar-hide pb-2">
-          <TabsList className="bg-muted/50 p-1 flex w-max min-w-full flex-nowrap md:flex-wrap justify-start md:justify-center h-auto">
-            <TabsTrigger value="all" className="shrink-0 active:scale-95 transition-transform">All Tools</TabsTrigger>
-            <TabsTrigger value="Emergency" className="shrink-0 active:scale-95 transition-transform">Emergency</TabsTrigger>
-            <TabsTrigger value="Fluids" className="shrink-0 active:scale-95 transition-transform">Fluids & Lytes</TabsTrigger>
-            <TabsTrigger value="Renal" className="shrink-0 active:scale-95 transition-transform">Renal</TabsTrigger>
-            <TabsTrigger value="Visual" className="shrink-0 active:scale-95 transition-transform">Visual Tools</TabsTrigger>
-            <TabsTrigger value="Gastrointestinal" className="shrink-0 active:scale-95 transition-transform">Gastrointestinal</TabsTrigger>
-            <TabsTrigger value="Neonatal" className="shrink-0 active:scale-95 transition-transform">Neonatal</TabsTrigger>
-          </TabsList>
-        </div>
-      </Tabs>
-
-      {/* Grid */}
-      {filteredCalculators.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCalculators.map((calc) => (
-            <CalculatorCard key={calc.id} tool={calc} />
-          ))}
-        </div>
-      ) : (
-        <div className="py-20 text-center border-2 border-dashed rounded-2xl">
-          <Calculator className="h-10 w-10 mx-auto mb-4 text-muted-foreground/20" />
-          <h3 className="text-lg font-semibold">No calculators found</h3>
-          <p className="text-muted-foreground">Try adjusting your search or category filter.</p>
-        </div>
+      {/* 2. Pinned Section (Only on 'all' or if searched) */}
+      {pinnedTools.length > 0 && activeTab === "all" && !searchQuery && (
+        <section className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-2 px-2">
+            <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600 shadow-sm">
+              <Pin className="h-4 w-4 fill-current" />
+            </div>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-amber-700">Your Workspace</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pinnedTools.map((calc) => (
+              <CalculatorCard 
+                key={`pinned-${calc.id}`} 
+                tool={calc} 
+                isPinned={true}
+                onTogglePin={() => togglePin(calc.href!)}
+              />
+            ))}
+          </div>
+          <div className="border-b border-dashed pt-4" />
+        </section>
       )}
 
-      {/* Footer Info */}
-      <div className="mt-12 p-6 rounded-2xl bg-primary/5 border border-primary/10 flex gap-4 items-start">
-        <Info className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <h4 className="font-bold text-primary">About PediCalc Data</h4>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            All formulas are derived from standard medical sources (AAP, PALS, Harriet Lane). 
-            Results are for clinical decision support only and must be verified against institutional protocols.
-          </p>
-        </div>
+      {/* 3. Category Tabs */}
+      <div className="space-y-6">
+        <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
+          <div className="w-full overflow-x-auto scrollbar-hide pb-2">
+            <TabsList className="bg-muted/30 p-1.5 flex w-max min-w-full flex-nowrap justify-start gap-1 h-auto rounded-[20px] border border-muted-foreground/5">
+              <TabsTrigger value="all" className="rounded-[14px] font-black text-[10px] uppercase tracking-widest px-5 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md">
+                All Systems
+              </TabsTrigger>
+              {categoryOrder.map(cat => {
+                const meta = CATEGORY_METADATA[cat];
+                const Icon = meta.icon;
+                return (
+                  <TabsTrigger 
+                    key={cat} 
+                    value={cat} 
+                    className="rounded-[14px] font-black text-[10px] uppercase tracking-widest px-5 py-2.5 gap-2 data-[state=active]:bg-background data-[state=active]:shadow-md group"
+                  >
+                    <Icon className={cn("h-3.5 w-3.5 opacity-50 group-data-[state=active]:opacity-100", 
+                      meta.color === 'red' ? "text-red-500" :
+                      meta.color === 'blue' ? "text-blue-500" :
+                      meta.color === 'sky' ? "text-sky-500" :
+                      meta.color === 'orange' ? "text-orange-500" :
+                      meta.color === 'emerald' ? "text-emerald-500" :
+                      meta.color === 'amber' ? "text-amber-500" :
+                      meta.color === 'indigo' ? "text-indigo-500" : "text-slate-500"
+                    )} />
+                    {cat}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
+
+          {/* 4. Grouped Result View */}
+          <div className="pt-6">
+            {filteredCalculators.length > 0 ? (
+              <div className="space-y-12">
+                {categoryOrder.map(cat => {
+                  const tools = groupedCalculators[cat];
+                  if (!tools || tools.length === 0) return null;
+                  const meta = CATEGORY_METADATA[cat];
+                  const Icon = meta.icon;
+
+                  return (
+                    <div key={cat} className="space-y-6 animate-in fade-in duration-500">
+                      {activeTab === "all" && (
+                        <div className="flex items-center gap-3 px-2">
+                          <div className={cn("p-2 rounded-xl text-white shadow-lg", 
+                            meta.color === 'red' ? "bg-red-600 shadow-red-200" :
+                            meta.color === 'blue' ? "bg-blue-600 shadow-blue-200" :
+                            meta.color === 'sky' ? "bg-sky-500 shadow-sky-200" :
+                            meta.color === 'orange' ? "bg-orange-500 shadow-orange-200" :
+                            meta.color === 'emerald' ? "bg-emerald-600 shadow-emerald-200" :
+                            meta.color === 'amber' ? "bg-amber-500 shadow-amber-200" :
+                            meta.color === 'indigo' ? "bg-indigo-600 shadow-indigo-200" : "bg-slate-600 shadow-slate-200"
+                          )}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h2 className="text-xl font-black tracking-tight">{meta.label}</h2>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{tools.length} Tools available</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {tools.map((calc) => (
+                          <CalculatorCard 
+                            key={calc.id} 
+                            tool={calc} 
+                            isPinned={calc.href ? isPinned(calc.href) : false}
+                            onTogglePin={calc.href ? () => togglePin(calc.href!) : undefined}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-24 text-center border-4 border-dashed rounded-[48px] bg-muted/20">
+                <Calculator className="h-16 w-16 mx-auto mb-4 text-muted-foreground/10" />
+                <h3 className="text-2xl font-black text-muted-foreground/40 tracking-tight">No clinical tools found</h3>
+                <p className="text-sm text-muted-foreground/30 mt-1">Try searching for a different system or tag</p>
+              </div>
+            )}
+          </div>
+        </Tabs>
       </div>
     </div>
   );
 }
 
-function CalculatorCard({ tool }: { tool: CalcTool }) {
+function CalculatorCard({ tool, isPinned, onTogglePin }: { tool: CalcTool, isPinned: boolean, onTogglePin?: () => void }) {
   const Icon = tool.icon;
+  const meta = CATEGORY_METADATA[tool.category];
   
-  const content = (
-    <Card className="h-full active:scale-[0.98] transition-all border-2 hover:border-primary/50 group cursor-pointer overflow-hidden shadow-sm hover:shadow-md">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start mb-2">
+  return (
+    <Card className="group relative h-full transition-all border-2 rounded-[32px] hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 bg-card overflow-hidden">
+      <CardHeader className="pb-4 p-6">
+        <div className="flex justify-between items-start mb-4">
           <div className={cn(
-            "p-2.5 rounded-xl transition-colors",
-            "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+            "p-3 rounded-2xl transition-all duration-300",
+            "bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/30"
           )}>
             <Icon className="h-5 w-5" />
           </div>
-          <Badge variant="secondary" className="text-[10px] uppercase font-black tracking-wider">
-            {tool.category}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-[0.15em] bg-muted/50 border-none px-2.5">
+              {tool.category}
+            </Badge>
+            {onTogglePin && (
+              <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(); }}
+                className={cn(
+                  "p-2.5 rounded-xl transition-all",
+                  isPinned ? "bg-amber-50 text-amber-500 shadow-sm" : "bg-muted/30 text-muted-foreground/30 hover:bg-muted"
+                )}
+              >
+                {isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+              </button>
+            )}
+          </div>
         </div>
-        <CardTitle className="text-lg group-hover:text-primary transition-colors">{tool.name}</CardTitle>
-        <CardDescription className="line-clamp-2 leading-relaxed text-xs">
+        <CardTitle className="text-xl font-black tracking-tight group-hover:text-primary transition-colors leading-tight mb-2">{tool.name}</CardTitle>
+        <CardDescription className="line-clamp-2 leading-relaxed text-[13px] font-medium text-muted-foreground/80">
           {tool.description}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center text-sm font-bold text-primary">
-          <span className="group-hover:translate-x-1 transition-transform flex items-center">
-            Launch Tool <ArrowRight className="ml-2 h-4 w-4" />
-          </span>
-        </div>
+      <CardContent className="pt-0 px-6 pb-6">
+        <Link href={tool.href || "#"} className="flex items-center justify-between w-full p-3 rounded-2xl bg-muted/30 hover:bg-primary/[0.03] transition-all group/link border border-transparent hover:border-primary/10">
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Launch Tool</span>
+          <ArrowRight className="h-4 w-4 text-primary group-hover/link:translate-x-1 transition-transform" />
+        </Link>
       </CardContent>
     </Card>
-  );
-
-  if (tool.href) {
-    return <Link href={tool.href}>{content}</Link>;
-  }
-
-  return (
-    <div onClick={() => alert(`${tool.name} calculator coming soon!`)}>
-      {content}
-    </div>
   );
 }

@@ -29,15 +29,18 @@ export default defineConfig({
         enabled: true,
         type: "module",
       },
-      includeAssets: ["favicon.svg", "opengraph.jpg", "robots.txt"],
+      includeAssets: ["favicon.svg", "opengraph.jpg"],
       manifest: {
-        name: "PMC PediER Aid",
-        short_name: "PediER",
-        description: "Pediatric Clinical Decision Support System",
-        theme_color: "#FF3C00",
+        id: "/",
+        name: "PMC Pedi Aid: Palestine Medical Complex",
+        short_name: "PMC Pedi Aid",
+        description: "Pediatric Clinical Decision Support System - ER & Ward",
+        theme_color: "#2563eb",
         background_color: "#ffffff",
         display: "standalone",
         orientation: "portrait",
+        start_url: "/",
+        scope: "/",
         icons: [
           {
             src: "favicon.svg",

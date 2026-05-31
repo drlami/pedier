@@ -39,7 +39,7 @@ const calculateYOS = (data: FormData): { score: number; details: string[] } => {
 export const toxicAssessmentProtocol: DiseaseProtocol = {
   id: 'toxic-assessment',
   name: 'Toxic vs Non-toxic Child Assessment',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Utilizes the Yale Observation Scale (YOS) to objectively quantify a febrile child\'s appearance and risk for serious bacterial infection (SBI).',
   image: {
     url: "https://picsum.photos/seed/toxic-assessment/600/400",

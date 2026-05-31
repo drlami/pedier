@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const mastoiditisProtocol: DiseaseProtocol = {
   id: 'mastoiditis',
   name: 'Mastoiditis Suspicion',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Evaluation and management of acute mastoiditis, a serious complication of otitis media.',
   image: {
     url: "https://picsum.photos/seed/mastoiditis/600/400",

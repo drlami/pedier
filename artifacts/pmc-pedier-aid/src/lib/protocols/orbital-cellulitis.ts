@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const orbitalCellulitisProtocol: DiseaseProtocol = {
   id: 'orbital-cellulitis',
   name: 'Orbital Cellulitis',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Emergency management of postseptal (orbital) cellulitis, a vision-threatening infection.',
   image: {
     url: "https://picsum.photos/seed/orbital-cellulitis/600/400",

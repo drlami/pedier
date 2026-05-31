@@ -6,11 +6,15 @@ import { Suspense } from "react";
 import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { PWAUpdater } from "@/components/pwa-updater";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtocolsProvider } from "@/contexts/protocols-context";
 import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
 import { cn } from "@/lib/utils";
 import HomePage from "@/pages/home";
+import ERDashboard from "@/pages/er-dashboard";
+import LandingPage from "@/pages/landing";
+import WardDashboard from "@/pages/ward-dashboard";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
@@ -49,11 +53,15 @@ import EttDepthPage from "@/pages/ett-depth";
 import UacUvcLengthPage from "@/pages/uac-uvc-length";
 import WeightLossPage from "@/pages/weight-loss";
 import BallardScorePage from "@/pages/ballard-score";
+import SuspensionCalculatorPage from "@/pages/suspension-calculator";
 import GestationalAgePage from "@/pages/gestational-age";
 import EosRiskPage from "@/pages/eos-risk";
 import NrpTimerPage from "@/pages/nrp-timer";
 import TpnCalculatorPage from "@/pages/tpn-calculator";
 import FentonChartsPage from "@/pages/fenton-charts";
+import NutritionalRecoveryPage from "@/pages/nutritional-recovery";
+import DkaTransitionPage from "@/pages/dka-insulin-transition";
+import TaperingCalculatorPage from "@/pages/tapering-calculator";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -80,7 +88,7 @@ function Footer() {
 function Layout({ children }: { children: React.ReactNode }) {
   const { desktopOpen } = useSidebar();
   return (
-    <div className="font-body antialiased flex flex-col min-h-screen bg-background">
+    <div className="font-body antialiased flex flex-col min-h-screen bg-background text-foreground">
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <aside
@@ -140,26 +148,14 @@ function ProtectedRoute({ component: Component, adminOnly = false }: { component
 
 function LoginRoute() {
   const { user, isLoading } = useAuth();
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (isLoading) return null;
   if (user) return <Redirect to="/" />;
   return <LoginPage />;
 }
 
 function WelcomeRoute() {
   const { user, isLoading } = useAuth();
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (isLoading) return null;
   if (!user) return <Redirect to="/login" />;
   return <WelcomePage />;
 }
@@ -169,149 +165,66 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginRoute} />
       <Route path="/welcome" component={WelcomeRoute} />
-      <Route path="/">
-        {() => <ProtectedRoute component={HomePage} />}
-      </Route>
-      <Route path="/cardiac-arrest">
-        {() => <ProtectedRoute component={CardiacArrestPage} />}
-      </Route>
-      <Route path="/differential-diagnosis">
-        {() => <ProtectedRoute component={DiffDiagPage} />}
-      </Route>
-      <Route path="/drug-safety">
-        {() => <ProtectedRoute component={DrugSafetyPage} />}
-      </Route>
-      <Route path="/drug-doses">
-        {() => <ProtectedRoute component={DrugDosesPage} />}
-      </Route>
-      <Route path="/calculators/resuscitation-doses">
-        {() => <ProtectedRoute component={ResuscitationDosesPage} />}
-      </Route>
-      <Route path="/calculators">
-        {() => <ProtectedRoute component={CalculatorsPage} />}
-      </Route>
-      <Route path="/calculators/advanced-fluids">
-        {() => <ProtectedRoute component={AdvancedFluidsPage} />}
-      </Route>
-      <Route path="/calculators/gfr">
-        {() => <ProtectedRoute component={GfrCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/parkland">
-        {() => <ProtectedRoute component={ParklandCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/gcs">
-        {() => <ProtectedRoute component={GcsCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/sodium-correction">
-        {() => <ProtectedRoute component={SodiumCorrectionPage} />}
-      </Route>
-      <Route path="/calculators/kocher-criteria">
-        {() => <ProtectedRoute component={KocherCriteriaPage} />}
-      </Route>
-      <Route path="/calculators/anion-gap">
-        {() => <ProtectedRoute component={AnionGapPage} />}
-      </Route>
-      <Route path="/calculators/abg-interpreter">
-        {() => <ProtectedRoute component={AbgInterpreterPage} />}
-      </Route>
-      <Route path="/calculators/apgar">
-        {() => <ProtectedRoute component={ApgarScorePage} />}
-      </Route>
-      <Route path="/calculators/child-pugh">
-        {() => <ProtectedRoute component={ChildPughCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/bsa">
-        {() => <ProtectedRoute component={BsaCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/qtc">
-        {() => <ProtectedRoute component={QtcCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/calcium-correction">
-        {() => <ProtectedRoute component={CalciumCorrectionPage} />}
-      </Route>
-      <Route path="/calculators/growth-charts">
-        {() => <ProtectedRoute component={GrowthChartsPage} />}
-      </Route>
-      <Route path="/calculators/bp-percentiles">
-        {() => <ProtectedRoute component={BpPercentilesPage} />}
-      </Route>
-      <Route path="/calculators/hyperbilirubinemia">
-        {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
-      </Route>
-      <Route path="/calculators/oxygenation-index">
-        {() => <ProtectedRoute component={OxygenationIndexPage} />}
-      </Route>
-      <Route path="/calculators/map-calculator">
-        {() => <ProtectedRoute component={MapCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/ett-depth">
-        {() => <ProtectedRoute component={EttDepthPage} />}
-      </Route>
-      <Route path="/calculators/uac-uvc-length">
-        {() => <ProtectedRoute component={UacUvcLengthPage} />}
-      </Route>
-      <Route path="/calculators/weight-loss">
-        {() => <ProtectedRoute component={WeightLossPage} />}
-      </Route>
-      <Route path="/calculators/ballard-score">
-        {() => <ProtectedRoute component={BallardScorePage} />}
-      </Route>
-      <Route path="/calculators/gestational-age">
-        {() => <ProtectedRoute component={GestationalAgePage} />}
-      </Route>
-      <Route path="/calculators/eos-risk">
-        {() => <ProtectedRoute component={EosRiskPage} />}
-      </Route>
-      <Route path="/calculators/nrp-timer">
-        {() => <ProtectedRoute component={NrpTimerPage} />}
-      </Route>
-      <Route path="/calculators/tpn-calculator">
-        {() => <ProtectedRoute component={TpnCalculatorPage} />}
-      </Route>
-      <Route path="/calculators/fenton-charts">
-        {() => <ProtectedRoute component={FentonChartsPage} />}
-      </Route>
-      <Route path="/neonatology/hyperbilirubinemia">
-        {() => <ProtectedRoute component={HyperbilirubinemiaCal} />}
-      </Route>
-      <Route path="/diseases/metabolic-crisis">
-        {() => <ProtectedRoute component={MetabolicCrisisPage} />}
-      </Route>
-      <Route path="/diseases/:diseaseId/summary">
-        {() => <ProtectedRoute component={SummaryPage} />}
-      </Route>
-      <Route path="/diseases/:diseaseId">
-        {() => <ProtectedRoute component={DiseasePage} />}
-      </Route>
-      <Route path="/admin">
-        {() => <ProtectedRoute component={AdminPage} adminOnly />}
-      </Route>
-      <Route path="/admin/protocols">
-        {() => <ProtectedRoute component={ProtocolListPage} adminOnly />}
-      </Route>
-      <Route path="/admin/protocols/:protocolId">
-        {() => <ProtectedRoute component={ProtocolEditorPage} adminOnly />}
-      </Route>
-      <Route path="/admin/users">
-        {() => <ProtectedRoute component={UsersPage} adminOnly />}
-      </Route>
-      <Route path="/admin/activity-logs">
-        {() => <ProtectedRoute component={ActivityLogsPage} adminOnly />}
-      </Route>
+      
+      {/* Portal Routes */}
+      <Route path="/er" component={() => <ProtectedRoute component={ERDashboard} />} />
+      <Route path="/ward" component={() => <ProtectedRoute component={WardDashboard} />} />
+
+      {/* Specific Routes first */}
+      <Route path="/cardiac-arrest" component={() => <ProtectedRoute component={CardiacArrestPage} />} />
+      <Route path="/differential-diagnosis" component={() => <ProtectedRoute component={DiffDiagPage} />} />
+      <Route path="/drug-safety" component={() => <ProtectedRoute component={DrugSafetyPage} />} />
+      <Route path="/drug-doses" component={() => <ProtectedRoute component={DrugDosesPage} />} />
+      
+      <Route path="/calculators/resuscitation-doses" component={() => <ProtectedRoute component={ResuscitationDosesPage} />} />
+      <Route path="/calculators/advanced-fluids" component={() => <ProtectedRoute component={AdvancedFluidsPage} />} />
+      <Route path="/calculators/gfr" component={() => <ProtectedRoute component={GfrCalculatorPage} />} />
+      <Route path="/calculators/parkland" component={() => <ProtectedRoute component={ParklandCalculatorPage} />} />
+      <Route path="/calculators/gcs" component={() => <ProtectedRoute component={GcsCalculatorPage} />} />
+      <Route path="/calculators/sodium-correction" component={() => <ProtectedRoute component={SodiumCorrectionPage} />} />
+      <Route path="/calculators/kocher-criteria" component={() => <ProtectedRoute component={KocherCriteriaPage} />} />
+      <Route path="/calculators/anion-gap" component={() => <ProtectedRoute component={AnionGapPage} />} />
+      <Route path="/calculators/abg-interpreter" component={() => <ProtectedRoute component={AbgInterpreterPage} />} />
+      <Route path="/calculators/apgar" component={() => <ProtectedRoute component={ApgarScorePage} />} />
+      <Route path="/calculators/child-pugh" component={() => <ProtectedRoute component={ChildPughCalculatorPage} />} />
+      <Route path="/calculators/bsa" component={() => <ProtectedRoute component={BsaCalculatorPage} />} />
+      <Route path="/calculators/qtc" component={() => <ProtectedRoute component={QtcCalculatorPage} />} />
+      <Route path="/calculators/calcium-correction" component={() => <ProtectedRoute component={CalciumCorrectionPage} />} />
+      <Route path="/calculators/growth-charts" component={() => <ProtectedRoute component={GrowthChartsPage} />} />
+      <Route path="/calculators/bp-percentiles" component={() => <ProtectedRoute component={BpPercentilesPage} />} />
+      <Route path="/calculators/hyperbilirubinemia" component={() => <ProtectedRoute component={HyperbilirubinemiaCal} />} />
+      <Route path="/calculators/oxygenation-index" component={() => <ProtectedRoute component={OxygenationIndexPage} />} />
+      <Route path="/calculators/map-calculator" component={() => <ProtectedRoute component={MapCalculatorPage} />} />
+      <Route path="/calculators/ett-depth" component={() => <ProtectedRoute component={EttDepthPage} />} />
+      <Route path="/calculators/uac-uvc-length" component={() => <ProtectedRoute component={UacUvcLengthPage} />} />
+      <Route path="/calculators/weight-loss" component={() => <ProtectedRoute component={WeightLossPage} />} />
+      <Route path="/calculators/ballard-score" component={() => <ProtectedRoute component={BallardScorePage} />} />
+      <Route path="/calculators/gestational-age" component={() => <ProtectedRoute component={GestationalAgePage} />} />
+      <Route path="/calculators/suspension-dosing" component={() => <ProtectedRoute component={SuspensionCalculatorPage} />} />
+      <Route path="/calculators/eos-risk" component={() => <ProtectedRoute component={EosRiskPage} />} />
+      <Route path="/calculators/nrp-timer" component={() => <ProtectedRoute component={NrpTimerPage} />} />
+      <Route path="/calculators/tpn-calculator" component={() => <ProtectedRoute component={TpnCalculatorPage} />} />
+      <Route path="/calculators/fenton-charts" component={() => <ProtectedRoute component={FentonChartsPage} />} />
+      <Route path="/calculators/dka-transition" component={() => <ProtectedRoute component={DkaTransitionPage} />} />
+      <Route path="/calculators/tapering-calculator" component={() => <ProtectedRoute component={TaperingCalculatorPage} />} />
+      <Route path="/calculators/nutritional-recovery" component={() => <ProtectedRoute component={NutritionalRecoveryPage} />} />
+      <Route path="/calculators" component={() => <ProtectedRoute component={CalculatorsPage} />} />
+
+      <Route path="/neonatology/hyperbilirubinemia" component={() => <ProtectedRoute component={HyperbilirubinemiaCal} />} />
+      
+      <Route path="/diseases/metabolic-crisis" component={() => <ProtectedRoute component={MetabolicCrisisPage} />} />
+      <Route path="/diseases/:diseaseId/summary" component={() => <ProtectedRoute component={SummaryPage} />} />
+      <Route path="/diseases/:diseaseId" component={() => <ProtectedRoute component={DiseasePage} />} />
+      
+      <Route path="/admin/protocols/:protocolId" component={() => <ProtectedRoute component={ProtocolEditorPage} adminOnly />} />
+      <Route path="/admin/protocols" component={() => <ProtectedRoute component={ProtocolListPage} adminOnly />} />
+      <Route path="/admin/users" component={() => <ProtectedRoute component={UsersPage} adminOnly />} />
+      <Route path="/admin/activity-logs" component={() => <ProtectedRoute component={ActivityLogsPage} adminOnly />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} adminOnly />} />
+      
+      <Route path="/" component={() => <ProtectedRoute component={LandingPage} />} />
       <Route component={NotFound} />
     </Switch>
-  );
-}
-
-function AppInner() {
-  return (
-    <SidebarProvider>
-      <ProtocolsProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "") }>
-          <Router />
-        </WouterRouter>
-      </ProtocolsProvider>
-    </SidebarProvider>
   );
 }
 
@@ -320,7 +233,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <AppInner />
+          <PWAUpdater />
+          <SidebarProvider>
+            <ProtocolsProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+            </ProtocolsProvider>
+          </SidebarProvider>
         </AuthProvider>
         <Toaster />
       </TooltipProvider>

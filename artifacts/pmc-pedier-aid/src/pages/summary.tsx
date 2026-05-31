@@ -12,6 +12,8 @@ import {
   Printer,
   FileQuestion,
   Loader2,
+  Activity,
+  CheckCircle2,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { FormData } from "@/lib/protocols/types";
@@ -64,11 +66,15 @@ export default function SummaryPage() {
   });
 
   const severity = protocol.calculateSeverity(formData);
+  const investigations = protocol.getInvestigations?.(severity, formData);
   const management = protocol.getManagement(severity, formData);
   const disposition = protocol.getDisposition(severity, formData);
+  const dischargeCriteria = protocol.getDischargeCriteria?.(severity, formData);
+  const followUp = protocol.getFollowUp?.(severity, formData);
   const redFlags = protocol.getRedFlags(severity, formData);
   const drugDoses = protocol.getDrugDoses(severity, formData);
   const references = protocol.getReferences();
+  const lastUpdated = protocol.lastUpdated;
 
   const severityLevel = severity.level || "unknown";
   const bannerStyle = SEVERITY_BANNER[severityLevel] ?? SEVERITY_BANNER.unknown;
@@ -107,6 +113,13 @@ export default function SummaryPage() {
       </div>
 
       <div className="space-y-6">
+        {/* 0. Meta Info */}
+        {lastUpdated && (
+          <p className="text-[10px] font-bold text-muted-foreground/40 italic text-right -mb-4">
+            Protocol Last Reviewed: {lastUpdated}
+          </p>
+        )}
+
         {/* Patient answers */}
         <ResultCard title="Patient Assessment" icon={FileQuestion}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -161,6 +174,29 @@ export default function SummaryPage() {
           </AlertDescription>
         </Alert>
 
+        {/* Investigations */}
+        {investigations && investigations.length > 0 && (
+          <ResultCard title="Recommended Investigations" icon={Activity}>
+            <div className="space-y-4">
+              {investigations.map((inv, idx) => (
+                <div key={idx} className="space-y-2">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                    {inv.title}
+                  </h5>
+                  <ul className="space-y-1">
+                    {inv.list.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 ml-2">
+                        <span className="mt-1.5 h-1 w-1 rounded-full bg-muted-foreground shrink-0" />
+                        <span className="text-sm leading-snug">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </ResultCard>
+        )}
+
         {/* Management — numbered steps */}
         {management.map((m) => (
           <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
@@ -178,7 +214,7 @@ export default function SummaryPage() {
         ))}
 
         {/* Final Decision (was Disposition) */}
-        <ResultCard title="Final Decision" icon={Hospital} variant="decision">
+        <ResultCard title="Triage / Disposition" icon={Hospital} variant="decision">
           <ul className="space-y-2">
             {disposition.map((d, i) => (
               <li key={i} className="flex items-start gap-2">
@@ -188,6 +224,40 @@ export default function SummaryPage() {
             ))}
           </ul>
         </ResultCard>
+
+        {/* Discharge & Follow-up */}
+        {(dischargeCriteria || followUp) && (
+          <ResultCard title="Safe Discharge & Follow-Up" icon={CheckCircle2}>
+            <div className="space-y-5">
+              {dischargeCriteria && dischargeCriteria.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-700">Discharge Criteria</h5>
+                  <ul className="space-y-1">
+                    {dischargeCriteria.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        <span className="text-sm leading-snug">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {followUp && followUp.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-blue-700">Follow-Up Plan</h5>
+                  <ul className="space-y-1">
+                    {followUp.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                        <span className="text-sm leading-snug">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </ResultCard>
+        )}
 
         {/* Drug doses — compact scannable table */}
         {drugDoses.length > 0 && (

@@ -15,12 +15,15 @@ import {
   AlertTriangle,
   Loader2,
   Info,
+  WifiOff
 } from "lucide-react";
 import { ResultCard } from "@/components/result-card";
+import { useOffline } from "@/hooks/use-offline";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "").replace(/\/[^/]*$/, "") + "/api";
 
 export default function DiffDiagPage() {
+  const isOffline = useOffline();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<{ message: string | null; error: any; data: any }>({
     message: null,
@@ -96,19 +99,30 @@ export default function DiffDiagPage() {
                 <label className="text-sm font-semibold text-foreground">Medical History <span className="font-normal text-muted-foreground">(Optional)</span></label>
                 <Input name="history" placeholder="Prior surgeries, allergies, etc." />
               </div>
-              <Button type="submit" disabled={pending} className="w-full">
-                {pending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing Symptoms...
-                  </>
-                ) : (
-                  <>
-                    <Brain className="mr-2 h-4 w-4" />
-                    Generate Differential
-                  </>
-                )}
-              </Button>
+
+              {isOffline ? (
+                <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+                  <WifiOff className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-xs font-bold">Feature Offline</AlertTitle>
+                  <AlertDescription className="text-[11px]">
+                    The AI Differential Diagnosis requires an active internet connection to process medical logic.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Button type="submit" disabled={pending} className="w-full">
+                  {pending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing Symptoms...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-4 w-4" />
+                      Generate Differential
+                    </>
+                  )}
+                </Button>
+              )}
 
               <Alert className="bg-yellow-50 border-yellow-200 text-yellow-800 py-2">
                 <Info className="h-4 w-4" />

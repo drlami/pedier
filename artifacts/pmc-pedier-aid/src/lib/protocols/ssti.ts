@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const sstiProtocol: DiseaseProtocol = {
   id: 'ssti',
   name: 'Skin & Soft Tissue Infection (SSTI)',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Management of purulent and non-purulent skin and soft tissue infections, such as cellulitis and abscess.',
   image: {
     url: "https://picsum.photos/seed/ssti/600/400",

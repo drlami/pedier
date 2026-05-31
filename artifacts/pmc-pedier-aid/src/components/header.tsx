@@ -25,6 +25,8 @@ import { SearchModal } from "@/components/search-modal";
 import { Suspense } from "react";
 import { useAuth, type UserRole } from "@/contexts/auth-context";
 import { useSidebar } from "@/contexts/sidebar-context";
+import { useOffline } from "@/hooks/use-offline";
+import { WifiOff } from "lucide-react";
 
 const ROLE_ICON: Record<UserRole, typeof Shield> = {
   admin: Shield,
@@ -39,6 +41,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
 };
 
 export function Header() {
+  const isOffline = useOffline();
   const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const { desktopOpen, toggleDesktop, mobileOpen, openMobile, closeMobile } = useSidebar();
@@ -161,6 +164,13 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {isOffline && (
+        <div className="no-print bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] py-1.5 flex items-center justify-center gap-2 animate-in slide-in-from-top duration-300">
+          <WifiOff className="h-3 w-3" />
+          <span>Offline Mode: Guidelines are locally cached</span>
+        </div>
+      )}
 
       {/* Mobile Sheet — controlled by sidebar context */}
       <Sheet open={mobileOpen} onOpenChange={(open) => open ? openMobile() : closeMobile()}>

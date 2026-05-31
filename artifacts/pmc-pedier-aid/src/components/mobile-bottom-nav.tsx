@@ -1,10 +1,24 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
-import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight, Baby, Calculator } from "lucide-react";
+import { Stethoscope, Search, Pill, Brain, HeartPulse, ChevronRight, Baby, Calculator, Building2, LayoutGrid } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { SearchModal } from "@/components/search-modal";
 import { useAllProtocols, useProtocolById } from "@/contexts/protocols-context";
+
+const WARD_SYSTEMS = [
+  "Respiratory System",
+  "Cardiovascular System",
+  "Gastrointestinal & Hepatology",
+  "Neurological System",
+  "Renal & Urinary System",
+  "Hematology & Oncology",
+  "Endocrine & Metabolic Disorders",
+  "Infectious Diseases",
+  "Immunology & Rheumatology",
+  "Dermatology",
+  "Nutrition & Growth"
+] as const;
 
 export function MobileBottomNav() {
   const [pathname, setLocation] = useLocation();
@@ -14,18 +28,30 @@ export function MobileBottomNav() {
   const [systemSheetOpen, setSystemSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const currentUnit = useMemo(() => {
+    if (pathname.startsWith("/ward")) return "ward";
+    return "er";
+  }, [pathname]);
+
+  const filteredProtocols = useMemo(() => {
+    return allProtocols.filter(p => (p.unit || "er") === currentUnit);
+  }, [allProtocols, currentUnit]);
+
   const systems = useMemo(() => {
-    const set = new Set(allProtocols.map((p) => p.system));
+    const set = new Set([
+      ...filteredProtocols.map((p) => p.system),
+      ...(currentUnit === "ward" ? WARD_SYSTEMS : [])
+    ]);
     return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [allProtocols]);
+  }, [filteredProtocols, currentUnit]);
 
   const countBySystem = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const p of allProtocols) {
+    for (const p of filteredProtocols) {
       counts[p.system] = (counts[p.system] ?? 0) + 1;
     }
     return counts;
-  }, [allProtocols]);
+  }, [filteredProtocols]);
 
   const diseaseIdFromPath = pathname.startsWith("/diseases/")
     ? pathname.replace(/^\/diseases\//, "").split("/")[0]
@@ -34,17 +60,19 @@ export function MobileBottomNav() {
 
   const searchParams = new URLSearchParams(search);
   const activeSystem =
-    pathname === "/"
+    pathname === "/er" || pathname === "/ward" || pathname === "/"
       ? (searchParams.get("system") ?? systems[0] ?? "")
       : (diseaseProtocol?.system ?? "");
 
-  const isProtocols  = (pathname === "/" && !search) || pathname.startsWith("/diseases/");
-  const isDrugDoses  = pathname === "/drug-doses";
+  const isHome        = pathname === "/";
+  const isER          = pathname === "/er" || (pathname.startsWith("/diseases/") && (diseaseProtocol?.unit || "er") === "er");
+  const isWard        = pathname === "/ward" || (pathname.startsWith("/diseases/") && diseaseProtocol?.unit === "ward");
   const isCalculators = pathname.startsWith("/calculators");
   const isArrest      = pathname === "/cardiac-arrest";
 
   const handleSystemSelect = (system: string) => {
-    setLocation(`/?system=${encodeURIComponent(system)}`);
+    const targetPath = currentUnit === "ward" ? "/ward" : "/er";
+    setLocation(`${targetPath}?system=${encodeURIComponent(system)}`);
     setSystemSheetOpen(false);
   };
 
@@ -77,23 +105,30 @@ export function MobileBottomNav() {
   return (
     <>
       <nav className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)", minHeight: "4rem" }}>
-        <button type="button" onClick={() => setSearchOpen(true)} className={tabCls(searchOpen)}>
-          <Search className={iconCls(searchOpen)} />
-          <span className={labelCls(searchOpen)}>Search</span>
-          {searchOpen && <Indicator />}
-        </button>
-
-        <Link href="/drug-doses" className={tabCls(isDrugDoses)}>
-          <Pill className={iconCls(isDrugDoses)} />
-          <span className={labelCls(isDrugDoses)}>Drugs</span>
-          {isDrugDoses && <Indicator />}
+        <Link href="/" className={tabCls(isHome)}>
+          <LayoutGrid className={iconCls(isHome)} />
+          <span className={labelCls(isHome)}>Home</span>
+          {isHome && <Indicator />}
         </Link>
 
-        <button type="button" onClick={() => setSystemSheetOpen(true)} className={tabCls(isProtocols)}>
-          <Stethoscope className={iconCls(isProtocols)} />
-          <span className={labelCls(isProtocols)}>Protocols</span>
-          {isProtocols && <Indicator />}
+        <button 
+          type="button" 
+          onClick={() => {
+            if (isER) setSystemSheetOpen(true);
+            else setLocation("/er");
+          }} 
+          className={tabCls(isER)}
+        >
+          <Stethoscope className={iconCls(isER)} />
+          <span className={labelCls(isER)}>ER Unit</span>
+          {isER && <Indicator />}
         </button>
+
+        <Link href="/ward" className={tabCls(isWard)}>
+          <Building2 className={iconCls(isWard)} />
+          <span className={labelCls(isWard)}>Ward</span>
+          {isWard && <Indicator />}
+        </Link>
 
         <Link href="/calculators" className={tabCls(isCalculators)}>
           <Calculator className={iconCls(isCalculators)} />

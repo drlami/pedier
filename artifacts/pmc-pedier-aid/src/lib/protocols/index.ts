@@ -81,6 +81,39 @@ import { headTraumaProtocol } from './head-trauma';
 import { smokeInhalationProtocol } from './smoke-inhalation-burns';
 import { oxygenEscalationProtocol } from './oxygen-escalation-guide';
 import { vpShuntMalfunctionProtocol } from './vp-shunt-malfunction';
+import { wardPneumoniaCapProtocol } from './ward-pneumonia-cap';
+import { wardAsthmaProtocol } from './ward-asthma';
+import { wardBronchiolitisProtocol } from './ward-bronchiolitis';
+import { wardCroupProtocol } from './ward-croup';
+import { wardPertussisProtocol } from './ward-pertussis';
+import { wardBacterialTracheitisProtocol } from './ward-bacterial-tracheitis';
+import { wardAspirationPneumoniaProtocol } from './ward-aspiration-pneumonia';
+import { wardPleuralEffusionProtocol } from './ward-pleural-effusion';
+import { wardMeningitisProtocol } from './ward-meningitis';
+import { wardFebrileNeutropeniaProtocol } from './ward-febrile-neutropenia';
+import { wardSepticArthritisOsteoProtocol } from './ward-septic-arthritis-osteo';
+import { wardTyphoidProtocol } from './ward-typhoid';
+import { wardLeishmaniasisProtocol } from './ward-leishmaniasis';
+import { wardBrucellosisProtocol } from './ward-brucellosis';
+import { wardOrbitalPeriorbitalCellulitisProtocol } from './ward-orbital-periorbital-cellulitis';
+import { wardMastoiditisProtocol } from './ward-mastoiditis';
+import { wardViralEncephalitisProtocol } from './ward-viral-encephalitis';
+import { wardInfectiveEndocarditisProtocol } from './ward-infective-endocarditis';
+import { wardFeverNoSourceProtocol } from './ward-fever-no-source';
+import { wardFuoProtocol } from './ward-fuo';
+import { wardSkinCellulitisProtocol } from './ward-skin-cellulitis';
+import { wardGastroenteritisProtocol } from './ward-gastroenteritis';
+import { wardIntussusceptionProtocol } from './ward-intussusception';
+import { wardGiBleedingProtocol } from './ward-gi-bleeding';
+import { wardChronicAbdoPainProtocol } from './ward-chronic-abdo-pain';
+import { wardChronicDiarrheaProtocol } from './ward-chronic-diarrhea';
+import { wardRecurrentVomitingProtocol } from './ward-recurrent-vomiting';
+import { wardJaundiceChildProtocol } from './ward-jaundice-child';
+import { wardHepatitisAProtocol } from './ward-hepatitis-a';
+import { wardLiverFailureProtocol } from './ward-liver-failure';
+import { wardFailureToThriveProtocol } from './ward-failure-to-thrive';
+import { wardKawasakiProtocol } from './ward-kawasaki';
+import { wardStatusEpilepticusProtocol } from './ward-status-epilepticus';
 
 export const allProtocols: DiseaseProtocol[] = [
   bronchiolitisProtocol,
@@ -162,15 +195,49 @@ export const allProtocols: DiseaseProtocol[] = [
   nephriticSyndromeProtocol,
   urinaryTractInfectionProtocol,
   metabolicCrisisProtocol,
+  wardPneumoniaCapProtocol,
+  wardAsthmaProtocol,
+  wardBronchiolitisProtocol,
+  wardCroupProtocol,
+  wardPertussisProtocol,
+  wardBacterialTracheitisProtocol,
+  wardAspirationPneumoniaProtocol,
+  wardPleuralEffusionProtocol,
+  wardMeningitisProtocol,
+  wardFebrileNeutropeniaProtocol,
+  wardSepticArthritisOsteoProtocol,
+  wardTyphoidProtocol,
+  wardLeishmaniasisProtocol,
+  wardBrucellosisProtocol,
+  wardOrbitalPeriorbitalCellulitisProtocol,
+  wardMastoiditisProtocol,
+  wardViralEncephalitisProtocol,
+  wardInfectiveEndocarditisProtocol,
+  wardFeverNoSourceProtocol,
+  wardFuoProtocol,
+  wardSkinCellulitisProtocol,
+  wardGastroenteritisProtocol,
+  wardIntussusceptionProtocol,
+  wardGiBleedingProtocol,
+  wardChronicAbdoPainProtocol,
+  wardChronicDiarrheaProtocol,
+  wardRecurrentVomitingProtocol,
+  wardJaundiceChildProtocol,
+  wardHepatitisAProtocol,
+  wardLiverFailureProtocol,
+  wardFailureToThriveProtocol,
+  wardKawasakiProtocol,
+  wardStatusEpilepticusProtocol,
 ];
 
 export const CLINICAL_SYSTEMS = [
   "Cardiology",
   "Electrolyte Disturbances",
   "Endocrinology",
-  "Fever & Infectious Diseases",
   "Gastrointestinal",
+  "Infectious Diseases",
   "Metabolic Diseases",
+  "Neonatology",
   "Nephrology",
   "Neurology",
   "Respiratory",

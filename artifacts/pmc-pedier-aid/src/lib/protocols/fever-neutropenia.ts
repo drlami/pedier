@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const feverNeutropeniaProtocol: DiseaseProtocol = {
   id: 'fever-neutropenia',
   name: 'Fever with Neutropenia',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Management of fever in an immunocompromised child with neutropenia, which is a medical emergency.',
   image: {
     url: "https://picsum.photos/seed/fever-neutropenia/600/400",

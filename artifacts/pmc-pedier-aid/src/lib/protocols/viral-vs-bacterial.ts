@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const viralVsBacterialProtocol: DiseaseProtocol = {
   id: 'viral-vs-bacterial',
   name: 'Viral vs. Bacterial Infection Clues',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'A cognitive aid summarizing clinical and laboratory findings to help differentiate between likely viral and bacterial etiologies of fever.',
   image: {
     url: "https://picsum.photos/seed/viral-vs-bacterial/600/400",

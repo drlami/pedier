@@ -1,8 +1,10 @@
 import { useParams } from "wouter";
 import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
 import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
+import { WardMMPView } from "@/app/diseases/[diseaseId]/ward-mmp-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Stethoscope, Loader2 } from "lucide-react";
+import { Stethoscope, Loader2, BookOpen, Activity } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function DiseasePage() {
   const params = useParams<{ diseaseId: string }>();
@@ -26,24 +28,42 @@ export default function DiseasePage() {
     );
   }
 
+  const isWard = protocol.unit === 'ward';
+
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-3 pb-5 border-b border-border">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 shrink-0 mt-0.5">
-          <Stethoscope className="h-4.5 w-4.5 text-primary" />
+      <div className="flex items-start gap-4 pb-5 border-b border-border">
+        <div className={cn(
+          "flex items-center justify-center w-12 h-12 rounded-2xl border shrink-0 mt-0.5 shadow-md",
+          isWard ? "bg-slate-900 border-slate-800 text-blue-400" : "bg-primary/10 border-primary/20 text-primary"
+        )}>
+          {isWard ? <Activity className="h-6 w-6" /> : <Stethoscope className="h-6 w-6" />}
         </div>
-        <div>
-          <h1 className="text-xl font-bold font-headline text-foreground leading-tight">
-            {protocol.name}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-black font-headline text-foreground leading-none tracking-tighter">
+              {protocol.name}
+            </h1>
+            {isWard && (
+              <Badge className="bg-blue-600 text-white border-none font-black text-[10px] tracking-[0.2em] px-2 py-0.5 rounded-md">
+                PATHWAY
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground font-semibold max-w-3xl leading-relaxed">
             {protocol.description}
           </p>
         </div>
-        <span className="ml-auto shrink-0 text-[10px] font-semibold text-primary/70 bg-primary/8 border border-primary/15 rounded px-2 py-1 tracking-wide uppercase hidden sm:block">
-          {protocol.system}
-        </span>
+        <div className="ml-auto flex flex-col items-end gap-1 shrink-0 hidden lg:flex">
+          <span className={cn(
+            "text-[10px] font-black px-3 py-1.5 rounded-xl tracking-widest uppercase border shadow-sm",
+            isWard ? "text-blue-400 bg-slate-900 border-slate-800" : "text-primary/70 bg-primary/8 border-primary/15"
+          )}>
+            {protocol.system}
+          </span>
+        </div>
       </div>
+
       {protocol.id === 'iron-toxicity' && (
         <Alert variant="destructive" className="bg-destructive/10">
           <AlertTitle className="font-bold text-sm">Pediatric Toxic Dose Reference</AlertTitle>
@@ -56,7 +76,16 @@ export default function DiseasePage() {
           </AlertDescription>
         </Alert>
       )}
-      <AssessmentForm diseaseId={params.diseaseId} />
+
+      {isWard ? (
+        <WardMMPView protocol={protocol} />
+      ) : (
+        <AssessmentForm diseaseId={params.diseaseId} />
+      )}
     </div>
   );
+}
+
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(" ");
 }

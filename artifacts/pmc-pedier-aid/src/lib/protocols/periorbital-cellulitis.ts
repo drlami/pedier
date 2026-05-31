@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const periorbitalCellulitisProtocol: DiseaseProtocol = {
   id: 'periorbital-cellulitis',
   name: 'Periorbital Cellulitis',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Evaluation and management of preseptal (periorbital) cellulitis, and differentiation from orbital cellulitis.',
   image: {
     url: "https://picsum.photos/seed/periorbital-cellulitis/600/400",

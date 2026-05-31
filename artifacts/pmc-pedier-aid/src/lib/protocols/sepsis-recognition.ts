@@ -3,7 +3,7 @@ import type { DiseaseProtocol } from './types';
 export const sepsisRecognitionProtocol: DiseaseProtocol = {
   id: 'sepsis-recognition',
   name: 'Sepsis Recognition',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'This protocol is under construction.',
   image: {
     url: "https://picsum.photos/seed/sepsis-recognition/600/400",

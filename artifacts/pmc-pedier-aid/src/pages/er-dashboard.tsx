@@ -1,0 +1,405 @@
+import { useState, useMemo, useEffect } from "react";
+import { Link, useSearch, useLocation } from "wouter";
+import { Input } from "@/components/ui/input";
+import type { DiseaseProtocol } from "@/lib/protocols/types";
+import {
+  Calculator,
+  ChevronRight,
+  HeartPulse,
+  Pin,
+  PinOff,
+  Search,
+  Star,
+  Activity,
+  Zap,
+  BookOpen,
+  LayoutGrid,
+  Stethoscope,
+  X,
+} from "lucide-react";
+import { useAllProtocols } from "@/contexts/protocols-context";
+import {
+  CALCULATOR_SHORTCUTS,
+  EMERGENCY_SHORTCUTS,
+  type DashboardAccent,
+} from "@/lib/clinical-dashboard";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+const PINNED_ITEMS_KEY = "pmc-pinned-items-v2";
+
+type PinnedItem = 
+  | { type: "protocol"; id: string }
+  | { type: "calculator"; href: string };
+
+const accentStyles: Record<DashboardAccent, { card: string; icon: string; bar: string; text: string }> = {
+  red: {
+    card: "border-red-200 bg-red-50/70 hover:border-red-300 hover:bg-red-50",
+    icon: "bg-red-100 text-red-700",
+    bar: "bg-red-500",
+    text: "text-red-800",
+  },
+  orange: {
+    card: "border-orange-200 bg-orange-50/70 hover:border-orange-300 hover:bg-orange-50",
+    icon: "bg-orange-100 text-orange-700",
+    bar: "bg-orange-500",
+    text: "text-orange-800",
+  },
+  blue: {
+    card: "border-blue-200 bg-blue-50/60 hover:border-blue-300 hover:bg-blue-50",
+    icon: "bg-blue-100 text-blue-700",
+    bar: "bg-blue-500",
+    text: "text-blue-800",
+  },
+  emerald: {
+    card: "border-emerald-200 bg-emerald-50/60 hover:border-emerald-300 hover:bg-emerald-50",
+    icon: "bg-emerald-100 text-emerald-700",
+    bar: "bg-emerald-500",
+    text: "text-emerald-800",
+  },
+  violet: {
+    card: "border-violet-200 bg-violet-50/60 hover:border-violet-300 hover:bg-violet-50",
+    icon: "bg-violet-100 text-violet-700",
+    bar: "bg-violet-500",
+    text: "text-violet-800",
+  },
+  slate: {
+    card: "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-50",
+    icon: "bg-slate-100 text-slate-700",
+    bar: "bg-slate-500",
+    text: "text-slate-800",
+  },
+};
+
+function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: any; description?: string }) {
+  return (
+    <div className="px-2 mb-4">
+      <div className="flex items-center gap-2 mb-0.5">
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground/60" />}
+        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60">{title}</h3>
+      </div>
+      {description && <p className="text-[11px] text-muted-foreground font-medium">{description}</p>}
+    </div>
+  );
+}
+
+export default function ERDashboard() {
+  const routeSearch = useSearch();
+  const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+  const allProtocols = useAllProtocols();
+
+  const erProtocols = useMemo(() => {
+    return allProtocols.filter(p => (p.unit || "er") === "er");
+  }, [allProtocols]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PINNED_ITEMS_KEY);
+      if (raw) {
+        setPinnedItems(JSON.parse(raw));
+      } else {
+        const old = localStorage.getItem("pmc-pinned-protocols-v1");
+        if (old) {
+          const ids = JSON.parse(old) as string[];
+          const migrated: PinnedItem[] = ids.map(id => ({ type: "protocol", id }));
+          setPinnedItems(migrated);
+          localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(migrated));
+        }
+      }
+    } catch {
+      setPinnedItems([]);
+    }
+  }, []);
+
+  const protocolById = useMemo(() => {
+    return new Map(erProtocols.map((protocol) => [protocol.id, protocol]));
+  }, [erProtocols]);
+
+  const selectedSystem = useMemo(() => {
+    const params = new URLSearchParams(routeSearch);
+    return params.get("system") || "";
+  }, [routeSearch]);
+
+  const togglePin = (item: PinnedItem) => {
+    setPinnedItems((prev) => {
+      const isPinned = prev.some(p => {
+        if (p.type !== item.type) return false;
+        if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
+        if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
+        return false;
+      });
+      const next = isPinned 
+        ? prev.filter(p => {
+            if (p.type !== item.type) return true;
+            if (p.type === "protocol" && item.type === "protocol") return p.id !== item.id;
+            if (p.type === "calculator" && item.type === "calculator") return p.href !== item.href;
+            return true;
+          })
+        : [item, ...prev];
+      localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const isPinned = (item: PinnedItem) => {
+    return pinnedItems.some(p => {
+      if (p.type !== item.type) return false;
+      if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
+      if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
+      return false;
+    });
+  };
+
+  const searchResults = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return { protocols: [], calculators: [] };
+    
+    return {
+      protocols: erProtocols.filter(p => 
+        p.name.toLowerCase().includes(q) || p.system.toLowerCase().includes(q)
+      ).sort((a,b) => a.name.localeCompare(b.name)),
+      calculators: CALCULATOR_SHORTCUTS.filter(c => 
+        c.label.toLowerCase().includes(q)
+      )
+    };
+  }, [searchTerm, erProtocols]);
+
+  const resolvedPinned = useMemo(() => {
+    return pinnedItems.map(p => {
+      if (p.type === "protocol") return protocolById.get(p.id);
+      return CALCULATOR_SHORTCUTS.find(c => c.href === p.href);
+    }).filter(Boolean) as (DiseaseProtocol | typeof CALCULATOR_SHORTCUTS[0])[];
+  }, [pinnedItems, protocolById]);
+
+  const systems = useMemo(() => {
+    const set = new Set(erProtocols.map(p => p.system));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [erProtocols]);
+
+  const systemProtocols = useMemo(() => {
+    if (!selectedSystem) return [];
+    return erProtocols
+      .filter(p => p.system === selectedSystem)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [selectedSystem, erProtocols]);
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-10 pb-32 px-2 sm:px-4">
+      {/* 1. EMERGENCY HERO */}
+      <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <Link href="/cardiac-arrest" className="md:col-span-5 group relative overflow-hidden rounded-[32px] bg-red-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <div className="relative z-10 h-full flex flex-col justify-between min-h-[140px]">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-white/20 backdrop-blur-md">
+                <HeartPulse className="h-7 w-7 text-white" />
+              </div>
+              <Badge className="bg-white/20 text-white border-none font-black tracking-widest text-[10px]">CRITICAL</Badge>
+            </div>
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter leading-none">ARREST</h1>
+              <p className="text-red-100 text-sm font-medium mt-2">Drugs • Equipment • RSI</p>
+            </div>
+          </div>
+          <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+        </Link>
+
+        <div className="md:col-span-7 flex flex-col justify-center space-y-4 p-2">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-black tracking-tight text-foreground">PediER Aid</h2>
+            <p className="text-muted-foreground text-sm font-medium">Search protocols, calculators, and clinical tools.</p>
+          </div>
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
+            <Input
+              type="search"
+              placeholder="Search e.g. DKA, Seizure, Dose..."
+              className="w-full pl-12 pr-4 h-14 text-base rounded-[20px] bg-muted/40 border-transparent focus:bg-background focus:border-primary/20 shadow-none transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      {searchTerm.trim() ? (
+        /* SEARCH RESULTS */
+        <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60">Search Results</h3>
+            <Button variant="ghost" size="sm" onClick={() => setSearchTerm("")} className="text-xs font-bold underline">Clear Search</Button>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {searchResults.calculators.map(calc => (
+              <div key={calc.href} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                <Link href={calc.href} className="flex items-center gap-4 flex-1">
+                  <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600">
+                    <Calculator className="h-5 w-5" />
+                  </div>
+                  <span className="font-bold text-sm">{calc.label}</span>
+                </Link>
+                <button onClick={() => togglePin({ type: "calculator", href: calc.href })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "calculator", href: calc.href }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                  <Pin className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            {searchResults.protocols.map(p => (
+              <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                    <BookOpen className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm block">{p.name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{p.system}</span>
+                  </div>
+                </Link>
+                <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                  <Pin className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : selectedSystem ? (
+        /* SYSTEM VIEW */
+        <section className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Stethoscope className="h-4 w-4" />
+              </div>
+              <h3 className="text-xl font-black tracking-tight">{selectedSystem}</h3>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/er")} className="text-xs font-bold text-muted-foreground">
+              <X className="mr-2 h-3.5 w-3.5" /> Close
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {systemProtocols.map(p => (
+              <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
+                  <div className="p-2 rounded-full bg-primary/5 text-primary opacity-40 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="h-4 w-4" />
+                  </div>
+                  <span className="font-bold text-sm">{p.name}</span>
+                </Link>
+                <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                  <Pin className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <>
+          {/* 2. PINNED FAVORITES */}
+          <section className="space-y-6">
+            <SectionHeader title="My Workspace" icon={Star} description="Your most used protocols and tools." />
+            {resolvedPinned.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {resolvedPinned.map((item, idx) => {
+                  const isCalc = 'href' in item;
+                  const key = isCalc ? (item as any).href : (item as any).id;
+                  return (
+                    <div key={key} className="group relative p-5 rounded-[28px] border-2 bg-card hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+                      <Link href={isCalc ? (item as any).href : `/diseases/${(item as any).id}`} className="block space-y-4">
+                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", isCalc ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600")}>
+                          {isCalc ? <Calculator className="h-6 w-6" /> : <BookOpen className="h-6 w-6" />}
+                        </div>
+                        <div>
+                          <h4 className="font-black text-base tracking-tight leading-tight">{(item as any).label || (item as any).name}</h4>
+                          <p className="text-[11px] font-medium text-muted-foreground mt-1">
+                            {isCalc ? (item as any).description : (item as any).system}
+                          </p>
+                        </div>
+                      </Link>
+                      <button 
+                        onClick={() => togglePin(isCalc ? { type: "calculator", href: (item as any).href } : { type: "protocol", id: (item as any).id })}
+                        className="absolute top-4 right-4 p-2 rounded-xl bg-muted/50 text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <PinOff className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-12 text-center bg-muted/20 border-4 border-dashed rounded-[40px] space-y-3">
+                <LayoutGrid className="h-10 w-10 text-muted-foreground/20 mx-auto" />
+                <p className="text-sm font-bold text-muted-foreground/60 px-6">Search for a protocol or tool and tap the pin icon to add it here.</p>
+              </div>
+            )}
+          </section>
+
+          {/* 3. EMERGENCY SHORTCUTS */}
+          <section className="space-y-6">
+            <SectionHeader title="Triage Shortcuts" icon={Zap} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {EMERGENCY_SHORTCUTS.filter(s => s.href !== "/cardiac-arrest").map(s => {
+                const style = accentStyles[s.accent];
+                return (
+                  <Link key={s.label} href={s.href} className={cn("p-4 rounded-2xl border transition-all hover:shadow-lg flex items-center justify-between group", style.card)}>
+                    <div className="flex items-center gap-4">
+                      <div className={cn("p-2.5 rounded-xl shadow-sm", style.icon)}>
+                        <Activity className="h-5 w-5" />
+                      </div>
+                      <span className={cn("font-black text-sm tracking-tight", style.text)}>{s.label}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 opacity-20 group-hover:opacity-100 transition-all" />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 4. SYSTEMS BROWSER - RESTORED */}
+          <section className="space-y-6">
+            <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {systems.map(system => {
+                const count = erProtocols.filter(p => p.system === system).length;
+                return (
+                  <button 
+                    key={system}
+                    onClick={() => setLocation(`/er?system=${encodeURIComponent(system)}`)}
+                    className="flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 rounded-xl bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <BookOpen className="h-4 w-4" />
+                      </div>
+                      <div className="text-left">
+                        <span className="font-bold text-sm block">{system}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{count} subjects</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-all" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 5. QUICK TOOLS */}
+          <section className="space-y-6">
+            <SectionHeader title="Clinical Calculators" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {CALCULATOR_SHORTCUTS.filter(c => c.href !== "/cardiac-arrest").slice(0, 4).map(c => (
+                <Link key={c.label} href={c.href} className="p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all text-center space-y-3 group">
+                  <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto group-hover:bg-primary/5 transition-colors">
+                    <Calculator className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-widest block">{c.label}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}

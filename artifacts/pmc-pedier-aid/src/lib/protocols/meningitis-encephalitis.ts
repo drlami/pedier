@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const meningitisEncephalitisProtocol: DiseaseProtocol = {
   id: 'meningitis-encephalitis',
   name: 'Suspected Meningitis / Encephalitis',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Initial evaluation and emergency management of a child with suspected central nervous system (CNS) infection.',
   image: {
     url: "https://picsum.photos/seed/meningitis-encephalitis/600/400",

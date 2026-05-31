@@ -255,13 +255,17 @@ interface ResultsContentProps {
   severityLevel: SeverityLevel;
   severity: Severity;
   redFlags: string[];
+  investigations?: { title: string; list: string[] }[];
   management: { title: string; recommendations: string[] }[];
   disposition: string[];
+  dischargeCriteria?: string[];
+  followUp?: string[];
   drugDoses: { drugName: string; dose: string; notes?: string }[];
   references: { url: string; title: string }[];
   showRefs: boolean;
   setShowRefs: React.Dispatch<React.SetStateAction<boolean>>;
   summaryUrl: string;
+  lastUpdated?: string;
 }
 
 function ResultsContent({
@@ -270,16 +274,33 @@ function ResultsContent({
   severityLevel,
   severity,
   redFlags,
+  investigations,
   management,
   disposition,
+  dischargeCriteria,
+  followUp,
   drugDoses,
   references,
   showRefs,
   setShowRefs,
   summaryUrl,
+  lastUpdated,
 }: ResultsContentProps) {
   return (
     <>
+      {/* 0. Last Updated / Versioning */}
+      {lastUpdated && (
+        <div className="flex items-center justify-between px-1 mb-1">
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+            <Activity className="h-3 w-3" />
+            Clinical Protocol
+          </div>
+          <span className="text-[10px] font-bold text-muted-foreground/40 italic">
+            Last Reviewed: {lastUpdated}
+          </span>
+        </div>
+      )}
+
       {/* Adrenaline alert (specific diseases) */}
       {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
         <Alert variant="destructive" className="bg-destructive/10">
@@ -383,6 +404,30 @@ function ResultsContent({
         </AlertDescription>
       </Alert>
 
+      {/* 2.5 INVESTIGATIONS */}
+      {investigations && investigations.length > 0 && (
+        <ResultCard title="Recommended Investigations" icon={Activity} variant="info">
+          <div className="space-y-4">
+            {investigations.map((inv, idx) => (
+              <div key={idx} className="space-y-2">
+                <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
+                  <div className="w-1 h-3 bg-primary/40 rounded-full" />
+                  {inv.title}
+                </h5>
+                <ul className="space-y-1.5">
+                  {inv.list.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5 ml-3">
+                      <span className="mt-1.5 h-1 w-1 rounded-full bg-primary/40 shrink-0" />
+                      <span className="text-sm leading-snug font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </ResultCard>
+      )}
+
       {/* 3. MANAGEMENT — numbered steps */}
       {management.map((m) => (
         <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
@@ -400,7 +445,7 @@ function ResultsContent({
       ))}
 
       {/* 4. FINAL DECISION */}
-      <ResultCard title="Final Decision" icon={Hospital} variant="decision">
+      <ResultCard title="Triage / Disposition" icon={Hospital} variant="decision">
         <ul className="space-y-2">
           {disposition.map((d, i) => (
             <li key={i} className="flex items-start gap-2">
@@ -410,6 +455,40 @@ function ResultsContent({
           ))}
         </ul>
       </ResultCard>
+
+      {/* 4.5 DISCHARGE & FOLLOW UP */}
+      {(dischargeCriteria || followUp) && (
+        <ResultCard title="Safe Discharge & Follow-Up" icon={CheckCircle2} variant="decision">
+          <div className="space-y-5">
+            {dischargeCriteria && dischargeCriteria.length > 0 && (
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">Discharge Criteria</h5>
+                <ul className="space-y-1.5">
+                  {dischargeCriteria.map((c, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <span className="text-sm leading-snug font-medium text-emerald-900">{c}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {followUp && followUp.length > 0 && (
+              <div className="space-y-2">
+                <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md inline-block">Follow-Up Plan</h5>
+                <ul className="space-y-1.5">
+                  {followUp.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span className="text-sm leading-snug font-medium text-blue-900">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </ResultCard>
+      )}
 
       {/* 5. DRUG DOSES */}
       {drugDoses.length > 0 && (
@@ -459,8 +538,8 @@ function ResultsContent({
       )}
 
       {/* Print summary link */}
-      <div className="no-print">
-        <Button asChild variant="outline" className="w-full">
+      <div className="no-print pt-2">
+        <Button asChild variant="outline" className="w-full bg-muted/30 border-muted-foreground/20 hover:bg-muted/50">
           <Link href={summaryUrl}>
             <FileText className="mr-2 h-4 w-4" /> View Printable Summary
           </Link>
@@ -486,15 +565,19 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
 
   const calculateResults = useCallback((data: FormData) => {
     const severity = protocol.calculateSeverity(data);
+    const investigations = protocol.getInvestigations?.(severity, data);
     const management = protocol.getManagement(severity, data);
     const disposition = protocol.getDisposition(severity, data);
+    const dischargeCriteria = protocol.getDischargeCriteria?.(severity, data);
+    const followUp = protocol.getFollowUp?.(severity, data);
     const redFlags = protocol.getRedFlags(severity, data);
     const drugDoses = protocol.getDrugDoses(severity, data);
     const references = protocol.getReferences();
-    return { severity, management, disposition, redFlags, drugDoses, references };
+    const lastUpdated = protocol.lastUpdated;
+    return { severity, investigations, management, disposition, dischargeCriteria, followUp, redFlags, drugDoses, references, lastUpdated };
   }, [protocol]);
 
-  const { severity, management, disposition, redFlags, drugDoses, references } = useMemo(
+  const { severity, investigations, management, disposition, dischargeCriteria, followUp, redFlags, drugDoses, references, lastUpdated } = useMemo(
     () => calculateResults(formData),
     [formData, calculateResults],
   );

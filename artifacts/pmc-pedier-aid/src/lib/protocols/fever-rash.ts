@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const feverRashProtocol: DiseaseProtocol = {
   id: 'fever-rash',
   name: 'Fever with Rash',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'A pediatric framework for differentiating life-threatening conditions (Meningococcemia, TSS) from stable mimics like HSP, Varicella, and viral exanthems.',
   image: {
     url: "https://picsum.photos/seed/fever-rash/600/400",

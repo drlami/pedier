@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const fever2To3MonthsProtocol: DiseaseProtocol = {
   id: 'fever-2-3-months',
   name: 'Fever Without Source (61-90 days)',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Evaluation and management of well-appearing febrile infants aged 61 to 90 days.',
   image: {
     url: "https://picsum.photos/seed/fever-2-3-months/600/400",

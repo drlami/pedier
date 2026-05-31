@@ -26,12 +26,15 @@ import {
 } from "lucide-react";
 import { ResultCard } from "@/components/result-card";
 import { cn } from "@/lib/utils";
+import { useOffline } from "@/hooks/use-offline";
+import { WifiOff } from "lucide-react";
 
 import { checkDrugSafetyOffline } from "@/lib/safety-engine";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "").replace(/\/[^/]*$/, "") + "/api";
 
 export default function DrugSafetyPage() {
+  const isOffline = useOffline();
   const [pending, setPending] = useState(false);
   const [aiPending, setAiPending] = useState(false);
   const [lastDrugList, setLastDrugList] = useState("");
@@ -217,12 +220,13 @@ export default function DrugSafetyPage() {
                     </p>
                 </div>
                 {state.source === 'offline' && (
+                  <div className="flex flex-col items-end gap-2">
                     <Button 
                         size="sm" 
                         variant="secondary" 
                         className="h-8 text-xs font-bold shadow-sm"
                         onClick={handleAiVerify}
-                        disabled={aiPending}
+                        disabled={aiPending || isOffline}
                     >
                         {aiPending ? (
                             <><Loader2 className="mr-2 h-3 w-3 animate-spin" /> Analyzing...</>
@@ -230,6 +234,12 @@ export default function DrugSafetyPage() {
                             <><Activity className="mr-2 h-3 w-3" /> Deep AI Analysis</>
                         )}
                     </Button>
+                    {isOffline && (
+                      <span className="text-[9px] font-bold text-blue-600 flex items-center gap-1 uppercase tracking-tight">
+                        <WifiOff className="h-2.5 w-2.5" /> Needs Internet
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 

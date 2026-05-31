@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const cervicalLymphadenitisProtocol: DiseaseProtocol = {
   id: 'cervical-lymphadenitis',
   name: 'Cervical Lymphadenitis',
-  system: 'Fever & Infectious Diseases',
+  system: 'Infectious Diseases',
   description: 'Evaluation and management of enlarged and inflamed neck lymph nodes in children.',
   image: {
     url: "https://picsum.photos/seed/cervical-lymphadenitis/600/400",

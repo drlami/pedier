@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby, BookOpen, Calculator,
+  FlaskConical, Baby, BookOpen, Calculator, Building2, LayoutDashboard, LayoutGrid
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -15,6 +15,8 @@ import { useAllProtocols } from "@/contexts/protocols-context";
 import { useSidebar } from "@/contexts/sidebar-context";
 
 const CLINICAL_TOOLS = [
+  { href: "/er", label: "ER Dashboard", icon: LayoutDashboard, emergency: false },
+  { href: "/ward", label: "Ward Dashboard", icon: Building2, emergency: false },
   { href: "/cardiac-arrest", label: "Cardiac Arrest", icon: HeartPulse, emergency: true },
   { href: "/neonatology/hyperbilirubinemia", label: "Hyperbilirubinemia", icon: Baby, emergency: false },
   { href: "/drug-doses", label: "Drug Dosing", icon: Pill, emergency: false },
@@ -31,6 +33,20 @@ const ADMIN_LINKS = [
 
 const EXTRA_SYSTEMS = ["Metabolic Diseases", "Neonatology"] as const;
 
+const WARD_SYSTEMS = [
+  "Respiratory System",
+  "Cardiovascular System",
+  "Gastrointestinal & Hepatology",
+  "Neurological System",
+  "Renal & Urinary System",
+  "Hematology & Oncology",
+  "Endocrine & Metabolic Disorders",
+  "Infectious Diseases",
+  "Immunology & Rheumatology",
+  "Dermatology",
+  "Nutrition & Growth"
+] as const;
+
 export function SidebarNav() {
   const [pathname, setLocation] = useLocation();
   const search = useSearch();
@@ -38,16 +54,28 @@ export function SidebarNav() {
   const allProtocols = useAllProtocols();
   const { closeAll } = useSidebar();
 
+  const currentUnit = useMemo(() => {
+    if (pathname.startsWith("/ward")) return "ward";
+    return "er"; // Default to ER for existing protocols and routes
+  }, [pathname]);
+
+  const filteredProtocols = useMemo(() => {
+    return allProtocols.filter(p => {
+      const protocolUnit = p.unit || "er";
+      return protocolUnit === currentUnit;
+    });
+  }, [allProtocols, currentUnit]);
+
   const searchParams = new URLSearchParams(search);
   const currentSystem = searchParams.get("system");
 
   const systems = useMemo(() => {
     const systemSet = new Set([
-      ...allProtocols.map((p) => p.system),
-      ...EXTRA_SYSTEMS,
+      ...filteredProtocols.map((p) => p.system),
+      ...(currentUnit === "er" ? EXTRA_SYSTEMS : WARD_SYSTEMS),
     ]);
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
-  }, [allProtocols]);
+  }, [filteredProtocols, currentUnit]);
 
   const defaultSystem = systems[0] ?? "";
   const isAdminPage = pathname.startsWith("/admin");
@@ -59,64 +87,103 @@ export function SidebarNav() {
   const activeSystem = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
 
   const handleSystemChange = (system: string) => {
-    setLocation(`/?system=${encodeURIComponent(system)}`);
+    const targetPath = currentUnit === "ward" ? "/ward" : "/er";
+    setLocation(`${targetPath}?system=${encodeURIComponent(system)}`);
     closeAll();
   };
+
+  // On the main landing page, we want a simplified sidebar
+  const isLandingPage = pathname === "/";
 
   return (
     <nav className="flex flex-col h-full select-none overflow-hidden">
       <div className="px-3 pt-4 pb-3 shrink-0">
-        <SectionLabel>Clinical Tools</SectionLabel>
+        <SectionLabel>Navigation</SectionLabel>
         <div className="space-y-0.5">
-          {CLINICAL_TOOLS.map(({ href, label, icon: Icon, emergency }) => {
-            const active = pathname === href || (isNeoPage && href.startsWith("/neonatology") && pathname.startsWith(href));
-            return (
-              <NavItem
-                key={href}
-                href={href}
-                label={label}
-                icon={Icon}
-                active={active}
-                emergency={emergency}
-                onNavigate={closeAll}
-              />
-            );
-          })}
+          <NavItem
+            href="/"
+            label="Home Portal"
+            icon={LayoutGrid}
+            active={isLandingPage}
+            emergency={false}
+            onNavigate={closeAll}
+          />
+          <NavItem
+            href="/er"
+            label="ER Dashboard"
+            icon={LayoutDashboard}
+            active={pathname === "/er"}
+            emergency={false}
+            onNavigate={closeAll}
+          />
+          <NavItem
+            href="/ward"
+            label="Ward Dashboard"
+            icon={Building2}
+            active={pathname === "/ward"}
+            emergency={false}
+            onNavigate={closeAll}
+          />
         </div>
       </div>
 
-      <Divider />
+      {!isLandingPage && (
+        <>
+          <Divider />
+          <div className="px-3 py-3 shrink-0">
+            <SectionLabel>Clinical Tools</SectionLabel>
+            <div className="space-y-0.5">
+              {CLINICAL_TOOLS.filter(t => t.href !== "/er" && t.href !== "/ward").map(({ href, label, icon: Icon, emergency }) => {
+                const active = pathname === href || (isNeoPage && href.startsWith("/neonatology") && pathname.startsWith(href));
+                return (
+                  <NavItem
+                    key={href}
+                    href={href}
+                    label={label}
+                    icon={Icon}
+                    active={active}
+                    emergency={emergency}
+                    onNavigate={closeAll}
+                  />
+                );
+              })}
+            </div>
+          </div>
 
-      <div className="px-3 py-3 shrink-0">
-        <SectionLabel>Clinical Protocols</SectionLabel>
-        {systems.length === 0 ? (
-          <p className="px-1 text-[11px] text-muted-foreground/50 italic">No protocols loaded</p>
-        ) : (
-          <>
-            <Select value={activeSystem ?? ""} onValueChange={handleSystemChange}>
-              <SelectTrigger className={cn("h-8 text-xs w-full", isProtocolPage ? "border-primary/30 text-primary font-medium" : "text-muted-foreground") }>
-                <Stethoscope className="h-3.5 w-3.5 shrink-0 mr-1.5 opacity-60" />
-                <SelectValue placeholder="Select a system…" />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {systems.map((system) => (
-                  <SelectItem key={system} value={system} className="text-xs">{system}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {isProtocolPage && activeSystem && (
-              <p className="mt-1.5 px-1 text-[10px] text-primary/70 font-medium truncate">Viewing: {activeSystem}</p>
+          <Divider />
+
+          <div className="px-3 py-3 shrink-0">
+            <SectionLabel>{currentUnit === "ward" ? "Ward Protocols" : "ER Protocols"}</SectionLabel>
+            {systems.length === 0 ? (
+              <p className="px-1 text-[11px] text-muted-foreground/50 italic">No protocols loaded</p>
+            ) : (
+              <>
+                <Select value={activeSystem ?? ""} onValueChange={handleSystemChange}>
+                  <SelectTrigger className={cn("h-8 text-xs w-full", isProtocolPage ? "border-primary/30 text-primary font-medium" : "text-muted-foreground") }>
+                    <Stethoscope className="h-3.5 w-3.5 shrink-0 mr-1.5 opacity-60" />
+                    <SelectValue placeholder="Select a system…" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {systems.map((system) => (
+                      <SelectItem key={system} value={system} className="text-xs">{system}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isProtocolPage && activeSystem && (
+                  <p className="mt-1.5 px-1 text-[10px] text-primary/70 font-medium truncate">Viewing: {activeSystem}</p>
+                )}
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
 
-      <Divider />
+          <Divider />
 
-      <div className="px-3 py-3 shrink-0">
-        <SectionLabel>Calculators</SectionLabel>
-        <NavItem href="/calculators" label="Open Calculators" icon={Calculator} active={pathname === "/calculators"} emergency={false} onNavigate={closeAll} />
-      </div>
+          <div className="px-3 py-3 shrink-0">
+            <SectionLabel>Calculators</SectionLabel>
+            <NavItem href="/calculators" label="Open Calculators" icon={Calculator} active={pathname === "/calculators"} emergency={false} onNavigate={closeAll} />
+          </div>
+        </>
+      )}
 
       <div className="flex-1" />
 
