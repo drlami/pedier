@@ -22,7 +22,8 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
   mmpData: {
     stages: [
       {
-        label: "Stage 1: Initial Stabilization (0-10 Mins)",
+        label: "Initial Stabilization (0-10 Mins)",
+        shortLabel: "Initial Stabilization (0-10 Mins)",
         color: "red",
         cards: [
           {
@@ -63,7 +64,8 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 2: 2nd-Line / Anticonvulsant Load (10-30 Mins)",
+        label: "2nd-Line / Anticonvulsant Load (10-30 Mins)",
+        shortLabel: "2nd-Line / Anticonvulsant Load (10-30 Mins)",
         color: "amber",
         cards: [
           {
@@ -97,7 +99,8 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 3: Refractory Status & PICU (30-60 Mins)",
+        label: "Refractory Status & PICU (30-60 Mins)",
+        shortLabel: "Refractory Status & PICU (30-60 Mins)",
         color: "red",
         cards: [
           {
@@ -123,7 +126,8 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 4: Post-Ictal Recovery & Maintenance",
+        label: "Post-Ictal Recovery & Maintenance",
+        shortLabel: "Post-Ictal Recovery & Maintenance",
         color: "emerald",
         cards: [
           {

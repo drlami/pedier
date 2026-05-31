@@ -22,7 +22,8 @@ export const wardKawasakiProtocol: DiseaseProtocol = {
   mmpData: {
     stages: [
       {
-        label: "Stage 1: Diagnosis & Admission (Hour 0-4)",
+        label: "Diagnosis & Admission (Hour 0-4)",
+        shortLabel: "Diagnosis & Admission (Hour 0-4)",
         color: "blue",
         cards: [
           {
@@ -48,7 +49,8 @@ export const wardKawasakiProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 2: Acute Phase Therapeutics",
+        label: "Acute Phase Therapeutics",
+        shortLabel: "Acute Phase Therapeutics",
         color: "red",
         cards: [
           {
@@ -92,7 +94,8 @@ export const wardKawasakiProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 3: Refractory & Complication Watch",
+        label: "Refractory & Complication Watch",
+        shortLabel: "Refractory & Complication Watch",
         color: "amber",
         cards: [
           {
@@ -114,7 +117,8 @@ export const wardKawasakiProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Stage 4: Long-Term Recovery & Follow-up",
+        label: "Long-Term Recovery & Follow-up",
+        shortLabel: "Long-Term Recovery & Follow-up",
         color: "emerald",
         cards: [
           {

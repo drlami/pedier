@@ -136,7 +136,7 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
       {/* 3. THE PATHWAY GRID */}
       <div className="space-y-16">
         {mmp.stages.map((stage, sIdx) => (
-          <div key={sIdx} ref={el => stageRefs.current[sIdx] = el} className="relative pl-8 md:pl-12 pt-4">
+          <div key={sIdx} ref={el => { stageRefs.current[sIdx] = el; }} className="relative pl-8 md:pl-12 pt-4">
             {/* STAGE VERTICAL LABEL */}
             <div className="absolute left-0 top-0 bottom-0 flex flex-col items-center">
               <div className={cn(
