@@ -45,12 +45,78 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
 
   if (!mmp) {
     return (
-      <div className="text-center py-20 bg-muted/10 rounded-[32px] border-2 border-dashed border-muted-foreground/20">
-        <Activity className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4 animate-pulse" />
-        <h3 className="text-xl font-black tracking-tight text-muted-foreground">Pathway Management Pending</h3>
-        <p className="text-sm text-muted-foreground/60 max-w-xs mx-auto mt-2 font-medium">
-          The professional clinical management pathway for this disease is currently under review.
-        </p>
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <section className="bg-amber-50 border-2 border-amber-100 rounded-[32px] p-6 flex items-start gap-4">
+          <div className="p-2.5 rounded-2xl bg-amber-500 text-white shrink-0">
+            <Info className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-sm font-black uppercase tracking-widest text-amber-700">Clinical Advisory</h4>
+            <p className="text-xs font-bold text-amber-800/80 leading-relaxed italic">
+              "This protocol is currently being transitioned to the Master Management Pathway. Traditional inpatient management guidelines are provided below."
+            </p>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {protocol.getManagement({ level: 'moderate', details: [] }, {}).map((m, i) => (
+            <Card key={i} className="rounded-[32px] border-2 border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 bg-muted/30 border-b border-slate-100">
+                <h4 className="font-black text-sm uppercase tracking-widest">{m.title}</h4>
+              </div>
+              <CardContent className="p-6">
+                <ul className="space-y-3">
+                  {m.recommendations.map((rec, j) => (
+                    <li key={j} className="flex items-start gap-3">
+                      <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
+                      <span className="text-sm font-bold text-slate-700 leading-snug">{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="rounded-[32px] border-2 border-emerald-100 bg-emerald-50/20 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 bg-emerald-100/50 border-b border-emerald-100">
+            <h4 className="font-black text-sm uppercase tracking-widest text-emerald-700">Admission & Discharge Criteria</h4>
+          </div>
+          <CardContent className="p-6">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {protocol.getDisposition({ level: 'moderate', details: [] }, {}).map((d, i) => (
+                <li key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-emerald-100 text-xs font-black text-emerald-900">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  {d}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Drug Doses */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-2">Standard Inpatient Dosing</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {protocol.getDrugDoses({ level: 'moderate', details: [] }, {}).map((d, i) => (
+              <div key={i} className="p-4 rounded-2xl border-2 border-slate-100 bg-card hover:border-blue-200 transition-all">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Medication</p>
+                <h5 className="font-black text-slate-900 leading-tight">{d.drugName}</h5>
+                <p className="text-blue-600 font-black text-lg tracking-tighter mt-1">{d.dose}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* References */}
+        <div className="border-t pt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {protocol.getReferences().map((ref, i) => (
+            <a key={i} href={ref.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-50 bg-slate-50/50 hover:bg-white hover:border-blue-300 transition-all group">
+              <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900">{ref.title}</span>
+              <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500" />
+            </a>
+          ))}
+        </div>
       </div>
     );
   }
