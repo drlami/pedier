@@ -577,20 +577,20 @@ function PinnedToolCard({ tool, onTogglePin }: { tool: CalcTool, onTogglePin: ()
   
   return (
     <Link href={tool.href || "#"}>
-      <div className="group relative flex flex-col items-center justify-center p-3 h-28 bg-card border-2 rounded-[24px] hover:border-amber-400/50 hover:bg-amber-50/30 transition-all text-center">
+      <div className="group relative flex flex-col items-center justify-center p-2 min-h-[100px] aspect-square bg-card border-2 rounded-[28px] hover:border-amber-400/50 hover:bg-amber-50/30 transition-all text-center">
         <button 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(); }}
-          className="absolute top-2 right-2 p-1 rounded-full bg-amber-100 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-amber-100 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
         >
           <PinOff className="h-3 w-3" />
         </button>
         <div className={cn(
           "p-2.5 rounded-2xl mb-2 transition-all duration-300",
-          "bg-muted text-muted-foreground group-hover:bg-amber-500 group-hover:text-white"
+          "bg-muted text-muted-foreground group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-amber-200"
         )}>
           <Icon className="h-5 w-5" />
         </div>
-        <span className="text-[10px] font-black uppercase tracking-tight leading-none line-clamp-2 px-1">
+        <span className="text-[10px] font-black uppercase tracking-tight leading-[1.1] line-clamp-2 px-1 max-w-[85%]">
           {tool.name.replace("(OI)", "").replace("(Bedside Schwartz)", "").replace("(QTc)", "").replace("(Burn Fluids)", "").trim()}
         </span>
       </div>

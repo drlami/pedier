@@ -296,35 +296,21 @@ export default function HomePage() {
           <section className="space-y-6">
             <SectionHeader title="My Workspace" icon={Star} description="Your most used protocols and tools." />
             {resolvedPinned.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-2">
                 {resolvedPinned.map((item, idx) => {
                   const isCalc = 'href' in item;
                   const key = isCalc ? (item as any).href : (item as any).id;
                   return (
-                    <div key={key} className="group relative p-5 rounded-[28px] border-2 bg-card hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                      <Link href={isCalc ? (item as any).href : `/diseases/${(item as any).id}`} className="block space-y-4">
-                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", isCalc ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600")}>
-                          {isCalc ? <Calculator className="h-6 w-6" /> : <BookOpen className="h-6 w-6" />}
-                        </div>
-                        <div>
-                          <h4 className="font-black text-base tracking-tight leading-tight">{(item as any).label || (item as any).name}</h4>
-                          <p className="text-[11px] font-medium text-muted-foreground mt-1">
-                            {isCalc ? (item as any).description : (item as any).system}
-                          </p>
-                        </div>
-                      </Link>
-                      <button 
-                        onClick={() => togglePin(isCalc ? { type: "calculator", href: (item as any).href } : { type: "protocol", id: (item as any).id })}
-                        className="absolute top-4 right-4 p-2 rounded-xl bg-muted/50 text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <PinOff className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <PinnedItemTile 
+                      key={key}
+                      item={item}
+                      onUnpin={() => togglePin(isCalc ? { type: "calculator", href: (item as any).href } : { type: "protocol", id: (item as any).id })}
+                    />
                   );
                 })}
               </div>
             ) : (
-              <div className="py-12 text-center bg-muted/20 border-4 border-dashed rounded-[40px] space-y-3">
+              <div className="py-12 text-center bg-muted/20 border-4 border-dashed rounded-[40px] space-y-3 mx-2">
                 <LayoutGrid className="h-10 w-10 text-muted-foreground/20 mx-auto" />
                 <p className="text-sm font-bold text-muted-foreground/60 px-6">Search for a protocol or tool and tap the pin icon to add it here.</p>
               </div>
@@ -396,6 +382,45 @@ export default function HomePage() {
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+
+function PinnedItemTile({ item, onUnpin }: { item: DiseaseProtocol | typeof CALCULATOR_SHORTCUTS[0], onUnpin: () => void }) {
+  const isCalc = 'href' in item;
+  const title = (item as any).label || (item as any).name;
+  const href = isCalc ? (item as any).href : "/diseases/";
+  const Icon = isCalc ? Calculator : BookOpen;
+  
+  return (
+    <div className="group relative">
+      <Link href={href}>
+        <div className={cn(
+          "flex flex-col items-center justify-center p-2 min-h-[100px] aspect-square rounded-[28px] border-2 bg-card transition-all text-center",
+          isCalc 
+            ? "hover:border-orange-200 hover:bg-orange-50/30" 
+            : "hover:border-blue-200 hover:bg-blue-50/30"
+        )}>
+          <div className={cn(
+            "p-2.5 rounded-2xl mb-2 transition-all duration-300",
+            isCalc 
+              ? "bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-200" 
+              : "bg-blue-50 text-blue-600 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-200"
+          )}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tight leading-[1.1] line-clamp-2 px-1 max-w-[90%]">
+            {title.replace("(OI)", "").replace("(Bedside Schwartz)", "").replace("(QTc)", "").replace("(Burn Fluids)", "").trim()}
+          </span>
+        </div>
+      </Link>
+      <button 
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUnpin(); }}
+        className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm border text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      >
+        <PinOff className="h-3 w-3" />
+      </button>
     </div>
   );
 }
