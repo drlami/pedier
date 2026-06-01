@@ -1,6 +1,16 @@
 {
   "version": 2,
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/pmc-pedier-aid run build",
-  "outputDirectory": "artifacts/pmc-pedier-aid/dist"
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "artifacts/pmc-pedier-aid/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/server.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
