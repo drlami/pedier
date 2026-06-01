@@ -417,14 +417,13 @@ export default function CalculatorsPage() {
             <div className="p-1.5 rounded-lg bg-amber-100 text-amber-600 shadow-sm">
               <Pin className="h-4 w-4 fill-current" />
             </div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-amber-700">Your Workspace</h3>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-amber-700">Quick Access</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {pinnedTools.map((calc) => (
-              <CalculatorCard 
+              <PinnedToolCard 
                 key={`pinned-${calc.id}`} 
                 tool={calc} 
-                isPinned={true}
                 onTogglePin={() => togglePin(calc.href!)}
               />
             ))}
@@ -569,5 +568,32 @@ function CalculatorCard({ tool, isPinned, onTogglePin }: { tool: CalcTool, isPin
         </Link>
       </CardContent>
     </Card>
+  );
+}
+
+
+function PinnedToolCard({ tool, onTogglePin }: { tool: CalcTool, onTogglePin: () => void }) {
+  const Icon = tool.icon;
+  
+  return (
+    <Link href={tool.href || "#"}>
+      <div className="group relative flex flex-col items-center justify-center p-3 h-28 bg-card border-2 rounded-[24px] hover:border-amber-400/50 hover:bg-amber-50/30 transition-all text-center">
+        <button 
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(); }}
+          className="absolute top-2 right-2 p-1 rounded-full bg-amber-100 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
+        >
+          <PinOff className="h-3 w-3" />
+        </button>
+        <div className={cn(
+          "p-2.5 rounded-2xl mb-2 transition-all duration-300",
+          "bg-muted text-muted-foreground group-hover:bg-amber-500 group-hover:text-white"
+        )}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-tight leading-none line-clamp-2 px-1">
+          {tool.name.replace("(OI)", "").replace("(Bedside Schwartz)", "").replace("(QTc)", "").replace("(Burn Fluids)", "").trim()}
+        </span>
+      </div>
+    </Link>
   );
 }
