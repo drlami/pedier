@@ -1,12 +1,12 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow";
-import { checkDrugSafety } from "../ai/drug-safety-flow";
-import { draftDiseaseProtocol } from "../ai/draft-protocol-flow";
-import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow";
+import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow.js";
+import { checkDrugSafety } from "../ai/drug-safety-flow.js";
+import { draftDiseaseProtocol } from "../ai/draft-protocol-flow.js";
+import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow.js";
 const router = Router();
 
 function requireLocalAdmin(req: Request, res: Response, next: NextFunction) {
-  const auth = req.headers.authorization ?? "";
+  const auth = req.headers["authorization"] ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
   if (token === "local-session:admin") return next();
   return res.status(403).json({ message: "Admin access required." });
