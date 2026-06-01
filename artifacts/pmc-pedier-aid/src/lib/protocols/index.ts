@@ -235,6 +235,13 @@ export const allProtocols: DiseaseProtocol[] = [
   wardFailureToThriveProtocol,
   wardKawasakiProtocol,
   wardStatusEpilepticusProtocol,
+  wardUtiProtocol,
+  wardNephroticFirstProtocol,
+  wardNephroticRelapseProtocol,
+  wardNephriticSyndromeProtocol,
+  wardAkiProtocol,
+  wardHusProtocol,
+  wardCkdOptimizationProtocol,
 ];
 
 export const CLINICAL_SYSTEMS = [
