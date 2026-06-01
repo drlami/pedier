@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardHepatitisAProtocol: DiseaseProtocol = {
   id: 'ward-hepatitis-a',
   name: 'Hepatitis A: Ward Management',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

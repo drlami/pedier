@@ -8,7 +8,7 @@ import type { DiseaseProtocol } from './types';
 export const wardLiverFailureProtocol: DiseaseProtocol = {
   id: 'ward-liver-failure',
   name: 'Acute Liver Failure Master Pathway',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

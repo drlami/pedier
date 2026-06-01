@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardChronicDiarrheaProtocol: DiseaseProtocol = {
   id: 'ward-chronic-diarrhea',
   name: 'Chronic Diarrhea: Ward Evaluation',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

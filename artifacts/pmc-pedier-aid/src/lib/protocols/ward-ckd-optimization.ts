@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardCkdOptimizationProtocol: DiseaseProtocol = {
   id: 'ward-ckd-optimization',
   name: 'Ward: CKD Inpatient Optimization',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient optimization of Chronic Kidney Disease complications: Anemia, Bone Disease, and Growth.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",

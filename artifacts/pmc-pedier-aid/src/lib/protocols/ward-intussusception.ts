@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardIntussusceptionProtocol: DiseaseProtocol = {
   id: 'ward-intussusception',
   name: 'Intussusception: Post-Reduction Management',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

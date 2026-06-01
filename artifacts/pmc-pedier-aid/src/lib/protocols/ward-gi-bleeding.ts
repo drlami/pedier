@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardGiBleedingProtocol: DiseaseProtocol = {
   id: 'ward-gi-bleeding',
   name: 'GI Bleeding: Ward Management',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

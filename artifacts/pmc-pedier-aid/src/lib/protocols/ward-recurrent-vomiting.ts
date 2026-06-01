@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardRecurrentVomitingProtocol: DiseaseProtocol = {
   id: 'ward-recurrent-vomiting',
   name: 'Recurrent Vomiting: Ward Evaluation',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

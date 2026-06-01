@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardJaundiceChildProtocol: DiseaseProtocol = {
   id: 'ward-jaundice-child',
   name: 'Jaundice in Children: Ward Evaluation',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

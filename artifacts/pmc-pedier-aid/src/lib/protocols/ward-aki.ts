@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardAkiProtocol: DiseaseProtocol = {
   id: 'ward-aki',
   name: 'Ward: Acute Kidney Injury (AKI)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Comprehensive inpatient management of AKI, focusing on fluid titration, electrolyte balance, and dialysis indications.',
   image: {
     url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600&h=400",

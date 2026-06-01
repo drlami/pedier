@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardNephroticRelapseProtocol: DiseaseProtocol = {
   id: 'ward-nephrotic-relapse',
   name: 'Ward: Nephrotic Syndrome (Relapse)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient management of relapsing nephrotic syndrome, focusing on steroid-sparing agents and complication management.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",

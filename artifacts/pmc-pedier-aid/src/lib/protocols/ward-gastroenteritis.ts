@@ -7,7 +7,7 @@ import type { DiseaseProtocol } from './types';
 export const wardGastroenteritisProtocol: DiseaseProtocol = {
   id: 'ward-gastroenteritis',
   name: 'Gastroenteritis: Ward Management',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',

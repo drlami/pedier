@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardHusProtocol: DiseaseProtocol = {
   id: 'ward-hus',
   name: 'Ward: Hemolytic Uremic Syndrome (HUS)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient management of the classic triad: Microangiopathic Hemolytic Anemia, Thrombocytopenia, and AKI.',
   image: {
     url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=600&h=400",

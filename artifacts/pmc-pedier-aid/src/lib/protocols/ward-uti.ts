@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardUtiProtocol: DiseaseProtocol = {
   id: 'ward-uti',
   name: 'Ward: UTI & Pyelonephritis',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient management of pediatric Urinary Tract Infection and Pyelonephritis, focusing on IV-to-oral transition and imaging workflows.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",

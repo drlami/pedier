@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardNephriticSyndromeProtocol: DiseaseProtocol = {
   id: 'ward-nephritic-syndrome',
   name: 'Ward: Acute Nephritic Syndrome (APSGN)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient management of Acute Post-Streptococcal Glomerulonephritis, focusing on fluid balance and hypertension control.',
   image: {
     url: "https://images.unsplash.com/photo-1559839734-2b71f1e3c7e5?auto=format&fit=crop&q=80&w=600&h=400",

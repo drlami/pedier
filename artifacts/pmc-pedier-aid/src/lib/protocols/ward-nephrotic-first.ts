@@ -3,7 +3,8 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const wardNephroticFirstProtocol: DiseaseProtocol = {
   id: 'ward-nephrotic-first',
   name: 'Ward: Nephrotic Syndrome (First Episode)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
+  unit: 'ward',
   description: 'Inpatient management for the initial presentation of Minimal Change Disease/Nephrotic Syndrome.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
