@@ -1,96 +1,136 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/**
+ * Pediatric Ward: Nephrotic Syndrome (Relapse)
+ * MASTER MANAGEMENT PATHWAY (MMP)
+ * Derived from: IPNA Recommendations for Management of Relapsing Nephrotic Syndrome (2022).
+ */
 export const wardNephroticRelapseProtocol: DiseaseProtocol = {
   id: 'ward-nephrotic-relapse',
-  name: 'Ward: Nephrotic Syndrome (Relapse)',
+  name: 'Nephrotic Syndrome Master Pathway (Relapse)',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Inpatient management of relapsing nephrotic syndrome, focusing on steroid-sparing agents and complication management.',
+  description: 'Specialized inpatient management for frequent relapsers and steroid-dependent cases: Targeted steroid-sparing agent titration, toxicity monitoring, and achieving remission.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "edema"
+    hint: "Relapsing nephrotic syndrome management"
   },
   questions: [
     { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
-    { id: 'relapseFrequency', questionText: 'Frequency of relapses', type: 'select', options: [
-      { label: 'Infrequent (<2 in 6 months)', value: 'infrequent' },
-      { label: 'Frequent (>=2 in 6 months)', value: 'frequent' },
+    { id: 'relapseFrequency', questionText: 'Relapse Pattern', type: 'select', options: [
+      { label: 'Infrequent (< 2 in 6 months)', value: 'infrequent' },
+      { label: 'Frequent (>= 2 in 6 months)', value: 'frequent' },
       { label: 'Steroid Dependent', value: 'dependent' },
     ]},
-    { id: 'currentMeds', questionText: 'Current Maintenance Meds', type: 'select', options: [
-      { label: 'None (Steroid only)', value: 'none' },
-      { label: 'Levamisole', value: 'levamisole' },
-      { label: 'Cyclophosphamide', value: 'cyclophosphamide' },
-      { label: 'Cyclosporine/Tacrolimus', value: 'cni' },
-      { label: 'Mycophenolate (MMF)', value: 'mmf' },
-    ]},
-    { id: 'fever', questionText: 'Presence of fever or infection?', type: 'boolean' },
+    { id: 'currentSparing', questionText: 'Currently on steroid-sparing agent?', type: 'boolean' },
+    { id: 'infectionTrigger', questionText: 'Is there an active infection triggering this relapse?', type: 'boolean' },
   ],
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.fever === true) {
-      return { level: 'severe', details: ["High risk due to concurrent infection triggering relapse."] };
-    }
-    return { level: 'moderate', details: ["Standard relapse management."] };
-  },
-  getManagement: (severity: Severity, data: FormData) => {
-    const mgmt = [
+
+  mmpData: {
+    snapshot: "For standard relapses, use 60 mg/m² (2 mg/kg) daily until urine is protein-free for 3 days, followed by 4 weeks of alternate-day steroids. If frequent/dependent, prioritize optimization of steroid-sparing agents.",
+    stages: [
       {
-        title: "Relapse Steroid Protocol",
-        recommendations: [
-          "Prednisolone: 60 mg/m²/day (Max 60mg) until protein-free for 3 consecutive days.",
-          "Then 40 mg/m² on alternate days for 4 weeks.",
-          "If frequently relapsing, consider continuing alternate-day steroids at lowest effective dose (0.15-0.5 mg/kg)."
+        label: "Stage 1: Relapse Verification & Trigger Assessment",
+        shortLabel: "Verification",
+        color: "blue",
+        cards: [
+          {
+            title: "Confirming Relapse [DR]",
+            orders: [
+              "Review home log: Relapse is defined as dipstick 3+ protein for 3 consecutive days.",
+              "Search for Triggers: Check for URTI, GI symptoms, or recent vaccinations.",
+              "Baseline Labs: CBC, CRP, Creatinine, and Electrolytes.",
+              "If on Cyclosporine/Tacrolimus: Check trough levels (C0)."
+            ]
+          },
+          {
+            title: "Nursing: Focus on Complications [NS]",
+            nursing: [
+              "Strict I/O and daily weight.",
+              "Monitor for signs of Thromboembolism (swollen leg, SOB).",
+              "Check for signs of Spontaneous Bacterial Peritonitis (abdominal pain/guarding)."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 2: Re-induction Therapy",
+        shortLabel: "Re-induction",
+        color: "amber",
+        cards: [
+          {
+            title: "Relapse Steroid Protocol",
+            threshold: "STANDARD OF CARE",
+            orders: [
+              "Prednisolone: 60 mg/m²/day (Max 60mg) or 2 mg/kg/day.",
+              "Duration: Continue daily until protein-free for 3 consecutive days.",
+              "Maintenance: Then switch to 40 mg/m² (1.5 mg/kg) on alternate days for 4 weeks."
+            ],
+            prescriptions: [
+              {
+                drug: "Prednisolone",
+                dose: "2 mg/kg",
+                route: "Oral",
+                frequency: "Once daily until remission",
+                calculation: (w) => `${(2 * w).toFixed(0)} mg`,
+                notes: "Maximum 60mg daily."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Steroid-Sparing Agent Management",
+        shortLabel: "Sparing Agents",
+        color: "indigo",
+        cards: [
+          {
+            title: "Optimization Directive",
+            threshold: "IF FREQUENT RELAPSER / DEPENDENT",
+            orders: [
+              "Levamisole: Consider as first-line sparing agent (2.5 mg/kg alternate days).",
+              "Mycophenolate Mofetil (MMF): Target 1200 mg/m²/day in two divided doses.",
+              "Cyclophosphamide: Usually reserved for 2nd/3rd relapse; consult Nephrology.",
+              "Rituximab: Consider if Multi-drug resistant/dependent (Consultant decision)."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 4: Remission Maintenance & Discharge",
+        shortLabel: "Discharge",
+        color: "emerald",
+        cards: [
+          {
+            title: "Discharge Readiness",
+            orders: [
+              "Document the exact steroid taper plan.",
+              "Ensure iron-clad plan for CNI/MMF level monitoring.",
+              "Vaccinate (Influenza/Pneumococcal) once in remission and on low-dose steroids."
+            ]
+          }
         ]
       }
-    ];
+    ]
+  },
 
-    if (data.relapseFrequency === 'frequent' || data.relapseFrequency === 'dependent') {
-      mgmt.push({
-        title: "Steroid-Sparing Strategies",
-        recommendations: [
-          "Ensure compliance with current maintenance medications.",
-          "Review indication for Cyclophosphamide (usually 2 mg/kg for 8-12 weeks) during a period of remission.",
-          "Monitor CNI levels (Tacrolimus/Cyclosporine) if applicable; target trough levels might need adjustment.",
-          "Consider Rituximab for multi-relapsing/dependent cases (Nephrology decision)."
-        ]
-      });
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.infectionTrigger === true || data.relapseFrequency === 'dependent') {
+      return { level: 'severe', details: ["High risk for steroid toxicity or secondary infection."] };
     }
-
-    mgmt.push({
-      title: "Complication Management",
-      recommendations: [
-        "Thrombosis: Nephrotic patients are hypercoagulable. Avoid femoral lines and promote mobilization.",
-        "Infection: Viral infections often trigger relapses. Treat underlying infection to achieve remission.",
-        "Immunization: Give Pneumococcal and annual Influenza vaccines. Avoid live vaccines while on high-dose steroids."
-      ]
-    });
-
-    return mgmt;
+    return { level: 'moderate', details: ["Relapsing nephrotic syndrome; standard re-induction."] };
   },
-  getDisposition: (severity: Severity, data: FormData) => {
-    return [
-      "Clinically stable with no severe edema/hypovolemia.",
-      "Medication plan (including steroid taper) clearly documented.",
-      "Parent understands the plan for the next 4-8 weeks.",
-      "Next CNI level or blood count check (for MMF/Cyclo) scheduled."
-    ];
-  },
-  getRedFlags: () => [
-    "Signs of deep vein thrombosis or pulmonary embolism.",
-    "Severe steroid side effects (psychosis, severe gastric pain).",
-    "Evidence of acute kidney injury (creatinine rise).",
-    "Uncontrolled hypertension."
+  getManagement: () => [],
+  getDisposition: () => [
+    "Protein-free urine for > 48 hours preferred (remission reached).",
+    "Stable weight and blood pressure.",
+    "Clear taper schedule provided to parents.",
+    "Steroid-sparing agent optimized."
   ],
-  getDrugDoses: (severity: Severity, data: FormData): DrugDose[] => {
-    const weight = Number(data.weight || 0);
-    if (!weight) return [];
-    return [
-      { drugName: "Prednisolone (Relapse)", dose: `${(weight * 2).toFixed(0)} mg Daily (until urine clear x3 days)` },
-      { drugName: "Levamisole", dose: `${(weight * 2.5).toFixed(1)} mg Alternate days (Max 150mg)` },
-      { drugName: "Mycophenolate (MMF)", dose: `${(weight * 15).toFixed(0)} mg Twice daily (1200mg/m²/day)` },
-    ];
-  },
+  getRedFlags: () => ["Uncontrolled edema", "Side effects of CNIs (Tremor/HTN)", "Rising urea/creatinine", "Severe infection"],
+  getDrugDoses: () => [],
   getReferences: () => [
-    { title: "IPNA Recommendations: Management of Relapsing Nephrotic Syndrome", url: "https://pubmed.ncbi.nlm.nih.gov/35503463/" }
+    { title: "IPNA Recommendations: Relapsing Nephrotic Syndrome 2022", url: "https://pubmed.ncbi.nlm.nih.gov/35503463/" },
+    { title: "RCH Melbourne: Nephrotic Syndrome Management", url: "https://www.rch.org.au/clinicalguide/guideline_index/nephrotic_syndrome/" }
   ]
 };

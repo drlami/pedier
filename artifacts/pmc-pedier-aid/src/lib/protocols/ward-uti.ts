@@ -1,110 +1,146 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/**
+ * Pediatric Ward: UTI & Pyelonephritis
+ * MASTER MANAGEMENT PATHWAY (MMP)
+ * Derived from: AAP (2016 Update), NICE (2022), and RCH Melbourne.
+ */
 export const wardUtiProtocol: DiseaseProtocol = {
   id: 'ward-uti',
-  name: 'Ward: UTI & Pyelonephritis',
+  name: 'UTI & Pyelonephritis Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Inpatient management of pediatric Urinary Tract Infection and Pyelonephritis, focusing on IV-to-oral transition and imaging workflows.',
+  description: 'Professional inpatient management of pediatric UTI/Pyelonephritis: Targeted IV-to-Oral transition, AAP-aligned imaging workflows, and recurrence prevention.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "kidney"
+    hint: "Kidney and urinary tract infection management"
   },
   questions: [
     { id: 'age', questionText: 'Patient Age', type: 'number', unit: 'months' },
-    { id: 'weight', questionText: 'Weight', type: 'number', unit: 'kg' },
-    { id: 'feverDuration', questionText: 'Hours of fever since admission/antibiotics', type: 'number', unit: 'hrs' },
-    { id: 'clinicalState', questionText: 'Clinical Status', type: 'select', options: [
-      { label: 'Improving (Active, feeding well)', value: 'improving' },
-      { label: 'Stable (Mild symptoms)', value: 'stable' },
-      { label: 'Unstable (Vomiting, high fever, toxic)', value: 'unstable' },
-    ]},
-    { id: 'imagingDone', questionText: 'Renal Ultrasound Performed?', type: 'boolean' },
-    { id: 'imagingResult', questionText: 'Any structural abnormality/hydronephrosis on US?', type: 'boolean' },
-    { id: 'firstUti', questionText: 'Is this the first documented UTI?', type: 'boolean' },
+    { id: 'toxic', questionText: 'Toxic appearing or hemodynamically unstable?', type: 'boolean' },
+    { id: 'fever48h', questionText: 'Fever persisting > 48 hours after starting effective antibiotics?', type: 'boolean' },
   ],
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.clinicalState === 'unstable' || (data.age && Number(data.age) < 3)) {
-      return { level: 'critical', details: ["High risk due to age or clinical instability."] };
-    }
-    if (data.imagingResult === true || (data.feverDuration && Number(data.feverDuration) > 48)) {
-      return { level: 'severe', details: ["Moderate risk: potential structural issues or persistent fever."] };
-    }
-    return { level: 'moderate', details: ["Stable inpatient course."] };
-  },
-  getManagement: (severity: Severity, data: FormData) => {
-    const age = Number(data.age || 0);
-    const mgmt = [
+
+  mmpData: {
+    snapshot: "Transition to oral antibiotics as soon as afebrile for 24h and clinically improving. In infants < 6m, renal ultrasound is mandatory before discharge or within 6 weeks.",
+    stages: [
       {
-        title: "Monitoring",
-        recommendations: [
-          "Record temperature and heart rate 4-6 hourly.",
-          "Strict input/output monitoring (ensure no oliguria).",
-          "Check for flank pain/tenderness daily.",
-          "Repeat CRP if fever persists > 48 hours."
+        label: "Stage 1: Admission & Initial Orders (Hour 0-6)",
+        shortLabel: "Admission",
+        color: "blue",
+        cards: [
+          {
+            title: "Immediate Physician Directives",
+            orders: [
+              "Urine Culture (MANDATORY): Obtain via SPA or Catheter in non-toilet trained children.",
+              "Blood Culture: Indicated for all infants < 2 months or toxic-appearing children.",
+              "Renal Function (U&E/Cr): Assess for AKI if clinical dehydration or toxic appearance.",
+              "Strict I/O Charting: Monitor for oliguria."
+            ]
+          },
+          {
+            title: "Initial IV Antimicrobial Choice",
+            threshold: "EMPIRICAL START",
+            orders: [
+              "Children > 1 month: Ceftriaxone 75 mg/kg IV once daily.",
+              "Infants < 1 month: Ampicillin + Gentamicin (Must cover Enterococcus).",
+              "Known Urological Abnormality: Consult Micro; may need broader coverage (e.g., Tazocin)."
+            ],
+            prescriptions: [
+              {
+                drug: "Ceftriaxone (IV)",
+                dose: "75 mg/kg",
+                route: "IV",
+                frequency: "Once daily",
+                calculation: (w) => `${(75 * w).toFixed(0)} mg`,
+                notes: "Max 2g daily."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 2: Monitoring & Escalation (Hour 6-48)",
+        shortLabel: "Monitoring",
+        color: "amber",
+        cards: [
+          {
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Temp/HR/RR every 4 hours.",
+              "Daily weight to assess hydration status.",
+              "Monitor urinary stream (especially in males - rule out PUV).",
+              "Check for flank tenderness daily."
+            ]
+          },
+          {
+            title: "Escalation Triggers [!]",
+            isCritical: true,
+            triggers: [
+              "Persistent Fever > 48h: Consider abscess, hydronephrosis, or resistant organism.",
+              "Rising Creatinine: Suspect AKI or obstructive uropathy.",
+              "Palpable Abdominal Mass: Urgent Ultrasound required."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Step-Down & Imaging Strategy",
+        shortLabel: "Step-Down",
+        color: "emerald",
+        cards: [
+          {
+            title: "IV to Oral Transition Strategy",
+            threshold: "AFEBRILE > 24H",
+            orders: [
+              "Switch to Oral if afebrile for 24 hours, clinically stable, and tolerating oral intake.",
+              "Tailor antibiotics to urine culture results.",
+              "Preferred: Cefixime (8 mg/kg/d) or Co-amoxiclav (45 mg/kg/d)."
+            ],
+            prescriptions: [
+              {
+                drug: "Cefixime (Oral)",
+                dose: "8 mg/kg",
+                route: "Oral",
+                frequency: "Once daily",
+                calculation: (w) => `${(8 * w).toFixed(1)} mg`,
+                notes: "Convenient once-daily dosing."
+              }
+            ]
+          },
+          {
+            title: "Imaging Roadmap (AAP Guidelines)",
+            instructions: [
+              "1. Renal Ultrasound (RUS): Required for ALL children < 2 years with first febrile UTI.",
+              "2. VCUG/MCUG: NOT routine. Perform only if RUS shows hydronephrosis/scarring or if second febrile UTI.",
+              "3. DMSA: Consider 4-6 months after acute event if recurrent UTI suspected."
+            ]
+          }
         ]
       }
-    ];
+    ]
+  },
 
-    if (data.clinicalState === 'unstable' || age < 3) {
-      mgmt.push({
-        title: "Initial IV Management",
-        recommendations: [
-          "Maintain IV hydration if vomiting or poor intake.",
-          "Continue IV Antibiotics (Ceftriaxone or Gentamicin/Ampicillin).",
-          "Blood culture is mandatory for neonates/toxic patients."
-        ]
-      });
-    } else if (data.clinicalState === 'improving' && Number(data.feverDuration) >= 24) {
-      mgmt.push({
-        title: "IV to Oral Transition",
-        recommendations: [
-          "Patient is suitable for oral antibiotics if afebrile for > 24h and tolerating oral intake.",
-          "Choice: Cefixime (8-10 mg/kg/day) or Co-amoxiclav (45 mg/kg/day).",
-          "Total duration (IV + Oral) should be 7-10 days."
-        ]
-      });
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.toxic === true || (data.age && Number(data.age) < 3)) {
+      return { level: 'critical', details: ["High risk due to age or toxicity."] };
     }
-
-    mgmt.push({
-      title: "Imaging Workflow (AAP/NICE)",
-      recommendations: [
-        "Renal Ultrasound: Required for all infants < 6 months with first UTI.",
-        "Renal Ultrasound: Consider for children > 6 months if atypical or recurrent UTI.",
-        "MCUG: Indicated if US shows hydronephrosis, scarring, or if UTI is recurrent/atypical in < 6 months old.",
-        "DMSA: Perform 4-6 months after acute infection to detect scarring (if recurrent UTI)."
-      ]
-    });
-
-    return mgmt;
+    if (data.fever48h === true) {
+      return { level: 'severe', details: ["Fever persistent despite antibiotics; investigate for complications."] };
+    }
+    return { level: 'moderate', details: ["Stable inpatient UTI management."] };
   },
-  getDisposition: (severity: Severity, data: FormData) => {
-    return [
-      "Afebrile for at least 24 hours.",
-      "Clinically stable and tolerating oral fluids/antibiotics.",
-      "Follow-up for imaging (Ultrasound) scheduled if not done.",
-      "Parents educated on urine collection and signs of recurrence.",
-      "Culture results reviewed and antibiotics narrowed if possible."
-    ];
-  },
-  getRedFlags: () => [
-    "Persistent fever > 48 hours on appropriate antibiotics.",
-    "Palpable abdominal mass (possible hydronephrosis/abscess).",
-    "Rising creatinine or worsening clinical toxicity.",
-    "Poor urinary stream in males (suggests PUV)."
+  getManagement: () => [], // Use mmpData
+  getDisposition: () => [
+    "Afebrile for 24 hours.",
+    "Tolerating oral antibiotics and fluids.",
+    "Renal Ultrasound performed or scheduled.",
+    "Parent understands the follow-up plan."
   ],
-  getDrugDoses: (severity: Severity, data: FormData): DrugDose[] => {
-    const weight = Number(data.weight || 0);
-    if (!weight) return [];
-    return [
-      { drugName: "Ceftriaxone (IV)", dose: `${(weight * 75).toFixed(0)} mg Once daily (Max 2g)` },
-      { drugName: "Gentamicin (IV)", dose: `${(weight * 7.5).toFixed(1)} mg Once daily (Monitor levels)` },
-      { drugName: "Cefixime (Oral)", dose: `${(weight * 8).toFixed(1)} mg Once daily` },
-      { drugName: "Co-amoxiclav (Oral)", dose: `${(weight * 22.5).toFixed(0)} mg Every 12 hours` },
-    ];
-  },
+  getRedFlags: () => ["Persistent fever > 48h", "Palpable mass", "Rising creatinine", "Poor stream"],
+  getDrugDoses: () => [], // Use mmpData prescriptions
   getReferences: () => [
-    { title: "AAP: Management of UTI in Infants and Children (2011/2016 Update)", url: "https://publications.aap.org/pediatrics/article/128/3/595/30815/Urinary-Tract-Infection-Clinical-Practice" },
-    { title: "NICE Guideline: UTI in under 16s", url: "https://www.nice.org.uk/guidance/ng224" }
+    { title: "AAP: UTI Clinical Practice Guideline", url: "https://publications.aap.org/pediatrics/article/128/3/595/30815/Urinary-Tract-Infection-Clinical-Practice" },
+    { title: "NICE NG224: UTI in children", url: "https://www.nice.org.uk/guidance/ng224" }
   ]
 };

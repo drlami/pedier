@@ -1,112 +1,155 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/**
+ * Pediatric Ward: Acute Nephritic Syndrome (APSGN)
+ * MASTER MANAGEMENT PATHWAY (MMP)
+ * Derived from: StatPearls (2024), RCPCH, and Melbourne RCH.
+ */
 export const wardNephriticSyndromeProtocol: DiseaseProtocol = {
   id: 'ward-nephritic-syndrome',
-  name: 'Ward: Acute Nephritic Syndrome (APSGN)',
+  name: 'Acute Nephritic Syndrome Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Inpatient management of Acute Post-Streptococcal Glomerulonephritis, focusing on fluid balance and hypertension control.',
+  description: 'Inpatient management of APSGN and nephritic syndromes: Aggressive blood pressure control, strict fluid titration, and monitoring for hypertensive encephalopathy.',
   image: {
     url: "https://images.unsplash.com/photo-1559839734-2b71f1e3c7e5?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "blood-pressure"
+    hint: "Blood pressure and hematuria management"
   },
   questions: [
     { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
-    { id: 'bloodPressure', questionText: 'Blood Pressure', type: 'select', options: [
-      { label: 'Normal', value: 'normal' },
-      { label: 'Mild Hypertension (>95th %)', value: 'mild_htn' },
-      { label: 'Severe/Urgency (>99th % + 5mmHg)', value: 'severe_htn' },
-    ]},
-    { id: 'urineOutput', questionText: 'Urine Output', type: 'select', options: [
-      { label: 'Normal', value: 'normal' },
-      { label: 'Oliguria (<1 mL/kg/hr)', value: 'oliguria' },
-    ]},
-    { id: 'complications', questionText: 'Signs of Volume Overload?', type: 'select', options: [
-      { label: 'None', value: 'none' },
-      { label: 'Mild (Basal creps, edema)', value: 'mild' },
-      { label: 'Severe (Pulmonary edema, SOB)', value: 'severe' },
-    ]},
+    { id: 'bpHigh', questionText: 'BP significantly above 95th percentile?', type: 'boolean' },
+    { id: 'oliguria', questionText: 'Oliguria (< 1 mL/kg/hr) present?', type: 'boolean' },
+    { id: 'neuroSymptoms', questionText: 'Headache, visual changes, or seizures?', type: 'boolean' },
   ],
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.bloodPressure === 'severe_htn' || data.complications === 'severe') {
-      return { level: 'critical', details: ["Hypertensive urgency or severe pulmonary edema."] };
-    }
-    if (data.bloodPressure === 'mild_htn' || data.urineOutput === 'oliguria') {
-      return { level: 'severe', details: ["High risk: hypertension or significant oliguria."] };
-    }
-    return { level: 'moderate', details: ["Stable nephritic syndrome."] };
-  },
-  getManagement: (severity: Severity, data: FormData) => {
-    const mgmt = [
+
+  mmpData: {
+    snapshot: "Management is focused on volume control. Use fluid restriction (Insensible Loss + UO) and loop diuretics. Avoid ACE inhibitors in the acute phase due to hyperkalemia risk.",
+    stages: [
       {
-        title: "Strict Fluid & Salt Balance",
-        recommendations: [
-          "Restrict fluid intake to: Insensible Loss (400 mL/m²/day) + Urine Output.",
-          "No-Added-Salt diet.",
-          "Daily Weight (mandatory) - aim for weight loss of 1-2% per day until diuresis.",
-          "Monitor serum electrolytes and creatinine daily."
+        label: "Stage 1: Admission & Volume Assessment",
+        shortLabel: "Admission",
+        color: "blue",
+        cards: [
+          {
+            title: "Immediate Laboratory Orders",
+            orders: [
+              "Urine Microscopy: Look for Red Cell Casts and Dysmorphic RBCs.",
+              "ASO Titre & Anti-DNAse B (Confirm recent Strep infection).",
+              "Complement Levels (C3, C4): Expected low C3 in APSGN.",
+              "Renal Function & Electrolytes (Check for AKI and Hyperkalemia)."
+            ]
+          },
+          {
+            title: "Strict Volume Control [NS]",
+            threshold: "CORE DIRECTIVE",
+            orders: [
+              "Restrict Fluid to: 400 mL/m²/day (Insensible Loss) + previous 24h Urine Output.",
+              "No-Added-Salt (NAS) diet.",
+              "Daily Weight: Aim for 1-2% weight loss per day until diuresis."
+            ],
+            nursing: [
+              "Manual BP monitoring every 4 hours.",
+              "Strict hourly intake/output charting.",
+              "Daily weight at 08:00 AM."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 2: Hypertension Management",
+        shortLabel: "Hypertension",
+        color: "red",
+        cards: [
+          {
+            title: "Diuretic Therapy",
+            threshold: "FIRST-LINE FOR VOLUME HTN",
+            orders: [
+              "Furosemide: Start with 1-2 mg/kg per dose.",
+              "Monitor for hypokalemia once diuresis starts."
+            ],
+            prescriptions: [
+              {
+                drug: "Furosemide (IV/Oral)",
+                dose: "1 mg/kg",
+                route: "IV/Oral",
+                frequency: "Every 12 hours",
+                calculation: (w) => `${(1 * w).toFixed(0)} mg`,
+                notes: "Titrate based on BP and UO."
+              }
+            ]
+          },
+          {
+            title: "Antihypertensive Strategy",
+            threshold: "IF BP REMAINS > 95TH %",
+            orders: [
+              "Calcium Channel Blockers: Amlodipine (0.1 mg/kg) or Nifedipine.",
+              "Vasodilators: Hydralazine (0.2 mg/kg IV) for hypertensive urgency.",
+              "AVOID ACE Inhibitors: Risk of hyperkalemia during oliguric phase."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Complication Vigilance",
+        shortLabel: "Monitoring",
+        color: "amber",
+        cards: [
+          {
+            title: "Neurological Monitoring",
+            isCritical: true,
+            threshold: "BP > 99TH % + 5mmHg",
+            triggers: [
+              "Headache, vomiting, or altered vision: Suggests Hypertensive Encephalopathy/PRES.",
+              "New-onset seizures: Require urgent IV anticonvulsants and BP lowering."
+            ]
+          },
+          {
+            title: "Cardiopulmonary Monitoring",
+            nursing: [
+              "Assess for basal lung crepitations (Pulmonary Edema).",
+              "Check for liver enlargement or gallop rhythm."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 4: Remission & Discharge",
+        shortLabel: "Discharge",
+        color: "emerald",
+        cards: [
+          {
+            title: "Recovery Targets",
+            orders: [
+              "Stable blood pressure on minimal or no medication.",
+              "Resolved volume overload (dry weight reached).",
+              "Educate parents on long-term follow-up: Hematuria can last 6-12 months."
+            ]
+          }
         ]
       }
-    ];
-
-    if (data.bloodPressure !== 'normal' || data.urineOutput === 'oliguria') {
-      mgmt.push({
-        title: "Hypertension & Diuresis",
-        recommendations: [
-          "Furosemide: First-line for volume-dependent hypertension.",
-          "If BP remains high: Add CCB (Amlodipine) or Hydralazine.",
-          "Avoid ACE inhibitors (e.g., Enalapril) in the acute phase due to risk of hyperkalemia/AKI."
-        ]
-      });
-    }
-
-    if (data.bloodPressure === 'severe_htn') {
-      mgmt.push({
-        title: "Hypertensive Urgency/Emergency",
-        recommendations: [
-          "Consider IV Hydralazine or Labetalol infusion.",
-          "Frequent neurological checks (risk of PRES/Encephalopathy).",
-          "Consult Pediatric Nephrology and ICU."
-        ]
-      });
-    }
-
-    mgmt.push({
-      title: "Etiology Workup",
-      recommendations: [
-        "ASO Titre and Anti-DNAse B.",
-        "Complement levels (C3, C4): C3 is characteristically low in APSGN and normalizes by 8 weeks.",
-        "Urine microscopy: Look for red cell casts and dysmorphic RBCs."
-      ]
-    });
-
-    return mgmt;
+    ]
   },
-  getDisposition: (severity: Severity, data: FormData) => {
-    return [
-      "Stable blood pressure on oral medications (or no meds).",
-      "Resolved or improving volume overload/edema.",
-      "Normalizing renal function and stable electrolytes.",
-      "Follow-up scheduled for BP check and C3 level repeat at 8 weeks."
-    ];
+
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.neuroSymptoms === true || data.bpHigh === true) {
+      return { level: 'critical', details: ["Hypertensive urgency or encephalopathy suspected."] };
+    }
+    if (data.oliguria === true) {
+      return { level: 'severe', details: ["High risk for rapid volume overload and electrolyte imbalance."] };
+    }
+    return { level: 'moderate', details: ["Stable nephritic syndrome; monitoring phase."] };
   },
-  getRedFlags: () => [
-    "Acute headache, visual changes, or seizures (Hypertensive Encephalopathy).",
-    "Sudden respiratory distress or frothy sputum (Pulmonary Edema).",
-    "Anuria or rapidly rising creatinine.",
-    "Severe hyperkalemia (>6.0 mmol/L)."
+  getManagement: () => [],
+  getDisposition: () => [
+    "Stable BP on oral medications.",
+    "No respiratory distress or pulmonary edema.",
+    "UO > 1 mL/kg/hr.",
+    "Follow-up scheduled for BP check and repeat C3 in 8 weeks."
   ],
-  getDrugDoses: (severity: Severity, data: FormData): DrugDose[] => {
-    const weight = Number(data.weight || 0);
-    if (!weight) return [];
-    return [
-      { drugName: "Furosemide (IV/Oral)", dose: `${(weight * 1).toFixed(0)} mg Every 6-12 hours` },
-      { drugName: "Amlodipine", dose: `${(weight * 0.1).toFixed(1)} mg Daily (Max 10mg)` },
-      { drugName: "Hydralazine (IV)", dose: `${(weight * 0.2).toFixed(1)} mg Every 4-6 hours (Slow push)` },
-    ];
-  },
+  getRedFlags: () => ["Seizures", "Sudden SOB", "Anuria", "Severe Headache"],
+  getDrugDoses: () => [],
   getReferences: () => [
     { title: "StatPearls: Poststreptococcal Glomerulonephritis", url: "https://www.ncbi.nlm.nih.gov/books/NBK441865/" },
-    { title: "RCPCH/UpToDate: Acute Glomerulonephritis in Children", url: "https://www.uptodate.com/contents/poststreptococcal-glomerulonephritis-in-children" }
+    { title: "Melbourne RCH: Acute Glomerulonephritis", url: "https://www.rch.org.au/clinicalguide/guideline_index/Acute_Glomerulonephritis/" }
   ]
 };

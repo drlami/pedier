@@ -1,108 +1,152 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/**
+ * Pediatric Ward: Nephrotic Syndrome (First Episode)
+ * MASTER MANAGEMENT PATHWAY (MMP)
+ * Derived from: KDIGO (2021) and IPNA Clinical Practice Recommendations (2022).
+ */
 export const wardNephroticFirstProtocol: DiseaseProtocol = {
   id: 'ward-nephrotic-first',
-  name: 'Ward: Nephrotic Syndrome (First Episode)',
+  name: 'Nephrotic Syndrome Master Pathway (Initial)',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Inpatient management for the initial presentation of Minimal Change Disease/Nephrotic Syndrome.',
+  description: 'High-level inpatient roadmap for the first presentation of Minimal Change Disease: Induction steroid protocols, edema titration, and long-term parent training.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "edema"
+    hint: "Generalized edema and nephrotic syndrome management"
   },
   questions: [
     { id: 'weight', questionText: 'Current Weight (Edematous)', type: 'number', unit: 'kg' },
-    { id: 'baselineWeight', questionText: 'Baseline/Dry Weight (if known)', type: 'number', unit: 'kg' },
-    { id: 'edemaSeverity', questionText: 'Edema Severity', type: 'select', options: [
-      { label: 'Mild (Periorbital only)', value: 'mild' },
-      { label: 'Moderate (Pitting, scrotal/labial)', value: 'moderate' },
-      { label: 'Severe (Anasarca, ascites, respiratory distress)', value: 'severe' },
-    ]},
-    { id: 'bloodPressure', questionText: 'Blood Pressure Status', type: 'select', options: [
-      { label: 'Normal', value: 'normal' },
-      { label: 'High (>95th percentile)', value: 'high' },
-    ]},
-    { id: 'urineProtein', questionText: 'Urine Dipstick Protein', type: 'select', options: [
-      { label: '3+ or 4+', value: 'heavy' },
-      { label: 'Trace to 2+', value: 'low' },
-      { label: 'Negative', value: 'nil' },
-    ]},
+    { id: 'severeEdema', questionText: 'Severe edema (Anasarca, SOB, or scrotal/labial edema)?', type: 'boolean' },
+    { id: 'hypertensive', questionText: 'Blood Pressure > 95th percentile?', type: 'boolean' },
   ],
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.edemaSeverity === 'severe' || data.bloodPressure === 'high') {
-      return { level: 'severe', details: ["High risk due to severe edema or hypertension."] };
-    }
-    return { level: 'moderate', details: ["Initial episode monitoring."] };
-  },
-  getManagement: (severity: Severity, data: FormData) => {
-    const mgmt = [
+
+  mmpData: {
+    snapshot: "Standard induction involves high-dose steroids (60 mg/m² or 2 mg/kg). Priority is ensuring no infection (TB/Varicella) before starting and managing symptomatic edema without causing intravascular depletion.",
+    stages: [
       {
-        title: "Standard Steroid Therapy (ISKDC Protocol)",
-        recommendations: [
-          "Prednisolone: 60 mg/m²/day (Max 60mg) daily for 4-6 weeks.",
-          "Then 40 mg/m² on alternate days for another 4-6 weeks.",
-          "Ensure parent education on 'Steroid Response' (diuresis usually occurs within 7-14 days)."
+        label: "Stage 1: Diagnosis & Baseline Orders (Hour 0-12)",
+        shortLabel: "Diagnosis",
+        color: "blue",
+        cards: [
+          {
+            title: "Confirming Nephrotic Triad",
+            orders: [
+              "Urine Dipstick: Confirm 3+ or 4+ protein.",
+              "Spot Urine Protein:Creatinine Ratio (uPCR).",
+              "Serum Albumin: Characteristically < 25 g/L.",
+              "Lipid Profile: Expected Hypercholesterolemia."
+            ]
+          },
+          {
+            title: "Baseline Clinical Screening",
+            threshold: "MANDATORY BEFORE STEROIDS",
+            orders: [
+              "Mantoux or Quantiferon (TB Screening).",
+              "Varicella Serology (if no clear history/vaccination).",
+              "U&E/Creatinine, C3/C4, and CBC.",
+              "Blood Pressure monitoring (manual cuff preferred)."
+            ]
+          }
         ]
       },
       {
-        title: "Edema & Fluid Management",
-        recommendations: [
-          "Strict No-Added-Salt diet.",
-          "Fluid restriction (Insensible losses + 2/3 urine output) only if severe edema.",
-          "Daily Weight (at same time, same scale) is mandatory.",
-          "Monitor for hypovolemia (abdominal pain, cold peripheries) even if edematous."
+        label: "Stage 2: Induction Immunosuppression",
+        shortLabel: "Induction",
+        color: "amber",
+        cards: [
+          {
+            title: "Standard Steroid Regimen",
+            threshold: "ISKDC / KDIGO PROTOCOL",
+            orders: [
+              "Prednisolone: 60 mg/m²/day (Max 60mg) or 2 mg/kg/day daily.",
+              "Continue daily for 4-6 weeks.",
+              "Warn parents about 'steroid personality' (hunger, mood swings)."
+            ],
+            prescriptions: [
+              {
+                drug: "Prednisolone",
+                dose: "2 mg/kg",
+                route: "Oral",
+                frequency: "Once daily (Morning)",
+                calculation: (w) => `${(2 * w).toFixed(0)} mg`,
+                notes: "Maximum 60mg daily."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Edema & Fluid Titration",
+        shortLabel: "Fluid Management",
+        color: "red",
+        cards: [
+          {
+            title: "Nursing Care: Fluid Balance [NS]",
+            nursing: [
+              "Daily weight at same time each morning.",
+              "Strict intake/output balance.",
+              "No-Added-Salt (NAS) diet.",
+              "Abdominal girth measurement (if ascites present)."
+            ]
+          },
+          {
+            title: "Hypervolemia: Albumin & Diuretics",
+            threshold: "ONLY IF SYMPTOMATIC EDEMA",
+            orders: [
+              "Albumin 20% (0.5 - 1 g/kg) over 4-6 hours.",
+              "Furosemide (0.5 - 1 mg/kg) given mid-infusion.",
+              "Monitor for pulmonary edema and acute hypertension during infusion."
+            ],
+            prescriptions: [
+              {
+                drug: "20% Albumin",
+                dose: "0.5 g/kg",
+                route: "IV",
+                frequency: "Over 4 hours",
+                calculation: (w) => `${(2.5 * w).toFixed(0)} mL`,
+                notes: "500mg/kg = 2.5mL/kg of 20% albumin."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 4: Remission & Home Training",
+        shortLabel: "Home Care",
+        color: "emerald",
+        cards: [
+          {
+            title: "Parent Educational Check",
+            instructions: [
+              "1. Dipstick training: How to test the first morning urine.",
+              "2. Home log: Recording weight, dipstick result, and steroid dose.",
+              "3. Relapse Definition: 3+ protein for 3 consecutive days.",
+              "4. Vaccine warning: No LIVE vaccines while on high-dose steroids."
+            ]
+          }
         ]
       }
-    ];
+    ]
+  },
 
-    if (data.edemaSeverity === 'severe') {
-      mgmt.push({
-        title: "Albumin & Diuretics",
-        recommendations: [
-          "Consider 20% Albumin (0.5 - 1 g/kg) over 4-6 hours.",
-          "Give Furosemide (0.5 - 1 mg/kg) mid-infusion or at the end.",
-          "WARNING: Monitor BP and HR closely for overload during infusion."
-        ]
-      });
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.severeEdema === true || data.hypertensive === true) {
+      return { level: 'critical', details: ["Severe complications (respiratory distress or high BP) detected."] };
     }
-
-    mgmt.push({
-      title: "Infection Prophylaxis & Screening",
-      recommendations: [
-        "Screen for TB (Mantoux/Quantiferon) before starting high-dose steroids.",
-        "Check Varicella immunity status.",
-        "Promptly treat any minor infection (risk of peritonitis/cellulitis is high)."
-      ]
-    });
-
-    return mgmt;
+    return { level: 'moderate', details: ["Routine first-episode nephrotic syndrome."] };
   },
-  getDisposition: (severity: Severity, data: FormData) => {
-    return [
-      "Edema is stable or improving.",
-      "Stable blood pressure.",
-      "Parents can perform home urine dipsticks and maintain a log.",
-      "Follow-up with Pediatric Nephrology scheduled within 1 week.",
-      "Education provided on 'No-Added-Salt' and steroid side effects."
-    ];
-  },
-  getRedFlags: () => [
-    "Severe abdominal pain (think Spontaneous Bacterial Peritonitis).",
-    "Symptoms of hypovolemic shock (despite looking 'full' of fluid).",
-    "Headache, vomiting, or seizures (think Hypertension/Thrombosis).",
-    "Fever (increased risk of encapsulated bacterial infections)."
+  getManagement: () => [],
+  getDisposition: () => [
+    "Edema stable or improving.",
+    "Parent competent in home dipstick testing and logging.",
+    "Steroid plan (4-6 weeks daily) clear.",
+    "Nephrology follow-up booked (usually 1 week)."
   ],
-  getDrugDoses: (severity: Severity, data: FormData): DrugDose[] => {
-    const weight = Number(data.weight || 0);
-    if (!weight) return [];
-    return [
-      { drugName: "Prednisolone (Initial)", dose: `${(weight * 2).toFixed(0)} mg Daily (Max 60mg)` },
-      { drugName: "Furosemide (IV/Oral)", dose: `${(weight * 1).toFixed(0)} mg Twice daily` },
-      { drugName: "20% Albumin", dose: `${(weight * 2.5).toFixed(0)} mL Over 4 hours (0.5g/kg)` },
-    ];
-  },
+  getRedFlags: () => ["Severe abdominal pain (SBP risk)", "Cold peripheries (Hypovolemia)", "Sudden weight gain", "Headache/Seizure"],
+  getDrugDoses: () => [],
   getReferences: () => [
-    { title: "KDIGO Guideline for the Management of Glomerular Diseases", url: "https://kdigo.org/guidelines/glomerular-diseases/" },
-    { title: "IPNA Clinical Practice Recommendations: Steroid-Sensitive Nephrotic Syndrome", url: "https://pubmed.ncbi.nlm.nih.gov/32185568/" }
+    { title: "KDIGO 2021 Guideline for Glomerular Diseases", url: "https://kdigo.org/guidelines/glomerular-diseases/" },
+    { title: "IPNA Recommendations for Steroid-Sensitive Nephrotic Syndrome", url: "https://pubmed.ncbi.nlm.nih.gov/32185568/" }
   ]
 };

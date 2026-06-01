@@ -1,99 +1,137 @@
 import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 
+/**
+ * Pediatric Ward: Acute Kidney Injury (AKI)
+ * MASTER MANAGEMENT PATHWAY (MMP)
+ * Derived from: KDIGO Clinical Practice Guidelines for AKI (2012/Updated 2024).
+ */
 export const wardAkiProtocol: DiseaseProtocol = {
   id: 'ward-aki',
-  name: 'Ward: Acute Kidney Injury (AKI)',
+  name: 'Acute Kidney Injury Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Comprehensive inpatient management of AKI, focusing on fluid titration, electrolyte balance, and dialysis indications.',
+  description: 'Exhaustive inpatient directive for AKI: KDIGO-based staging, precise fluid titration, and the AEIOU roadmap for renal replacement therapy.',
   image: {
     url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "kidney"
+    hint: "Kidney monitoring and metabolic management"
   },
   questions: [
     { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
-    { id: 'akiStage', questionText: 'AKI Stage (KDIGO)', type: 'select', options: [
-      { label: 'Stage 1 (Cr x1.5-1.9 or <0.5 mL/kg/h x 6h)', value: 'stage1' },
-      { label: 'Stage 2 (Cr x2.0-2.9 or <0.5 mL/kg/h x 12h)', value: 'stage2' },
-      { label: 'Stage 3 (Cr x3.0+ or <0.3 mL/kg/h x 24h/Anuria)', value: 'stage3' },
-    ]},
-    { id: 'volumeStatus', questionText: 'Volume Status', type: 'select', options: [
-      { label: 'Hypovolemic/Dry', value: 'hypo' },
-      { label: 'Euvolemic', value: 'eu' },
-      { label: 'Hypervolemic/Overloaded', value: 'hyper' },
-    ]},
-    { id: 'hyperkalemia', questionText: 'Hyperkalemia present? (>5.5)', type: 'boolean' },
+    { id: 'creatinineRise', questionText: 'Creatinine level x1.5 baseline or 0.3mg/dL rise?', type: 'boolean' },
+    { id: 'urineOutputLow', questionText: 'Urine Output < 0.5 mL/kg/hr for > 6h?', type: 'boolean' },
+    { id: 'hyperkalemiaECG', questionText: 'K > 6.5 or ECG changes?', type: 'boolean' },
   ],
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.akiStage === 'stage3' || data.hyperkalemia === true) {
-      return { level: 'critical', details: ["KDIGO Stage 3 AKI or significant hyperkalemia."] };
-    }
-    if (data.akiStage === 'stage2' || data.volumeStatus === 'hyper') {
-      return { level: 'severe', details: ["KDIGO Stage 2 AKI or volume overload."] };
-    }
-    return { level: 'moderate', details: ["Stable AKI monitoring."] };
-  },
-  getManagement: (severity: Severity, data: FormData) => {
-    const mgmt = [
+
+  mmpData: {
+    snapshot: "AKI management prioritizes hemodynamic optimization and preventing further injury. Stop all nephrotoxic agents and dose-adjust every prescription for GFR. Early ICU/Nephrology consultation is mandatory if AEIOU triggers are met.",
+    stages: [
       {
-        title: "Fluid Management (Crucial)",
-        recommendations: [
-          "If Hypovolemic: Give fluid boluses (10-20 mL/kg) and monitor for response (urine/BP).",
-          "If Hypervolemic/Oliguric: Restrict to Insensible Loss + Urine Output. Trial of Furosemide (2-5 mg/kg) may be attempted once.",
-          "Stop all nephrotoxic drugs (NSAIDs, Aminoglycosides, ACE inhibitors).",
-          "Dose-adjust all remaining medications for GFR."
+        label: "Stage 1: Identification & Immediate Mitigation",
+        shortLabel: "Identification",
+        color: "blue",
+        cards: [
+          {
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Confirm Baseline Creatinine: Compare to previous or use 0.45 x Height / Cr.",
+              "Stop ALL Nephrotoxic Agents: NSAIDs, Aminoglycosides, ACE inhibitors, IV contrast.",
+              "Urine Microscopy: Evaluate for Muddy Brown Casts (ATN) or RBCs.",
+              "Metabolic Screening: U&E, Creatinine, Calcium, Phosphate, VBG (Acid-Base)."
+            ]
+          },
+          {
+            title: "Hemodynamic Stabilization",
+            threshold: "IF HYPOVOLEMIC",
+            orders: [
+              "Fluid Challenge: 10-20 mL/kg isotonic saline; monitor UO response.",
+              "Maintain Mean Arterial Pressure (MAP) for age to ensure renal perfusion."
+            ]
+          }
         ]
       },
       {
-        title: "Metabolic & Electrolyte Control",
-        recommendations: [
-          "Monitor Potassium, Sodium, Calcium, Phosphate, and Acid-Base daily (or more if unstable).",
-          "Hyperkalemia: Use Salbutamol nebs, Insulin/Dextrose, or Calcium Gluconate if ECG changes.",
-          "Acidosis: Sodium Bicarbonate only if pH < 7.15 and volume allows."
+        label: "Stage 2: Metabolic & Electrolyte Optimization",
+        shortLabel: "Metabolic Control",
+        color: "amber",
+        cards: [
+          {
+            title: "Hyperkalemia Directive",
+            isCritical: true,
+            threshold: "K > 5.5",
+            orders: [
+              "Monitor K every 4-8 hours.",
+              "Shift: Insulin/Dextrose or Salbutamol Nebulizers.",
+              "Stabilize Heart: Calcium Gluconate 10% (0.5 mL/kg) if ECG changes present."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Hourly Intake/Output charting (use Foleys if needed).",
+              "Twice-daily weight checks.",
+              "Assess for lung rales and gallop rhythm every 4h.",
+              "Continuous ECG monitoring if hyperkalemic."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Renal Replacement Roadmap",
+        shortLabel: "Dialysis Triggers",
+        color: "red",
+        cards: [
+          {
+            title: "AEIOU Triggers for Dialysis",
+            threshold: "IF MEDICAL MANAGEMENT FAILS",
+            triggers: [
+              "A: Acidosis (Refractory Metabolic Acidosis).",
+              "E: Electrolytes (Refractory Hyperkalemia).",
+              "I: Intoxication (Dialyzable toxins: Salicylates/Lithium).",
+              "O: Overload (Refractory Fluid Overload > 10% weight).",
+              "U: Uremia (Encephalopathy, Pericarditis, BUN > 80-100)."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 4: Recovery & Discharge Planning",
+        shortLabel: "Recovery",
+        color: "emerald",
+        cards: [
+          {
+            title: "Recovery Markers",
+            orders: [
+              "UO established > 1.0 mL/kg/hr.",
+              "Stabilizing/Falling Creatinine for > 48 hours.",
+              "Normalizing electrolytes on oral intake.",
+              "Follow-up: Nephrology review in 2 weeks to monitor for CKD risk."
+            ]
+          }
         ]
       }
-    ];
+    ]
+  },
 
-    if (data.akiStage === 'stage3' || data.volumeStatus === 'hyper') {
-      mgmt.push({
-        title: "Indications for RRT (Dialysis/CRRT)",
-        recommendations: [
-          "A - Acidosis (Refractory metabolic acidosis).",
-          "E - Electrolytes (Refractory hyperkalemia).",
-          "I - Intoxication (Drugs like Salicylates/Lithium).",
-          "O - Overload (Fluid overload > 10% baseline weight + diuretic failure).",
-          "U - Uremia (Encephalopathy, Pericarditis, or BUN > 80-100 mg/dL)."
-        ]
-      });
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.hyperkalemiaECG === true || data.urineOutputLow === true) {
+      return { level: 'critical', details: ["KDIGO Stage 3 or dangerous hyperkalemia."] };
     }
-
-    return mgmt;
+    if (data.creatinineRise === true) {
+      return { level: 'severe', details: ["Documented AKI requiring close inpatient monitoring."] };
+    }
+    return { level: 'moderate', details: ["Stable surveillance for AKI."] };
   },
-  getDisposition: (severity: Severity, data: FormData) => {
-    return [
-      "Patient must have stable/improving creatinine for at least 48 hours.",
-      "Urine output established (> 1 mL/kg/hour).",
-      "Electrolytes stable on oral diet/fluids.",
-      "Follow-up with Nephrology is essential to ensure full recovery and monitor for CKD progression."
-    ];
-  },
-  getRedFlags: () => [
-    "Hyperkalemia with ECG changes (Peaked T waves, wide QRS).",
-    "Symptomatic fluid overload (Respiratory distress).",
-    "Uremic symptoms: Seizures, altered mental status, or friction rub.",
-    "Rapidly rising Creatinine/Urea."
+  getManagement: () => [],
+  getDisposition: () => [
+    "Stable or improving renal function.",
+    "No evidence of dangerous volume overload.",
+    "Potassium maintained < 5.5 without continuous intervention.",
+    "Clear outpatient medication plan (dose adjustments)."
   ],
-  getDrugDoses: (severity: Severity, data: FormData): DrugDose[] => {
-    const weight = Number(data.weight || 0);
-    if (!weight) return [];
-    return [
-      { drugName: "Furosemide (High dose trial)", dose: `${(weight * 2).toFixed(0)} mg IV Stat (Stop if no response)` },
-      { drugName: "Calcium Gluconate 10%", dose: `${(weight * 0.5).toFixed(0)} mL IV Over 10 mins (If K > 6.5 + ECG)` },
-      { drugName: "Salbutamol Nebulizer", dose: "2.5-5 mg Inhaled Stat for hyperkalemia" },
-    ];
-  },
+  getRedFlags: () => ["Peaked T waves", "Altered mental status", "Pulmonary edema", "Anuria"],
+  getDrugDoses: () => [],
   getReferences: () => [
-    { title: "KDIGO Clinical Practice Guideline for Acute Kidney Injury", url: "https://kdigo.org/guidelines/acute-kidney-injury/" },
-    { title: "PedsQL: AKI Management in Children", url: "https://pubmed.ncbi.nlm.nih.gov/30671904/" }
+    { title: "KDIGO Clinical Practice Guideline for AKI", url: "https://kdigo.org/guidelines/acute-kidney-injury/" },
+    { title: "StatPearls: Pediatric AKI Management", url: "https://www.ncbi.nlm.nih.gov/books/NBK541103/" }
   ]
 };
