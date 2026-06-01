@@ -114,6 +114,13 @@ import { wardLiverFailureProtocol } from './ward-liver-failure';
 import { wardFailureToThriveProtocol } from './ward-failure-to-thrive';
 import { wardKawasakiProtocol } from './ward-kawasaki';
 import { wardStatusEpilepticusProtocol } from './ward-status-epilepticus';
+import { wardUtiProtocol } from './ward-uti';
+import { wardNephroticFirstProtocol } from './ward-nephrotic-first';
+import { wardNephroticRelapseProtocol } from './ward-nephrotic-relapse';
+import { wardNephriticSyndromeProtocol } from './ward-nephritic-syndrome';
+import { wardAkiProtocol } from './ward-aki';
+import { wardHusProtocol } from './ward-hus';
+import { wardCkdOptimizationProtocol } from './ward-ckd-optimization';
 
 export const allProtocols: DiseaseProtocol[] = [
   bronchiolitisProtocol,
