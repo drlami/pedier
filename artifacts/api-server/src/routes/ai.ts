@@ -3,16 +3,21 @@ import { getDifferentialDiagnosis } from "../ai/differential-diagnosis-flow.js";
 import { checkDrugSafety } from "../ai/drug-safety-flow.js";
 import { draftDiseaseProtocol } from "../ai/draft-protocol-flow.js";
 import { draftCustomProtocol } from "../ai/draft-custom-protocol-flow.js";
-const router = Router();
 
-function requireLocalAdmin(req: Request, res: Response, next: NextFunction) {
-  const auth = req.headers["authorization"] ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (token === "local-session:admin") return next();
+const router: Router = Router();
+
+function requireLocalAdmin(req: Request, res: Response, next: NextFunction): void | Response {
+  const authHeader = req.headers["authorization"];
+  const auth: string = Array.isArray(authHeader) ? authHeader[0] : (authHeader ?? "");
+  const token: string = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+  
+  if (token === "local-session:admin") {
+    return next();
+  }
   return res.status(403).json({ message: "Admin access required." });
 }
 
-router.post("/ai/differential-diagnosis", async (req, res) => {
+router.post("/ai/differential-diagnosis", async (req: Request, res: Response): Promise<Response> => {
   try {
     const { age, symptoms, history } = req.body;
     if (!age || !symptoms) {
@@ -26,7 +31,7 @@ router.post("/ai/differential-diagnosis", async (req, res) => {
   }
 });
 
-router.post("/ai/drug-safety", async (req, res) => {
+router.post("/ai/drug-safety", async (req: Request, res: Response): Promise<Response> => {
   try {
     const { drugList } = req.body;
     if (!drugList || String(drugList).trim().length < 2) {
@@ -40,7 +45,7 @@ router.post("/ai/drug-safety", async (req, res) => {
   }
 });
 
-router.post("/ai/draft-protocol", async (req, res) => {
+router.post("/ai/draft-protocol", async (req: Request, res: Response): Promise<Response> => {
   try {
     const { guidelineText } = req.body;
     if (!guidelineText || String(guidelineText).trim().length < 100) {
@@ -54,7 +59,7 @@ router.post("/ai/draft-protocol", async (req, res) => {
   }
 });
 
-router.post("/ai/draft-custom-protocol", requireLocalAdmin, async (req, res) => {
+router.post("/ai/draft-custom-protocol", requireLocalAdmin, async (req: Request, res: Response): Promise<Response> => {
   try {
     const { description, system } = req.body;
     if (!description || String(description).trim().length < 20) {
