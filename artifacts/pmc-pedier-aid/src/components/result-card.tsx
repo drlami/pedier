@@ -12,26 +12,30 @@ interface ResultCardProps {
   variant?: ResultCardVariant;
 }
 
-const variantStyles: Record<ResultCardVariant, { border: string; icon: string; header: string }> = {
-  default:    { border: "border-l-4 border-l-primary/40",     icon: "text-primary",       header: "text-primary" },
-  management: { border: "border-l-4 border-l-primary",        icon: "text-primary",       header: "text-primary" },
-  decision:   { border: "border-emerald-200 bg-emerald-50/60", icon: "text-emerald-700",   header: "text-emerald-800" },
-  danger:     { border: "border-l-4 border-l-destructive",    icon: "text-destructive",   header: "text-destructive" },
-  drug:       { border: "border-l-4 border-l-violet-500",     icon: "text-violet-600",    header: "text-violet-700" },
-  info:       { border: "border-l-4 border-l-slate-400",      icon: "text-slate-500",     header: "text-slate-700" },
+const variantStyles: Record<ResultCardVariant, { card: string; icon: string; header: string; iconBg: string }> = {
+  default:    { card: "border-slate-100 bg-card", icon: "text-primary",   header: "text-slate-900", iconBg: "bg-primary/10" },
+  management: { card: "border-blue-100 bg-card",  icon: "text-blue-600",  header: "text-blue-900",  iconBg: "bg-blue-50" },
+  decision:   { card: "border-emerald-100 bg-emerald-50/20", icon: "text-emerald-600", header: "text-emerald-900", iconBg: "bg-emerald-100/50" },
+  danger:     { card: "border-red-200 bg-red-50/20", icon: "text-red-600",   header: "text-red-900",   iconBg: "bg-red-100" },
+  drug:       { card: "border-violet-100 bg-card", icon: "text-violet-600", header: "text-violet-900", iconBg: "bg-violet-50" },
+  info:       { card: "border-slate-100 bg-card", icon: "text-slate-600", header: "text-slate-900", iconBg: "bg-slate-100" },
 };
 
 export function ResultCard({ title, icon: Icon, children, className, variant = "default" }: ResultCardProps) {
   const styles = variantStyles[variant];
   return (
-    <Card className={cn("shadow-sm print-no-break-inside print-shadow-none print-border", styles.border, className)}>
-      <CardHeader className="pb-3 pt-4 px-4">
-        <CardTitle className={cn("flex items-center gap-2 text-sm font-semibold uppercase tracking-wide", styles.header)}>
-          {Icon && <Icon className={cn("h-4 w-4 shrink-0", styles.icon)} />}
+    <Card className={cn("rounded-[28px] border-2 shadow-sm transition-all hover:shadow-md print-no-break-inside print-shadow-none print-border", styles.card, className)}>
+      <CardHeader className="pb-3 pt-4 px-6 border-b border-inherit bg-muted/20">
+        <CardTitle className={cn("flex items-center gap-3 text-sm font-black uppercase tracking-widest", styles.header)}>
+          {Icon && (
+            <div className={cn("p-1.5 rounded-lg shrink-0", styles.iconBg)}>
+              <Icon className={cn("h-4 w-4 shrink-0", styles.icon)} />
+            </div>
+          )}
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm px-4 pb-4">
+      <CardContent className="space-y-4 text-sm px-6 py-6">
         {children}
       </CardContent>
     </Card>

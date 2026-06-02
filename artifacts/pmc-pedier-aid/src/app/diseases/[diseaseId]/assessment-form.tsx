@@ -40,12 +40,12 @@ interface AssessmentFormProps {
   diseaseId: string;
 }
 
-const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string }> = {
-  mild:     { card: 'bg-green-50  border-2 border-green-200  text-green-900',  icon: 'text-green-600',  dot: 'bg-green-500' },
-  moderate: { card: 'bg-amber-50  border-2 border-amber-200  text-amber-900',  icon: 'text-amber-600',  dot: 'bg-amber-500' },
-  severe:   { card: 'bg-orange-50 border-2 border-orange-200 text-orange-900', icon: 'text-orange-600', dot: 'bg-orange-500' },
-  critical: { card: 'bg-red-50    border-2 border-red-200    text-red-900',    icon: 'text-red-600',    dot: 'bg-red-500' },
-  unknown:  { card: 'bg-muted     border-2 border-border     text-muted-foreground', icon: 'text-muted-foreground', dot: 'bg-muted-foreground' },
+const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string; text: string }> = {
+  mild:     { card: 'bg-emerald-600 shadow-lg shadow-emerald-100', icon: 'text-emerald-50', text: 'text-white', dot: 'bg-emerald-400' },
+  moderate: { card: 'bg-amber-500 shadow-lg shadow-amber-100',   icon: 'text-amber-50',   text: 'text-white', dot: 'bg-amber-300' },
+  severe:   { card: 'bg-orange-600 shadow-lg shadow-orange-100',  icon: 'text-orange-50',  text: 'text-white', dot: 'bg-orange-300' },
+  critical: { card: 'bg-red-600 shadow-lg shadow-red-100',     icon: 'text-red-50',     text: 'text-white', dot: 'bg-red-400' },
+  unknown:  { card: 'bg-slate-700 shadow-lg shadow-slate-100',   icon: 'text-slate-50',   text: 'text-white', dot: 'bg-slate-400' },
 };
 
 // ─── Hyperkalemia scenario-focused results ────────────────────────────────────
@@ -53,10 +53,10 @@ const SEVERITY_BANNER: Record<string, { card: string; icon: string; dot: string 
 const URGENCY_STYLE: Record<HyperkalemiaUrgency, {
   card: string; badge: string; badgeText: string; icon: string; number: string;
 }> = {
-  low:       { card: 'bg-green-50  border-2 border-green-300',  badge: 'bg-green-100 text-green-800 border border-green-300',  badgeText: 'Non-Urgent',  icon: 'text-green-700',  number: 'bg-green-600'  },
-  moderate:  { card: 'bg-amber-50  border-2 border-amber-300',  badge: 'bg-amber-100 text-amber-800 border border-amber-300',  badgeText: 'Urgent',      icon: 'text-amber-700',  number: 'bg-amber-600'  },
-  high:      { card: 'bg-orange-50 border-2 border-orange-300', badge: 'bg-orange-100 text-orange-800 border border-orange-300', badgeText: 'High Priority', icon: 'text-orange-700', number: 'bg-orange-600' },
-  emergency: { card: 'bg-red-50    border-2 border-red-400',    badge: 'bg-red-600 text-white border border-red-700',           badgeText: '⚡ EMERGENCY', icon: 'text-red-700',    number: 'bg-red-600'    },
+  low:       { card: 'bg-emerald-50/50 border-2 border-emerald-100', badge: 'bg-emerald-100 text-emerald-800 border border-emerald-200',  badgeText: 'Non-Urgent',  icon: 'text-emerald-700',  number: 'bg-emerald-600'  },
+  moderate:  { card: 'bg-amber-50/50 border-2 border-amber-100',    badge: 'bg-amber-100 text-amber-800 border border-amber-200',      badgeText: 'Urgent',      icon: 'text-amber-700',  number: 'bg-amber-600'  },
+  high:      { card: 'bg-orange-50/50 border-2 border-orange-100',   badge: 'bg-orange-100 text-orange-800 border border-orange-200', badgeText: 'High Priority', icon: 'text-orange-700', number: 'bg-orange-600' },
+  emergency: { card: 'bg-red-600 shadow-xl shadow-red-100 border-red-500', badge: 'bg-white/20 text-white backdrop-blur-md',           badgeText: '⚡ EMERGENCY', icon: 'text-white',    number: 'bg-white text-red-600'    },
 };
 
 interface HyperkalemiaResultsContentProps {
@@ -290,63 +290,68 @@ function ResultsContent({
     <>
       {/* 0. Last Updated / Versioning */}
       {lastUpdated && (
-        <div className="flex items-center justify-between px-1 mb-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-            <Activity className="h-3 w-3" />
-            Clinical Protocol
+        <div className="flex items-center justify-between px-2 mb-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+            <Activity className="h-3.5 w-3.5" />
+            Decision Support Protocol
           </div>
-          <span className="text-[10px] font-bold text-muted-foreground/40 italic">
-            Last Reviewed: {lastUpdated}
+          <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-tighter">
+            Review: {lastUpdated}
           </span>
         </div>
-      )}
-
-      {/* Adrenaline alert (specific diseases) */}
-      {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
-        <Alert variant="destructive" className="bg-destructive/10">
-          <Info className="h-4 w-4" />
-          <AlertTitle className="font-bold">Adrenaline Preparation (Dilution Required)</AlertTitle>
-          <AlertDescription className="text-xs">
-            Your hospital stock is <strong>1 mg/mL (1:1,000)</strong>.
-            For IV/IO dosing, you <strong>MUST</strong> dilute 1 mL of Adrenaline with 9 mL of
-            Normal Saline to make 10 mL of <strong>0.1 mg/mL (1:10,000)</strong> concentration
-            before administration.
-          </AlertDescription>
-        </Alert>
       )}
 
       {/* 1. SEVERITY — hero banner */}
-      <div className={cn('rounded-xl p-4', bannerStyle.card)}>
-        <div className="flex items-center gap-2 mb-2">
+      <div className={cn('rounded-[32px] p-6 relative overflow-hidden transition-all', bannerStyle.card, (bannerStyle as any).text)}>
+        <div className="absolute top-0 right-0 -mr-6 -mt-6 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
+        <div className="relative z-10 flex items-center gap-2 mb-3 opacity-80">
           <Stethoscope className={cn('h-4 w-4 shrink-0', bannerStyle.icon)} />
-          <span className="text-xs font-semibold uppercase tracking-widest opacity-60">
-            Severity Classification
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+            Final Severity Classification
           </span>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <SeverityBadge level={severityLevel} />
+        <div className="relative z-10 flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+             <h3 className="text-3xl font-black tracking-tighter uppercase leading-none">
+               {severityLevel}
+             </h3>
+             <div className={cn("h-3 w-3 rounded-full animate-pulse", bannerStyle.dot)} />
+          </div>
           {severity.details.length > 0 && (
-            <p className="text-xs opacity-70">Based on: {severity.details.join(', ')}</p>
+            <p className="text-xs font-bold opacity-90 tracking-tight leading-tight max-w-[280px]">
+              {severity.details.join(', ')}
+            </p>
           )}
         </div>
       </div>
 
+      {/* Adrenaline alert (specific diseases) */}
+      {['bradycardia', 'septic-shock', 'anaphylactic-shock'].includes(diseaseId) && (
+        <Alert variant="destructive" className="bg-red-50 border-2 border-red-200 text-red-900 rounded-[24px] p-5 shadow-sm">
+          <TriangleAlert className="h-4 w-4 text-red-600" />
+          <AlertTitle className="font-black uppercase tracking-widest text-xs mb-2">Adrenaline Preparation (Dilution Required)</AlertTitle>
+          <AlertDescription className="text-xs font-bold leading-relaxed opacity-80">
+            Your hospital stock is 1 mg/mL (1:1,000). For IV/IO dosing, you MUST dilute 1 mL of Adrenaline with 9 mL of Normal Saline to make 10 mL of 0.1 mg/mL (1:10,000) before administration.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* 1b. Standardized Score Badge */}
       {severity.scoreDetails && (
-        <div className="space-y-3">
-          <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4">
-            <div className="space-y-1">
+        <div className="space-y-4">
+          <div className="rounded-[28px] border-2 border-primary/20 bg-primary/5 p-5 flex items-center justify-between gap-6 shadow-sm">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-primary">
                 <ClipboardList className="h-4 w-4" />
-                <span className="text-xs font-bold uppercase tracking-wider">{severity.scoreDetails.systemName}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">{severity.scoreDetails.systemName}</span>
               </div>
-              <p className="text-sm font-bold">{severity.scoreDetails.interpretation}</p>
+              <p className="text-lg font-black tracking-tight text-slate-900">{severity.scoreDetails.interpretation}</p>
             </div>
-            <div className="flex flex-col items-center justify-center bg-primary text-white rounded-lg px-3 py-2 min-w-[70px]">
-              <span className="text-2xl font-black leading-none">{severity.scoreDetails.totalScore}</span>
+            <div className="flex flex-col items-center justify-center bg-primary text-white rounded-2xl p-4 min-w-[90px] shadow-lg shadow-primary/20">
+              <span className="text-3xl font-black leading-none tracking-tighter">{severity.scoreDetails.totalScore}</span>
               {severity.scoreDetails.maxScore && (
-                <span className="text-[10px] font-bold opacity-80 mt-1 uppercase border-t border-white/30 pt-1 w-full text-center">
-                  Out of {severity.scoreDetails.maxScore}
+                <span className="text-[10px] font-black opacity-70 mt-2 uppercase border-t border-white/20 pt-1.5 w-full text-center tracking-widest">
+                  / {severity.scoreDetails.maxScore}
                 </span>
               )}
             </div>
@@ -354,26 +359,25 @@ function ResultsContent({
 
           {/* Reference Table for Score Interpretation */}
           {severity.scoreDetails.referenceTable && (
-            <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
-              <div className="bg-muted px-3 py-1.5 border-b border-border flex items-center gap-2">
-                <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Score Interpretation Reference</span>
+            <div className="rounded-[24px] border-2 border-slate-100 bg-muted/20 overflow-hidden shadow-sm">
+              <div className="bg-muted/40 px-5 py-3 border-b-2 border-slate-100 flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-slate-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Score Interpretation</span>
               </div>
-              <table className="w-full text-xs text-left border-collapse">
+              <table className="w-full text-[11px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-background/50">
-                    <th className="px-3 py-1.5 font-bold text-muted-foreground w-1/3">Score Range</th>
-                    <th className="px-3 py-1.5 font-bold text-muted-foreground">Clinical Meaning</th>
+                  <tr className="border-b-2 border-slate-100 bg-slate-50/50">
+                    <th className="px-5 py-2.5 font-black text-slate-400 w-1/3 uppercase tracking-tighter">Range</th>
+                    <th className="px-5 py-2.5 font-black text-slate-400 uppercase tracking-tighter">Clinical Meaning</th>
                   </tr>
                 </thead>
                 <tbody>
                   {severity.scoreDetails.referenceTable.map((row, idx) => {
-                    // Check if current score falls in this range (rough check for highlighting)
                     const isSelected = severity.scoreDetails?.interpretation.toLowerCase().includes(row.meaning.toLowerCase().split(' ')[0]);
                     return (
-                      <tr key={idx} className={cn("border-b border-border last:border-0", isSelected ? "bg-primary/5 font-medium" : "bg-background")}>
-                        <td className="px-3 py-2 text-primary font-bold">{row.range}</td>
-                        <td className="px-3 py-2">{row.meaning}</td>
+                      <tr key={idx} className={cn("border-b border-slate-100 last:border-0 transition-colors", isSelected ? "bg-primary/5 font-bold" : "bg-white")}>
+                        <td className="px-5 py-3 text-primary font-black">{row.range}</td>
+                        <td className="px-5 py-3 text-slate-700">{row.meaning}</td>
                       </tr>
                     );
                   })}
@@ -385,40 +389,42 @@ function ResultsContent({
       )}
 
       {/* 2. RED FLAGS */}
-      <Alert className="border-red-200 bg-red-50 text-red-900">
-        <TriangleAlert className="h-4 w-4 text-red-600" />
-        <AlertTitle className="font-bold">Red Flags</AlertTitle>
-        <AlertDescription className="mt-2">
-          {redFlags.length > 0 ? (
-            <ul className="space-y-1 text-sm">
-              {redFlags.map((flag, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
-                  <span className="font-medium">{flag}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm">No immediate red flags identified.</p>
-          )}
-        </AlertDescription>
-      </Alert>
+      <div className="rounded-[28px] border-2 border-red-200 bg-red-50 p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+           <div className="p-1.5 rounded-lg bg-red-100 text-red-600">
+              <TriangleAlert className="h-5 w-5" />
+           </div>
+           <h3 className="text-sm font-black uppercase tracking-widest text-red-900">Critical Red Flags</h3>
+        </div>
+        {redFlags.length > 0 ? (
+          <ul className="grid grid-cols-1 gap-2.5">
+            {redFlags.map((flag, i) => (
+              <li key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/60 border border-red-100 text-sm font-bold text-red-900">
+                <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                {flag}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm font-bold text-red-700 italic">No immediate red flags identified.</p>
+        )}
+      </div>
 
       {/* 2.5 INVESTIGATIONS */}
       {investigations && investigations.length > 0 && (
-        <ResultCard title="Recommended Investigations" icon={Activity} variant="info">
-          <div className="space-y-4">
+        <ResultCard title="Step 0: Investigations" icon={Activity} variant="info">
+          <div className="space-y-6">
             {investigations.map((inv, idx) => (
-              <div key={idx} className="space-y-2">
-                <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
-                  <div className="w-1 h-3 bg-primary/40 rounded-full" />
+              <div key={idx} className="space-y-3">
+                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                   {inv.title}
                 </h5>
-                <ul className="space-y-1.5">
+                <ul className="grid grid-cols-1 gap-2">
                   {inv.list.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2.5 ml-3">
-                      <span className="mt-1.5 h-1 w-1 rounded-full bg-primary/40 shrink-0" />
-                      <span className="text-sm leading-snug font-medium">{item}</span>
+                    <li key={i} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-700">
+                      <CheckCircle2 className="h-4 w-4 text-primary/40 shrink-0 mt-0.5" />
+                      {item}
                     </li>
                   ))}
                 </ul>
@@ -431,59 +437,59 @@ function ResultsContent({
       {/* 3. MANAGEMENT — numbered steps */}
       {management.map((m) => (
         <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
-          <ol className="space-y-2">
+          <div className="space-y-3">
             {m.recommendations.map((rec, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-blue-50/50 border border-blue-100/50 text-sm font-bold text-slate-800 leading-snug">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-[11px] font-black text-white shadow-md shadow-blue-200">
                   {i + 1}
                 </span>
-                <span className="flex-1 leading-snug">{rec}</span>
-              </li>
+                <span className="flex-1 pt-0.5">{rec}</span>
+              </div>
             ))}
-          </ol>
+          </div>
         </ResultCard>
       ))}
 
       {/* 4. FINAL DECISION */}
-      <ResultCard title="Triage / Disposition" icon={Hospital} variant="decision">
-        <ul className="space-y-2">
+      <ResultCard title="Triage & Disposition" icon={Hospital} variant="decision">
+        <div className="space-y-2.5">
           {disposition.map((d, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="leading-snug">{d}</span>
-            </li>
+            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 text-sm font-bold text-emerald-950">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              {d}
+            </div>
           ))}
-        </ul>
+        </div>
       </ResultCard>
 
       {/* 4.5 DISCHARGE & FOLLOW UP */}
       {(dischargeCriteria || followUp) && (
-        <ResultCard title="Safe Discharge & Follow-Up" icon={CheckCircle2} variant="decision">
-          <div className="space-y-5">
+        <ResultCard title="Care Transition" icon={CheckCircle2} variant="decision">
+          <div className="space-y-6">
             {dischargeCriteria && dischargeCriteria.length > 0 && (
-              <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">Discharge Criteria</h5>
-                <ul className="space-y-1.5">
+              <div className="space-y-3">
+                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700/60 ml-1">Safe Discharge Criteria</h5>
+                <div className="grid grid-cols-1 gap-2">
                   {dischargeCriteria.map((c, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                      <span className="text-sm leading-snug font-medium text-emerald-900">{c}</span>
-                    </li>
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-emerald-100 text-xs font-black text-emerald-900 shadow-sm">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      {c}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
             {followUp && followUp.length > 0 && (
-              <div className="space-y-2">
-                <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md inline-block">Follow-Up Plan</h5>
-                <ul className="space-y-1.5">
+              <div className="space-y-3">
+                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-700/60 ml-1">Follow-Up Strategy</h5>
+                <div className="grid grid-cols-1 gap-2">
                   {followUp.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <Activity className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
-                      <span className="text-sm leading-snug font-medium text-blue-900">{f}</span>
-                    </li>
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-blue-50/50 border border-blue-100 text-xs font-black text-blue-900 shadow-sm">
+                      <Activity className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                      {f}
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>
@@ -492,56 +498,66 @@ function ResultsContent({
 
       {/* 5. DRUG DOSES */}
       {drugDoses.length > 0 && (
-        <ResultCard title="Relevant Drug Doses" icon={Pill} variant="drug">
-          <div className="divide-y divide-border rounded-md overflow-hidden border">
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-2 px-2">
+             <Pill className="h-4 w-4 text-violet-500" />
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60">Calculated Medication Doses</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-1">
             {drugDoses.map((drug, i) => (
-              <div key={i} className="px-3 py-2 bg-background">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-semibold text-sm">{drug.drugName}</span>
-                  <span className="text-sm text-right shrink-0 text-muted-foreground">{drug.dose}</span>
+              <div key={i} className="group relative overflow-hidden rounded-[24px] border-2 border-violet-100 bg-white p-4 shadow-sm hover:border-violet-400 transition-all">
+                <div className="relative z-10 space-y-3">
+                   <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-violet-600/60 uppercase tracking-widest">Prescription</span>
+                      <div className="p-1.5 rounded-lg bg-violet-50 text-violet-600"><Pill className="h-3.5 w-3.5" /></div>
+                   </div>
+                   <div>
+                      <h4 className="font-black text-base text-slate-900 tracking-tight leading-none mb-1.5">{drug.drugName}</h4>
+                      <p className="text-2xl font-black text-violet-600 tracking-tighter leading-none">{drug.dose}</p>
+                   </div>
+                   {drug.notes && (
+                      <p className="text-[11px] font-bold text-slate-500 leading-tight border-t border-violet-50 pt-2 italic">
+                        {drug.notes}
+                      </p>
+                   )}
                 </div>
-                {drug.notes && (
-                  <p className="text-xs text-muted-foreground mt-0.5">{drug.notes}</p>
-                )}
               </div>
             ))}
           </div>
-        </ResultCard>
+        </div>
       )}
 
       {/* 6. REFERENCES — collapsed by default */}
       {references.length > 0 && (
-        <div>
+        <div className="px-1 pt-4">
           <button
             type="button"
             onClick={() => setShowRefs((v) => !v)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+            className="flex items-center gap-2 p-4 rounded-2xl border-2 border-slate-100 bg-slate-50/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:border-primary/20 transition-all w-full shadow-sm"
           >
-            <BookOpen className="h-3.5 w-3.5" />
-            <span>{showRefs ? 'Hide' : 'Show'} References ({references.length})</span>
-            {showRefs ? <ChevronUp className="h-3.5 w-3.5 ml-auto" /> : <ChevronDown className="h-3.5 w-3.5 ml-auto" />}
+            <BookOpen className="h-4 w-4" />
+            <span>{showRefs ? 'Hide' : 'Show'} Clinical Evidence ({references.length})</span>
+            {showRefs ? <ChevronUp className="h-4 w-4 ml-auto" /> : <ChevronDown className="h-4 w-4 ml-auto" />}
           </button>
           {showRefs && (
-            <ResultCard title="References" icon={BookOpen} variant="info" className="mt-2">
-              <ul className="list-disc list-inside space-y-1">
-                {references.map((ref, i) => (
-                  <li key={i}>
-                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {ref.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </ResultCard>
+            <div className="mt-3 grid grid-cols-1 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              {references.map((ref, i) => (
+                <a key={i} href={ref.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-primary hover:shadow-md transition-all group">
+                   <span className="text-xs font-bold text-slate-700 group-hover:text-primary">{ref.title}</span>
+                   <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                </a>
+              ))}
+            </div>
           )}
         </div>
       )}
 
       {/* Print summary link */}
-      <div className="no-print pt-2">
-        <Button asChild variant="outline" className="w-full bg-muted/30 border-muted-foreground/20 hover:bg-muted/50">
+      <div className="no-print pt-6">
+        <Button asChild size="lg" variant="outline" className="w-full h-14 rounded-[20px] bg-slate-900 text-white border-none hover:bg-slate-800 hover:text-white shadow-xl shadow-slate-100 transition-all active:scale-[0.98]">
           <Link href={summaryUrl}>
-            <FileText className="mr-2 h-4 w-4" /> View Printable Summary
+            <FileText className="mr-3 h-5 w-5" /> 
+            <span className="font-black uppercase tracking-widest text-xs">Generate Clinical Summary</span>
           </Link>
         </Button>
       </div>
@@ -598,15 +614,16 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     switch (question.type) {
       case 'number':
         return (
-          <div className="relative">
+          <div className="relative group">
             <Input
               id={question.id}
               type="number"
               value={field.value !== undefined && field.value !== false ? String(field.value) : ''}
               onChange={(e) => field.onChange(e.target.value === '' ? undefined : +e.target.value)}
+              className="h-12 bg-slate-50 border-slate-200 text-lg font-black focus:bg-white focus:ring-primary focus:border-primary rounded-xl transition-all"
             />
             {question.unit && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase tracking-widest">
                 {question.unit}
               </span>
             )}
@@ -616,12 +633,12 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
       case 'select':
         return (
           <Select onValueChange={field.onChange} value={field.value as string}>
-            <SelectTrigger id={question.id}>
+            <SelectTrigger id={question.id} className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold text-slate-800">
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-2 shadow-xl">
               {question.options?.map((option) => (
-                <SelectItem key={String(option.value)} value={String(option.value)}>
+                <SelectItem key={String(option.value)} value={String(option.value)} className="font-bold py-3 rounded-lg">
                   {option.label}
                 </SelectItem>
               ))}
@@ -635,7 +652,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
             id={question.id}
             onValueChange={(v) => field.onChange(v === 'true')}
             value={field.value === undefined ? '' : String(field.value)}
-            className="flex gap-3"
+            className="flex gap-4"
           >
             {[
               { value: 'false', label: 'No' },
@@ -647,16 +664,17 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
                   key={value}
                   htmlFor={`${question.id}-${value}`}
                   className={cn(
-                    'flex items-center gap-2.5 flex-1 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors',
+                    'flex items-center gap-3 flex-1 px-4 py-3.5 rounded-2xl border-2 cursor-pointer transition-all active:scale-[0.97]',
                     selected
                       ? value === 'true'
-                        ? 'bg-blue-50 border-blue-300 text-blue-800'
-                        : 'bg-muted/60 border-border text-foreground'
-                      : 'border-border hover:bg-muted/40',
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100'
+                        : 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-100'
+                      : 'bg-white border-slate-100 hover:border-slate-200 text-slate-600',
                   )}
                 >
-                  <RadioGroupItem value={value} id={`${question.id}-${value}`} className="shrink-0" />
-                  <span className="text-sm font-medium">{label}</span>
+                  <RadioGroupItem value={value} id={`${question.id}-${value}`} className="sr-only" />
+                  <span className="text-sm font-black uppercase tracking-widest">{label}</span>
+                  {selected && <CheckCircle2 className="h-4 w-4 ml-auto shrink-0 opacity-80" />}
                 </label>
               );
             })}
@@ -668,7 +686,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
           <RadioGroup
             onValueChange={field.onChange}
             value={field.value as string}
-            className="space-y-2"
+            className="grid grid-cols-1 gap-3"
           >
             {question.options?.map((option, idx) => {
               const val = String(option.value);
@@ -677,26 +695,26 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               const colorClass =
                 selected && optCount >= 3
                   ? idx === 0
-                    ? 'bg-green-50 border-green-300 text-green-800'
+                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-50'
                     : idx === optCount - 1
-                    ? 'bg-red-50 border-red-300 text-red-800'
-                    : 'bg-amber-50 border-amber-300 text-amber-800'
+                    ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-50'
+                    : 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-50'
                   : selected
-                  ? 'bg-primary/8 border-primary/30 text-primary'
-                  : 'border-border hover:bg-muted/40 hover:border-muted-foreground/20';
+                  ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                  : 'bg-white border-slate-100 hover:border-slate-200 text-slate-600';
 
               return (
                 <label
                   key={val}
                   htmlFor={`${question.id}-${val}`}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors',
+                    'flex items-center gap-4 px-4 py-4 rounded-2xl border-2 cursor-pointer transition-all active:scale-[0.98]',
                     colorClass,
                   )}
                 >
-                  <RadioGroupItem value={val} id={`${question.id}-${val}`} className="shrink-0" />
-                  <span className="text-sm leading-snug">{option.label}</span>
-                  {selected && <CheckCircle2 className="h-3.5 w-3.5 ml-auto shrink-0 opacity-60" />}
+                  <RadioGroupItem value={val} id={`${question.id}-${val}`} className="sr-only" />
+                  <span className="text-sm font-black leading-tight flex-1">{option.label}</span>
+                  {selected && <CheckCircle2 className="h-5 w-5 ml-auto shrink-0 opacity-80" />}
                 </label>
               );
             })}
@@ -709,31 +727,31 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   };
 
   const renderQuestion = (question: Question) => (
-    <Card key={question.id} className="overflow-hidden">
-      <CardHeader className="py-2.5 px-4 bg-muted/30 border-b">
-        <CardTitle className="text-sm font-semibold leading-snug">
-          <div className="flex items-start gap-2">
-            <span className="flex-1">{question.questionText}</span>
+    <Card key={question.id} className="overflow-hidden rounded-[28px] border-2 border-slate-100 shadow-sm transition-all hover:shadow-md group">
+      <CardHeader className="py-4 px-6 bg-slate-50/50 border-b-2 border-slate-100 group-hover:bg-slate-50 transition-colors">
+        <CardTitle className="text-sm font-black leading-snug">
+          <div className="flex items-start justify-between gap-4">
+            <span className="flex-1 text-slate-800 uppercase tracking-tight">{question.questionText}</span>
             {question.info && (
               <button
                 type="button"
                 onClick={() => setOpenInfoId(openInfoId === question.id ? null : question.id)}
-                className="shrink-0 rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700 hover:bg-red-200"
+                className="shrink-0 rounded-xl bg-red-50 p-2 text-[10px] font-black text-red-600 hover:bg-red-100 transition-all border border-red-100 shadow-sm"
                 aria-label="Show question information"
                 aria-expanded={openInfoId === question.id}
               >
-                !
+                INFO
               </button>
             )}
           </div>
           {question.info && openInfoId === question.id && (
-            <div className="mt-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-normal text-red-800">
+            <div className="mt-4 rounded-2xl border-2 border-red-100 bg-red-50/50 p-4 text-[11px] font-bold text-red-900 leading-relaxed animate-in slide-in-from-top-2 duration-200 shadow-sm">
               {question.info}
             </div>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-3 pb-3 px-4">
+      <CardContent className="pt-5 pb-5 px-6 bg-white">
         <Controller
           name={question.id}
           control={control}
@@ -756,58 +774,69 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
   const isHyperkalemia = diseaseId === 'hyperkalemia';
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
       {/* ── Left column: questions ── */}
-      <div className="space-y-3">
+      <div className="space-y-6">
         {/* Paracetamol toxic dose alert */}
         {diseaseId === 'paracetamol-toxicity' && (
-          <Alert variant="destructive" className="bg-destructive/10">
-            <AlertTitle className="font-bold text-sm">Pediatric Toxic Dose Reference</AlertTitle>
-            <AlertDescription className="text-xs mt-1 space-y-1">
-              <div><strong>Acute (single) ingestion:</strong> &gt; 150 mg/kg — Potentially toxic</div>
-              <div><strong>Chronic / repeated (supratherapeutic):</strong> &gt; 200 mg/kg over 24 h, OR &gt; 150 mg/kg/day for 2 days, OR &gt; 100 mg/kg/day for ≥ 3 days</div>
+          <Alert variant="destructive" className="bg-red-50 border-2 border-red-200 text-red-900 rounded-[28px] p-6 shadow-sm">
+            <TriangleAlert className="h-6 w-6 text-red-600 mb-2" />
+            <AlertTitle className="font-black uppercase tracking-widest text-xs mb-2">Pediatric Toxic Dose Reference</AlertTitle>
+            <AlertDescription className="text-xs font-bold leading-relaxed space-y-2 opacity-80">
+              <div className="p-2 rounded-xl bg-white/40"><strong>Acute ingestion:</strong> {">"} 150 mg/kg — Potentially toxic</div>
+              <div className="p-2 rounded-xl bg-white/40"><strong>Chronic ingestion:</strong> {">"} 200 mg/kg over 24h, or {">"} 150 mg/kg/day for 2 days</div>
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="rounded-[32px] border-2 border-slate-100 bg-card p-6 shadow-md space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mr-4 -mt-4 w-20 h-20 bg-primary/5 rounded-full blur-2xl" />
+          <div className="flex items-center justify-between gap-4 relative z-10">
             <div className="space-y-1">
-              <h2 className="flex items-center gap-2 font-headline text-xl font-bold">
-                <Stethoscope className="h-5 w-5 text-primary" />
-                Assessment Questions
+              <h2 className="flex items-center gap-3 font-headline text-2xl font-black tracking-tighter">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary"><Stethoscope className="h-6 w-6" /></div>
+                Clinical Assessment
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider opacity-60">
                 {isHyperkalemia
-                  ? 'Answer the questions to classify the scenario and see the matched management plan.'
-                  : 'Answer the minimum required questions to update the protocol results in real time.'}
+                  ? 'Verify clinical findings to classify scenario'
+                  : 'Real-time protocol decision support'}
               </p>
             </div>
-            <span className={cn(
-              'text-xs font-medium px-2 py-1 rounded-full border shrink-0',
-              allAnswered
-                ? 'bg-green-50 text-green-700 border-green-200'
-                : 'bg-muted text-muted-foreground border-border',
-            )}>
-              {answeredCount}/{totalCount} answered
-            </span>
+            <div className="flex flex-col items-end shrink-0">
+               <span className={cn(
+                'text-[10px] font-black px-3 py-1.5 rounded-xl border tracking-widest uppercase',
+                allAnswered
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-slate-50 text-slate-500 border-slate-200 shadow-inner',
+               )}>
+                {answeredCount} / {totalCount}
+               </span>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          
+          <div className="space-y-2 relative z-10">
+            <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden shadow-inner p-0.5 border border-slate-200/50">
               <div
                 className={cn(
-                  'h-full rounded-full transition-all',
-                  allAnswered ? 'bg-green-500' : 'bg-primary',
+                  'h-full rounded-full transition-all duration-700 ease-out shadow-sm',
+                  allAnswered ? 'bg-emerald-500' : 'bg-primary',
                 )}
                 style={{ width: `${completionPercent}%` }}
               />
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              {completionPercent}% complete
-            </p>
+            <div className="flex justify-between items-center px-1">
+               <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest">
+                 Assessment Progress
+               </p>
+               <p className="text-[10px] font-black text-primary uppercase">
+                 {completionPercent}%
+               </p>
+            </div>
           </div>
         </div>
-        <div className="space-y-2">
+        
+        <div className="space-y-4">
           {protocol.questions.map(renderQuestion)}
         </div>
       </div>
@@ -831,13 +860,17 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               severityLevel={severityLevel}
               severity={severity}
               redFlags={redFlags}
+              investigations={investigations}
               management={management}
               disposition={disposition}
+              dischargeCriteria={dischargeCriteria}
+              followUp={followUp}
               drugDoses={drugDoses}
               references={references}
               showRefs={showRefs}
               setShowRefs={setShowRefs}
               summaryUrl={summaryUrl}
+              lastUpdated={lastUpdated}
             />
           )}
         </div>
