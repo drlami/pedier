@@ -13,10 +13,10 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
 import { DoseBillboard } from "@/app/cardiac-arrest/dose-billboard";
-import { ArrestTimer } from "@/app/cardiac-arrest/arrest-timer";
+import { ArrestTimer, ArrestState } from "@/app/cardiac-arrest/arrest-timer";
 import { UnifiedAirwayPanel } from "@/app/cardiac-arrest/unified-airway-panel";
 
-// Helper functions (moved from ResuscitationCalculator for consistency)
+// Helper functions
 const round = (value: number, decimals = 1) => Number(value.toFixed(decimals));
 
 const estimateWeight = (age: number, unit: "months" | "years"): number => {
@@ -41,6 +41,11 @@ const getAgeCategory = (ageInYears: number): "neonate" | "infant" | "toddler" | 
   return "adolescent";
 };
 
+interface ResuscitationEvent {
+  time: string;
+  msg: string;
+}
+
 export default function CardiacArrestPage() {
   const [weight, setWeight] = useState<number | string>("");
   const [age, setAge] = useState<number | string>("");
@@ -48,8 +53,31 @@ export default function CardiacArrestPage() {
   const [inputType, setInputType] = useState<"weight" | "age">("weight");
   const [patientType, setPatientType] = useState("infant-child");
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showResources, setShowResources] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
+  
+  // New State-Based Engine Variables
+  const [arrestState, setArrestState] = useState<ArrestState>("idle");
+  const [events, setEvents] = useState<ResuscitationEvent[]>([]);
+  const [shockCount, setShockCount] = useState(0);
+
+  const addEvent = (msg: string) => {
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+    setEvents(prev => [{ time: timeStr, msg }, ...prev].slice(0, 50));
+  };
+
+  const handleShock = () => {
+    const nextShock = shockCount + 1;
+    setShockCount(nextShock);
+    addEvent(`Shock Delivered #${nextShock} (${getShockJoules(nextShock)} J)`);
+  };
+
+  const getShockJoules = (count: number) => {
+    const w = Number(finalWeight) || 0;
+    if (count === 1) return round(w * 2, 0);
+    if (count === 2) return round(w * 4, 0);
+    return Math.min(round(w * 10, 0), 200); // Max 10J/kg or adult max
+  };
 
   const finalWeight = useMemo(() => {
     if (inputType === "weight") {
@@ -87,7 +115,7 @@ export default function CardiacArrestPage() {
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
             <HeartPulse className="h-8 w-8 text-red-600" />
           </div>
-          <h1 className="text-3xl font-black text-red-900 font-headline mb-2">Cardiac Arrest Mission Control</h1>
+          <h1 className="text-3xl font-black text-red-900 font-headline mb-2 text-balance">Cardiac Arrest Mission Control</h1>
           <p className="text-red-700/70 max-w-md">Immediate, high-visibility resuscitation parameters for pediatric emergencies.</p>
         </div>
 
@@ -179,9 +207,6 @@ export default function CardiacArrestPage() {
 
   const epiMl = round(finalWeight * 0.1, 1);
   const epiMg = round(finalWeight * 0.01, 2);
-  const shock1 = round(finalWeight * 2, 0);
-  const shock2 = round(finalWeight * 4, 0);
-
   const padSize = finalWeight < 10 ? "PEDIATRIC PADS" : "ADULT PADS";
 
   return (
@@ -189,73 +214,142 @@ export default function CardiacArrestPage() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b shadow-sm -mx-4 px-4 py-3 flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <div className="bg-red-600 text-white p-2 rounded-lg">
-            <HeartPulse className="h-5 w-5" />
+          <div className="bg-red-600 text-white p-2 rounded-lg shadow-lg shadow-red-900/20">
+            <HeartPulse className="h-5 w-5 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-lg font-black tracking-tight leading-none">MISSION CONTROL</h2>
-            <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest">Pediatric Arrest</p>
+            <h2 className="text-lg font-black tracking-tight leading-none uppercase italic">
+              {arrestState === "rosc" ? "Stabilization Mode" : arrestState === "tachycardia" ? "Tachycardia Mode" : "Resuscitation Mode"}
+            </h2>
+            <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest">
+              {arrestState === "shockable" ? "Shockable Rhythm" : arrestState === "non-shockable" ? "Non-Shockable Rhythm" : "Pediatric Alert"}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">Working Weight</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">Weight</p>
             <p className="text-xl font-black tracking-tighter leading-none">{finalWeight.toFixed(1)} <span className="text-sm opacity-50">kg</span></p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => { setWeight(""); setAge(""); }} className="h-8 text-[10px] font-bold uppercase tracking-wider px-2">
-            Edit
+          <Button variant="outline" size="sm" onClick={() => { setIsUnlocked(false); setWeight(""); setArrestState("idle"); setEvents([]); }} className="h-8 text-[10px] font-bold uppercase tracking-wider px-2">
+            Reset
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Timing & Primary Doses */}
         <div className="lg:col-span-8 space-y-6">
-          <ArrestTimer />
+          <ArrestTimer onStateChange={setArrestState} onEvent={addEvent} />
 
-          {/* Adrenaline Dilution Alert */}
-          <Alert variant="destructive" className="bg-red-950 border-red-800 text-white">
-            <Syringe className="h-5 w-5 text-red-400" />
-            <AlertTitle className="text-red-400 font-black uppercase tracking-widest text-xs">Epinephrine Dilution Required</AlertTitle>
-            <AlertDescription className="text-sm font-medium">
-              ER Stock is <span className="underline decoration-red-500 underline-offset-4">1:1,000 (1mg/mL)</span>. 
-              <span className="block mt-1 text-red-100">
-                To make <strong>1:10,000</strong>: Draw <strong>1 mL</strong> of 1:1,000 Adrenaline and dilute with <strong>9 mL</strong> of Normal Saline.
-              </span>
-            </AlertDescription>
-          </Alert>
-
+          {/* Dynamic Billboards based on State */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DoseBillboard
-              label="Epinephrine (1:10,000)"
-              value={epiMl}
-              unit="mL IV/IO"
-              subtitle={`${epiMg} mg (0.01 mg/kg)`}
-              color="red"
-            />
-            <div className="grid grid-cols-1 gap-4">
-              <div className="relative">
+            {/* Context-Aware Primary Card */}
+            {arrestState === "shockable" ? (
+              <div className="relative group">
                 <DoseBillboard
-                  label="First Shock"
-                  value={shock1}
+                  label={`Next Shock (#${shockCount + 1})`}
+                  value={getShockJoules(shockCount + 1)}
                   unit="Joules"
-                  subtitle="2 J/kg (Shockable only)"
+                  subtitle={`${shockCount === 0 ? "2 J/kg" : shockCount === 1 ? "4 J/kg" : "Escalating (Max 10J/kg)"}`}
                   color="amber"
                 />
+                <Button 
+                   className="absolute bottom-2 right-2 h-10 bg-slate-900 hover:bg-black text-white font-black text-[10px] uppercase px-3 rounded-md shadow-xl"
+                   onClick={handleShock}
+                >
+                  Deliver & Log
+                </Button>
                 <div className="absolute top-2 right-2 bg-slate-900 text-[8px] font-black text-white px-1.5 py-0.5 rounded border border-slate-700">
                   {padSize}
                 </div>
               </div>
+            ) : arrestState === "rosc" ? (
               <DoseBillboard
-                label="Second Shock"
-                value={shock2}
-                unit="Joules"
-                subtitle="4 J/kg (Subsequent 4-10 J/kg)"
+                label="Target SpO2"
+                value="94-99"
+                unit="%"
+                subtitle="Avoid Hyperoxia"
+                color="blue"
+              />
+            ) : arrestState === "tachycardia" ? (
+              <DoseBillboard
+                label="Adenosine (1st Dose)"
+                value={round(finalWeight * 0.1, 1)}
+                unit="mg"
+                subtitle="0.1 mg/kg Rapid IV Push"
                 color="amber"
               />
-            </div>
+            ) : (
+              <DoseBillboard
+                label="Epinephrine (1:10,000)"
+                value={epiMl}
+                unit="mL IV/IO"
+                subtitle={`${epiMg} mg (0.01 mg/kg)`}
+                color="red"
+              />
+            )}
+
+            {/* Context-Aware Secondary Card */}
+            {arrestState === "shockable" ? (
+              <DoseBillboard
+                label="Amiodarone (Shockable)"
+                value={round(finalWeight * 5, 1)}
+                unit="mg"
+                subtitle="5 mg/kg (After 3rd shock)"
+                color="red"
+              />
+            ) : arrestState === "rosc" ? (
+              <DoseBillboard
+                label="Systolic BP Goal"
+                value={round(70 + (2 * (ageInYears || 0)), 0)}
+                unit="mmHg"
+                subtitle="5th Percentile (PALS)"
+                color="green"
+              />
+            ) : arrestState === "tachycardia" ? (
+              <DoseBillboard
+                label="Sync Cardioversion"
+                value={round(finalWeight * 0.5, 0)}
+                unit="Joules"
+                subtitle="0.5 – 1 J/kg"
+                color="red"
+              />
+            ) : (
+              <div className="bg-red-950 border border-red-800 rounded-xl p-4 flex flex-col justify-center shadow-lg">
+                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Adrenaline Dilution</p>
+                <p className="text-xs text-red-100 font-medium leading-relaxed">
+                  Draw <span className="text-white font-black underline decoration-red-500">1 mL</span> of 1:1,000 and add <span className="text-white font-black underline decoration-red-500">9 mL</span> Normal Saline to make 1:10,000.
+                </p>
+              </div>
+            )}
           </div>
 
+          {/* Timeline Log */}
+          <Card className="bg-slate-900 border-none text-white overflow-hidden shadow-2xl">
+            <CardHeader className="py-3 px-4 bg-slate-800/50 flex flex-row items-center justify-between space-y-0 border-b border-slate-700/50">
+               <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                 <Activity className="h-3 w-3 text-red-500" /> Resuscitation Timeline
+               </CardTitle>
+               <span className="text-[8px] font-bold text-slate-500">LATEST 50 EVENTS</span>
+            </CardHeader>
+            <CardContent className="p-0">
+               <div className="max-h-[160px] overflow-y-auto divide-y divide-slate-800 scrollbar-hide">
+                 {events.length === 0 ? (
+                   <div className="py-8 text-center text-xs text-slate-600 font-bold italic uppercase tracking-widest">Awaiting intervention...</div>
+                 ) : (
+                   events.map((e, i) => (
+                     <div key={i} className="px-4 py-2 flex items-center gap-3 animate-in slide-in-from-left-2 duration-300">
+                        <span className="text-[10px] font-mono text-slate-500">{e.time}</span>
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.5)]" />
+                        <span className="text-xs font-bold tracking-tight text-slate-200">{e.msg}</span>
+                     </div>
+                   ))
+                 )}
+               </div>
+            </CardContent>
+          </Card>
+
+          {/* Core Support Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <Card className="border-red-200 bg-red-50/50">
                <CardHeader className="pb-2 pt-4 px-4">
@@ -272,13 +366,9 @@ export default function CardiacArrestPage() {
                    <span className="text-red-900/60 font-medium">Depth</span>
                    <span className="font-bold text-red-900">1/3 AP Diameter</span>
                  </div>
-                 <div className="flex justify-between text-sm border-b border-red-100 pb-1">
-                   <span className="text-red-900/60 font-medium">Ratio (2-Rescuer)</span>
-                   <span className="font-bold text-red-900">{ageCategory === "neonate" ? "3:1" : "15:2"}</span>
-                 </div>
                  <div className="flex justify-between text-sm">
-                   <span className="text-red-900/60 font-medium">Advanced Airway</span>
-                   <span className="font-bold text-red-900">1 breath q2-3s</span>
+                   <span className="text-red-900/60 font-medium">Ratio</span>
+                   <span className="font-bold text-red-900">{ageCategory === "neonate" ? "3:1" : "15:2"}</span>
                  </div>
                </CardContent>
              </Card>
@@ -286,21 +376,17 @@ export default function CardiacArrestPage() {
              <Card className="border-emerald-200 bg-emerald-50/50">
                <CardHeader className="pb-2 pt-4 px-4">
                  <CardTitle className="text-sm font-bold text-emerald-800 uppercase flex items-center gap-2">
-                   <Droplets className="h-4 w-4" /> Fluids & Glucose
+                   <Droplets className="h-4 w-4" /> Fluids
                  </CardTitle>
                </CardHeader>
                <CardContent className="p-4 space-y-2">
                  <div className="flex justify-between text-sm border-b border-emerald-100 pb-1">
-                   <span className="text-emerald-900/60 font-medium">NS/RL Bolus (20mL/kg)</span>
+                   <span className="text-emerald-900/60 font-medium">Bolus (20mL/kg)</span>
                    <span className="font-bold text-emerald-900">{(finalWeight * 20).toFixed(0)} mL</span>
                  </div>
                  <div className="flex justify-between text-sm border-b border-emerald-100 pb-1">
-                   <span className="text-emerald-900/60 font-medium">D10W Bolus (5mL/kg)</span>
+                   <span className="text-emerald-900/60 font-medium">D10W (5mL/kg)</span>
                    <span className="font-bold text-emerald-900">{(finalWeight * 5).toFixed(0)} mL</span>
-                 </div>
-                 <div className="flex justify-between text-sm">
-                   <span className="text-emerald-900/60 font-medium">Defibrillator Type</span>
-                   <span className="font-bold text-emerald-900">Biphasic Preferred</span>
                  </div>
                </CardContent>
              </Card>
@@ -316,65 +402,75 @@ export default function CardiacArrestPage() {
             patientType={patientType}
           />
 
-          <Card className="border-slate-200 bg-slate-50/50">
-            <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-bold text-slate-800 uppercase flex items-center gap-2">
-                <BookOpen className="h-4 w-4" /> Quick Reference
+          <Card className="border-slate-200 bg-slate-50/50 shadow-sm overflow-hidden">
+            <CardHeader className="pb-2 pt-4 px-4 flex flex-row items-center justify-between space-y-0 bg-slate-100/50 border-b">
+              <CardTitle className="text-[11px] font-black text-slate-800 uppercase flex items-center gap-2 tracking-widest">
+                <BookOpen className="h-3.5 w-3.5" /> 
+                {arrestState === "rosc" ? "ROSC Checklist" : arrestState === "tachycardia" ? "SVT Protocol" : "Reversible Causes"}
               </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setShowResources(!showResources)} className="h-6 w-6 p-0">
-                {showResources ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
             </CardHeader>
-            {showResources && (
-              <CardContent className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-red-700 uppercase tracking-widest border-b pb-1">The H's</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-medium text-slate-700">
-                    <span>Hypovolemia</span>
-                    <span>Hydrogen Ion</span>
-                    <span>Hypoxia</span>
-                    <span>Hypo/Hyper K</span>
-                    <span>Hypoglycemia</span>
-                    <span>Hypothermia</span>
+            <CardContent className="p-4">
+              {arrestState === "rosc" ? (
+                <ul className="space-y-2 text-xs font-bold text-slate-600 uppercase tracking-tighter">
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> SpO2 94–99%</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> SBP {">"} 5th Percentile</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Targeted Temp Management</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Check Post-ROSC ABG/Glucose</li>
+                </ul>
+              ) : arrestState === "tachycardia" ? (
+                <ul className="space-y-2 text-xs font-bold text-slate-600 uppercase tracking-tighter">
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Vagal (Ice to Face / Syringe)</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> 12-Lead ECG Immediately</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Assess Perfusion (Shock?)</li>
+                  <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Prep Synchronized Shock</li>
+                </ul>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-red-700 uppercase tracking-widest border-b pb-0.5">The H's</p>
+                    <div className="grid grid-cols-2 gap-x-2 text-[10px] font-bold text-slate-700 uppercase">
+                      <span>Hypovolemia</span>
+                      <span>Hydrogen Ion</span>
+                      <span>Hypoxia</span>
+                      <span>Hypo/Hyper K</span>
+                      <span>Hypoglycemia</span>
+                      <span>Hypothermia</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest border-b pb-0.5">The T's</p>
+                    <div className="grid grid-cols-2 gap-x-2 text-[10px] font-bold text-slate-700 uppercase">
+                      <span>Tension Pneumo</span>
+                      <span>Toxins</span>
+                      <span>Tamponade</span>
+                      <span>Thrombosis</span>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-blue-700 uppercase tracking-widest border-b pb-1">The T's</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-medium text-slate-700">
-                    <span>Tension Pneumo</span>
-                    <span>Toxins</span>
-                    <span>Tamponade</span>
-                    <span>Thrombosis (P/C)</span>
-                  </div>
-                </div>
-              </CardContent>
-            )}
+              )}
+            </CardContent>
           </Card>
 
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Switch id="advanced-mode" checked={showAdvanced} onCheckedChange={setShowAdvanced} />
-              <Label htmlFor="advanced-mode" className="text-xs font-bold uppercase tracking-widest text-slate-500">Show Advanced Doses</Label>
+              <Label htmlFor="advanced-mode" className="text-xs font-bold uppercase tracking-widest text-slate-500">Advanced Doses</Label>
             </div>
 
             {showAdvanced && (
               <Card className="border-amber-200 bg-amber-50/30">
                 <CardContent className="p-4 space-y-2">
-                   <div className="flex justify-between text-xs py-1 border-b border-amber-100">
-                     <span className="text-slate-600">Amiodarone (5mg/kg)</span>
-                     <span className="font-bold">{(finalWeight * 5).toFixed(1)} mg</span>
+                   <div className="flex justify-between text-[11px] py-1 border-b border-amber-100 uppercase font-bold">
+                     <span className="text-slate-500">Lidocaine</span>
+                     <span>{(finalWeight * 1).toFixed(1)} mg</span>
                    </div>
-                   <div className="flex justify-between text-xs py-1 border-b border-amber-100">
-                     <span className="text-slate-600">Lidocaine (1mg/kg)</span>
-                     <span className="font-bold">{(finalWeight * 1).toFixed(1)} mg</span>
+                   <div className="flex justify-between text-[11px] py-1 border-b border-amber-100 uppercase font-bold">
+                     <span className="text-slate-500">Ca Gluconate</span>
+                     <span>{(finalWeight * 0.5).toFixed(1)} mL</span>
                    </div>
-                   <div className="flex justify-between text-xs py-1 border-b border-amber-100">
-                     <span className="text-slate-600">Ca Gluconate 10% (0.5mL/kg)</span>
-                     <span className="font-bold">{(finalWeight * 0.5).toFixed(1)} mL</span>
-                   </div>
-                   <div className="flex justify-between text-xs py-1">
-                     <span className="text-slate-600">Na Bicarb 8.4% (1mEq/kg)</span>
-                     <span className="font-bold">{(finalWeight * 1).toFixed(1)} mEq</span>
+                   <div className="flex justify-between text-[11px] py-1 uppercase font-bold">
+                     <span className="text-slate-500">Na Bicarb</span>
+                     <span>{(finalWeight * 1).toFixed(1)} mEq</span>
                    </div>
                 </CardContent>
               </Card>

@@ -7,16 +7,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
-export function ArrestTimer() {
+export type ArrestState = "idle" | "non-shockable" | "shockable" | "rosc" | "tachycardia";
+
+interface ArrestTimerProps {
+  onStateChange: (state: ArrestState) => void;
+  onEvent: (event: string) => void;
+}
+
+export function ArrestTimer({ onStateChange, onEvent }: ArrestTimerProps) {
   const [isActive, setIsActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [cprSeconds, setCprSeconds] = useState(0);
   const [epiSeconds, setEpiSeconds] = useState(0);
   const [hasEpiStarted, setHasEpiStarted] = useState(false);
+  const [currentState, setCurrentState] = useState<ArrestState>("idle");
+  const [showDecisionGate, setShowDecisionGate] = useState(false);
 
   const audioContext = useRef<AudioContext | null>(null);
-  const nextMetronomeTime = useRef(0);
 
   const CPR_CYCLE = 120; // 2 minutes
   const EPI_INTERVAL = 240; // 4 minutes
@@ -29,18 +37,22 @@ export function ArrestTimer() {
   }, []);
 
   // Beep sound helper
-  const playSound = (freq: number, duration: number, volume = 0.1) => {
+  const playSound = useCallback((freq: number, duration: number, volume = 0.1, count = 1) => {
     if (!audioContext.current || isMuted) return;
-    const osc = audioContext.current.createOscillator();
-    const gain = audioContext.current.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.current.destination);
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(volume, audioContext.current.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.current.currentTime + duration);
-    osc.start();
-    osc.stop(audioContext.current.currentTime + duration);
-  };
+    
+    for (let i = 0; i < count; i++) {
+      const startTime = audioContext.current.currentTime + (i * (duration + 0.1));
+      const osc = audioContext.current.createOscillator();
+      const gain = audioContext.current.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.current.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+  }, [isMuted]);
 
   // Main Timer Loop
   useEffect(() => {
@@ -49,7 +61,9 @@ export function ArrestTimer() {
     if (isActive) {
       interval = setInterval(() => {
         setTotalSeconds((s) => s + 1);
-        setCprSeconds((s) => s + 1);
+        if (currentState !== "rosc" && currentState !== "tachycardia") {
+          setCprSeconds((s) => s + 1);
+        }
         if (hasEpiStarted) {
           setEpiSeconds((s) => s + 1);
         }
@@ -57,7 +71,7 @@ export function ArrestTimer() {
     }
 
     return () => clearInterval(interval);
-  }, [isActive, hasEpiStarted]);
+  }, [isActive, hasEpiStarted, currentState]);
 
   // Metronome Loop (110 BPM)
   useEffect(() => {
@@ -66,31 +80,39 @@ export function ArrestTimer() {
     if (isActive && !isMuted) {
       const intervalMs = (60 / 110) * 1000;
       metronomeInterval = setInterval(() => {
-        playSound(880, 0.05, 0.05); // High-pitched click
+        playSound(1200, 0.03, 0.03); // Very high short click for metronome
       }, intervalMs);
     }
 
     return () => clearInterval(metronomeInterval);
-  }, [isActive, isMuted]);
+  }, [isActive, isMuted, playSound]);
 
   // Alert Sounds logic
   useEffect(() => {
-    // CPR Alerts
+    // CPR Alerts: High Frequency (880Hz)
     if (cprSeconds === CPR_CYCLE - 10) {
-      playSound(440, 0.5, 0.2); // 10s warning
+      playSound(880, 0.3, 0.2, 1); // 10s warning: single beep
     } else if (cprSeconds === CPR_CYCLE) {
-      playSound(660, 0.8, 0.3); // DUE NOW
+      playSound(880, 0.5, 0.3, 2); // DUE NOW: double beep
     }
 
-    // Adrenaline Alerts
+    // Adrenaline Alerts: Medium-Low Frequency (440Hz)
     if (hasEpiStarted) {
       if (epiSeconds === EPI_INTERVAL - 30) {
-        playSound(440, 0.5, 0.2); // 30s warning
+        playSound(440, 0.4, 0.2, 1); // 30s warning: single low beep
       } else if (epiSeconds === EPI_INTERVAL) {
-        playSound(660, 0.8, 0.3); // DUE NOW
+        playSound(440, 0.6, 0.3, 3); // DUE NOW: triple low beep
       }
     }
-  }, [cprSeconds, epiSeconds, hasEpiStarted]);
+  }, [cprSeconds, epiSeconds, hasEpiStarted, playSound]);
+
+  // Decision Gate Trigger
+  useEffect(() => {
+    if (cprSeconds >= CPR_CYCLE && !showDecisionGate) {
+      setShowDecisionGate(true);
+      playSound(880, 0.5, 0.3, 2); // Double beep for rhythm check
+    }
+  }, [cprSeconds, showDecisionGate, playSound]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -103,9 +125,42 @@ export function ArrestTimer() {
     return formatTime(remaining);
   };
 
+  const setArrestState = (state: ArrestState) => {
+    setCurrentState(state);
+    onStateChange(state);
+    setShowDecisionGate(false);
+    setCprSeconds(0);
+    
+    let eventMsg = "";
+    if (state === "non-shockable") eventMsg = "Rhythm Check: Non-Shockable (PEA/Asystole)";
+    else if (state === "shockable") eventMsg = "Rhythm Check: Shockable (VF/pVT)";
+    else if (state === "rosc") eventMsg = "ROSC Achieved: Stabilization Mode";
+    else if (state === "tachycardia") eventMsg = "Rhythm: Tachyarrhythmia Detected";
+    
+    if (eventMsg) onEvent(eventMsg);
+    initAudio();
+    playSound(1200, 0.2, 0.1);
+  };
+
   const startArrest = () => {
     initAudio();
     setIsActive(true);
+    if (currentState === "idle") {
+      setArrestState("non-shockable");
+      onEvent("Arrest Started");
+    }
+  };
+
+  const handleEpiDose = () => {
+    initAudio();
+    setEpiSeconds(0);
+    setHasEpiStarted(true);
+    onEvent("Adrenaline Given");
+    playSound(1200, 0.2, 0.1);
+  };
+
+  const handleCprReset = () => {
+    setShowDecisionGate(true); // Manually trigger decision gate
   };
 
   const resetAll = () => {
@@ -114,19 +169,8 @@ export function ArrestTimer() {
     setCprSeconds(0);
     setEpiSeconds(0);
     setHasEpiStarted(false);
-  };
-
-  const handleEpiDose = () => {
-    initAudio();
-    setEpiSeconds(0);
-    setHasEpiStarted(true);
-    playSound(1200, 0.2, 0.1);
-  };
-
-  const handleCprReset = () => {
-    initAudio();
-    setCprSeconds(0);
-    playSound(1200, 0.2, 0.1);
+    setCurrentState("idle");
+    onStateChange("idle");
   };
 
   const cprProgress = Math.min((cprSeconds / CPR_CYCLE) * 100, 100);
@@ -156,95 +200,146 @@ export function ArrestTimer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Rhythm Check / CPR Cycle */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-end">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1">
-                <Zap className="h-3 w-3" /> Next Rhythm Check
-              </span>
-              <span className={cn(
-                "text-sm font-mono font-bold tabular-nums",
-                isCprDue ? "text-red-500 animate-pulse" : "text-white"
-              )}>
-                {isCprDue ? "DUE NOW" : formatCountdown(cprSeconds, CPR_CYCLE)}
-              </span>
+        {showDecisionGate ? (
+          <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 animate-in zoom-in-95 duration-200">
+            <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 mb-3">Rhythm Check: Select Pulse/Heart Rhythm</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                className="h-16 bg-red-600 hover:bg-red-700 font-black text-xs uppercase"
+                onClick={() => setArrestState("shockable")}
+              >
+                Shockable<br/>(VF / pVT)
+              </Button>
+              <Button 
+                className="h-16 bg-blue-600 hover:bg-blue-700 font-black text-xs uppercase"
+                onClick={() => setArrestState("non-shockable")}
+              >
+                Non-Shockable<br/>(PEA / Asystole)
+              </Button>
+              <Button 
+                className="h-16 bg-emerald-600 hover:bg-emerald-700 font-black text-xs uppercase"
+                onClick={() => setArrestState("rosc")}
+              >
+                ROSC<br/>(Pulse Returns)
+              </Button>
+              <Button 
+                className="h-16 bg-amber-600 hover:bg-amber-700 font-black text-xs uppercase"
+                onClick={() => setArrestState("tachycardia")}
+              >
+                Tachycardia<br/>(SVT / VT pulse)
+              </Button>
             </div>
-            <Progress 
-              value={cprProgress} 
-              className="h-2 bg-slate-800" 
-              indicatorClassName={isCprDue ? "bg-red-500" : "bg-blue-500"}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                "w-full h-10 text-[11px] uppercase font-black tracking-wider",
-                isCprDue 
-                  ? "bg-red-600 border-red-600 text-white hover:bg-red-700 shadow-lg" 
-                  : "border-blue-900/50 hover:bg-blue-900/20 text-blue-400"
-              )}
-              onClick={handleCprReset}
+            <Button 
+               variant="ghost" 
+               className="w-full mt-2 h-8 text-[10px] uppercase font-bold text-slate-400"
+               onClick={() => setShowDecisionGate(false)}
             >
-              {isCprDue ? "Cycle Complete" : "Reset Cycle"}
+              Cancel / Back to Timer
             </Button>
           </div>
-
-          {/* Epinephrine Timer */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-end">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1">
-                <Syringe className="h-3 w-3" /> Adrenaline (3-5m)
-              </span>
-              <span className={cn(
-                "text-sm font-mono font-bold tabular-nums",
-                isEpiDue ? "text-red-500 animate-pulse" : !hasEpiStarted ? "text-slate-600" : "text-white"
-              )}>
-                {!hasEpiStarted ? "--:--" : isEpiDue ? "DUE NOW" : formatCountdown(epiSeconds, EPI_INTERVAL)}
-              </span>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {/* Rhythm Check / CPR Cycle */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1">
+                  <Zap className="h-3 w-3" /> Next Rhythm Check
+                </span>
+                <span className={cn(
+                  "text-sm font-mono font-bold tabular-nums",
+                  isCprDue ? "text-red-500 animate-pulse" : (currentState === "rosc" || currentState === "tachycardia") ? "text-slate-600" : "text-white"
+                )}>
+                  {(currentState === "rosc" || currentState === "tachycardia") ? "OFF" : isCprDue ? "DUE NOW" : formatCountdown(cprSeconds, CPR_CYCLE)}
+                </span>
+              </div>
+              <Progress 
+                value={isCprDue ? 100 : cprProgress} 
+                className="h-2 bg-slate-800" 
+                indicatorClassName={isCprDue ? "bg-red-500" : "bg-blue-500"}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "w-full h-10 text-[11px] uppercase font-black tracking-wider",
+                  isCprDue 
+                    ? "bg-red-600 border-red-600 text-white hover:bg-red-700 shadow-lg" 
+                    : "border-blue-900/50 hover:bg-blue-900/20 text-blue-400"
+                )}
+                onClick={handleCprReset}
+              >
+                Rhythm Check
+              </Button>
             </div>
-            <Progress 
-              value={hasEpiStarted ? epiProgress : 0} 
-              className="h-2 bg-slate-800" 
-              indicatorClassName={isEpiDue ? "bg-red-500" : "bg-emerald-500"}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                "w-full h-10 text-[11px] uppercase font-black tracking-wider",
-                isEpiDue 
-                  ? "bg-red-600 border-red-600 text-white hover:bg-red-700 shadow-lg" 
-                  : "bg-emerald-600/10 border-emerald-600/30 text-emerald-400 hover:bg-emerald-600/20"
-              )}
-              onClick={handleEpiDose}
-            >
-              {!hasEpiStarted ? "First Dose Given" : isEpiDue ? "Dose Given" : "Repeat Dose Given"}
-            </Button>
-          </div>
-        </div>
 
-        {/* Global Alerts */}
-        {(isCprDue || isEpiDue) && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle className="h-4 w-4 text-red-500" />
-            <p className="text-[11px] font-black uppercase text-red-500">
-              {isCprDue && isEpiDue ? "Check Rhythm & Give Adrenaline" : isCprDue ? "Check Rhythm Now" : "Adrenaline Due Now"}
-            </p>
+            {/* Epinephrine Timer */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1">
+                  <Syringe className="h-3 w-3" /> Adrenaline (3-5m)
+                </span>
+                <span className={cn(
+                  "text-sm font-mono font-bold tabular-nums",
+                  isEpiDue ? "text-red-500 animate-pulse" : !hasEpiStarted ? "text-slate-600" : "text-white"
+                )}>
+                  {!hasEpiStarted ? "--:--" : isEpiDue ? "DUE NOW" : formatCountdown(epiSeconds, EPI_INTERVAL)}
+                </span>
+              </div>
+              <Progress 
+                value={hasEpiStarted ? epiProgress : 0} 
+                className="h-2 bg-slate-800" 
+                indicatorClassName={isEpiDue ? "bg-red-500" : "bg-emerald-500"}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "w-full h-10 text-[11px] uppercase font-black tracking-wider",
+                  isEpiDue 
+                    ? "bg-red-600 border-red-600 text-white hover:bg-red-700 shadow-lg" 
+                    : "bg-emerald-600/10 border-emerald-600/30 text-emerald-400 hover:bg-emerald-600/20"
+                )}
+                onClick={handleEpiDose}
+              >
+                {!hasEpiStarted ? "First Adrenaline" : "Dose Given"}
+              </Button>
+            </div>
           </div>
         )}
 
-        <div className="flex gap-2">
+        {/* Visual Alerts (Only when not in decision gate) */}
+        {!showDecisionGate && (
+          <div className="space-y-2">
+            {isCprDue && (
+              <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <Zap className="h-4 w-4 text-blue-400" />
+                <p className="text-[11px] font-black uppercase text-blue-400">
+                  Check Rhythm / Pulse Now
+                </p>
+              </div>
+            )}
+            {isEpiDue && (
+              <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-lg p-2 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <Syringe className="h-4 w-4 text-emerald-400" />
+                <p className="text-[11px] font-black uppercase text-emerald-400">
+                  Adrenaline Dose Due Now
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-2 border-t border-slate-800/50">
           {!isActive ? (
             <Button
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black tracking-widest h-12"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black tracking-widest h-12 shadow-lg shadow-emerald-900/20"
               onClick={startArrest}
             >
               <Play className="mr-2 h-5 w-5 fill-current" /> {totalSeconds > 0 ? "RESUME ARREST" : "START ARREST"}
             </Button>
           ) : (
             <Button
-              className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-black tracking-widest h-12"
+              className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-black tracking-widest h-12 shadow-lg shadow-amber-900/20"
               onClick={() => setIsActive(false)}
             >
               <Pause className="mr-2 h-5 w-5 fill-current" /> PAUSE
