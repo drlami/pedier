@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { HFOVProtocol } from "@/app/hfov/hfov-protocol";
+
+import { MechVentProtocol } from "@/app/mech-vent/mech-vent-protocol";
+
 export default function DiseasePage() {
   const params = useParams<{ diseaseId: string }>();
   const { isLoading } = useProtocolsContext();
@@ -97,7 +101,11 @@ export default function DiseasePage() {
         </Alert>
       )}
 
-      {isWard ? (
+      {protocol.id === 'picu-hfov' ? (
+        <HFOVProtocol />
+      ) : protocol.id === 'picu-mech-ventilation' ? (
+        <MechVentProtocol />
+      ) : isWard ? (
         <WardMMPView protocol={protocol} />
       ) : (
         <AssessmentForm diseaseId={params.diseaseId} />

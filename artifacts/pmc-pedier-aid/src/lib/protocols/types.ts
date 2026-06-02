@@ -47,7 +47,7 @@ export interface Reference {
 }
 
 export type ProtocolCategory = "emergency" | "general";
-export type ClinicalUnit = "er" | "ward";
+export type ClinicalUnit = "er" | "ward" | "picu" | "nicu";
 export interface WardHandbookData {
   overview: string;
   clinicalFeatures: {

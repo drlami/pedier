@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
   FlaskConical, Baby, BookOpen, Calculator, Building2, LayoutDashboard, LayoutGrid,
-  Search, ChevronRight
+  Search, ChevronRight, Activity
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -66,6 +66,8 @@ export function SidebarNav() {
 
   const currentUnit = useMemo(() => {
     if (pathname.startsWith("/ward")) return "ward";
+    if (pathname.startsWith("/picu")) return "picu";
+    if (pathname.startsWith("/nicu")) return "nicu";
     return "er"; // Default to ER for existing protocols and routes
   }, [pathname]);
 
@@ -82,7 +84,7 @@ export function SidebarNav() {
   const systems = useMemo(() => {
     const systemSet = new Set([
       ...filteredProtocols.map((p) => p.system),
-      ...(currentUnit === "er" ? EXTRA_SYSTEMS : WARD_SYSTEMS),
+      ...(currentUnit === "er" ? EXTRA_SYSTEMS : currentUnit === "ward" ? WARD_SYSTEMS : []),
     ]);
     return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
   }, [filteredProtocols, currentUnit]);
@@ -97,7 +99,10 @@ export function SidebarNav() {
   const activeSystem = isProtocolPage ? (currentSystem ?? defaultSystem) : undefined;
 
   const handleSystemChange = (system: string) => {
-    const targetPath = currentUnit === "ward" ? "/ward" : "/er";
+    let targetPath = "/er";
+    if (currentUnit === "ward") targetPath = "/ward";
+    if (currentUnit === "picu") targetPath = "/picu";
+    if (currentUnit === "nicu") targetPath = "/nicu";
     setLocation(`${targetPath}?system=${encodeURIComponent(system)}`);
     closeAll();
   };
@@ -144,6 +149,14 @@ export function SidebarNav() {
               emergency={false}
               onNavigate={closeAll}
             />
+            <NavItem
+              href="/picu"
+              label="PICU Dashboard"
+              icon={Activity}
+              active={pathname === "/picu"}
+              emergency={false}
+              onNavigate={closeAll}
+            />
           </div>
         </div>
       </div>
@@ -178,7 +191,12 @@ export function SidebarNav() {
 
               <AccordionItem value="protocols" className="border-none">
                 <AccordionTrigger className="hover:no-underline py-2">
-                  <SectionLabel className="mb-0">{currentUnit === "ward" ? "Ward Protocols" : "ER Protocols"}</SectionLabel>
+                  <SectionLabel className="mb-0">
+                    {currentUnit === "ward" ? "Ward Protocols" : 
+                     currentUnit === "picu" ? "PICU Protocols" : 
+                     currentUnit === "nicu" ? "NICU Protocols" : 
+                     "ER Protocols"}
+                  </SectionLabel>
                 </AccordionTrigger>
                 <AccordionContent className="pb-2">
                   {systems.length === 0 ? (

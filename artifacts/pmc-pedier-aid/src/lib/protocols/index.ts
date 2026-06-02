@@ -171,8 +171,10 @@ import { wardNephriticSyndromeProtocol } from './ward-nephritic-syndrome';
 import { wardAkiProtocol } from './ward-aki';
 import { wardHusProtocol } from './ward-hus';
 import { wardCkdOptimizationProtocol } from './ward-ckd-optimization';
+import { picuPlaceholders } from './picu-placeholders';
 
 export const allProtocols: DiseaseProtocol[] = [
+  ...picuPlaceholders,
   bronchiolitisProtocol,
   asthmaProtocol,
   croupProtocol,

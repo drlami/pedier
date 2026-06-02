@@ -15,9 +15,9 @@ export const STATIC_USERS: StaticUser[] = [
     role: "admin",
   },
   {
-    id: "6d5a9c49-3b31-4969-bf1c-907625c1e5fd",
-    username: "drsamer",
-    passwordHash: "$2b$12$KbWzSJb.0thfAKGRyv91Hu/UTNP61xpbmnq5ybBMvu5UOxE1NYLsW",
+    id: "doctor-user-id",
+    username: "doctor",
+    passwordHash: "$2b$12$z2/XmJ16tVl7RsPlPUUviO7lK4QOlgAqM9Tlzlhi8AFitHC1ggRsi",
     role: "specialist",
   },
 ];
