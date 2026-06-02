@@ -158,7 +158,7 @@ export default function CardiacArrestPage() {
             </Tabs>
 
             <Button 
-              className="w-full h-16 text-xl font-black uppercase tracking-widest bg-red-600 hover:bg-red-700 shadow-xl disabled:opacity-20"
+              className="w-full h-16 text-lg sm:text-xl font-black uppercase tracking-wide sm:tracking-widest bg-red-600 hover:bg-red-700 shadow-xl disabled:opacity-20"
               disabled={!finalWeight}
               onClick={() => setIsUnlocked(true)}
             >
