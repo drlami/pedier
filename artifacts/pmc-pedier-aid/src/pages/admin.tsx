@@ -34,7 +34,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              View all protocols, create new ones using the form builder or AI assistant, and manage custom protocols.
+              View all protocols, create new ones using the form builder, and manage custom protocols.
             </p>
             <div className="flex gap-2">
               <Button asChild size="sm">
@@ -50,31 +50,6 @@ export default function AdminPage() {
                 </Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 border border-blue-200">
-                <Bot className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="font-headline">AI Protocol Drafter</CardTitle>
-                <CardDescription>Generate protocols from text</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Describe a protocol or paste guideline text, and the AI will generate a structured protocol draft you can review, edit, and save.
-            </p>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/admin/protocols/new?mode=ai">
-                <Bot className="mr-2 h-4 w-4" />
-                Open AI Drafter
-              </Link>
-            </Button>
           </CardContent>
         </Card>
 

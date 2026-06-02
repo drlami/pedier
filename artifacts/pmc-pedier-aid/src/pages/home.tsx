@@ -10,67 +10,20 @@ import {
   PinOff,
   Search,
   Star,
-  Activity,
-  Zap,
   BookOpen,
   LayoutGrid,
   Stethoscope,
   X,
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
+import { PinnedWorkspace } from "@/components/pinned-workspace";
 import {
   CALCULATOR_SHORTCUTS,
-  EMERGENCY_SHORTCUTS,
-  type DashboardAccent,
 } from "@/lib/clinical-dashboard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
-const PINNED_ITEMS_KEY = "pmc-pinned-items-v2";
-
-type PinnedItem = 
-  | { type: "protocol"; id: string }
-  | { type: "calculator"; href: string };
-
-const accentStyles: Record<DashboardAccent, { card: string; icon: string; bar: string; text: string }> = {
-  red: {
-    card: "border-red-200 bg-red-50/70 hover:border-red-300 hover:bg-red-50",
-    icon: "bg-red-100 text-red-700",
-    bar: "bg-red-500",
-    text: "text-red-800",
-  },
-  orange: {
-    card: "border-orange-200 bg-orange-50/70 hover:border-orange-300 hover:bg-orange-50",
-    icon: "bg-orange-100 text-orange-700",
-    bar: "bg-orange-500",
-    text: "text-orange-800",
-  },
-  blue: {
-    card: "border-blue-200 bg-blue-50/60 hover:border-blue-300 hover:bg-blue-50",
-    icon: "bg-blue-100 text-blue-700",
-    bar: "bg-blue-500",
-    text: "text-blue-800",
-  },
-  emerald: {
-    card: "border-emerald-200 bg-emerald-50/60 hover:border-emerald-300 hover:bg-emerald-50",
-    icon: "bg-emerald-100 text-emerald-700",
-    bar: "bg-emerald-500",
-    text: "text-emerald-800",
-  },
-  violet: {
-    card: "border-violet-200 bg-violet-50/60 hover:border-violet-300 hover:bg-violet-50",
-    icon: "bg-violet-100 text-violet-700",
-    bar: "bg-violet-500",
-    text: "text-violet-800",
-  },
-  slate: {
-    card: "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-50",
-    icon: "bg-slate-100 text-slate-700",
-    bar: "bg-slate-500",
-    text: "text-slate-800",
-  },
-};
 
 function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: any; description?: string }) {
   return (
@@ -88,66 +41,13 @@ export default function HomePage() {
   const routeSearch = useSearch();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+  const { togglePin, isPinned } = usePinnedItems();
   const allProtocols = useAllProtocols();
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PINNED_ITEMS_KEY);
-      if (raw) {
-        setPinnedItems(JSON.parse(raw));
-      } else {
-        const old = localStorage.getItem("pmc-pinned-protocols-v1");
-        if (old) {
-          const ids = JSON.parse(old) as string[];
-          const migrated: PinnedItem[] = ids.map(id => ({ type: "protocol", id }));
-          setPinnedItems(migrated);
-          localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(migrated));
-        }
-      }
-    } catch {
-      setPinnedItems([]);
-    }
-  }, []);
-
-  const protocolById = useMemo(() => {
-    return new Map(allProtocols.map((protocol) => [protocol.id, protocol]));
-  }, [allProtocols]);
 
   const selectedSystem = useMemo(() => {
     const params = new URLSearchParams(routeSearch);
     return params.get("system") || "";
   }, [routeSearch]);
-
-  const togglePin = (item: PinnedItem) => {
-    setPinnedItems((prev) => {
-      const isPinned = prev.some(p => {
-        if (p.type !== item.type) return false;
-        if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
-        if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
-        return false;
-      });
-      const next = isPinned 
-        ? prev.filter(p => {
-            if (p.type !== item.type) return true;
-            if (p.type === "protocol" && item.type === "protocol") return p.id !== item.id;
-            if (p.type === "calculator" && item.type === "calculator") return p.href !== item.href;
-            return true;
-          })
-        : [item, ...prev];
-      localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const isPinned = (item: PinnedItem) => {
-    return pinnedItems.some(p => {
-      if (p.type !== item.type) return false;
-      if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
-      if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
-      return false;
-    });
-  };
 
   const searchResults = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -162,13 +62,6 @@ export default function HomePage() {
       )
     };
   }, [searchTerm, allProtocols]);
-
-  const resolvedPinned = useMemo(() => {
-    return pinnedItems.map(p => {
-      if (p.type === "protocol") return protocolById.get(p.id);
-      return CALCULATOR_SHORTCUTS.find(c => c.href === p.href);
-    }).filter(Boolean) as (DiseaseProtocol | typeof CALCULATOR_SHORTCUTS[0])[];
-  }, [pinnedItems, protocolById]);
 
   const systems = useMemo(() => {
     const set = new Set(allProtocols.map(p => p.system));
@@ -293,52 +186,9 @@ export default function HomePage() {
       ) : (
         <>
           {/* 2. PINNED FAVORITES */}
-          <section className="space-y-6">
-            <SectionHeader title="My Workspace" icon={Star} description="Your most used protocols and tools." />
-            {resolvedPinned.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-2">
-                {resolvedPinned.map((item, idx) => {
-                  const isCalc = 'href' in item;
-                  const key = isCalc ? (item as any).href : (item as any).id;
-                  return (
-                    <PinnedItemTile 
-                      key={key}
-                      item={item}
-                      onUnpin={() => togglePin(isCalc ? { type: "calculator", href: (item as any).href } : { type: "protocol", id: (item as any).id })}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="py-12 text-center bg-muted/20 border-4 border-dashed rounded-[40px] space-y-3 mx-2">
-                <LayoutGrid className="h-10 w-10 text-muted-foreground/20 mx-auto" />
-                <p className="text-sm font-bold text-muted-foreground/60 px-6">Search for a protocol or tool and tap the pin icon to add it here.</p>
-              </div>
-            )}
-          </section>
+          <PinnedWorkspace />
 
-          {/* 3. EMERGENCY SHORTCUTS */}
-          <section className="space-y-6">
-            <SectionHeader title="Triage Shortcuts" icon={Zap} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {EMERGENCY_SHORTCUTS.filter(s => s.href !== "/cardiac-arrest").map(s => {
-                const style = accentStyles[s.accent];
-                return (
-                  <Link key={s.label} href={s.href} className={cn("p-4 rounded-2xl border transition-all hover:shadow-lg flex items-center justify-between group", style.card)}>
-                    <div className="flex items-center gap-4">
-                      <div className={cn("p-2.5 rounded-xl shadow-sm", style.icon)}>
-                        <Activity className="h-5 w-5" />
-                      </div>
-                      <span className={cn("font-black text-sm tracking-tight", style.text)}>{s.label}</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 opacity-20 group-hover:opacity-100 transition-all" />
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* 4. SYSTEMS BROWSER - RESTORED */}
+          {/* 3. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -365,62 +215,8 @@ export default function HomePage() {
               })}
             </div>
           </section>
-
-          {/* 5. QUICK TOOLS */}
-          <section className="space-y-6">
-            <SectionHeader title="Clinical Calculators" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {CALCULATOR_SHORTCUTS.filter(c => c.href !== "/cardiac-arrest").slice(0, 4).map(c => (
-                <Link key={c.label} href={c.href} className="p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all text-center space-y-3 group">
-                  <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center mx-auto group-hover:bg-primary/5 transition-colors">
-                    <Calculator className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest block">{c.label}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
         </>
       )}
-    </div>
-  );
-}
-
-
-function PinnedItemTile({ item, onUnpin }: { item: DiseaseProtocol | typeof CALCULATOR_SHORTCUTS[0], onUnpin: () => void }) {
-  const isCalc = 'href' in item;
-  const title = (item as any).label || (item as any).name;
-  const href = isCalc ? (item as any).href : "/diseases/";
-  const Icon = isCalc ? Calculator : BookOpen;
-  
-  return (
-    <div className="group relative">
-      <Link href={href}>
-        <div className={cn(
-          "flex flex-col items-center justify-center p-2 min-h-[100px] aspect-square rounded-[28px] border-2 bg-card transition-all text-center",
-          isCalc 
-            ? "hover:border-orange-200 hover:bg-orange-50/30" 
-            : "hover:border-blue-200 hover:bg-blue-50/30"
-        )}>
-          <div className={cn(
-            "p-2.5 rounded-2xl mb-2 transition-all duration-300",
-            isCalc 
-              ? "bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-200" 
-              : "bg-blue-50 text-blue-600 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-200"
-          )}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-tight leading-[1.1] line-clamp-2 px-1 max-w-[90%]">
-            {title.replace("(OI)", "").replace("(Bedside Schwartz)", "").replace("(QTc)", "").replace("(Burn Fluids)", "").trim()}
-          </span>
-        </div>
-      </Link>
-      <button 
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUnpin(); }}
-        className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm border text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-      >
-        <PinOff className="h-3 w-3" />
-      </button>
     </div>
   );
 }

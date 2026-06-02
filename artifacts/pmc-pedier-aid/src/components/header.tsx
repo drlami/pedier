@@ -19,14 +19,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, LogOut, Search, Shield, Stethoscope, GraduationCap, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, LogOut, Search, Shield, Stethoscope, GraduationCap, PanelLeftClose, PanelLeftOpen, Star, Calculator, BookOpen, ChevronRight, LayoutGrid } from "lucide-react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { SearchModal } from "@/components/search-modal";
 import { Suspense } from "react";
 import { useAuth, type UserRole } from "@/contexts/auth-context";
 import { useSidebar } from "@/contexts/sidebar-context";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
+import { useAllProtocols } from "@/contexts/protocols-context";
+import { CALCULATOR_SHORTCUTS } from "@/lib/clinical-dashboard";
 import { useOffline } from "@/hooks/use-offline";
 import { WifiOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const ROLE_ICON: Record<UserRole, typeof Shield> = {
   admin: Shield,
@@ -43,9 +47,19 @@ const ROLE_LABEL: Record<UserRole, string> = {
 export function Header() {
   const isOffline = useOffline();
   const { user, logout } = useAuth();
+  const { pinnedItems } = usePinnedItems();
+  const allProtocols = useAllProtocols();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
   const { desktopOpen, toggleDesktop, mobileOpen, openMobile, closeMobile } = useSidebar();
   const RoleIcon = user ? ROLE_ICON[user.role] : Shield;
+
+  const resolvedPinned = pinnedItems.map(p => {
+    if (p.type === "protocol") {
+      return allProtocols.find(prot => prot.id === p.id);
+    }
+    return CALCULATOR_SHORTCUTS.find(c => c.href === p.href);
+  }).filter(Boolean);
 
   // Cmd/Ctrl + K global shortcut
   useEffect(() => {
@@ -109,6 +123,27 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Favorites button */}
+            {user && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setFavoritesOpen(true)}
+                className={cn(
+                  "relative text-white/80 hover:text-white hover:bg-white/10 h-9 w-9 transition-all rounded-full",
+                  pinnedItems.length > 0 && "text-amber-400"
+                )}
+                title="My Workspace (Pinned Items)"
+              >
+                <Star className={cn("h-5 w-5", pinnedItems.length > 0 && "fill-current")} />
+                {pinnedItems.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white border-2 border-[hsl(212,72%,22%)]">
+                    {pinnedItems.length}
+                  </span>
+                )}
+              </Button>
+            )}
+
             {/* Search button */}
             {user && (
               <Button
@@ -171,6 +206,79 @@ export function Header() {
           <span>Offline Mode: Guidelines are locally cached</span>
         </div>
       )}
+
+      {/* Favorites Menu Sheet */}
+      <Sheet open={favoritesOpen} onOpenChange={setFavoritesOpen}>
+        <SheetContent side="right" className="w-[85vw] sm:w-[350px] p-0 border-l-0 bg-background flex flex-col">
+          <SheetHeader className="p-6 bg-slate-900 text-white">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+                <Star className="h-6 w-6 fill-current" />
+              </div>
+              <div className="text-left text-white">
+                <SheetTitle className="text-xl font-black text-white leading-tight">My Workspace</SheetTitle>
+                <SheetDescription className="text-slate-400 text-xs font-medium">Your quick access clinical tools</SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {resolvedPinned.length > 0 ? (
+              <div className="grid gap-2">
+                {resolvedPinned.map((item: any) => {
+                  const isCalc = 'href' in item;
+                  const title = item.label || item.name;
+                  const href = isCalc ? item.href : `/diseases/${item.id}`;
+                  const Icon = isCalc ? Calculator : BookOpen;
+
+                  return (
+                    <Link 
+                      key={isCalc ? item.href : item.id} 
+                      href={href}
+                      onClick={() => setFavoritesOpen(false)}
+                      className="group flex items-center gap-4 p-3 rounded-2xl border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
+                    >
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                        isCalc ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                      )}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-foreground leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                          {title}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                          {isCalc ? "Calculator" : item.system}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4 opacity-40">
+                <div className="p-4 rounded-full bg-muted">
+                  <LayoutGrid className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-bold text-sm">Workspace is Empty</p>
+                  <p className="text-xs">Pin protocols or calculators to see them here.</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {resolvedPinned.length > 0 && (
+            <div className="p-4 border-t bg-muted/30">
+              <p className="text-[10px] text-center text-muted-foreground font-bold uppercase tracking-widest">
+                Keep your most used tools here
+              </p>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Mobile Sheet — controlled by sidebar context */}
       <Sheet open={mobileOpen} onOpenChange={(open) => open ? openMobile() : closeMobile()}>

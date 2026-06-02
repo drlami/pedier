@@ -92,7 +92,7 @@ import { wardPertussisProtocol } from './ward-pertussis';
 import { wardBacterialTracheitisProtocol } from './ward-bacterial-tracheitis';
 import { wardAspirationPneumoniaProtocol } from './ward-aspiration-pneumonia';
 import { wardArfProtocol } from './ward-arf';
-import { wardAdrenalCrisisProtocol } from './ward-adrenal-crisis';
+import { wardHypertensionProtocol } from './ward-hypertension';
 import { wardPleuralEffusionProtocol } from './ward-pleural-effusion';
 import { wardMeningitisProtocol } from './ward-meningitis';
 import { wardMitochondrialProtocol } from './ward-mitochondrial';
@@ -112,6 +112,8 @@ import { wardChickenpoxProtocol } from './ward-chickenpox';
 import { wardPancytopeniaProtocol } from './ward-pancytopenia';
 import { wardAihaProtocol } from './ward-aiha';
 import { wardDkaProtocol } from './ward-dka';
+import { wardDiabetesInsipidusProtocol } from './ward-diabetes-insipidus';
+import { wardSiadhProtocol } from './ward-siadh';
 import { wardAdrenalCrisisProtocol } from './ward-adrenal-crisis';
 import { wardMetabolicCrisisProtocol } from './ward-metabolic-crisis';
 import { wardUreaCycleProtocol } from './ward-urea-cycle';
@@ -143,6 +145,8 @@ import { wardHemophiliaProtocol } from './ward-hemophilia';
 import { wardSleProtocol } from './ward-sle';
 import { wardJiaProtocol } from './ward-jia';
 import { wardStatusEpilepticusProtocol } from './ward-status-epilepticus';
+import { wardGbsProtocol } from './ward-gbs';
+import { wardAdemProtocol } from './ward-adem';
 import { wardSickleCellProtocol } from './ward-sickle-cell';
 import { wardTumorLysisProtocol } from './ward-tumor-lysis';
 import { wardThalassemiaProtocol } from './ward-thalassemia';
@@ -151,6 +155,16 @@ import { wardSjsTenProtocol } from './ward-sjs-ten';
 import { wardScabiesProtocol } from './ward-scabies';
 import { wardSsssProtocol } from './ward-ssss';
 import { wardUtiProtocol } from './ward-uti';
+import { wardHeartFailureProtocol } from './ward-heart-failure';
+import { wardMyocarditisProtocol } from './ward-myocarditis';
+
+// New Poisoning Protocols
+import { wardParacetamolProtocol } from './ward-paracetamol';
+import { wardSalicylateProtocol } from './ward-salicylate';
+import { wardIronProtocol } from './ward-iron';
+import { wardCausticProtocol } from './ward-caustic';
+import { wardHydrocarbonProtocol } from './ward-hydrocarbon';
+
 import { wardNephroticFirstProtocol } from './ward-nephrotic-first';
 import { wardNephroticRelapseProtocol } from './ward-nephrotic-relapse';
 import { wardNephriticSyndromeProtocol } from './ward-nephritic-syndrome';
@@ -247,6 +261,7 @@ export const allProtocols: DiseaseProtocol[] = [
   wardAspirationPneumoniaProtocol,
   wardAnemiaProtocol,
   wardArfProtocol,
+  wardHypertensionProtocol,
   wardAdrenalCrisisProtocol,
   wardMetabolicCrisisProtocol,
   wardUreaCycleProtocol,
@@ -298,6 +313,8 @@ export const allProtocols: DiseaseProtocol[] = [
   wardSleProtocol,
   wardJiaProtocol,
   wardStatusEpilepticusProtocol,
+  wardGbsProtocol,
+  wardAdemProtocol,
   wardSickleCellProtocol,
   wardTumorLysisProtocol,
   wardThalassemiaProtocol,
@@ -306,12 +323,22 @@ export const allProtocols: DiseaseProtocol[] = [
   wardScabiesProtocol,
   wardSsssProtocol,
   wardUtiProtocol,
+  wardHeartFailureProtocol,
+  wardMyocarditisProtocol,
   wardNephroticFirstProtocol,
   wardNephroticRelapseProtocol,
   wardNephriticSyndromeProtocol,
   wardAkiProtocol,
   wardHusProtocol,
   wardCkdOptimizationProtocol,
+  wardDkaProtocol,
+  wardDiabetesInsipidusProtocol,
+  wardSiadhProtocol,
+  wardParacetamolProtocol,
+  wardSalicylateProtocol,
+  wardIronProtocol,
+  wardCausticProtocol,
+  wardHydrocarbonProtocol,
 ];
 
 export const CLINICAL_SYSTEMS = [
@@ -330,6 +357,7 @@ export const CLINICAL_SYSTEMS = [
   "Shock and Resuscitation",
   "Toxins and Poisoning",
   "Neonatology",
+  "Poisoning and Toxins"
 ] as const;
 
 export type ClinicalSystem = typeof CLINICAL_SYSTEMS[number];

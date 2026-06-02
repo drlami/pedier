@@ -9,6 +9,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { PWAUpdater } from "@/components/pwa-updater";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtocolsProvider } from "@/contexts/protocols-context";
+import { PinnedItemsProvider } from "@/contexts/pinned-items-context";
 import { SidebarProvider, useSidebar } from "@/contexts/sidebar-context";
 import { cn } from "@/lib/utils";
 import HomePage from "@/pages/home";
@@ -18,8 +19,6 @@ import WardDashboard from "@/pages/ward-dashboard";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
-import DiffDiagPage from "@/pages/differential-diagnosis";
-import DrugSafetyPage from "@/pages/drug-safety";
 import DrugDosesPage from "@/pages/drug-doses";
 import ResuscitationDosesPage from "@/pages/resuscitation-doses";
 import CalculatorsPage from "@/pages/calculators";
@@ -172,8 +171,6 @@ function Router() {
 
       {/* Specific Routes first */}
       <Route path="/cardiac-arrest" component={() => <ProtectedRoute component={CardiacArrestPage} />} />
-      <Route path="/differential-diagnosis" component={() => <ProtectedRoute component={DiffDiagPage} />} />
-      <Route path="/drug-safety" component={() => <ProtectedRoute component={DrugSafetyPage} />} />
       <Route path="/drug-doses" component={() => <ProtectedRoute component={DrugDosesPage} />} />
       
       <Route path="/calculators/resuscitation-doses" component={() => <ProtectedRoute component={ResuscitationDosesPage} />} />
@@ -236,9 +233,11 @@ function App() {
           <PWAUpdater />
           <SidebarProvider>
             <ProtocolsProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <Router />
-              </WouterRouter>
+              <PinnedItemsProvider>
+                <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                  <Router />
+                </WouterRouter>
+              </PinnedItemsProvider>
             </ProtocolsProvider>
           </SidebarProvider>
         </AuthProvider>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { allProtocols } from "@/lib/protocols";
 import { DRUGS } from "@/lib/drug-doses";
-import { Search, X, Stethoscope, Pill, HeartPulse, Brain, FlaskConical } from "lucide-react";
+import { Search, X, Stethoscope, Pill, HeartPulse, Brain, FlaskConical, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchResult {
@@ -12,6 +12,7 @@ interface SearchResult {
   href: string;
   icon: React.ReactNode;
   accent: string;
+  unit?: "ER" | "Ward" | "PediCalc";
 }
 
 const QUICK_LINKS: SearchResult[] = [
@@ -22,22 +23,7 @@ const QUICK_LINKS: SearchResult[] = [
     href: "/cardiac-arrest",
     icon: <HeartPulse className="h-4 w-4" />,
     accent: "text-red-600 bg-red-50",
-  },
-  {
-    id: "diff-diag",
-    title: "AI Differential Diagnosis",
-    subtitle: "Quick Access",
-    href: "/differential-diagnosis",
-    icon: <Brain className="h-4 w-4" />,
-    accent: "text-primary bg-primary/10",
-  },
-  {
-    id: "drug-safety",
-    title: "Drug Safety Checker",
-    subtitle: "Quick Access",
-    href: "/drug-safety",
-    icon: <FlaskConical className="h-4 w-4" />,
-    accent: "text-emerald-600 bg-emerald-50",
+    unit: "ER",
   },
   {
     id: "drug-doses",
@@ -46,18 +32,23 @@ const QUICK_LINKS: SearchResult[] = [
     href: "/drug-doses",
     icon: <Pill className="h-4 w-4" />,
     accent: "text-orange-600 bg-orange-50",
+    unit: "PediCalc",
   },
 ];
 
 function buildIndex(): SearchResult[] {
-  const protocols: SearchResult[] = allProtocols.map((p) => ({
-    id: `protocol-${p.id}`,
-    title: p.name,
-    subtitle: p.system,
-    href: `/diseases/${p.id}`,
-    icon: <Stethoscope className="h-4 w-4" />,
-    accent: "text-blue-600 bg-blue-50",
-  }));
+  const protocols: SearchResult[] = allProtocols.map((p) => {
+    const isWard = p.unit === "ward";
+    return {
+      id: `protocol-${p.id}`,
+      title: p.name,
+      subtitle: p.system,
+      href: `/diseases/${p.id}`,
+      icon: isWard ? <Building2 className="h-4 w-4" /> : <Stethoscope className="h-4 w-4" />,
+      accent: isWard ? "text-indigo-600 bg-indigo-50" : "text-blue-600 bg-blue-50",
+      unit: isWard ? "Ward" : "ER",
+    };
+  });
 
   const drugs: SearchResult[] = DRUGS.map((d) => ({
     id: `drug-${d.id}`,
@@ -66,6 +57,7 @@ function buildIndex(): SearchResult[] {
     href: `/drug-doses?drug=${d.id}`,
     icon: <Pill className="h-4 w-4" />,
     accent: "text-orange-600 bg-orange-50",
+    unit: "PediCalc",
   }));
 
   return [...protocols, ...drugs];
@@ -196,8 +188,20 @@ export function SearchModal({ open, onClose }: Props) {
                   <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", result.accent)}>
                     {result.icon}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{result.title}</div>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-medium text-foreground truncate">{result.title}</div>
+                      {result.unit && (
+                        <span className={cn(
+                          "shrink-0 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider",
+                          result.unit === "Ward" ? "bg-indigo-100 text-indigo-700" : 
+                          result.unit === "ER" ? "bg-blue-100 text-blue-700" : 
+                          "bg-orange-100 text-orange-700"
+                        )}>
+                          {result.unit}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[11px] text-muted-foreground truncate">{result.subtitle}</div>
                   </div>
                   {idx === activeIdx && (

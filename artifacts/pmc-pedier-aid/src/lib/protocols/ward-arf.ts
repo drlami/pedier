@@ -1,141 +1,118 @@
-import type { DiseaseProtocol, FormData, Severity } from './types';
+import type { DiseaseProtocol } from './types';
 
 /**
  * Pediatric Ward: Acute Rheumatic Fever (ARF)
  * MASTER MANAGEMENT PATHWAY (MMP)
- * Derived from: Jones Criteria (AHA 2015 Revision), WHO, and RCH Melbourne
+ * Derived from: RHD Australia and AHA Jones Criteria (2015).
  */
 export const wardArfProtocol: DiseaseProtocol = {
-  id: 'ward-arf',
+  id: 'ward-arf-master',
   name: 'Acute Rheumatic Fever Master Pathway',
-  system: 'Immunology & Rheumatology',
+  system: 'Cardiovascular System',
   unit: 'ward',
   category: 'general',
-  lastUpdated: 'June 2026',
-  description: 'Acute Rheumatic Fever is a non-suppurative inflammatory complication of Group A Streptococcal pharyngitis, affecting the heart, joints, brain, and skin. This exhaustive directive covers the revised Jones Criteria (low vs. high-risk populations), Carditis screening, and the mandatory secondary prophylaxis roadmap to prevent permanent Rheumatic Heart Disease.',
+  lastUpdated: 'May 2026',
+  description: 'Acute Rheumatic Fever is a multisystem inflammatory disease following Group A Streptococcal pharyngitis. It is diagnosed using the Revised Jones Criteria. Management focuses on eradicating the streptococcal infection, treating arthritis/carditis, and starting life-long secondary prophylaxis.',
   image: {
-    url: "https://images.unsplash.com/photo-1576089234161-460d3d523b0a?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "Clinical assessment of Jones criteria and cardiac involvement"
+    url: "https://images.unsplash.com/photo-1576089238240-dfafa94348f9?auto=format&fit=crop&q=80&w=600&h=400",
+    hint: "Inflammatory multisystem management"
   },
   questions: [
-    { id: 'weight', questionText: 'Current Patient Weight', type: 'number', unit: 'kg' },
-    { id: 'heartMurmur', questionText: 'New organic heart murmur or signs of heart failure?', type: 'boolean' },
-    { id: 'jointSwelling', questionText: 'Migratory polyarthritis or severe polyarthralgia?', type: 'boolean' },
-    { id: 'chorea', questionText: 'Purposeless, involuntary movements (Sydenham Chorea)?', type: 'boolean' },
-  ],
+    { id: 'weight', questionText: 'Current Body Weight', type: 'number', unit: 'kg' },
+    { id: 'fever', questionText: 'Temp > 38.5°C', type: 'boolean' },
+    { id: 'joints', questionText: 'Polyarthritis or Polyarthralgia', type: 'boolean' },
+    { id: 'carditis', questionText: 'New Murmur or EF Change', type: 'boolean' },
+    { id: 'esr', questionText: 'ESR (mm/hr)', type: 'number' },
+  ], 
 
   mmpData: {
-    snapshot: "Acute Rheumatic Fever management focuses on (1) Eradicating the triggering Group A Streptococcal infection, (2) Controlling systemic inflammation (arthritis and carditis), and (3) Establishing a life-long or long-term secondary prophylaxis plan. Diagnosis relies on the revised Jones Criteria; clinicians must differentiate between low-risk and high-risk populations. Carditis is the only manifestation that leads to permanent disability.",
+    snapshot: "Diagnosis requires evidence of preceding Group A Strep (ASOT/Anti-DNase B) PLUS 2 Major OR 1 Major + 2 Minor Jones criteria. Primary goal is early Penicillin eradication and strict bed rest for carditis. Salicylates are the mainstay for arthritis but must be avoided until the diagnosis is confirmed to prevent masking of symptoms.",
     stages: [
       {
-        label: "Stage 1: Diagnosis & Risk Stratification",
+        label: "Stage 1: Diagnosis & Eradication",
         shortLabel: "Diagnosis",
         color: "blue",
         cards: [
           {
-            title: "Revised Jones Criteria (Major)",
-            threshold: "EVIDENCE OF GAS INFECTION + 2 MAJOR OR 1 MAJOR + 2 MINOR",
+            title: "Jones Criteria Verification [DR]",
+            threshold: "MAJOR CRITERIA",
             orders: [
-              "Carditis: Clinical or subclinical (Echocardiogram findings).",
-              "Polyarthritis: Migratory, involving large joints (knees, ankles, elbows, wrists).",
-              "Sydenham Chorea: Purposeless, jerky movements; often a late manifestation.",
-              "Erythema Marginatum: Rare, pink, non-pruritic rings on the trunk/limbs.",
-              "Subcutaneous Nodules: Small, firm, painless nodules over bony prominences."
+              "Major: Joint (Polyarthritis), Oh my heart (Carditis), Nodules (Subcutaneous), Erythema Marginatum, Sydenham Chorea.",
+              "Minor: Fever (>38.5), Arthralgia, Elevated ESR (>60) or CRP (>3), Prolonged PR Interval on ECG.",
+              "Evidence of GAS: Positive Throat Swab OR Elevated ASOT / Anti-DNase B titers."
             ]
           },
           {
-            title: "Initial Physician Orders [DR]",
+            title: "Initial Infection Eradication",
             orders: [
-              "Streptococcal Evidence: Anti-Streptolysin O (ASO) titer, Anti-DNase B, or Throat Culture.",
-              "Inflammatory Markers: Erythrocyte Sedimentation Rate and C-Reactive Protein.",
-              "Cardiac Workup: Electrocardiogram (Check for prolonged PR interval) and Echocardiogram (MANDATORY to detect subclinical valvulitis).",
-              "Baseline Bloods: Complete Blood Count and renal/liver function tests."
-            ]
-          }
-        ]
-      },
-      {
-        label: "Stage 2: Acute Phase Therapeutics",
-        shortLabel: "Therapeutics",
-        color: "red",
-        cards: [
-          {
-            title: "Streptococcal Eradication",
-            orders: [
-              "Primary Goal: Eradicate any remaining Group A Streptococcus, even if throat culture is negative.",
-              "Note: This is not the same as secondary prophylaxis, though the drugs may overlap."
+              "Immediate Step: Eradicate Group A Strep even if throat swab is negative.",
+              "Benzathine Penicillin G: < 27kg: 600,000 U IM (Single dose); ≥ 27kg: 1.2 Million U IM (Single dose).",
+              "Alternative (Allergy): Erythromycin or Cephalexin for 10 days."
             ],
             prescriptions: [
               {
                 drug: "Benzathine Penicillin G",
-                dose: "600,000 Units (< 27kg) or 1.2 Million Units (> 27kg)",
-                route: "Intramuscular",
-                frequency: "Single Dose",
-                calculation: (w) => w < 27 ? "600,000 Units" : "1,200,000 Units",
-                notes: "Gold standard for eradication. If penicillin allergic, use Erythromycin."
-              }
-            ]
-          },
-          {
-            title: "Anti-Inflammatory Strategy",
-            orders: [
-              "Arthritis: High-dose Aspirin or Naproxen provides rapid relief (often within 24-48 hours).",
-              "Carditis: Use Prednisolone for severe carditis (heart failure or cardiomegaly); Aspirin is sufficient for mild carditis.",
-              "Caution: Avoid starting anti-inflammatories until the joint pattern (migratory) is confirmed, as they can mask the diagnosis."
-            ],
-            prescriptions: [
-              {
-                drug: "Naproxen",
-                dose: "10-20 mg/kg/day",
-                route: "Oral",
-                frequency: "Divided every 12 hours",
-                calculation: (w) => `${(w * 15).toFixed(0)} mg`,
-                notes: "Preferred over Aspirin in many centers for ease of dosing and safety profile."
+                dose: "Single Dose",
+                route: "IM",
+                frequency: "STAT",
+                calculation: (w) => w < 27 ? "600,000 Units" : "1.2 Million Units",
+                notes: "Intramuscular only. Critical for primary eradication."
               }
             ]
           }
         ]
       },
       {
-        label: "Stage 3: Nursing & Bedside Monitoring [NS]",
-        shortLabel: "Monitoring",
+        label: "Stage 2: Anti-Inflammatory Therapy",
+        shortLabel: "Inflammation",
         color: "amber",
         cards: [
           {
-            title: "Cardiac Surveillance",
-            nursing: [
-              "Heart Rate: Monitor for tachycardia out of proportion to fever (sign of carditis).",
-              "Respiratory Effort: Monitor for tachypnea or rales (signs of heart failure).",
-              "Bed Rest: Strict bed rest is mandatory for patients with active carditis to reduce cardiac workload.",
-              "Daily Weight: Monitor for fluid retention in heart failure."
+            title: "Arthritis Management (No Carditis)",
+            threshold: "WAIT FOR DIAGNOSIS CONFIRMATION",
+            orders: [
+              "Aspirin (High Dose): 75-100 mg/kg/day in 4 divided doses for 2-4 weeks, then taper.",
+              "Naproxen Alternative: 10-20 mg/kg/day if Aspirin is not tolerated."
+            ],
+            prescriptions: [
+              {
+                drug: "Aspirin (Anti-inflammatory)",
+                dose: "100 mg/kg/day",
+                route: "PO",
+                frequency: "QID (4 times daily)",
+                calculation: (w) => `${(w * 100).toFixed(0)} mg total / day`,
+                notes: "Monitor for Salicylate toxicity and GI bleeding."
+              }
+            ]
+          },
+          {
+            title: "Carditis Management (Severe)",
+            orders: [
+              "Prednisolone: 2 mg/kg/day (Max 60mg) for 2-4 weeks if severe carditis or heart failure present.",
+              "Strict Bed Rest: Essential for the duration of acute carditis to reduce cardiac workload."
             ]
           }
         ]
       },
       {
-        label: "Stage 4: Secondary Prophylaxis & Follow-up",
+        label: "Stage 3: Secondary Prophylaxis & Senior Triggers",
         shortLabel: "Prophylaxis",
-        color: "emerald",
+        color: "red",
         cards: [
           {
-            title: "The Prophylaxis Roadmap",
-            threshold: "MANDATORY FOR ALL CASES",
+            title: "Life-long Prevention Strategy",
             orders: [
-              "Duration (No Carditis): 5 years or until age 21 (whichever is longer).",
-              "Duration (Carditis without VHD): 10 years or until age 21 (whichever is longer).",
-              "Duration (Carditis with persistent VHD): 10 years or until age 40 (often life-long).",
-              "VHD = Valvular Heart Disease.",
-              "Note: Intramuscular Benzathine Penicillin every 3-4 weeks is superior to oral prophylaxis."
-            ],
-            prescriptions: [
-              {
-                drug: "Benzathine Penicillin G",
-                dose: "1.2 Million Units",
-                route: "Intramuscular",
-                frequency: "Every 4 weeks",
-                calculation: (w) => "1,200,000 Units",
-                notes: "Every 3 weeks is recommended in high-prevalence areas or for high-risk patients."
-              }
+              "Secondary Prophylaxis: Benzathine Penicillin G IM every 3 to 4 weeks.",
+              "Duration: Minimum 10 years or until age 21 (whichever is longer). Permanent carditis requires longer duration."
+            ]
+          },
+          {
+            title: "Senior Triggers [!]",
+            isCritical: true,
+            triggers: [
+              "IF New Heart Murmur (Holosystolic apex) or Gallop Rhythm develops.",
+              "IF Signs of Heart Failure (Hepatomegaly, Respiratory Distress) occur.",
+              "IF Sydenham Chorea develops (uncoordinated movements, emotional lability)."
             ]
           }
         ]
@@ -143,27 +120,28 @@ export const wardArfProtocol: DiseaseProtocol = {
     ]
   },
 
-  calculateSeverity: (data: FormData): Severity => {
-    if (data.heartMurmur === true) {
-      return { level: 'critical', details: ["Acute Rheumatic Carditis - Requires cardiac stabilization and strict bed rest."] };
-    }
-    if (data.chorea === true) {
-      return { level: 'severe', details: ["Sydenham Chorea - Requires neurological safety and possible sedation."] };
-    }
-    return { level: 'moderate', details: ["Acute Rheumatic Fever (Arthritis-dominant)."] };
+  calculateSeverity: (data) => {
+    const esr = Number(data.esr);
+    if (data.carditis || esr > 100) return { level: 'critical', details: ["Severe ARF with Carditis: High risk for permanent valve damage. Cardiology/ICU consult required."] };
+    if (data.joints) return { level: 'severe', details: ["Definite ARF: Start High-dose Aspirin after confirmation."] };
+    return { level: 'moderate', details: ["Suspected ARF: Observe and obtain GAS titers."] };
   },
   getManagement: () => [],
   getDisposition: () => [
-    "Joint symptoms resolving and pain well-controlled.",
-    "Cardiac status stable with no signs of heart failure.",
-    "First dose of eradication therapy administered.",
-    "Secondary prophylaxis plan documented and parents educated.",
-    "Follow-up Echocardiogram scheduled (usually at 1 month)."
+    "Inflammatory markers (ESR/CRP) showing significant downward trend.",
+    "No evidence of new or worsening carditis on Echocardiogram.",
+    "Patient established on long-term secondary prophylaxis plan.",
+    "Dental review completed (essential for prevention of endocarditis)."
   ],
-  getRedFlags: () => ["Shortness of breath", "Chest pain", "Fainting or severe palpitations", "Inability to swallow (Sydenham Chorea complication)"],
+  getRedFlags: [
+    "Chest pain or palpitations",
+    "Shortness of breath (especially when lying flat)",
+    "Fainting or severe lightheadedness",
+    "New-onset joint swelling or severe pain"
+  ],
   getDrugDoses: () => [],
   getReferences: () => [
-    { title: "2015 Revised Jones Criteria for ARF", url: "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000205" },
-    { title: "RCH Melbourne: Acute Rheumatic Fever", url: "https://www.rch.org.au/clinicalguide/guideline_index/Acute_Rheumatic_Fever/" }
-  ]
+    { title: "RHD Australia: National ARF/RHD Guidelines", url: "https://www.rhdaustralia.org.au/rhda-guidelines" },
+    { title: "AHA/Jones Criteria: Revised 2015", url: "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000205" }
+  ],
 };

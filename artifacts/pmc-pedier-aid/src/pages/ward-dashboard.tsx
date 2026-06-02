@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { useSearch, useLocation, Link } from "wouter";
-import { Building2, ClipboardList, Info, ArrowRight, FlaskConical, LayoutGrid, BookOpen, ChevronRight, X, Search, Activity, Stethoscope } from "lucide-react";
+import { Building2, LayoutGrid, BookOpen, ChevronRight, X, Search, Activity, Stethoscope, ClipboardList, Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllProtocols } from "@/contexts/protocols-context";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
+import { PinnedWorkspace } from "@/components/pinned-workspace";
 import { cn } from "@/lib/utils";
 
 const WARD_SYSTEMS = [
@@ -19,7 +21,8 @@ const WARD_SYSTEMS = [
   "Infectious Diseases",
   "Immunology & Rheumatology",
   "Dermatology",
-  "Nutrition & Growth"
+  "Nutrition & Growth",
+  "Poisoning and Toxins"
 ] as const;
 
 function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: any; description?: string }) {
@@ -38,6 +41,7 @@ export default function WardDashboard() {
   const routeSearch = useSearch();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const { togglePin, isPinned } = usePinnedItems();
   const allProtocols = useAllProtocols();
 
   const wardProtocols = useMemo(() => {
@@ -116,8 +120,8 @@ export default function WardDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {searchResults.length > 0 ? (
               searchResults.map(p => (
-                <Link key={p.id} href={`/diseases/${p.id}`} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
-                  <div className="flex items-center gap-4 flex-1">
+                <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                  <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
                     <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
                       <BookOpen className="h-5 w-5" />
                     </div>
@@ -125,9 +129,11 @@ export default function WardDashboard() {
                       <span className="font-bold text-sm block">{p.name}</span>
                       <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{p.system}</span>
                     </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
-                </Link>
+                  </Link>
+                  <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                    <Pin className="h-4 w-4" />
+                  </button>
+                </div>
               ))
             ) : (
               <div className="col-span-full py-8 text-center text-muted-foreground text-sm font-medium italic">
@@ -153,14 +159,17 @@ export default function WardDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {systemProtocols.length > 0 ? (
               systemProtocols.map(p => (
-                <Link key={p.id} href={`/diseases/${p.id}`} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
-                  <div className="flex items-center gap-4 flex-1">
+                <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                  <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
                     <div className="p-2 rounded-full bg-blue-50 text-blue-600 opacity-40 group-hover:opacity-100 transition-opacity">
                       <ChevronRight className="h-4 w-4" />
                     </div>
                     <span className="font-bold text-sm">{p.name}</span>
-                  </div>
-                </Link>
+                  </Link>
+                  <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                    <Pin className="h-4 w-4" />
+                  </button>
+                </div>
               ))
             ) : (
               <div className="col-span-full py-12 text-center bg-muted/20 border-2 border-dashed rounded-[32px] space-y-4">
@@ -177,30 +186,9 @@ export default function WardDashboard() {
         </section>
       ) : (
         <>
-          {/* 2. QUICK ACCESS TOOLS */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <WardCard 
-              title="Admission Protocols" 
-              description="Standardized guidelines for inpatient admission across various systems."
-              icon={ClipboardList}
-              color="blue"
-            />
-            <WardCard 
-              title="Maintenance Fluids" 
-              description="Holiday-Segar and maintenance fluid calculators for children."
-              icon={FlaskConical}
-              color="teal"
-              href="/calculators/advanced-fluids"
-            />
-            <WardCard 
-              title="Discharge Planning" 
-              description="Criteria for safe transition to home care and follow-up requirements."
-              icon={Info}
-              color="amber"
-            />
-          </section>
+          <PinnedWorkspace />
 
-          {/* 3. SYSTEMS BROWSER */}
+          {/* 2. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Ward by System" icon={LayoutGrid} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -228,7 +216,7 @@ export default function WardDashboard() {
             </div>
           </section>
 
-          {/* 4. ANNOUNCEMENT */}
+          {/* 3. ANNOUNCEMENT */}
           <section className="bg-muted/40 border-2 border-dashed border-muted-foreground/20 rounded-[40px] p-12 text-center space-y-6">
             <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center mx-auto shadow-sm border">
               <Activity className="h-10 w-10 text-primary animate-pulse" />
@@ -244,31 +232,4 @@ export default function WardDashboard() {
       )}
     </div>
   );
-}
-
-function WardCard({ title, description, icon: Icon, color, href }: { title: string; description: string; icon: any; color: string; href?: string }) {
-  const content = (
-    <div className="group h-full p-6 rounded-[28px] border-2 bg-card hover:border-primary/20 hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
-      <div className="space-y-4">
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm", 
-          color === "blue" ? "bg-blue-50 text-blue-600" : 
-          color === "teal" ? "bg-teal-50 text-teal-600" : 
-          "bg-amber-50 text-amber-600"
-        )}>
-          <Icon className="h-6 w-6" />
-        </div>
-        <div>
-          <h4 className="font-black text-lg tracking-tight leading-tight">{title}</h4>
-          <p className="text-[12px] font-medium text-muted-foreground mt-2 leading-relaxed">
-            {description}
-          </p>
-        </div>
-      </div>
-      <div className="mt-6 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-primary/40 group-hover:text-primary transition-colors">
-        {href ? "Launch Tool" : "Coming Soon"} <ArrowRight className="h-3 w-3" />
-      </div>
-    </div>
-  );
-
-  return href ? <Link href={href}>{content}</Link> : content;
 }

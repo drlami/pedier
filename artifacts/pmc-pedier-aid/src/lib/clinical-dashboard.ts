@@ -152,12 +152,6 @@ export const CALCULATOR_SHORTCUTS: CalculatorShortcut[] = [
     accent: "emerald",
   },
   {
-    label: "Drug Safety",
-    description: "Medication safety checks",
-    href: "/drug-safety",
-    accent: "violet",
-  },
-  {
     label: "All Calculators",
     description: "Calculator hub",
     href: "/calculators",

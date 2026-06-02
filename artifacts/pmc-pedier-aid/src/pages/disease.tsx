@@ -1,14 +1,18 @@
 import { useParams } from "wouter";
 import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
 import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
 import { WardMMPView } from "@/app/diseases/[diseaseId]/ward-mmp-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Stethoscope, Loader2, BookOpen, Activity } from "lucide-react";
+import { Stethoscope, Loader2, BookOpen, Activity, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default function DiseasePage() {
   const params = useParams<{ diseaseId: string }>();
   const { isLoading } = useProtocolsContext();
+  const { togglePin, isPinned } = usePinnedItems();
   const protocol = useProtocolById(params.diseaseId);
 
   if (isLoading && !protocol) {
@@ -29,6 +33,7 @@ export default function DiseasePage() {
   }
 
   const isWard = protocol.unit === 'ward';
+  const pinned = isPinned({ type: 'protocol', id: protocol.id });
 
   return (
     <div className="space-y-6">
@@ -54,13 +59,28 @@ export default function DiseasePage() {
             {protocol.description}
           </p>
         </div>
-        <div className="ml-auto flex flex-col items-end gap-1 shrink-0 hidden lg:flex">
-          <span className={cn(
-            "text-[10px] font-black px-3 py-1.5 rounded-xl tracking-widest uppercase border shadow-sm",
-            isWard ? "text-blue-400 bg-slate-900 border-slate-800" : "text-primary/70 bg-primary/8 border-primary/15"
-          )}>
-            {protocol.system}
-          </span>
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className={cn(
+              "rounded-xl transition-all duration-300 shrink-0",
+              pinned ? "bg-amber-50 border-amber-200 text-amber-500 hover:bg-amber-100" : "text-muted-foreground"
+            )}
+            onClick={() => togglePin({ type: 'protocol', id: protocol.id })}
+          >
+            <Star className={cn("h-5 w-5", pinned && "fill-current")} />
+          </Button>
+
+          <div className="flex flex-col items-end gap-1 shrink-0 hidden lg:flex">
+            <span className={cn(
+              "text-[10px] font-black px-3 py-1.5 rounded-xl tracking-widest uppercase border shadow-sm",
+              isWard ? "text-blue-400 bg-slate-900 border-slate-800" : "text-primary/70 bg-primary/8 border-primary/15"
+            )}>
+              {protocol.system}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -84,8 +104,4 @@ export default function DiseasePage() {
       )}
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
 }

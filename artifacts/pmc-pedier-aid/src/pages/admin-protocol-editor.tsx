@@ -3,104 +3,12 @@ import { useParams, useLocation, useSearch } from "wouter";
 import { useProtocolsContext } from "@/contexts/protocols-context";
 import { allProtocols } from "@/lib/protocols";
 import { ProtocolBuilder } from "@/app/admin/protocol-builder";
-import { ProtocolDrafter } from "@/app/admin/protocol-drafter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, FileText, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Lock } from "lucide-react";
 import type { CustomProtocol, CustomQuestion, SeverityLevel } from "@/lib/custom-protocol-types";
 import { Link } from "wouter";
-
-type Mode = "select" | "builder" | "ai";
-
-function ModeSelector({ onSelect }: { onSelect: (mode: "builder" | "ai") => void }) {
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold font-headline">Create New Protocol</h1>
-        <p className="text-muted-foreground mt-1">
-          Choose how you want to build this protocol.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button onClick={() => onSelect("builder")} className="text-left group">
-          <Card className="h-full border-2 border-border hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group-hover:bg-primary/[0.01]">
-            <CardHeader>
-              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 mb-1">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="font-headline">Protocol Builder</CardTitle>
-              <CardDescription>Tier 1 — Structured form</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Fill in questions, severity rules, management sections, and drug doses step by step using structured forms.
-              </p>
-            </CardContent>
-          </Card>
-        </button>
-
-        <button onClick={() => onSelect("ai")} className="text-left group">
-          <Card className="h-full border-2 border-border hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group-hover:bg-blue-50/30">
-            <CardHeader>
-              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 mb-1">
-                <Sparkles className="h-6 w-6 text-blue-600" />
-              </div>
-              <CardTitle className="font-headline">AI Protocol Drafter</CardTitle>
-              <CardDescription>Tier 2 — AI-assisted</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Describe the protocol in plain English or paste guideline text — AI generates the full structured protocol for you to review and edit.
-              </p>
-            </CardContent>
-          </Card>
-        </button>
-      </div>
-      <div className="flex justify-center">
-        <Button variant="ghost" asChild>
-          <Link href="/admin/protocols">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Protocol List
-          </Link>
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/** Convert a built-in DiseaseProtocol's serialisable fields to a CustomProtocol draft */
-function cloneBuiltIn(
-  protocol: { id: string; name: string; system: string; description: string; questions: any[] }
-): Partial<CustomProtocol> {
-  return {
-    id: protocol.id,
-    name: protocol.name,
-    system: protocol.system,
-    description: protocol.description,
-    questions: protocol.questions.map(
-      (q): CustomQuestion => ({
-        id: q.id,
-        questionText: q.questionText,
-        type: q.type as CustomQuestion["type"],
-        unit: q.unit,
-        placeholder: q.placeholder,
-        info: q.info,
-        options: q.options?.map((o: any) => ({
-          value: String(o.value),
-          label: o.label,
-        })),
-      })
-    ),
-    severityRules: [],
-    defaultSeverity: "mild" as SeverityLevel,
-    management: [],
-    disposition: [],
-    redFlags: [],
-    drugDoses: [],
-    references: [],
-  };
-}
 
 export default function ProtocolEditorPage() {
   const params = useParams<{ protocolId: string }>();
@@ -110,15 +18,6 @@ export default function ProtocolEditorPage() {
 
   const searchParams = new URLSearchParams(search);
   const cloneSourceId = searchParams.get("clone");
-  const modeParam = searchParams.get("mode") as "builder" | "ai" | null;
-
-  const [mode, setMode] = useState<Mode>(() => {
-    if (cloneSourceId) return "builder";
-    if (modeParam === "builder") return "builder";
-    if (modeParam === "ai") return "ai";
-    return "select";
-  });
-  const [draftData, setDraftData] = useState<Partial<CustomProtocol> | null>(null);
 
   const protocolId = params.protocolId;
   const isNew = protocolId === "new";
@@ -212,37 +111,45 @@ export default function ProtocolEditorPage() {
     );
   }
 
-  // New protocol with clone source
-  if (cloneData && mode === "builder") {
-    return (
-      <ProtocolBuilder
-        initialData={cloneData}
-        onSaved={handleSaved}
-        isClone
-      />
-    );
-  }
-
-  if (mode === "select") {
-    return <ModeSelector onSelect={setMode} />;
-  }
-
-  if (mode === "ai") {
-    return (
-      <ProtocolDrafter
-        onDraftReady={(draft) => {
-          setDraftData(draft);
-          setMode("builder");
-        }}
-        onSaved={handleSaved}
-      />
-    );
-  }
-
+  // New protocol
   return (
     <ProtocolBuilder
-      initialData={draftData}
+      initialData={cloneData}
       onSaved={handleSaved}
+      isClone={!!cloneData}
     />
   );
+}
+
+/** Convert a built-in DiseaseProtocol's serialisable fields to a CustomProtocol draft */
+function cloneBuiltIn(
+  protocol: { id: string; name: string; system: string; description: string; questions: any[] }
+): Partial<CustomProtocol> {
+  return {
+    id: protocol.id,
+    name: protocol.name,
+    system: protocol.system,
+    description: protocol.description,
+    questions: protocol.questions.map(
+      (q): CustomQuestion => ({
+        id: q.id,
+        questionText: q.questionText,
+        type: q.type as CustomQuestion["type"],
+        unit: q.unit,
+        placeholder: q.placeholder,
+        info: q.info,
+        options: q.options?.map((o: any) => ({
+          value: String(o.value),
+          label: o.label,
+        })),
+      })
+    ),
+    severityRules: [],
+    defaultSeverity: "mild" as SeverityLevel,
+    management: [],
+    disposition: [],
+    redFlags: [],
+    drugDoses: [],
+    references: [],
+  };
 }

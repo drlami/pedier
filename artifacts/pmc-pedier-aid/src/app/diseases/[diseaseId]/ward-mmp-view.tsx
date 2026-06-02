@@ -23,8 +23,145 @@ import {
   WifiOff,
   Stethoscope,
   ChevronDown,
-  Calculator
+  Calculator,
+  ShieldAlert as ShieldAlertIcon
 } from 'lucide-react';
+
+function GbsClinicalMonitor({ weight }: { weight?: number }) {
+  const [sbc, setSbc] = useState<number>(25);
+  
+  const getRisk = (val: number) => {
+    if (val < 15) return { label: "CRITICAL RISK", color: "bg-red-600", note: "Impending respiratory failure. Immediate ICU/Anesthesia consult." };
+    if (val < 20) return { label: "MODERATE RISK", color: "bg-amber-500", note: "Early weakness; monitor Q1H and notify Senior." };
+    return { label: "LOW RISK", color: "bg-emerald-500", note: "Stable; continue serial SBC checks every 2-4 hours." };
+  };
+
+  const risk = getRisk(sbc);
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Activity className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">Single Breath Count Tracker</span>
+        </div>
+        <div className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter", risk.color)}>
+          {risk.label}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Bedside Single Breath Count</label>
+          <Input 
+            type="number" 
+            value={sbc || ''} 
+            onChange={(e) => setSbc(Number(e.target.value))}
+            className="bg-slate-900 border-slate-800 text-white rounded-xl font-black h-12 text-lg"
+          />
+          <p className="text-[9px] font-bold text-slate-500 px-1 italic mt-1">Ask patient to take a deep breath and count out loud as far as possible.</p>
+        </div>
+
+        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl space-y-1">
+          <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Clinical Directive</p>
+          <p className="text-sm font-bold text-white leading-tight">{risk.note}</p>
+        </div>
+      </div>
+      
+      <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 space-y-2">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-700/50 pb-2">GBS Red Flags</p>
+        <div className="grid grid-cols-2 gap-2 text-[9px] font-bold text-left">
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Drooling</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Muffled Voice</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Neck Flexor Weakness</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Paradoxical Breathing</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdemSteroidCalculator({ weight }: { weight?: number }) {
+  const pulseDose = weight ? Math.min(weight * 30, 1000) : 0;
+  const maintenanceDose = weight ? weight * 2 : 0;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><Pill className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400/80">ADEM Steroid Dosing Calculator</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Enter weight to calculate pulse doses.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-6 bg-amber-600 rounded-[28px] border-2 border-amber-400 shadow-lg text-center space-y-1">
+            <span className="text-[10px] font-black text-amber-100 uppercase tracking-widest">IV Methylprednisolone Pulse</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {pulseDose.toFixed(0)} <span className="text-lg opacity-80">mg</span>
+            </p>
+            <p className="text-[10px] font-bold text-amber-100 uppercase">30 mg/kg (Max 1000mg)</p>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center px-6">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Oral Taper Start</span>
+            <span className="text-xl font-black text-white">{maintenanceDose.toFixed(1)} <span className="text-xs opacity-50">mg/day</span></span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AedLoadingCalculator({ weight }: { weight?: number }) {
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Activity className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">Maintenance AED Loading</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Enter weight to calculate loading doses.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Levetiracetam (40mg/kg)</span>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Infuse over 15 mins</p>
+            </div>
+            <span className="text-xl font-black text-white">{(weight * 40).toLocaleString()} <span className="text-xs opacity-50">mg</span></span>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Phenytoin (20mg/kg)</span>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Max rate 1 mg/kg/min</p>
+            </div>
+            <span className="text-xl font-black text-white">{(weight * 20).toLocaleString()} <span className="text-xs opacity-50">mg</span></span>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Valproate (40mg/kg)</span>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Infuse over 30 mins</p>
+            </div>
+            <span className="text-xl font-black text-white">{(weight * 40).toLocaleString()} <span className="text-xs opacity-50">mg</span></span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -275,6 +412,16 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
                                 {card.calculator.id === 'westley-score' && <WestleyCalculator />}
                                 {card.calculator.id === 'aki-fluid-calc' && <FluidTitrationCalculator weight={weight} />}
                                 {card.calculator.id === 'dka-fluid-calc' && <DkaTwoBagCalculator weight={weight} />}
+                                {card.calculator.id === 'chf-management-calc' && <ChfManagementCalculator weight={weight} />}
+                                {card.calculator.id === 'bp-safety-calc' && <BpSafetyCalculator weight={weight} />}
+                                {card.calculator.id === 'gbs-clinical-monitor' && <GbsClinicalMonitor weight={weight} />}
+                                {card.calculator.id === 'adem-steroid-calc' && <AdemSteroidCalculator weight={weight} />}
+                                {card.calculator.id === 'aed-loading-calc' && <AedLoadingCalculator weight={weight} />}
+                                {card.calculator.id === 'nac-infusion-calc' && <NacInfusionCalculator weight={weight} />}
+                                {card.calculator.id === 'salicylate-alk-calc' && <SalicylateAlkalinizationCalculator weight={weight} />}
+                                {card.calculator.id === 'iron-chelation-calc' && <IronChelationCalculator weight={weight} />}
+                                {card.calculator.id === 'free-water-calc' && <FreeWaterDeficitCalculator weight={weight} />}
+                                {card.calculator.id === 'siadh-restriction-calc' && <SiadhRestrictionCalculator weight={weight} />}
                                 {card.calculator.id === 'adrenal-stress-calc' && <AdrenalStressDoseCalculator weight={weight} />}
                                 {card.calculator.id === 'dextrose-bolus-calc' && <DextroseBolusCalculator weight={weight} />}
                                 {card.calculator.id === 'gir-calculator' && <GirCalculator weight={weight} />}
@@ -788,7 +935,9 @@ function FluidTitrationCalculator({ weight }: { weight?: number }) {
 }
 
 function DkaTwoBagCalculator({ weight }: { weight?: number }) {
-  // Fluid calculation logic
+  const [potassiumLevel, setPotassiumLevel] = useState<'low' | 'normal' | 'high'>('normal');
+
+  // Fluid calculation logic: 10% Deficit over 48h + Maintenance
   const getFluidData = (w: number) => {
     let dailyMaintenance = 0;
     if (w <= 10) dailyMaintenance = 100 * w;
@@ -796,65 +945,592 @@ function DkaTwoBagCalculator({ weight }: { weight?: number }) {
     else dailyMaintenance = 1500 + 20 * (w - 20);
     
     const maintenanceRate = dailyMaintenance / 24;
-    const deficitVolume = w * 10 * 8.5; 
-    const totalRate = (deficitVolume + (maintenanceRate * 48)) / 48;
+    const deficitVolume = w * 0.1 * 1000; // 10% Deficit (100mL/kg)
+    const totalRate = (deficitVolume + (dailyMaintenance * 2)) / 48; // Deficit + 2 days maintenance over 48h
     
     return { maintenanceRate, deficitVolume, totalRate };
   };
 
   const data = weight ? getFluidData(weight) : null;
 
+  // Potassium logic per 500mL bag
+  const getPotassiumAmount = () => {
+    if (potassiumLevel === 'high') return { amount: 0, label: "0 mEq (Delay Addition)" };
+    if (potassiumLevel === 'low') return { amount: 30, label: "30 mEq (60 mEq/L)" };
+    return { amount: 20, label: "20 mEq (40 mEq/L)" };
+  };
+
+  const kInfo = getPotassiumAmount();
+
   return (
-    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
-      <div className="flex items-center justify-between mb-2">
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
-           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">DKA Two-Bag Fluid Calculator</span>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">Two-Bag System Calculator</span>
+        </div>
+        {weight && <Badge className="bg-blue-600 text-white border-none">{weight} kg</Badge>}
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Please enter patient weight in the assessment section above to calculate fluid rates.</p>
+        </div>
+      ) : data && (
+        <>
+          {/* 1. POTASSIUM LEVEL SELECTOR */}
+          <div className="space-y-3">
+            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Current Serum Potassium Level</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button 
+                onClick={() => setPotassiumLevel('low')}
+                className={cn(
+                  "py-2.5 rounded-xl text-[10px] font-black transition-all border-2",
+                  potassiumLevel === 'low' ? "bg-red-500/20 border-red-500 text-red-400" : "bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700"
+                )}
+              >
+                LOW {"(< 3.5)"}
+              </button>
+              <button 
+                onClick={() => setPotassiumLevel('normal')}
+                className={cn(
+                  "py-2.5 rounded-xl text-[10px] font-black transition-all border-2",
+                  potassiumLevel === 'normal' ? "bg-emerald-500/20 border-emerald-500 text-emerald-400" : "bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700"
+                )}
+              >
+                NORMAL (3.5-5.5)
+              </button>
+              <button 
+                onClick={() => setPotassiumLevel('high')}
+                className={cn(
+                  "py-2.5 rounded-xl text-[10px] font-black transition-all border-2",
+                  potassiumLevel === 'high' ? "bg-blue-500/20 border-blue-500 text-blue-400" : "bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700"
+                )}
+              >
+                HIGH {"> 5.5"}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. THE PRIMARY CALCULATION */}
+          <div className="p-6 bg-blue-600 rounded-[28px] border-2 border-blue-400 shadow-lg text-center space-y-2 relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+            <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest relative z-10">Total Hourly IV Fluid Rate</span>
+            <p className="text-5xl font-black text-white tracking-tighter relative z-10">
+                {data.totalRate.toFixed(1)} <span className="text-lg opacity-80">mL/hr</span>
+            </p>
+            <p className="text-[9px] font-bold text-blue-100/70 italic relative z-10">
+                Calculated as (10% Deficit + Maintenance) over 48 hours.
+            </p>
+          </div>
+
+          {/* 3. BAG PREPARATION */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-5 bg-slate-900 rounded-[24px] border-2 border-slate-800 space-y-3 shadow-inner">
+              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                <div className="w-2 h-2 rounded-full bg-slate-400" />
+                <h4 className="text-[11px] font-black uppercase tracking-wider">Bag 1 (0% Dextrose)</h4>
+              </div>
+              <ul className="text-[11px] font-bold text-slate-400 space-y-2.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-400">●</span> 500 mL Isotonic Saline (0.9% NaCl)
+                </li>
+                <li className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/50 border border-slate-800/50 text-white">
+                  <span className="text-emerald-400">✚</span> {kInfo.label}
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-5 bg-slate-900 rounded-[24px] border-2 border-slate-800 space-y-3 shadow-inner">
+              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                <div className="w-2 h-2 rounded-full bg-amber-400" />
+                <h4 className="text-[11px] font-black uppercase tracking-wider">Bag 2 (10% Dextrose)</h4>
+              </div>
+              <ul className="text-[11px] font-bold text-slate-400 space-y-2.5">
+                <li className="flex items-start gap-2">
+                  <span className="text-amber-400">●</span> 500 mL D10W (or D10-0.9% NaCl)
+                </li>
+                <li className="flex items-start gap-2 p-2 rounded-lg bg-slate-950/50 border border-slate-800/50 text-white">
+                  <span className="text-emerald-400">✚</span> {kInfo.label}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 4. TITRATION GRID */}
+          <div className="p-6 bg-slate-900 rounded-[28px] border border-slate-800 space-y-4">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2">Hourly Titration Schedule</h4>
+            <div className="space-y-3">
+              <TitrationRow label="Glucose > 300 mg/dL" b1={100} b2={0} total={data.totalRate} />
+              <TitrationRow label="Glucose 250 - 300" b1={75} b2={25} total={data.totalRate} />
+              <TitrationRow label="Glucose 200 - 250" b1={50} b2={50} total={data.totalRate} />
+              <TitrationRow label="Glucose 150 - 200" b1={25} b2={75} total={data.totalRate} />
+              <TitrationRow label="Glucose < 150 mg/dL" b1={0} b2={100} total={data.totalRate} />
+            </div>
+            <div className="pt-2">
+              <p className="text-[10px] font-bold text-amber-400/80 italic leading-relaxed">
+                * Note: If Blood Glucose remains below 150 mg/dL despite 100% Bag 2, consult senior to increase Dextrose concentration to 12.5%. DO NOT STOP INSULIN.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function NacInfusionCalculator({ weight }: { weight?: number }) {
+  // NAC 3-Stage Protocol
+  // Stage 1: 150 mg/kg over 1h
+  // Stage 2: 50 mg/kg over 4h
+  // Stage 3: 100 mg/kg over 16h
+  
+  const stage1 = weight ? (150 * weight) : 0;
+  const stage2 = weight ? (50 * weight) : 0;
+  const stage3 = weight ? (100 * weight) : 0;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400"><Pill className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400/80">NAC 3-Stage Infusion Calculator</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Enter weight to calculate NAC doses.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Stage 1 (Loading)</span>
+              <p className="text-xs font-bold text-slate-400">150 mg/kg over 1 hour</p>
+            </div>
+            <span className="text-xl font-black text-white">{stage1.toLocaleString()} <span className="text-xs opacity-50 font-medium">mg</span></span>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Stage 2</span>
+              <p className="text-xs font-bold text-slate-400">50 mg/kg over 4 hours</p>
+            </div>
+            <span className="text-xl font-black text-white">{stage2.toLocaleString()} <span className="text-xs opacity-50 font-medium">mg</span></span>
+          </div>
+
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center border-emerald-500/30">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">Stage 3</span>
+              <p className="text-xs font-bold text-slate-400">100 mg/kg over 16 hours</p>
+            </div>
+            <span className="text-xl font-black text-white">{stage3.toLocaleString()} <span className="text-xs opacity-50 font-medium">mg</span></span>
+          </div>
+        </div>
+      )}
+      
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Pediatric Safety Note</p>
+        <p className="text-[10px] font-bold text-slate-400 leading-relaxed italic">
+          "Dilute NAC in 5% Dextrose. In children {"<"} 40kg, the total fluid volume must be restricted to prevent cerebral edema. Ensure Stage 1 is given over exactly 60 minutes to reduce anaphylactoid risk."
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SalicylateAlkalinizationCalculator({ weight }: { weight?: number }) {
+  // Bicarb Bolus: 1-2 mEq/kg
+  const bolusLow = weight ? weight * 1 : 0;
+  const bolusHigh = weight ? weight * 2 : 0;
+  
+  // Maintenance Drip: D5W + 150 mEq/L Bicarb + 40 mEq/L KCl
+  // Rate is typically 1.5 - 2x Maintenance
+  const getMaintenance = (w: number) => {
+    if (w <= 10) return 100 * w;
+    if (w <= 20) return 1000 + 50 * (w - 10);
+    return 1500 + 20 * (w - 20);
+  };
+  
+  const dailyMaint = weight ? getMaintenance(weight) : 0;
+  const dripRate = (dailyMaint * 2) / 24; // 2x Maintenance rate
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Activity className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">Urinary Alkalinization Guide</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Enter weight to calculate alkalinization doses.</p>
+        </div>
+      ) : (
+        <>
+          <div className="p-6 bg-blue-600 rounded-[28px] border-2 border-blue-400 shadow-lg text-center space-y-2">
+            <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">Initial Bicarbonate Bolus</span>
+            <p className="text-3xl font-black text-white tracking-tighter">
+                {bolusLow.toFixed(0)} - {bolusHigh.toFixed(0)} <span className="text-sm opacity-80 font-medium">mEq</span>
+            </p>
+            <p className="text-[10px] font-bold text-blue-200 uppercase">Give IV over 10-15 minutes</p>
+          </div>
+
+          <div className="p-5 bg-slate-900 rounded-[24px] border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Maintenance Alkalinization Drip</h4>
+              <Badge className="bg-slate-800 text-white border-slate-700">{dripRate.toFixed(1)} mL/hr</Badge>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1" />
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-slate-200">1000 mL 5% Dextrose (D5W)</p>
+                  <p className="text-[10px] font-bold text-slate-500">Add 150 mEq Sodium Bicarbonate</p>
+                  <p className="text-[10px] font-bold text-slate-500">Add 40 mEq Potassium Chloride (KCl)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+        <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">The Critical Rule</p>
+        <p className="text-[10px] font-bold text-slate-400 leading-relaxed italic">
+          "Alkalinization will FAIL if potassium is low. Maintain serum K+ between 4.5 - 5.0 mEq/L. Target Urine pH: 7.5 - 8.5."
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function IronChelationCalculator({ weight }: { weight?: number }) {
+  // Deferoxamine: 5 mg/kg/hr starting, up to 15 mg/kg/hr
+  const rateLow = weight ? weight * 5 : 0;
+  const rateHigh = weight ? weight * 15 : 0;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-orange-500/20 text-orange-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400/80">Iron Chelation Calculator</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Enter weight to calculate chelation rates.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="p-6 bg-orange-600 rounded-[28px] border-2 border-orange-400 shadow-lg text-center space-y-1">
+            <span className="text-[10px] font-black text-orange-100 uppercase tracking-widest">Deferoxamine Infusion Rate</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {rateLow.toFixed(1)} - {rateHigh.toFixed(1)} <span className="text-lg opacity-80">mg/hr</span>
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+             <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-1">
+               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Start Rate</span>
+               <p className="text-lg font-black text-white">5 mg/kg/hr</p>
+             </div>
+             <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-1">
+               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Max Rate</span>
+               <p className="text-lg font-black text-white">15 mg/kg/hr</p>
+             </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+        <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-1">Visual Monitoring</p>
+        <p className="text-[10px] font-bold text-slate-400 leading-relaxed italic">
+          "Monitor for 'Vin-rose' (orange-red) urine color. This indicates ferrioxamine (chelated iron) is being excreted. Continue infusion until urine color returns to normal and serum iron is {"<"} 350 mcg/dL."
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function BpSafetyCalculator({ weight }: { weight?: number }) {
+  const [sbp, setSbp] = useState<number>(160);
+  const [dbp, setDbp] = useState<number>(100);
+  
+  // MAP = (SBP + 2*DBP) / 3
+  const currentMap = (sbp + (2 * dbp)) / 3;
+  const targetMap25 = currentMap * 0.75;
+  
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-red-500/20 text-red-400"><ShieldAlert className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400/80">BP Safety & Target Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Systolic BP (mmHg)</label>
+          <Input 
+            type="number" 
+            value={sbp || ''} 
+            onChange={(e) => setSbp(Number(e.target.value))}
+            className="bg-slate-900 border-slate-800 text-white rounded-xl font-bold h-11"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Diastolic BP (mmHg)</label>
+          <Input 
+            type="number" 
+            value={dbp || ''} 
+            onChange={(e) => setDbp(Number(e.target.value))}
+            className="bg-slate-900 border-slate-800 text-white rounded-xl font-bold h-11"
+          />
+        </div>
+      </div>
+
+      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center px-6">
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Initial MAP</span>
+        <span className="text-xl font-black text-white">{currentMap.toFixed(0)} <span className="text-xs opacity-50 font-medium">mmHg</span></span>
+      </div>
+
+      <div className="p-6 bg-red-600 rounded-[28px] border-2 border-red-400 shadow-lg text-center space-y-2 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+        <span className="text-[10px] font-black text-red-100 uppercase tracking-widest relative z-10">Safe 24h MAP Target (25% Reduction)</span>
+        <p className="text-5xl font-black text-white tracking-tighter relative z-10">
+            {targetMap25.toFixed(0)} <span className="text-lg opacity-80 font-medium">mmHg</span>
+        </p>
+        <p className="text-[9px] font-bold text-red-100/70 italic relative z-10 uppercase tracking-tight">
+            DO NOT reduce MAP by more than 25% in the first 24-48 hours.
+        </p>
+      </div>
+
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+        <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Safety Directive</p>
+        <p className="text-[11px] font-bold text-slate-400 leading-relaxed italic">
+          "Rapid BP reduction in chronic hypertension can cause cerebral infarction or vision loss. Transition to IV therapy ONLY if neurological symptoms are present."
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ChfManagementCalculator({ weight }: { weight?: number }) {
+  // Holliday-Segar Maintenance
+  const getMaintenance = (w: number) => {
+    if (w <= 10) return 100 * w;
+    if (w <= 20) return 1000 + 50 * (w - 10);
+    return 1500 + 20 * (w - 20);
+  };
+
+  const dailyMaint = weight ? getMaintenance(weight) : 0;
+  const restriction66 = dailyMaint * 0.66; // 2/3 Maintenance
+  const furosemideLow = weight ? weight * 1 : 0;
+  const furosemideHigh = weight ? weight * 2 : 0;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">CHF Fluid & Diuretic Calculator</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Please enter patient weight to calculate doses and limits.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Fluid Restriction */}
+            <div className="p-6 bg-blue-600 rounded-[28px] border-2 border-blue-400 shadow-lg text-center space-y-2">
+              <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">2/3 Fluid Restriction</span>
+              <p className="text-4xl font-black text-white tracking-tighter">
+                  {restriction66.toFixed(0)} <span className="text-sm opacity-60">mL/day</span>
+              </p>
+              <p className="text-[10px] font-bold text-blue-200 uppercase">{(restriction66/24).toFixed(1)} mL/hr</p>
+            </div>
+
+            {/* Diuretic Dose */}
+            <div className="p-6 bg-slate-900 rounded-[28px] border-2 border-slate-800 text-center space-y-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IV Furosemide (1-2 mg/kg)</span>
+              <p className="text-3xl font-black text-white tracking-tighter">
+                  {furosemideLow.toFixed(1)} - {furosemideHigh.toFixed(1)} <span className="text-sm opacity-60">mg</span>
+              </p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase">Per IV Dose</p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-2xl">
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Nursing Watch</p>
+            <p className="text-[11px] font-bold text-slate-400 leading-relaxed italic">
+              "Maintain SpO2 {">"} 94%. Monitor for hypokalemia and rising creatinine during aggressive diuresis. Weigh the patient at exactly the same time every morning."
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function FreeWaterDeficitCalculator({ weight }: { weight?: number }) {
+  const [serumNa, setSerumNa] = useState<number>(155);
+  
+  // Free Water Deficit = 0.6 * weight * ((Current Na / Target Na) - 1)
+  // Target Na is usually 145 for the formula
+  const deficitLiters = weight ? (0.6 * weight * ((serumNa / 145) - 1)) : 0;
+  const deficitML = deficitLiters * 1000;
+  const hourlyRate48h = deficitML / 48;
+  const hourlyRate72h = deficitML / 72;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400/80">Free Water Deficit Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
-          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
-            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-sm font-bold text-amber-400">
+            {weight ? `${weight} kg` : "Enter weight above"}
           </div>
         </div>
-
-        {data && (
-          <div className="grid grid-cols-1 gap-3">
-             <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Calculated Total IV Rate</span>
-                <p className="text-3xl font-black text-blue-400 tracking-tighter">
-                    {data.totalRate.toFixed(1)} <span className="text-xs text-slate-500">mL/hour</span>
-                </p>
-                <p className="text-[9px] font-bold text-slate-500 mt-2 italic">
-                    Includes 10% deficit replacement over 48 hours + Maintenance.
-                </p>
-             </div>
-
-             <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Maintenance</span>
-                    <p className="text-lg font-black text-slate-300">{data.maintenanceRate.toFixed(1)} <span className="text-[10px] opacity-50">mL/hr</span></p>
-                </div>
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">48h Deficit</span>
-                    <p className="text-lg font-black text-slate-300">{data.deficitVolume.toFixed(0)} <span className="text-[10px] opacity-50">mL</span></p>
-                </div>
-             </div>
-          </div>
-        )}
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Current Serum Sodium (mmol/L)</label>
+          <Input 
+            type="number" 
+            value={serumNa || ''} 
+            onChange={(e) => setSerumNa(Number(e.target.value))}
+            className="bg-slate-900 border-slate-800 text-white rounded-xl font-bold h-11"
+            placeholder="e.g. 155"
+          />
+        </div>
       </div>
+
+      {weight && (
+        <>
+          <div className="p-6 bg-amber-600 rounded-[28px] border-2 border-amber-400 shadow-lg text-center space-y-1">
+            <span className="text-[10px] font-black text-amber-100 uppercase tracking-widest">Total Free Water Deficit</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {deficitML.toFixed(0)} <span className="text-lg opacity-80">mL</span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-1">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">48h Replacement</span>
+              <p className="text-xl font-black text-white">{hourlyRate48h.toFixed(1)} <span className="text-[10px] opacity-50">mL/hr</span></p>
+            </div>
+            <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-1">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">72h Replacement</span>
+              <p className="text-xl font-black text-white">{hourlyRate72h.toFixed(1)} <span className="text-[10px] opacity-50">mL/hr</span></p>
+            </div>
+          </div>
+        </>
+      )}
       
-      <div className="p-4 bg-blue-950/30 rounded-2xl border border-blue-900/50 space-y-3">
-        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Titration Protocol (Constant Total Rate)</p>
-        <div className="space-y-1 text-[10px] font-bold text-slate-400">
-            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG {">"} 300 mg/dL:</span> <span className="text-white">Bag A 100%</span></div>
-            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 250-300:</span> <span className="text-white">Bag A 75% | Bag B 25%</span></div>
-            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 200-250:</span> <span className="text-white">Bag A 50% | Bag B 50%</span></div>
-            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 150-200:</span> <span className="text-white">Bag A 25% | Bag B 75%</span></div>
-            <div className="flex justify-between"><span>BG {"<"} 150:</span> <span className="text-white">Bag B 100%</span></div>
+      <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+        <p className="text-[10px] font-bold text-slate-500 italic leading-relaxed text-center uppercase tracking-tight">
+          Goal: Correct slowly to prevent cerebral edema. Max drop 10-12 mmol/L per 24 hours.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SiadhRestrictionCalculator({ weight }: { weight?: number }) {
+  // Holliday-Segar Maintenance
+  const getMaintenance = (w: number) => {
+    if (w <= 10) return 100 * w;
+    if (w <= 20) return 1000 + 50 * (w - 10);
+    return 1500 + 20 * (w - 20);
+  };
+
+  const dailyMaint = weight ? getMaintenance(weight) : 0;
+  const restriction50 = dailyMaint * 0.5;
+  const restriction75 = dailyMaint * 0.75;
+
+  return (
+    <div className="p-5 bg-slate-950 text-white rounded-[32px] space-y-6 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">SIADH Fluid Restriction</span>
+        </div>
+      </div>
+
+      {!weight ? (
+        <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p className="text-xs font-bold text-slate-500">Please enter patient weight to calculate restriction limits.</p>
+        </div>
+      ) : (
+        <>
+          <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex justify-between items-center px-6">
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Full Maintenance</span>
+            <span className="text-xl font-black text-white">{dailyMaint} <span className="text-xs opacity-50">mL/day</span></span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-6 bg-amber-600/20 border-2 border-amber-500/40 rounded-[28px] text-center space-y-2">
+              <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">75% Restriction</span>
+              <p className="text-3xl font-black text-white tracking-tighter">
+                  {restriction75.toFixed(0)} <span className="text-sm opacity-60">mL/day</span>
+              </p>
+              <p className="text-[10px] font-bold text-amber-400/60 uppercase">{(restriction75/24).toFixed(1)} mL/hr</p>
+            </div>
+
+            <div className="p-6 bg-red-600/20 border-2 border-red-500/40 rounded-[28px] text-center space-y-2">
+              <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">50% Restriction</span>
+              <p className="text-3xl font-black text-white tracking-tighter">
+                  {restriction50.toFixed(0)} <span className="text-sm opacity-60">mL/day</span>
+              </p>
+              <p className="text-[10px] font-bold text-red-400/60 uppercase">{(restriction50/24).toFixed(1)} mL/hr</p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Clinical Directive</p>
+            <p className="text-[11px] font-bold text-slate-400 leading-relaxed italic">
+              "Total fluid intake must include all oral fluids, IV fluids, medication volumes, and line flushes. Monitor weight twice daily to ensure effective restriction."
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function TitrationRow({ label, b1, b2, total }: { label: string, b1: number, b2: number, total: number }) {
+  const v1 = (total * (b1 / 100)).toFixed(1);
+  const v2 = (total * (b2 / 100)).toFixed(1);
+  
+  return (
+    <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-slate-950/50 border border-slate-800/50">
+      <div className="flex justify-between items-center px-1">
+        <span className="text-[10px] font-black text-slate-300">{label}</span>
+        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Total: {total.toFixed(1)} mL/hr</span>
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1 flex justify-between items-center p-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <span className="text-[9px] font-bold text-slate-500">BAG 1</span>
+          <span className="text-[11px] font-black text-blue-400">{v1} <span className="opacity-50 font-medium">mL/hr</span></span>
+        </div>
+        <div className="flex-1 flex justify-between items-center p-2 rounded-xl bg-slate-800/50 border border-slate-700/50">
+          <span className="text-[9px] font-bold text-slate-500">BAG 2</span>
+          <span className="text-[11px] font-black text-amber-400">{v2} <span className="opacity-50 font-medium">mL/hr</span></span>
         </div>
       </div>
     </div>

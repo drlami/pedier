@@ -20,8 +20,6 @@ const CLINICAL_TOOLS = [
   { href: "/cardiac-arrest", label: "Cardiac Arrest", icon: HeartPulse, emergency: true },
   { href: "/neonatology/hyperbilirubinemia", label: "Hyperbilirubinemia", icon: Baby, emergency: false },
   { href: "/drug-doses", label: "Drug Dosing", icon: Pill, emergency: false },
-  { href: "/drug-safety", label: "Drug Safety", icon: FlaskConical, emergency: false },
-  { href: "/differential-diagnosis", label: "AI Differential Dx", icon: Brain, emergency: false },
   { href: "/calculators", label: "Calculators", icon: Calculator, emergency: false },
 ] as const;
 

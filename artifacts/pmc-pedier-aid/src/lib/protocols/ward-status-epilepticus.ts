@@ -1,9 +1,8 @@
 import type { DiseaseProtocol } from './types';
 
 /**
- * Pediatric Ward: Status Epilepticus (Inpatient Management)
+ * Pediatric Ward: Status Epilepticus (Post-Acute Management)
  * MASTER MANAGEMENT PATHWAY (MMP)
- * Derived from: AES (American Epilepsy Society), NICE, and RCH Melbourne
  */
 export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
   id: 'ward-status-epilepticus',
@@ -11,150 +10,107 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
   system: 'Neurological System',
   unit: 'ward',
   category: 'general',
-  lastUpdated: 'May 2026',
-  description: 'Status Epilepticus is a medical emergency characterized by a single seizure lasting more than five minutes or recurrent seizures without a return to baseline mental status between episodes. This exhaustive directive covers stepwise benzodiazepine protocols, second-line loading doses, and Pediatric Intensive Care Unit (PICU) refractory management.',
+  lastUpdated: 'June 2026',
+  description: 'Post-acute management of Status Epilepticus centers on maintaining seizure freedom, loading maintenance antiepileptic drugs (AEDs), and investigating the underlying etiology. This pathway picks up after the ER has stabilized the acute event.',
   image: {
-    url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "Critical neurological monitoring"
+    url: "https://images.unsplash.com/photo-1559757114-190bb6969b47?auto=format&fit=crop&q=80&w=600&h=400",
+    hint: "EEG and seizure monitoring"
   },
-  questions: [], 
+  questions: [
+    { id: 'weight', questionText: 'Current Body Weight', type: 'number', unit: 'kg' },
+    { id: 'history', questionText: 'Known Epilepsy?', type: 'boolean' },
+    { id: 'fever', questionText: 'Fever or Signs of Meningismus?', type: 'boolean' },
+    { id: 'gcs', questionText: 'Current GCS (Post-ictal)', type: 'number' },
+  ], 
 
   mmpData: {
-    snapshot: "Status Epilepticus management is a time-critical race against neuronal injury. The management philosophy follows the '10-20-30' rule: (1) Stop the seizure within 10 minutes using Benzodiazepines, (2) Load with long-acting Anticonvulsants by 20 minutes if refractory, and (3) Secure the airway and escalate to Intensive Care for anesthetic infusions if the seizure exceeds 30-60 minutes. Early glucose checks and stabilization of physiology are as critical as the medications themselves.",
+    snapshot: "Ward management focuses on preventing breakthrough seizures by loading maintenance AEDs (Levetiracetam, Phenytoin, or Valproate) and optimizing the previous home regimen. Investigating the cause (Metabolic, Infectious, Structural) is paramount. Continuous or serial EEG is the gold standard for detecting non-convulsive status epilepticus in patients who do not fully recover their baseline mental status.",
     stages: [
       {
-        label: "Stage 1: Initial Stabilization (0-10 Minutes)",
+        label: "Stage 1: Step 0 - Maintenance Loading",
+        shortLabel: "AED Loading",
+        color: "blue",
+        cards: [
+          {
+            title: "Maintenance Drug Loading [DR]",
+            threshold: "IMMEDIATE POST-ACUTE",
+            calculator: {
+              id: "aed-loading-calc",
+              title: "Maintenance AED Loading Calculator"
+            },
+            orders: [
+              "Levetiracetam (Keppra): 20 to 40 mg/kg IV loading dose; maintenance 10-30 mg/kg twice daily.",
+              "Phenytoin/Fosphenytoin: 20 mg PE/kg IV (requires ECG and BP monitoring). Max 1000mg.",
+              "Sodium Valproate: 20 to 40 mg/kg IV loading dose; maintenance 10-15 mg/kg twice to three times daily.",
+              "Selection: Base selection on patient's previous response, potential side effects, and epilepsy syndrome."
+            ],
+            prescriptions: [
+              {
+                drug: "Levetiracetam (Keppra) Load",
+                dose: "40 mg/kg",
+                route: "IV",
+                frequency: "STAT (Once)",
+                calculation: (w) => `${(w * 40).toFixed(0)} mg`,
+                notes: "Infuse over 15 minutes. Good for all ages."
+              },
+              {
+                drug: "Sodium Valproate Load",
+                dose: "40 mg/kg",
+                route: "IV",
+                frequency: "STAT (Once)",
+                calculation: (w) => `${(w * 40).toFixed(0)} mg`,
+                notes: "Avoid in patients with suspected mitochondrial or metabolic disease."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 2: Etiology & Diagnostic Workup",
+        shortLabel: "Etiology",
+        color: "amber",
+        cards: [
+          {
+            title: "Diagnostic Directives [DR]",
+            orders: [
+              "EEG (Electroencephalogram): Perform within 24 hours. Mandatory if GCS remains low to rule out Non-Convulsive Status Epilepticus (NCSE).",
+              "MRI Brain: Indicated for new-onset status, focal seizures, or focal neurological deficits.",
+              "Lumbar Puncture: Mandatory if febrile OR if etiology remains unknown after initial labs.",
+              "Metabolic Screening: Ammonia, Lactate, Plasma Amino Acids, and Urine Organic Acids if no clear trigger found."
+            ]
+          },
+          {
+            title: "Nursing: Seizure Precautions [NS]",
+            isCritical: true,
+            nursing: [
+              "Establish seizure precautions: Padded side rails, suction available, oxygen at bedside.",
+              "Monitor GCS and orientation every 2-4 hours.",
+              "Keep emergency rescue drug (e.g., Midazolam) at bedside with calculated dose."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 3: Transition & Triggers",
         shortLabel: "Stabilization",
         color: "red",
         cards: [
           {
-            title: "Phase 1: Airway, Breathing, Circulation & Rapid Diagnostics",
+            title: "Senior Triggers [!]",
             isCritical: true,
-            orders: [
-              "1. Airway/Breathing: High-flow Oxygen via non-rebreather mask. Position in recovery position.",
-              "2. Glucose Check: URGENT fingerstick. If Blood Glucose < 60 mg/dL → Give 2-5 mL/kg 10% Dextrose (D10W).",
-              "3. Access: Attempt Intravenous or Intraosseous access. If unsuccessful within 5 minutes, move to Intramuscular or Rectal benzodiazepines.",
-              "4. Targeted Laboratory Tests: Electrolytes (Sodium, Calcium, Magnesium), Venous Blood Gas (Lactate), and Toxicology screen."
+            triggers: [
+              "IF Breakthrough seizures occur despite loading of a maintenance AED.",
+              "IF GCS remains < 12 after 4 hours of post-ictal recovery.",
+              "IF EEG shows ongoing subclinical seizure activity.",
+              "IF New focal neurological deficits or signs of raised ICP develop."
             ]
           },
           {
-            title: "Nursing: Strict Monitoring [NS]",
-            nursing: [
-              "Monitor Oxygen Saturation, Heart Rate, and Respiratory Rate continuously.",
-              "Record Blood Pressure every 5-15 minutes during drug loading.",
-              "Maintain strict seizure safety: side rails up, padded bed, suction and oxygen ready at bedside.",
-              "Record the exact duration and semiology of the seizure (e.g., focal versus generalized).",
-              "Check Blood Glucose levels immediately and repeat if mental status remains altered."
-            ]
-          },
-          {
-            title: "1st-Line Physician Orders: Benzodiazepines [DR]",
-            threshold: "IF SEIZURE > 5 MINUTES",
+            title: "Transition to Oral Therapy",
             orders: [
-              "Standard: Give ONE dose. Repeat once only after 5 minutes if seizure continues."
-            ],
-            prescriptions: [
-              {
-                drug: "Lorazepam (Intravenous)",
-                dose: "0.1 mg/kg (Maximum 4mg)",
-                route: "Intravenous / Intraosseous",
-                frequency: "Repeat once if needed",
-                calculation: (w) => `${(w * 0.1).toFixed(1)} mg`,
-                notes: "Gold standard for Intravenous access."
-              },
-              {
-                drug: "Midazolam (Intramuscular/Buccal)",
-                dose: "0.2 mg/kg (Maximum 10mg)",
-                route: "Intramuscular / Buccal",
-                frequency: "Single Dose",
-                calculation: (w) => `${(w * 0.2).toFixed(1)} mg`,
-                notes: "Preferred if no Intravenous access."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        label: "Stage 2: Anticonvulsant Loading (10-30 Minutes)",
-        shortLabel: "Loading",
-        color: "amber",
-        cards: [
-          {
-            title: "2nd-Line Loading Directive [DR]",
-            threshold: "IF SEIZURE PERSISTS POST-BENZOS",
-            isCritical: true,
-            orders: [
-              "1. Action: Start loading dose immediately. Do not wait for second benzodiazepine dose to finish.",
-              "2. Choice: Levetiracetam is often preferred due to lower side effect profile.",
-              "3. Monitoring: Continuous Electrocardiogram and Blood Pressure during loading."
-            ],
-            prescriptions: [
-              {
-                drug: "Levetiracetam (Keppra) Intravenous",
-                dose: "40-60 mg/kg (Maximum 3000mg)",
-                route: "Intravenous Infusion",
-                frequency: "Over 15 minutes",
-                calculation: (w) => `${(w * 40).toFixed(0)} - ${(w * 60).toFixed(0)} mg`,
-                notes: "Modern 1st choice for 2nd-line."
-              },
-              {
-                drug: "Fosphenytoin (Intravenous)",
-                dose: "20 mg PE/kg (Maximum 1500mg PE)",
-                route: "Intravenous Infusion",
-                frequency: "Over 20 minutes",
-                calculation: (w) => `${(w * 20).toFixed(0)} mg PE`,
-                notes: "Rate: 3mg PE/kg/minute (Maximum 150mg PE/minute)."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        label: "Stage 3: Refractory Status & PICU (30-60 Minutes)",
-        shortLabel: "PICU",
-        color: "red",
-        cards: [
-          {
-            title: "Refractory Management Directive [DR]",
-            threshold: "SEIZURE > 30 MINUTES",
-            isCritical: true,
-            orders: [
-              "1. Pediatric Intensive Care Unit (PICU) Transfer: Mandatory. Prepare for intubation (Rapid Sequence Induction) for airway protection.",
-              "2. Continuous Electroencephalogram (EEG): Required to rule out non-convulsive status epilepticus (NCSE).",
-              "3. Anesthetic Infusions: Transition to Midazolam, Propofol, or Thiopental infusions."
-            ],
-            prescriptions: [
-              {
-                drug: "Midazolam (Intravenous Infusion)",
-                dose: "0.15 mg/kg Load",
-                route: "Intravenous Infusion",
-                frequency: "Then 1-5 mcg/kg/minute",
-                calculation: (w) => `Load: ${(w * 0.15).toFixed(1)} mg`,
-                notes: "Titrate to burst-suppression on Electroencephalogram."
-              }
-            ]
-          }
-        ]
-      },
-      {
-        label: "Stage 4: Post-Ictal Recovery & Maintenance",
-        shortLabel: "Recovery",
-        color: "emerald",
-        cards: [
-          {
-            title: "Post-Status Workup",
-            orders: [
-              "1. Imaging: Magnetic Resonance Imaging (MRI) of the Brain preferred after stabilization to identify structural causes.",
-              "2. Cerebrospinal Fluid (CSF): Mandatory if fever is present or etiology is unknown (Meningitis/Encephalitis).",
-              "3. Maintenance: Start or adjust regular Anti-Epileptic Drugs (AEDs)."
-            ]
-          },
-          {
-            title: "Long-Term Management",
-            orders: [
-              "1. Electroencephalogram (EEG): Outpatient sleep-deprived EEG within 2-4 weeks.",
-              "2. Rescue Plan: Provide Midazolam or Diazepam rescue plan for home use.",
-              "3. Clinic Referral: Referral to Pediatric Neurology."
+              "Criteria: 24 hours seizure-free on IV maintenance drugs and patient is alert and swallowing safely.",
+              "Conversion: Use 1:1 dose ratio for Levetiracetam and Valproate transition from IV to Oral.",
+              "Education: Ensure family understands the importance of dose timing and has a rescue plan."
             ]
           }
         ]
@@ -162,15 +118,30 @@ export const wardStatusEpilepticusProtocol: DiseaseProtocol = {
     ]
   },
 
-  // ER Legacy
-  calculateSeverity: () => ({ level: 'severe', details: [] }),
+  calculateSeverity: (data) => {
+    const gcs = Number(data.gcs);
+    if (gcs < 10 || data.fever) return { level: 'critical', details: ["High-risk Post-Acute SE: Risk of CNS infection or non-convulsive status. ICU/Neurology required."] };
+    if (!data.history) return { level: 'severe', details: ["New-onset SE: Requires exhaustive structural/metabolic workup."] };
+    return { level: 'moderate', details: ["Stabilized SE: Proceed with maintenance optimization."] };
+  },
   getManagement: () => [],
-  getDisposition: () => [],
-  getRedFlags: () => [],
+  getDisposition: () => [
+    "Seizure-free for > 24 hours on oral maintenance therapy.",
+    "Mental status returned to baseline (or stable plateau).",
+    "MRI Brain and EEG reviewed by Neurology.",
+    "Home rescue plan (e.g. Buccal Midazolam) provided and family trained.",
+    "Follow-up scheduled with Pediatric Neurology in 2-4 weeks."
+  ],
+  getRedFlags: [
+    "Brief repetitive jerking (Myoclonus)",
+    "Focal weakness (Todd's Paralysis)",
+    "Persistent confusion or strange behavior",
+    "Fever and neck stiffness",
+    "Asymmetric pupils"
+  ],
   getDrugDoses: () => [],
   getReferences: () => [
-    { title: "AES: Evidence-Based Guideline for Status Epilepticus", url: "https://www.aesnet.org/clinical-care/clinical-guidelines" },
-    { title: "NICE Guideline: Epilepsies in children and young people", url: "https://www.nice.org.uk/guidance/ng217" },
-    { title: "RCH Melbourne: Status Epilepticus CPG", url: "https://www.rch.org.au/clinicalguide/guideline_index/Status_Epilepticus/" }
+    { title: "AES: Clinical Guidance: Status Epilepticus", url: "https://www.aesnet.org/clinical-care/clinical-guidance" },
+    { title: "RCH Melbourne: Seizures and Status Epilepticus", url: "https://www.rch.org.au/clinicalguide/guideline_index/Seizures/" }
   ],
 };
