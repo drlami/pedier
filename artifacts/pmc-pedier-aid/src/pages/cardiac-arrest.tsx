@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { HeartPulse, AlertTriangle, ChevronDown, ChevronUp, Info, Stethoscope, Activity, Droplets, BookOpen, Wind, Syringe } from "lucide-react";
+import { HeartPulse, AlertTriangle, ChevronDown, ChevronUp, Info, Stethoscope, Activity, Droplets, BookOpen, Wind, Syringe, ExternalLink } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -330,7 +330,47 @@ export default function CardiacArrestPage() {
                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                  <Activity className="h-3 w-3 text-red-500" /> Resuscitation Timeline
                </CardTitle>
-               <span className="text-[8px] font-bold text-slate-500">LATEST 50 EVENTS</span>
+               <div className="flex items-center gap-3">
+                 <Button
+                   variant="ghost"
+                   size="icon"
+                   className="h-6 w-6 text-slate-400 hover:text-white hover:bg-slate-700"
+                   onClick={() => {
+                     const printWindow = window.open('', '_blank', 'width=600,height=800');
+                     if (printWindow) {
+                       printWindow.document.write(`
+                         <html>
+                           <head>
+                             <title>Resuscitation Timeline</title>
+                             <style>
+                               body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background: #0f172a; color: #f8fafc; }
+                               h1 { font-size: 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 24px; color: #94a3b8; }
+                               .event { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 12px; background: #1e293b; border-radius: 8px; border-left: 4px solid #dc2626; }
+                               .time { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: #94a3b8; font-size: 0.85rem; font-weight: 700; width: 70px; }
+                               .msg { color: #f1f5f9; font-weight: 600; font-size: 0.95rem; }
+                               .empty { color: #64748b; font-style: italic; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+                             </style>
+                           </head>
+                           <body>
+                             <h1>Resuscitation Timeline - ${new Date().toLocaleDateString()}</h1>
+                             ${events.length === 0 ? '<p class="empty">No events recorded.</p>' : events.map(e => 
+                               '<div class="event">' +
+                                 '<span class="time">' + e.time + '</span>' +
+                                 '<span class="msg">' + e.msg + '</span>' +
+                               '</div>'
+                             ).join('')}
+                           </body>
+                         </html>
+                       `);
+                       printWindow.document.close();
+                     }
+                   }}
+                   title="Open in new window for screenshot"
+                 >
+                   <ExternalLink className="h-3 w-3" />
+                 </Button>
+                 <span className="text-[8px] font-bold text-slate-500">LATEST 50 EVENTS</span>
+               </div>
             </CardHeader>
             <CardContent className="p-0">
                <div className="max-h-[160px] overflow-y-auto divide-y divide-slate-800 scrollbar-hide">

@@ -34,6 +34,7 @@ import {
   ClipboardList,
   Eye,
   AlertCircle,
+  ArrowRight,
 } from 'lucide-react';
 
 interface AssessmentFormProps {
@@ -286,6 +287,15 @@ function ResultsContent({
   summaryUrl,
   lastUpdated,
 }: ResultsContentProps) {
+  const [checkedSteps, setCheckedSteps] = useState<Set<string>>(new Set());
+
+  const toggleStep = (id: string) => {
+    const next = new Set(checkedSteps);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setCheckedSteps(next);
+  };
+
   return (
     <>
       {/* 0. Last Updated / Versioning */}
@@ -435,17 +445,27 @@ function ResultsContent({
       )}
 
       {/* 3. MANAGEMENT — numbered steps */}
-      {management.map((m) => (
+      {management.map((m, mIdx) => (
         <ResultCard key={m.title} title={m.title} icon={Pill} variant="management">
           <div className="space-y-3">
-            {m.recommendations.map((rec, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-blue-50/50 border border-blue-100/50 text-sm font-bold text-slate-800 leading-snug">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-[11px] font-black text-white shadow-md shadow-blue-200">
-                  {i + 1}
-                </span>
-                <span className="flex-1 pt-0.5">{rec}</span>
-              </div>
-            ))}
+            {m.recommendations.map((rec, i) => {
+              const stepId = `${mIdx}-${i}`;
+              const isChecked = checkedSteps.has(stepId);
+              return (
+                <label key={i} className={cn("flex items-start gap-4 p-4 rounded-2xl border transition-all cursor-pointer select-none", isChecked ? "bg-emerald-50/50 border-emerald-200/50 opacity-70" : "bg-blue-50/50 border-blue-100/50 hover:bg-blue-100/50")}>
+                  <div className="pt-0.5">
+                    <div className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-black shadow-sm transition-colors", isChecked ? "bg-emerald-500 text-white shadow-emerald-200" : "bg-blue-600 text-white shadow-blue-200")}>
+                      {isChecked ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
+                    </div>
+                  </div>
+                  <span className={cn("flex-1 pt-0.5 text-sm font-bold leading-snug transition-all", isChecked ? "text-emerald-900 line-through decoration-emerald-300/50" : "text-slate-800")}>
+                    {/* Make drug names bold if they contain IV, IM, PO, mg, mcg etc. This is a simple regex highlight */}
+                    <span dangerouslySetInnerHTML={{ __html: rec.replace(/([A-Za-z0-9\s]+ (mg|mcg|g|mL|IV|IM|PO|SC|IN|mg\/kg|mcg\/kg)[A-Za-z0-9\/\s]*)/gi, '<strong>$1</strong>') }} />
+                  </span>
+                  <input type="checkbox" className="sr-only" checked={isChecked} onChange={() => toggleStep(stepId)} />
+                </label>
+              );
+            })}
           </div>
         </ResultCard>
       ))}
@@ -614,19 +634,43 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     switch (question.type) {
       case 'number':
         return (
-          <div className="relative group">
-            <Input
-              id={question.id}
-              type="number"
-              value={field.value !== undefined && field.value !== false ? String(field.value) : ''}
-              onChange={(e) => field.onChange(e.target.value === '' ? undefined : +e.target.value)}
-              className="h-12 bg-slate-50 border-slate-200 text-lg font-black focus:bg-white focus:ring-primary focus:border-primary rounded-xl transition-all"
-            />
-            {question.unit && (
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase tracking-widest">
-                {question.unit}
-              </span>
-            )}
+          <div className="flex items-center gap-2 relative group">
+            <button
+              type="button"
+              onClick={() => {
+                const current = field.value !== undefined && field.value !== '' ? Number(field.value) : 0;
+                field.onChange(Math.max(0, current - 1));
+              }}
+              className="h-12 w-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 font-bold text-2xl transition-colors border border-slate-200"
+              aria-label="Decrease value"
+            >
+              -
+            </button>
+            <div className="relative flex-1">
+              <Input
+                id={question.id}
+                type="number"
+                value={field.value !== undefined && field.value !== false ? String(field.value) : ''}
+                onChange={(e) => field.onChange(e.target.value === '' ? undefined : +e.target.value)}
+                className="h-12 bg-slate-50 border-slate-200 text-center text-lg font-black focus:bg-white focus:ring-primary focus:border-primary rounded-xl transition-all"
+              />
+              {question.unit && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase tracking-widest pointer-events-none">
+                  {question.unit}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const current = field.value !== undefined && field.value !== '' ? Number(field.value) : 0;
+                field.onChange(current + 1);
+              }}
+              className="h-12 w-14 flex-shrink-0 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 font-bold text-2xl transition-colors border border-slate-200"
+              aria-label="Increase value"
+            >
+              +
+            </button>
           </div>
         );
 
@@ -726,8 +770,14 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
     }
   };
 
-  const renderQuestion = (question: Question) => (
-    <Card key={question.id} className="overflow-hidden rounded-[28px] border-2 border-slate-100 shadow-sm transition-all hover:shadow-md group">
+  const renderQuestion = (question: Question, index: number) => {
+    const firstUnansweredIdx = protocol.questions.findIndex(
+      (q) => formData[q.id] === undefined || formData[q.id] === ''
+    );
+    const isPastUnanswered = firstUnansweredIdx !== -1 && index > firstUnansweredIdx;
+
+    return (
+    <Card key={question.id} className={cn("overflow-hidden rounded-[28px] border-2 border-slate-100 shadow-sm transition-all duration-500 group", isPastUnanswered ? "opacity-30 saturate-0 focus-within:opacity-100 focus-within:saturate-100 hover:opacity-100 hover:saturate-100" : "hover:shadow-md")}>
       <CardHeader className="py-4 px-6 bg-slate-50/50 border-b-2 border-slate-100 group-hover:bg-slate-50 transition-colors">
         <CardTitle className="text-sm font-black leading-snug">
           <div className="flex items-start justify-between gap-4">
@@ -759,7 +809,8 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
         />
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const summaryUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -820,7 +871,7 @@ export function AssessmentForm({ diseaseId }: AssessmentFormProps) {
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-700 ease-out shadow-sm',
-                  allAnswered ? 'bg-emerald-500' : 'bg-primary',
+                  allAnswered ? 'bg-emerald-500' : (severityLevel === 'critical' ? 'bg-red-500' : severityLevel === 'severe' ? 'bg-orange-500' : 'bg-primary')
                 )}
                 style={{ width: `${completionPercent}%` }}
               />
