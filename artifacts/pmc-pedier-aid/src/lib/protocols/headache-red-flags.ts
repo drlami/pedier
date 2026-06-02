@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const headacheRedFlagsProtocol: DiseaseProtocol = {
   id: 'headache-red-flags',
   name: 'Headache Red Flags (SNOOPP)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Screening for secondary causes of pediatric headache using formal red flag criteria.',
   image: {
     url: "https://picsum.photos/seed/headache/600/400",

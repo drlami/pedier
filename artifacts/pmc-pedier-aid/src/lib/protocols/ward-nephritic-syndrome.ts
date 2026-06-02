@@ -1,128 +1,119 @@
-import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
+import type { DiseaseProtocol, FormData, Severity } from './types';
 
 /**
- * Pediatric Ward: Acute Nephritic Syndrome (APSGN)
+ * Pediatric Ward: Acute Nephritic Syndrome
  * MASTER MANAGEMENT PATHWAY (MMP)
- * Derived from: StatPearls (2024), RCPCH, and Melbourne RCH.
+ * Derived from: KDIGO (2021) and Melbourne RCH Guidelines
  */
 export const wardNephriticSyndromeProtocol: DiseaseProtocol = {
   id: 'ward-nephritic-syndrome',
   name: 'Acute Nephritic Syndrome Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Inpatient management of APSGN and nephritic syndromes: Aggressive blood pressure control, strict fluid titration, and monitoring for hypertensive encephalopathy.',
+  category: 'general',
+  lastUpdated: 'June 2026',
+  description: 'Acute Nephritic Syndrome is a clinical syndrome characterized by the sudden onset of hematuria, proteinuria, hypertension, and edema, often accompanied by a reduction in glomerular filtration rate. This exhaustive directive covers the management of Post-Streptococcal Glomerulonephritis and other acute glomerulonephritides, focusing on blood pressure control and fluid balance.',
   image: {
-    url: "https://images.unsplash.com/photo-1559839734-2b71f1e3c7e5?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "Blood pressure and hematuria management"
+    url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
+    hint: "Hypertension and hematuria management"
   },
   questions: [
-    { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
-    { id: 'bpHigh', questionText: 'BP significantly above 95th percentile?', type: 'boolean' },
-    { id: 'oliguria', questionText: 'Oliguria (< 1 mL/kg/hr) present?', type: 'boolean' },
-    { id: 'neuroSymptoms', questionText: 'Headache, visual changes, or seizures?', type: 'boolean' },
+    { id: 'weight', questionText: 'Current Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'hypertension', questionText: 'Blood Pressure above the 95th percentile?', type: 'boolean' },
+    { id: 'reducedOutput', questionText: 'Urine Output less than 0.5 mL/kg/hour?', type: 'boolean' },
+    { id: 'respiratoryDistress', questionText: 'Signs of fluid overload (Shortness of breath/Crackles)?', type: 'boolean' },
   ],
 
   mmpData: {
-    snapshot: "Management is focused on volume control. Use fluid restriction (Insensible Loss + UO) and loop diuretics. Avoid ACE inhibitors in the acute phase due to hyperkalemia risk.",
+    snapshot: "Management centers on the 'Three Pillars': (1) Aggressive Blood Pressure control to prevent hypertensive encephalopathy, (2) Strict fluid restriction to manage edema and circulatory overload, and (3) Monitoring for Acute Kidney Injury. In Post-Streptococcal cases, the prognosis is excellent, but clinicians must exclude more aggressive glomerulonephritides if complement levels remain low beyond 8 weeks.",
     stages: [
       {
-        label: "Stage 1: Admission & Volume Assessment",
-        shortLabel: "Admission",
+        label: "Stage 1: Diagnosis & Volume Assessment",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Immediate Laboratory Orders",
+            title: "The Nephritic Triad",
             orders: [
-              "Urine Microscopy: Look for Red Cell Casts and Dysmorphic RBCs.",
-              "ASO Titre & Anti-DNAse B (Confirm recent Strep infection).",
-              "Complement Levels (C3, C4): Expected low C3 in APSGN.",
-              "Renal Function & Electrolytes (Check for AKI and Hyperkalemia)."
+              "Hematuria: Macroscopic (cola-colored) or microscopic (greater than 5 red blood cells per high power field).",
+              "Hypertension: Often sudden onset and out of proportion to edema.",
+              "Edema: Typically periorbital and worse in the morning."
             ]
           },
           {
-            title: "Strict Volume Control [NS]",
-            threshold: "CORE DIRECTIVE",
+            title: "Initial Physician Orders [DR]",
             orders: [
-              "Restrict Fluid to: 400 mL/m²/day (Insensible Loss) + previous 24h Urine Output.",
-              "No-Added-Salt (NAS) diet.",
-              "Daily Weight: Aim for 1-2% weight loss per day until diuresis."
-            ],
-            nursing: [
-              "Manual BP monitoring every 4 hours.",
-              "Strict hourly intake/output charting.",
-              "Daily weight at 08:00 AM."
+              "Urinalysis: Microscopy for red blood cell casts (pathognomonic for glomerulonephritis).",
+              "Complete Blood Count and Creatinine: Establish baseline renal function.",
+              "Complement Levels: C3 and C4 (C3 is characteristically low in Post-Streptococcal Glomerulonephritis).",
+              "Streptococcal Evidence: Anti-Streptolysin O (ASO) titer or Throat Culture.",
+              "Chest X-ray: Indicated if there are signs of respiratory distress or suspected heart failure from overload."
             ]
           }
         ]
       },
       {
-        label: "Stage 2: Hypertension Management",
-        shortLabel: "Hypertension",
-        color: "red",
-        cards: [
-          {
-            title: "Diuretic Therapy",
-            threshold: "FIRST-LINE FOR VOLUME HTN",
-            orders: [
-              "Furosemide: Start with 1-2 mg/kg per dose.",
-              "Monitor for hypokalemia once diuresis starts."
-            ],
-            prescriptions: [
-              {
-                drug: "Furosemide (IV/Oral)",
-                dose: "1 mg/kg",
-                route: "IV/Oral",
-                frequency: "Every 12 hours",
-                calculation: (w) => `${(1 * w).toFixed(0)} mg`,
-                notes: "Titrate based on BP and UO."
-              }
-            ]
-          },
-          {
-            title: "Antihypertensive Strategy",
-            threshold: "IF BP REMAINS > 95TH %",
-            orders: [
-              "Calcium Channel Blockers: Amlodipine (0.1 mg/kg) or Nifedipine.",
-              "Vasodilators: Hydralazine (0.2 mg/kg IV) for hypertensive urgency.",
-              "AVOID ACE Inhibitors: Risk of hyperkalemia during oliguric phase."
-            ]
-          }
-        ]
-      },
-      {
-        label: "Stage 3: Complication Vigilance",
-        shortLabel: "Monitoring",
+        label: "Stage 2: Fluid & Pressure Management",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Neurological Monitoring",
-            isCritical: true,
-            threshold: "BP > 99TH % + 5mmHg",
-            triggers: [
-              "Headache, vomiting, or altered vision: Suggests Hypertensive Encephalopathy/PRES.",
-              "New-onset seizures: Require urgent IV anticonvulsants and BP lowering."
+            title: "Fluid Restriction Strategy",
+            threshold: "IF EDEMATOUS OR HYPERTENSIVE",
+            orders: [
+              "Restriction Goal: Limit total fluid intake to Insensible Water Loss + Urine Output (mL for mL).",
+              "Insensible Water Loss: Approximately 400 mL/m²/day.",
+              "Choice of Fluid: Strictly Isotonic if Intravenous is required; avoid all potassium-containing fluids."
             ]
           },
           {
-            title: "Cardiopulmonary Monitoring",
-            nursing: [
-              "Assess for basal lung crepitations (Pulmonary Edema).",
-              "Check for liver enlargement or gallop rhythm."
+            title: "Hypertension Directive",
+            isCritical: true,
+            threshold: "BLOOD PRESSURE > 95TH PERCENTILE",
+            orders: [
+              "First-Line Diuretic: Administer Furosemide (1-2 mg/kg) to reduce volume and pressure.",
+              "Vasodilators: Consider Nifedipine or Amlodipine if hypertension persists despite diuresis.",
+              "Emergency: If hypertensive crisis (Seizure/Vision change), escalate to Intravenous Labetalol or Hydralazine."
             ]
           }
         ]
       },
       {
-        label: "Stage 4: Remission & Discharge",
-        shortLabel: "Discharge",
+        label: "Stage 3: Nursing & Surveillance [NS]",
+        shortLabel: "Monitoring",
+        color: "red",
+        cards: [
+          {
+            title: "Strict Bedside Monitoring",
+            nursing: [
+              "Blood Pressure: Measure every 4 hours (Every 1 hour if severely hypertensive).",
+              "Daily Weight: Mandatory morning weight to track fluid loss/gain.",
+              "Intake and Output: Strict hourly charting; report Oliguria (less than 0.5 mL/kg/hour).",
+              "Neurological Check: Report any new headache, vomiting, or altered consciousness immediately."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Stage 4: Recovery & Discharge Planning",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Recovery Targets",
+            title: "Discharge Criteria",
             orders: [
-              "Stable blood pressure on minimal or no medication.",
-              "Resolved volume overload (dry weight reached).",
-              "Educate parents on long-term follow-up: Hematuria can last 6-12 months."
+              "Blood Pressure stable on oral therapy or without medications.",
+              "Urine Output established and greater than 1.0 mL/kg/hour.",
+              "Edema resolving with a stable or falling weight trend.",
+              "Creatinine stable or improving."
+            ]
+          },
+          {
+            title: "Long-term Follow-up",
+            orders: [
+              "Week 2: Blood Pressure and Urinalysis check.",
+              "Month 2: Repeat C3 level; if still low, refer to Pediatric Nephrology for biopsy.",
+              "Note: Hematuria may persist for up to 12 months; this is expected if Blood Pressure and Creatinine are normal."
             ]
           }
         ]
@@ -131,22 +122,22 @@ export const wardNephriticSyndromeProtocol: DiseaseProtocol = {
   },
 
   calculateSeverity: (data: FormData): Severity => {
-    if (data.neuroSymptoms === true || data.bpHigh === true) {
-      return { level: 'critical', details: ["Hypertensive urgency or encephalopathy suspected."] };
+    if (data.hypertension === true || data.respiratoryDistress === true) {
+      return { level: 'critical', details: ["Severe Hypertension or Fluid Overload detected."] };
     }
-    if (data.oliguria === true) {
-      return { level: 'severe', details: ["High risk for rapid volume overload and electrolyte imbalance."] };
+    if (data.reducedOutput === true) {
+      return { level: 'severe', details: ["Oliguric Nephritic Syndrome - High risk for Acute Kidney Injury."] };
     }
-    return { level: 'moderate', details: ["Stable nephritic syndrome; monitoring phase."] };
+    return { level: 'moderate', details: ["Stable Nephritic Syndrome."] };
   },
   getManagement: () => [],
   getDisposition: () => [
-    "Stable BP on oral medications.",
-    "No respiratory distress or pulmonary edema.",
-    "UO > 1 mL/kg/hr.",
-    "Follow-up scheduled for BP check and repeat C3 in 8 weeks."
+    "Blood Pressure controlled and stable.",
+    "Fluid balance achieved with resolving edema.",
+    "Normalizing renal function.",
+    "Follow-up scheduled for Blood Pressure check and repeat C3 in 8 weeks."
   ],
-  getRedFlags: () => ["Seizures", "Sudden SOB", "Anuria", "Severe Headache"],
+  getRedFlags: () => ["Seizures", "Sudden Shortness of Breath", "No Urine Output (Anuria)", "Severe Headache"],
   getDrugDoses: () => [],
   getReferences: () => [
     { title: "StatPearls: Poststreptococcal Glomerulonephritis", url: "https://www.ncbi.nlm.nih.gov/books/NBK441865/" },

@@ -13,7 +13,7 @@ export const wardAspirationPneumoniaProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Differentiating pneumonitis vs pneumonia, anaerobic coverage (Tazocin) roadmap, and safe feeding rehabilitation.',
+  description: 'Aspiration Pneumonia is an infectious pulmonary process occurring when oropharyngeal or gastric contents are inhaled into the lower respiratory tract, leading to bacterial infection. This pathway provides a roadmap for differentiating chemical pneumonitis (inflammatory response) from true aspiration pneumonia, detailed anaerobic antibiotic protocols (Piperacillin-Tazobactam), and comprehensive feeding rehabilitation strategies.',
   image: {
     url: "https://images.unsplash.com/photo-1581594658553-359424894362?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Aspiration risk and management"
@@ -21,73 +21,68 @@ export const wardAspirationPneumoniaProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management centers on the 'Triple-A Approach': (1) Airway Protection via positioning and suctioning, (2) Antibiotic targeting of mixed oropharyngeal flora (including anaerobes), and (3) Assessment of swallowing function. It is vital to distinguish Chemical Pneumonitis (acute inflammation from gastric acid, often resolving with supportive care) from Aspiration Pneumonia (bacterial infection requiring antimicrobial therapy). Strict 'Nothing by Mouth' (NPO) status and elevation of the head of the bed (30-45 degrees) are mandatory initial steps.",
     stages: [
       {
-        label: "Acute Event & Differentiation (Hour 0-2)",
-        shortLabel: "Acute Event & Differentiation (Hour 0-2)",
+        label: "Stage 1: Acute Event & Differentiation (Hour 0-2)",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
             title: "Pneumonitis vs. Pneumonia",
             threshold: "CRITICAL DIFFERENTIATION",
-            instructions: [
-              "1. Chemical Pneumonitis: Occurs 2-12h post-aspiration. Often afebrile. Suction and monitor for 24-48h BEFORE starting antibiotics.",
-              "2. Aspiration Pneumonia: Suspect if fever persists > 48h, rising inflammatory markers, or high-risk features (neurological impairment).",
-              "3. Immediate Action: Lateral Decubitus suctioning if witnessed event."
+            orders: [
+              "Chemical Pneumonitis: Occurs 2-12 hours post-aspiration. Often afebrile (no fever). Suction and monitor for 24-48 hours BEFORE starting antibiotics as it may resolve spontaneously.",
+              "Aspiration Pneumonia: Suspect if fever persists > 48 hours, rising inflammatory markers, or high-risk features (neurological impairment, known swallowing dysfunction).",
+              "Immediate Action: Lateral Decubitus positioning and oral/pharyngeal suctioning if an event is witnessed."
             ]
           },
           {
-            title: "Admission Laboratory Orders",
-            instructions: [
-              "1. CBC with Diff: Assess for leukocytosis/left shift.",
-              "2. CRP/Procalcitonin: To differentiate inflammatory from infective process.",
-              "3. Blood Cultures: Mandatory before starting antibiotics.",
-              "4. VBG/Capillary Gas: Assess gas exchange if distress is moderate/severe."
-            ]
-          },
-          {
-            title: "Radiology Directive",
-            instructions: [
-              "CXR (AP/Lateral): Look for infiltrates in dependent lobes (Right Upper Lobe if supine; Lower Lobes if upright).",
-              "Barium Swallow / Videofluoroscopy: DO NOT perform in acute phase. Plan for Phase 4."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Complete Blood Count (CBC) with Differential: Assess for leukocytosis (high white cells) or left shift (immature neutrophils).",
+              "Inflammatory Markers: C-Reactive Protein (CRP) or Procalcitonin to monitor trend of infection.",
+              "Blood Cultures: Mandatory before starting any intravenous antibiotics.",
+              "Blood Gas Assessment: Venous or Capillary Blood Gas to assess gas exchange and pH if respiratory distress is present.",
+              "Chest X-Ray (AP/Lateral): Look for infiltrates in dependent lobes (Right Upper Lobe if supine; Lower Lobes if upright)."
             ]
           }
         ]
       },
       {
-        label: "Initial IV Antibiotic Strategy",
-        shortLabel: "Initial IV Antibiotic Strategy",
+        label: "Stage 2: Initial IV Antibiotic Strategy",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Empirical Anaerobic Coverage",
+            title: "Empirical Antibiotic Choice",
             threshold: "IF BACTERIAL PNEUMONIA SUSPECTED",
-            instructions: [
-              "Target: Mixed oropharyngeal flora, anaerobes, and Gram-negative coverage.",
-              "Primary Choice: Piperacillin-Tazobactam (Tazocin)."
+            orders: [
+              "Target: Mixed oropharyngeal flora, anaerobes, and Gram-negative bacteria.",
+              "Primary Choice: Piperacillin-Tazobactam (Tazocin) provides excellent anaerobic and pseudomonal coverage."
             ],
             prescriptions: [
               {
-                drug: "Tazocin (Piperacillin-Tazobactam)",
+                drug: "Piperacillin-Tazobactam (Tazocin)",
                 dose: "90 mg/kg (based on Piperacillin component)",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
                 calculation: (w) => `${(90 * w).toFixed(0)} mg`,
-                notes: "Maximum dose: 4g/0.5g (total 4.5g)."
+                notes: "Maximum dose: 4g/0.5g (total 4.5g). Use for suspected anaerobic infection."
               }
             ]
           },
           {
-            title: "Alternative: Clindamycin Directive",
-            threshold: "IF PCN ALLERGY OR ABSCESS RISK",
-            instructions: [
-              "Use Clindamycin if severe penicillin allergy or if cavitation/abscess is present on CXR."
+            title: "Alternative Coverage",
+            threshold: "IF PENICILLIN ALLERGY OR ABSCESS",
+            orders: [
+              "Use Clindamycin if there is a severe penicillin allergy or if cavitation/lung abscess is visible on imaging."
             ],
             prescriptions: [
               {
-                drug: "Clindamycin (IV)",
+                drug: "Clindamycin",
                 dose: "10 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 8 hours",
                 calculation: (w) => `${(10 * w).toFixed(0)} mg`,
                 notes: "Strong anaerobic and anti-staphylococcal activity."
@@ -97,49 +92,52 @@ export const wardAspirationPneumoniaProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Support Failure & Monitoring",
-        shortLabel: "Support Failure & Monitoring",
+        label: "Stage 3: Monitoring & Escalation",
+        shortLabel: "Monitoring",
         color: "red",
         cards: [
           {
-            title: "Triggers for PICU / Escalation",
-            isCritical: true,
-            instructions: [
-              "1. Refractory Hypoxemia: SpO2 < 90% despite 40-50% FiO2.",
-              "2. Septic Shock: Tachycardia + Capillary Refill > 3s + Hypotension.",
-              "3. Neurological Decline: Impaired cough/gag reflex (Risk of re-aspiration)."
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Monitor Respiratory Rate and Work of Breathing (grunting, flaring, retractions) every 2-4 hours.",
+              "Maintain Continuous Pulse Oximetry (target SpO2 > 94%).",
+              "Positioning: Ensure Head of Bed (HOB) is maintained at 30-45 degrees at all times to prevent further aspiration.",
+              "Strict NPO Status: Do not provide oral intake until cleared by the physician.",
+              "Suctioning: Perform gentle oral/nasal suctioning as needed for secretions."
             ]
           },
           {
-            title: "Nutrition & Feeding Directive",
-            instructions: [
-              "1. NPO Status: Strict NPO for at least 24h if acute event witnessed or RR > 60.",
-              "2. NG/OG Feeding: Use as 1st-line for nutrition. Post-pyloric feeding if severe GERD/recurrent aspiration.",
-              "3. Positioning: Head of bed maintained at 30-45 degrees at ALL times."
+            title: "Triggers for ICU Escalation",
+            isCritical: true,
+            orders: [
+              "Refractory Hypoxemia: Oxygen saturation < 90% despite high-flow oxygen or 50% FiO2.",
+              "Septic Shock: Tachycardia, delayed capillary refill (> 3 seconds), or low blood pressure.",
+              "Neurological Decline: Loss of gag reflex or inability to protect airway."
             ]
           }
         ]
       },
       {
-        label: "Rehabilitation & Discharge",
-        shortLabel: "Rehabilitation & Discharge",
+        label: "Stage 4: Rehabilitation & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
             title: "Safe Feeding Roadmap",
             threshold: "PRE-DISCHARGE MANDATE",
-            instructions: [
-              "1. Speech Language Pathologist (SLP) Review: Formal swallow study before oral feeds resume.",
-              "2. Thickeners: Consider thickening agents (e.g. Rice cereal or commercial thickeners) per SLP advice.",
-              "3. Anti-Reflux: Start/Optimize PPI or H2RA if GERD is the suspected trigger."
+            orders: [
+              "Speech and Language Pathology (SLP) Review: Formal bedside swallow assessment before resuming any oral feeds.",
+              "Consider Video-Fluoroscopic Swallow Study (VFSS) or Fiberoptic Endoscopic Evaluation of Swallowing (FEES) if recurrent aspiration suspected.",
+              "Anti-Reflux Management: Optimize Gastroesophageal Reflux Disease (GERD) treatment if reflux was the trigger."
             ]
           },
           {
-            title: "Total Treatment Duration",
-            instructions: [
-              "Uncomplicated: 7-10 days total antibiotics.",
-              "Complicated (Abscess): 3-4 weeks total.",
-              "Follow-up: Pediatric Respiratory Clinic review in 2-4 weeks."
+            title: "Discharge Criteria",
+            orders: [
+              "Total Treatment Duration: Typically 7-10 days for uncomplicated pneumonia; 3-4 weeks for lung abscess.",
+              "Stable Respiratory Status: No oxygen requirement for 24 hours.",
+              "Safe Feeding Plan: Clearly documented plan for oral intake or tube feeding (Nasogastric/Gastrostomy).",
+              "Follow-up: Pediatric Pulmonology review in 2-4 weeks."
             ]
           }
         ]

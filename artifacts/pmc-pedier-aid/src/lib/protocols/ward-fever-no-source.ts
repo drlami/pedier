@@ -11,7 +11,7 @@ export const wardFeverNoSourceProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior directive for occult infection: Age-based risk stratification (< 90 days), septic workup criteria, and empiric management.',
+  description: 'Fever Without Source is defined as an acute febrile illness where the etiology is not apparent after a thorough history and physical examination. This pathway provides age-based risk stratification (particularly for infants under 90 days), criteria for a full or partial septic workup, and evidence-based empirical management to identify and treat Invasive Bacterial Infections such as bacteremia and meningitis.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Fever Risk Stratification"
@@ -19,37 +19,49 @@ export const wardFeverNoSourceProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management is categorized by 'Age-Based Risk Tiers': (1) Infants under 21-28 days require a full septic workup (Blood, Urine, Cerebrospinal Fluid) and mandatory hospitalization. (2) Infants 29-60 days are managed via structured criteria (e.g., AAP 2021) using inflammatory markers (Procalcitonin, C-Reactive Protein) to guide the need for lumbar puncture. The primary goal is the early identification of occult Urinary Tract Infections, Bacteremia, and Meningitis.",
     stages: [
       {
-        label: "Admission & Risk Stratification",
-        shortLabel: "Admission & Risk Stratification",
+        label: "Stage 1: Admission & Risk Stratification",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
             title: "Age-Based Risk Tiering",
             threshold: "MANDATORY ON ARRIVAL",
             isCritical: true,
-            instructions: [
-              "Tier 1: < 21-28 Days (Neonatal): FULL Septic Workup (Blood, Urine, CSF) + Mandatory Admission + IV Antibiotics.",
-              "Tier 2: 29-60 Days: Step-by-Step Approach (e.g., PECARN/Philadelphia/Rochester criteria). Blood and Urine workup mandatory; CSF based on inflammatory markers.",
-              "Tier 3: 61-90 Days: Low risk if 'Well-appearing'. Focus on UTI screening.",
-              "Tier 4: > 90 Days: Focus on focal source identification (Ear, Throat, Lungs, UTI)."
+            orders: [
+              "Tier 1: < 21-28 Days (Neonatal): FULL Septic Workup (Blood, Urine, Cerebrospinal Fluid) + Mandatory Admission + Intravenous Antibiotics.",
+              "Tier 2: 29-60 Days: Step-by-Step Approach (e.g., PECARN/Philadelphia/Rochester criteria). Blood and Urine workup mandatory; Cerebrospinal Fluid based on inflammatory markers.",
+              "Tier 3: 61-90 Days: Low risk if 'Well-appearing'. Focus on Urinary Tract Infection screening.",
+              "Tier 4: > 90 Days: Focus on focal source identification (Ear, Throat, Lungs, Urine)."
             ]
           },
           {
-            title: "The Septic Workup Directive",
-            instructions: [
-              "1. Blood Culture: REQUIRED for all < 60 days with fever > 38°C.",
-              "2. Urinalysis & Culture: REQUIRED for all < 90 days (Catheter or SPA preferred).",
-              "3. CSF Analysis: Mandatory if < 28 days, toxic appearing, or high markers in 29-60 day group.",
-              "4. Inflammatory Markers: Procalcitonin (>0.5 ng/mL) and CRP (>20 mg/L) are high-yield predictors of IBI."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Immediate Age-Based Risk Stratification: Determine the appropriate tier (<21 days, 21-60 days, or 61-90 days).",
+              "Blood Culture: Mandatory for all infants under 60 days and any older child who appears toxic.",
+              "Urinalysis and Urine Culture: Required for all infants under 90 days (obtained via catheterization or suprapubic aspiration).",
+              "Inflammatory Markers: Order Procalcitonin and C-Reactive Protein to assess risk of Invasive Bacterial Infection.",
+              "Lumbar Puncture for Cerebrospinal Fluid Analysis: Perform if infant is under 21 days, toxic-appearing, or if inflammatory markers are significantly elevated in the 21-60 day group.",
+              "Empirical Intravenous Antibiotics: Initiate Ampicillin and Cefotaxime for infants under 21 days; consider Ceftriaxone for older infants after cultures are obtained."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Vital Signs every 4 hours: Monitor heart rate, respiratory rate, blood pressure, and oxygen saturation.",
+              "Temperature Tracking: Record temperature every 4 hours and notify physician for persistent high fever or temperature instability in neonates.",
+              "Serial Clinical Assessment: Document transition from 'well-appearing' to 'toxic-appearing' (e.g., poor perfusion, lethargy, or irritability).",
+              "Feeding and Hydration Status: Monitor oral intake and number of wet diapers daily."
             ]
           },
           {
             title: "Empiric IV Therapy (Neonatal/Young) (PREFERRED REGIMEN: DUAL THERAPY)",
             threshold: "AGE < 60 DAYS",
-            instructions: [
-              "Target: GBS, E. coli, Listeria (if < 28 days)."
+            orders: [
+              "Target: Group B Streptococcus, Escherichia coli, and Listeria (if under 28 days)."
             ],
             prescriptions: [
               {

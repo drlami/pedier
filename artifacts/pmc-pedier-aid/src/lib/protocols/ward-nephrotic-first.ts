@@ -10,7 +10,7 @@ export const wardNephroticFirstProtocol: DiseaseProtocol = {
   name: 'Nephrotic Syndrome Master Pathway (Initial)',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'High-level inpatient roadmap for the first presentation of Minimal Change Disease: Induction steroid protocols, edema titration, and long-term parent training.',
+  description: 'Nephrotic Syndrome is characterized by the triad of heavy proteinuria (> 40 mg/m²/hr), hypoalbuminemia (< 25 g/L), and generalized edema. This roadmap covers induction steroids and precise fluid/edema management for the first episode.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Generalized edema and nephrotic syndrome management"
@@ -22,13 +22,21 @@ export const wardNephroticFirstProtocol: DiseaseProtocol = {
   ],
 
   mmpData: {
-    snapshot: "Standard induction involves high-dose steroids (60 mg/m² or 2 mg/kg). Priority is ensuring no infection (TB/Varicella) before starting and managing symptomatic edema without causing intravascular depletion.",
+    snapshot: "Induction centers on high-dose Prednisolone (2 mg/kg). Edema management is secondary; avoid aggressive diuresis which may worsen intravascular depletion. Monitor urine output (UO) and report oliguria (< 0.5 mL/kg/hr) early.",
     stages: [
       {
         label: "Stage 1: Diagnosis & Baseline Orders (Hour 0-12)",
         shortLabel: "Diagnosis",
         color: "blue",
         cards: [
+          {
+            title: "Urine Output Monitoring",
+            orders: [
+              "Oliguria: < 0.5 mL/kg/hr.",
+              "Report Anuria (< 0.2 mL/kg/hr) immediately - may indicate acute renal failure or severe depletion.",
+              "Goal: Maintain UO > 1.0 mL/kg/hr without excessive diuretic use."
+            ]
+          },
           {
             title: "Confirming Nephrotic Triad",
             orders: [

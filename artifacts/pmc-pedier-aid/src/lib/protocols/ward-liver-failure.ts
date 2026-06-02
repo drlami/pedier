@@ -12,7 +12,7 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: PALFS definition, stepwise encephalopathy management, N-acetylcysteine (NAC) protocols, and transplant center triage.',
+  description: 'Acute Liver Failure (ALF) in children is a rare but life-threatening syndrome characterized by biochemical evidence of acute liver injury, no known chronic liver disease, and a coagulopathy (INR ≥ 1.5 with encephalopathy or INR ≥ 2.0 without). This pathway provides diagnostic criteria according to the Pediatric Acute Liver Failure Study Group (PALFS), N-acetylcysteine (NAC) protocols, and urgent triage for liver transplantation.',
   image: {
     url: "https://images.unsplash.com/photo-1579152276502-545a248a69a7?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Critical hepatology management"
@@ -20,6 +20,7 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management of Acute Liver Failure is a multi-system emergency focused on 'The Critical Four': (1) Preventing cerebral edema (monitoring ammonia and intracranial pressure), (2) Metabolic stabilization (aggressive hypoglycemia prevention and electrolyte correction), (3) Antidote therapy (early N-acetylcysteine for paracetamol and non-paracetamol cases), and (4) Urgent transplant consultation. Avoidance of sedatives and cautious use of blood products (to maintain INR monitoring) are essential.",
     stages: [
       {
         label: "Definition & Admission Directive",
@@ -29,32 +30,40 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
           {
             title: "PALFS Definition (Pediatric Standard)",
             threshold: "MANDATORY DIAGNOSTIC CRITERIA",
-            instructions: [
-              "Pediatric ALF is defined by meeting ALL three:",
+            orders: [
+              "Pediatric Acute Liver Failure is defined by meeting ALL three:",
               "1. No known chronic liver disease.",
               "2. Biochemical evidence of acute liver injury (Elevated Transaminases).",
-              "3. Coagulopathy: PT > 15s or INR > 1.5 NOT corrected by Vitamin K (if HE present), OR PT > 20s or INR > 2.0 (regardless of HE).",
-              "Note: Hepatic Encephalopathy (HE) is NOT required for diagnosis in infants/children if INR > 2.0."
+              "3. Coagulopathy: Prothrombin Time > 15 seconds or International Normalized Ratio > 1.5 NOT corrected by Vitamin K (if encephalopathy present), OR Prothrombin Time > 20 seconds or International Normalized Ratio > 2.0 (regardless of encephalopathy).",
+              "Note: Hepatic Encephalopathy is NOT required for diagnosis in infants and children if International Normalized Ratio is greater than 2.0."
             ]
           },
           {
-            title: "Immediate Admission Labs",
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Diagnostic Triage: Confirm coagulopathy (International Normalized Ratio greater than 2.0, or greater than 1.5 with encephalopathy).",
+              "Immediate Laboratory Workup: Perform Liver Function Tests, Ammonia (arterial preferred), Lactate, and Glucose every 4 hours.",
+              "Coagulation Monitoring: International Normalized Ratio (INR), Prothrombin Time (PT), and Fibrinogen every 6-12 hours.",
+              "Paracetamol Screening: Mandatory Serum Paracetamol level regardless of clinical history.",
+              "Metabolic Stabilization: Initiate Intravenous Dextrose 10% or 12.5% to maintain glucose between 80 and 120 mg/dL.",
+              "Vitamin K Therapy: Administer 0.2-0.5 mg/kg Intravenous Vitamin K (Maximum 10 mg) daily for 3 days."
+            ]
+          },
+          {
+            title: "Detailed Diagnostics",
             threshold: "MANDATORY ON ARRIVAL",
-            instructions: [
-              "1. Coagulation: PT/INR, PTT, Fibrinogen (Check every 6-12 hours).",
-              "2. Chemistry: LFTs (ALT/AST/GGT/Bili), Albumin, Glucose (Check q4h for hypoglycemia), U&E, Calcium, Phosphate, Magnesium.",
-              "3. Metabolic: Serum Ammonia (Arterial preferred), Lactate, Blood Gas.",
-              "4. Toxicology: Serum Paracetamol level (Mandatory even if history negative).",
-              "5. Viral Screen: Hep A, B, E; CMV, EBV, HSV, Parvovirus B19.",
-              "6. Autoimmune/Metabolic: ANA, ASMA, LKM, Ceruloplasmin, Alpha-1 Antitrypsin."
+            orders: [
+              "Toxicology: Serum Paracetamol level (Mandatory even if history negative).",
+              "Viral Screen: Hepatitis A, B, E; CMV, EBV, HSV, Parvovirus B19.",
+              "Autoimmune/Metabolic: ANA, ASMA, LKM, Ceruloplasmin, Alpha-1 Antitrypsin."
             ]
           },
           {
             title: "Initial Therapeutics & Stabilization",
-            instructions: [
-              "1. IV Glucose: Maintain D10 or D12.5 (0.9% NaCl) to prevent hypoglycemia. Keep glucose 80-120 mg/dL.",
-              "2. Vitamin K: 0.2-0.5 mg/kg IV (Max 10mg) for 3 days. Do NOT give FFP unless active bleeding (masks INR trend).",
-              "3. Stress Ulcer Prophylaxis: IV H2RA or PPI (e.g. Omeprazole 1mg/kg)."
+            orders: [
+              "IV Glucose: Maintain Dextrose 10% or Dextrose 12.5% (0.9% Sodium Chloride) to prevent hypoglycemia. Keep glucose 80-120 mg/dL.",
+              "Vitamin K: 0.2-0.5 mg/kg IV (Maximum 10 mg) for 3 days. Do NOT give Fresh Frozen Plasma unless active bleeding (masks INR trend).",
+              "Stress Ulcer Prophylaxis: Intravenous H2 Receptor Antagonist or Proton Pump Inhibitor (e.g. Omeprazole 1 mg/kg)."
             ]
           }
         ]
@@ -67,8 +76,8 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
           {
             title: "N-Acetylcysteine (NAC) Protocol",
             threshold: "PREFERRED REGIMEN: MONOTHERAPY (ANTIDOTE)",
-            instructions: [
-              "INDICATIONS: All paracetamol ingestions AND consider for ALL non-paracetamol ALF (improves transplant-free survival).",
+            orders: [
+              "INDICATIONS: All paracetamol ingestions AND consider for ALL non-paracetamol Acute Liver Failure (improves transplant-free survival).",
               "PROTOCOL (Standard 21-hour):"
             ],
             prescriptions: [
@@ -93,7 +102,7 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
                 route: "IV Infusion",
                 frequency: "Over 16 hours",
                 calculation: (w) => `${(100 * w).toFixed(0)} mg`,
-                notes: "Continue infusion if INR remains > 2.0."
+                notes: "Continue infusion if International Normalized Ratio remains > 2.0."
               }
             ]
           }
@@ -108,30 +117,40 @@ export const wardLiverFailureProtocol: DiseaseProtocol = {
             title: "Hepatic Encephalopathy (HE) Monitoring",
             threshold: "STAGE-BASED ACTION",
             isCritical: true,
-            instructions: [
+            orders: [
               "Stage I: Mood changes, sleep inversion.",
               "Stage II: Drowsiness, confusion, asterixis.",
               "Stage III: Stupor, marked confusion.",
               "Stage IV: Coma.",
-              "ACTION (Stage II+): Move to PICU. Start Lactulose (0.5 mL/kg) and Rifaximin if available."
+              "ACTION (Stage II+): Move to Pediatric Intensive Care Unit. Start Lactulose (0.5 mL/kg) and Rifaximin if available."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Hourly neurological checks (Glasgow Coma Scale and pupil reaction) to monitor for Hepatic Encephalopathy.",
+              "Blood glucose monitoring every 2-4 hours to prevent life-threatening hypoglycemia.",
+              "Strict Intake and Output charting and daily weight measurements.",
+              "Head of bed elevation to 30 degrees and maintain midline head position.",
+              "Monitor for active bleeding from puncture sites or gastrointestinal tract."
             ]
           },
           {
             title: "Cerebral Edema / Increased ICP",
             threshold: "GCS DECLINE / PUPIL CHANGE",
             isCritical: true,
-            instructions: [
+            orders: [
               "1. Head Position: Midline, elevated 30 degrees.",
               "2. Ammonia Control: Aim < 100 µmol/L. If > 200 µmol/L → High risk of herniation.",
               "3. Rescue: 3% Hypertonic Saline (3-5 mL/kg) or Mannitol (0.5 g/kg).",
-              "4. Renal Replacement: Early CVVH if ammonia rising or AKI present."
+              "4. Renal Replacement: Early continuous veno-venous hemofiltration (CVVH) if ammonia rising or Acute Kidney Injury present."
             ]
           },
           {
             title: "Acute Liver Failure Complications",
-            instructions: [
-              "1. AKI (Hepatorenal): Avoid nephrotoxins. Maintain renal perfusion.",
-              "2. Infection: Low threshold for broad-spectrum antibiotics (Tazocin).",
+            orders: [
+              "1. Acute Kidney Injury (Hepatorenal): Avoid nephrotoxins. Maintain renal perfusion.",
+              "2. Infection: Low threshold for broad-spectrum antibiotics (Piperacillin-Tazobactam).",
               "3. Coagulopathy: Only treat if active bleeding (Cryoprecipitate for Fibrinogen < 100)."
             ]
           }

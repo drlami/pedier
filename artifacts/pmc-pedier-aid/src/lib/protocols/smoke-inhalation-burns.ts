@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const smokeInhalationProtocol: DiseaseProtocol = {
   id: 'smoke-inhalation-burns',
   name: 'Smoke Inhalation & Airway Burns',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Emergency assessment of thermal airway injury and smoke inhalation.',
   image: {
     url: "https://picsum.photos/seed/fire/600/400",

@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const palpitationsProtocol: DiseaseProtocol = {
   id: 'palpitations',
   name: 'Palpitations',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of palpitations in a child or adolescent, focusing on identifying dangerous arrhythmias and coordinating specialist care.',
   image: {
     url: "https://picsum.photos/seed/palpitations-peds/600/400",

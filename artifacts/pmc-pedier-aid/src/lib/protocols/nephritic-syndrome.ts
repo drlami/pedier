@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const nephriticSyndromeProtocol: DiseaseProtocol = {
   id: 'nephritic-syndrome',
   name: 'Acute Glomerulonephritis',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
   description: 'Evaluation and management of acute glomerulonephritis (nephritic syndrome), characterized by hematuria, edema, and hypertension. Often post-infectious (e.g., post-streptococcal).',
   image: {
     url: "https://picsum.photos/seed/nephritic/600/400",

@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const asthmaProtocol: DiseaseProtocol = {
   id: 'asthma',
   name: 'Asthma Exacerbation',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Assessment and management of acute asthma exacerbations in children using the PRAM score.',
    image: {
     url: "https://picsum.photos/seed/asthma/600/400",

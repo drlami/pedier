@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const chronicRenalFailureProtocol: DiseaseProtocol = {
   id: 'chronic-renal-failure',
   name: 'Chronic Kidney Disease',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
   description: 'Emergency management of acute complications in children with known Chronic Kidney Disease (CKD).',
   image: {
     url: "https://picsum.photos/seed/ckd/600/400",

@@ -12,7 +12,7 @@ export const wardCroupProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Adrenaline frequency, IV/PO steroid roadmap, and specific indications for labs/imaging.',
+  description: 'Croup (Laryngotracheobronchitis) is a viral respiratory infection causing subglottic inflammation and edema, characterized by a barking cough, inspiratory stridor, and hoarseness. This pathway provides a senior physician’s roadmap for severity assessment, precise steroid titration, and strict protocols for rescue adrenaline nebulization.',
   image: {
     url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Senior Physician Decision Support"
@@ -20,137 +20,141 @@ export const wardCroupProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Croup management prioritizes 'Minimal Handling' to prevent airway agitation. (1) Administer a single dose of Dexamethasone as the gold standard for inflammation. (2) Use Nebulized Adrenaline strictly for stridor at rest with respiratory distress, avoiding scheduled dosing. (3) Maintain high vigilance for Bacterial Tracheitis in children who fail to respond to standard therapy or exhibit systemic toxicity.",
     stages: [
       {
-        label: "Severity Directive & Admission Orders",
-        shortLabel: "Severity Directive & Admission Orders",
+        label: "Stage 1: Severity Assessment & Initial Admission Orders",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Westley Severity Scoring",
-            threshold: "MANDATORY ON ARRIVAL",
+            title: "Westley Severity Scoring Protocol",
+            threshold: "MANDATORY ON ARRIVAL AND EVERY 4 HOURS",
             calculator: {
               id: "westley-score",
               title: "Westley Croup Score"
             },
-            instructions: [
-              "Mild (≤ 2) | Moderate (3-7) | Severe (≥ 8).",
-              "Note: ANY child with stridor at rest is at least 'Moderate'."
+            orders: [
+              "Mild Croup (Score ≤ 2): Occasional barking cough, no stridor at rest, no or mild chest wall indrawing.",
+              "Moderate Croup (Score 3-7): Frequent barking cough, easily audible stridor at rest, noticeable chest wall indrawing at rest, but no agitation.",
+              "Severe Croup (Score ≥ 8): Frequent barking cough, prominent inspiratory and sometimes expiratory stridor, marked chest wall indrawing, significant agitation or distress.",
+              "Note: ANY child with Stridor at Rest is automatically classified as at least 'Moderate'."
             ]
           },
           {
-            title: "Indications for Laboratories",
-            threshold: "DIAGNOSIS IS CLINICAL",
-            instructions: [
-              "1. Routine Labs: NOT RECOMMENDED (Avoid upsetting the child).",
-              "2. Order CBC & Blood Culture ONLY IF: High fever (> 39°C), toxic appearance, or poor response to adrenaline (Suspect Bacterial Tracheitis).",
-              "3. Lateral Neck X-Ray: ONLY if atypical (Suspicion of epiglottitis or foreign body)."
+            title: "Initial Physician Orders: Laboratory & Imaging [DR]",
+            threshold: "DIAGNOSIS IS CLINICAL - MINIMIZE DISTRESS",
+            orders: [
+              "Routine Investigations: NOT RECOMMENDED as they may cause agitation and worsen airway obstruction.",
+              "Blood Investigations (Complete Blood Count and Blood Culture): Order ONLY if there is high fever (above 39°C), a toxic appearance, or a complete lack of response to nebulized adrenaline.",
+              "Imaging (Lateral Neck X-ray): Indicated ONLY if the presentation is atypical, suggesting Epiglottitis, Peritonsillar Abscess, or Foreign Body aspiration."
             ]
           },
           {
-            title: "Systemic Steroid Directive (PO vs IV)",
-            instructions: [
-              "1. Single-Dose Gold Standard: A single dose of Dexamethasone (0.6 mg/kg) is usually sufficient due to its 36-72h half-life.",
-              "2. Repeat Dose Logic: Consider a SECOND dose (0.15-0.6 mg/kg) at 12-24 hours ONLY if moderate-to-severe symptoms persist or recur.",
-              "3. NO REGULAR DAILY DOSING: Daily scheduled steroids are not recommended for viral croup and may mask Bacterial Tracheitis.",
-              "4. Route: Oral is preferred. IV/IM reserved for vomiting or severe distress."
+            title: "Systemic Steroid Strategy [DR]",
+            orders: [
+              "Single-Dose Gold Standard: Administer a single dose of Dexamethasone (0.6 mg/kg) orally. This is usually sufficient due to its long half-life of 36-72 hours.",
+              "Repeat Dosing Logic: Consider a second dose (0.15 to 0.6 mg/kg) at 12-24 hours ONLY if moderate-to-severe symptoms persist or recur.",
+              "Proscription: Do NOT prescribe regular daily scheduled steroids; this may mask the development of Bacterial Tracheitis.",
+              "Route of Administration: Oral route is preferred. Intravenous or Intramuscular routes are reserved for children with persistent vomiting or severe respiratory distress."
             ],
             prescriptions: [
               {
-                drug: "Dexamethasone (PO/IV/IM)",
+                drug: "Dexamethasone",
                 dose: "0.6 mg/kg",
-                route: "PO / IV / IM",
+                route: "Oral / Intravenous / Intramuscular",
                 frequency: "Initial Single Dose",
                 calculation: (w) => `${Math.min(w * 0.6, 12).toFixed(1)} mg`,
-                notes: "Max 12-16mg. Second dose only if symptoms persist at 12-24h."
+                notes: "Maximum dose 12 mg. Second dose only if symptoms persist at 12-24 hours."
               }
             ]
           }
         ]
       },
       {
-        label: "Monitoring & Adrenaline PRN Protocol",
-        shortLabel: "Monitoring & Adrenaline PRN Protocol",
+        label: "Stage 2: Clinical Monitoring & Rescue Adrenaline Protocol",
+        shortLabel: "Monitoring",
         color: "amber",
         cards: [
           {
-            title: "Adrenaline Nebulization: PRN ONLY",
-            threshold: "NEVER SCHEDULED (q4h/q6h)",
+            title: "Nebulized Adrenaline: Rescue Use Only",
+            threshold: "NEVER PRESCRIBE AS A SCHEDULED DOSE",
             isCritical: true,
-            instructions: [
-              "1. Scheduled Proscription: Do NOT order adrenaline on a schedule. It masks deterioration and carries cardiac risks.",
-              "2. PRN Trigger: Administer ONLY if the child has Stridor at Rest associated with respiratory distress (Moderate/Severe Westley Score).",
-              "3. Frequency: May repeat every 20-30 minutes for rescue, but assess for PICU escalation after 2-3 doses."
+            orders: [
+              "Scheduled Proscription: Do NOT order adrenaline on a fixed schedule (e.g., every 4 or 6 hours). This masks clinical deterioration and carries unnecessary cardiac risks.",
+              "Rescue Trigger: Administer ONLY if the child exhibits Stridor at Rest associated with significant respiratory distress.",
+              "Frequency and Escalation: May repeat every 20-30 minutes for rescue, but assess for Pediatric Intensive Care escalation after 2-3 doses."
             ],
             prescriptions: [
               {
                 drug: "L-Adrenaline (1:1000)",
                 dose: "0.5 mL/kg",
                 route: "Nebulized",
-                frequency: "PRN for Stridor at Rest",
+                frequency: "As Needed (PRN) for Stridor at Rest",
                 calculation: (w) => `${Math.min(w * 0.5, 5).toFixed(1)} mL`,
-                notes: "Max 5mL. Must observe for 4h post-dose."
+                notes: "Maximum dose 5 mL. Patient must be observed for at least 4 hours after the last dose."
               }
             ]
           },
           {
-            title: "Ward Management Directive",
-            instructions: [
-              "Minimal Handling: Group nursing cares; keep parent/child together.",
-              "Positioning: Child's preferred position (usually upright).",
-              "Nutrition: Maintain oral hydration; strict NPO only if RR > 70-80."
+            title: "Nursing: Strict Ward Monitoring [NS]",
+            nursing: [
+              "Minimal Handling Protocol: Group nursing tasks together to avoid upsetting the child; ensure the parent stays with the child at all times.",
+              "Positioning: Allow the child to remain in their preferred position (usually upright on the parent's lap).",
+              "Respiratory Monitoring: Hourly assessment of Respiratory Rate, Heart Rate, Oxygen Saturations, and Westley Score.",
+              "Nutrition and Hydration: Maintain oral hydration; place patient 'Nothing by Mouth' (NPO) only if the Respiratory Rate exceeds 70-80 breaths per minute."
             ]
           }
         ]
       },
       {
-        label: "Failure & Complications",
-        shortLabel: "Failure & Complications",
+        label: "Stage 3: Management of Treatment Failure",
+        shortLabel: "Failure",
         color: "red",
         cards: [
           {
-            title: "When to Suspect Bacterial Tracheitis",
-            threshold: "TREATMENT FAILURE INDICATOR",
+            title: "Suspecting Bacterial Tracheitis",
+            threshold: "CRITICAL TREATMENT FAILURE INDICATORS",
             isCritical: true,
-            instructions: [
-              "1. Minimal response to nebulized adrenaline.",
-              "2. Systemic toxicity (High fever, poor perfusion).",
-              "3. Thick, purulent secretions.",
-              "Action: URGENT ENT consultation + IV Broad Spectrum Antibiotics."
+            orders: [
+              "Indicator 1: Minimal or no response to nebulized adrenaline treatments.",
+              "Indicator 2: Systemic toxicity including high fever and poor peripheral perfusion.",
+              "Indicator 3: Presence of thick, purulent (pus-like) respiratory secretions.",
+              "Immediate Action: Urgent consultation with Ear, Nose, and Throat (ENT) specialists and initiation of Broad-Spectrum Intravenous Antibiotics."
             ]
           },
           {
-            title: "PICU Transfer Criteria",
+            title: "Intensive Care Transfer Criteria",
             isCritical: true,
-            instructions: [
-              "1. Impending exhaustion (Decreasing RR with rising distress).",
-              "2. Requirement for > 3 adrenaline nebulizers in < 4 hours.",
-              "3. Altered mental status (Lethargy/Confusion).",
-              "4. Persistent SpO2 < 92% despite oxygen."
+            orders: [
+              "Impending Respiratory Exhaustion: Decreasing Respiratory Rate accompanied by rising clinical distress.",
+              "High Adrenaline Requirement: Need for more than 3 adrenaline nebulizers within a 4-hour period.",
+              "Altered Mental Status: New onset of lethargy, confusion, or extreme agitation.",
+              "Hypoxemia: Persistent Oxygen Saturations less than 92% despite supplemental oxygen administration."
             ]
           }
         ]
       },
       {
-        label: "Discharge & Home Care",
-        shortLabel: "Discharge & Home Care",
+        label: "Stage 4: Discharge Planning & Safety Netting",
+        shortLabel: "Discharge",
         color: "emerald",
         cards: [
           {
-            title: "Hard Discharge Criteria",
-            instructions: [
-              "1. No stridor at rest for at least 4 hours post-adrenaline.",
-              "2. Normal work of breathing and baseline interaction.",
-              "3. Able to tolerate oral fluids and medications.",
-              "4. Caregivers informed of 'rebound' symptoms."
+            title: "Standard Discharge Criteria",
+            orders: [
+              "Absence of Stridor at Rest for at least 4 hours since the last adrenaline nebulization.",
+              "Normal work of breathing and returns to baseline interactive behavior.",
+              "Able to tolerate oral fluids and medications without difficulty.",
+              "Caregivers are fully informed about the potential for 'rebound' symptoms and when to return."
             ]
           },
           {
-            title: "Safety Netting Directive",
-            instructions: [
-              "Home Steroids: Usually not required after 0.6mg/kg dose. Consider 2nd dose (0.15mg/kg) only if history is prolonged.",
-              "Natural History: Inform parents that 'The Bark' often lasts 3 days and is worse at night.",
-              "Follow-up: Phone review or GP visit within 24-48 hours."
+            title: "Safety Netting Directive for Parents",
+            orders: [
+              "Outpatient Medications: Further steroids are usually not required after a 0.6 mg/kg dose.",
+              "Disease Course: Explain that the 'barking' cough often lasts for 3 days and is typically worse during the night.",
+              "Follow-up: Ensure a telephone review or visit with a General Practitioner within 24 to 48 hours."
             ]
           }
         ]

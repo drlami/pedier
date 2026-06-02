@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const intussusceptionProtocol: DiseaseProtocol = {
   id: 'intussusception',
   name: 'Intussusception',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'Evaluation and management of intussusception, a common cause of bowel obstruction in children aged 6 months to 3 years.',
   image: {
     url: "https://picsum.photos/seed/intussusception/600/400",

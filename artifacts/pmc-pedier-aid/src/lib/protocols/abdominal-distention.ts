@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const abdominalDistentionProtocol: DiseaseProtocol = {
   id: 'abdominal-distention',
   name: 'Abdominal Distention',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'A diagnostic approach to the child with a distended abdomen.',
   image: {
     url: "https://picsum.photos/seed/abdominal-distention/600/400",

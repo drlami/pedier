@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const giBleedingProtocol: DiseaseProtocol = {
   id: 'gi-bleeding',
   name: 'GI Bleeding (Lower)',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'Evaluation and management of lower gastrointestinal bleeding (hematochezia) in children.',
   image: {
     url: 'https://picsum.photos/seed/gi-bleeding/600/400',

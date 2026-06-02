@@ -11,151 +11,139 @@ export const wardViralEncephalitisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior directive for brain parenchyma inflammation: CSF PCR strategy, high-dose Acyclovir, and neurological monitoring.',
+  description: 'Viral Encephalitis is an inflammation of the brain parenchyma caused by a viral infection, leading to neurological dysfunction such as altered consciousness, seizures, or focal deficits. This exhaustive directive covers Cerebrospinal Fluid (CSF) Polymerase Chain Reaction (PCR) strategies, high-dose Acyclovir therapy, and comprehensive neurological monitoring.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Neurological Monitoring and GCS"
   },
-  questions: [],
+  questions: [
+    { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
+    { id: 'gcs', questionText: 'Glasgow Coma Scale Score', type: 'number' },
+    { id: 'seizures', questionText: 'Active or recurrent seizures?', type: 'boolean' },
+    { id: 'focalDeficit', questionText: 'New focal neurological deficit?', type: 'boolean' },
+  ],
 
   mmpData: {
+    snapshot: "Viral Encephalitis management focuses on the 'Time is Brain' principle: (1) Immediate initiation of high-dose Acyclovir before diagnostic confirmation to prevent irreversible temporal lobe damage (especially in Herpes Simplex Virus Type 1), (2) Aggressive management of intracranial pressure and seizures, and (3) A systematic diagnostic search including Magnetic Resonance Imaging and specific Viral Polymerase Chain Reaction panels. A negative initial result does not rule out encephalitis if clinical suspicion is high; serial testing and consideration of autoimmune etiologies are mandatory.",
     stages: [
       {
-        label: "Admission & Critical Diagnostics",
-        shortLabel: "Admission & Critical Diagnostics",
+        label: "Stage 1: Admission & Critical Diagnostics",
+        shortLabel: "Diagnostics",
         color: "blue",
         cards: [
           {
             title: "Emergency Stabilization",
-            instructions: [
-              "1. ABC: Ensure airway protection if GCS < 8.",
-              "2. Seizure Control: Immediate Benzodiazepines if active seizure.",
-              "3. ICP Management: Elevate head 30 degrees, avoid hypovolemia."
-            ],
-            calculator: {
-              id: "gcs-calculator",
-              title: "Pediatric GCS Calculator"
-            }
-          },
-          {
-            title: "Neuro-Diagnostic Workup",
-            instructions: [
-              "1. MRI Brain (Preferred): High sensitivity for temporal lobe (HSV) or thalamic (JE/West Nile) changes.",
-              "2. CT Brain: If MRI unavailable; primarily to exclude hemorrhage/mass effect before LP.",
-              "3. Lumbar Puncture (CSF): REQUIRED unless contraindicated by raised ICP. Send for: Protein, Glucose, Cell Count, Gram Stain, Culture, and VIRAL PCR PANEL (HSV 1/2, VZV, Enterovirus, Adenovirus, Parechovirus)."
+            orders: [
+              "Airway Protection: Ensure definitive airway if Glasgow Coma Scale is 8 or less.",
+              "Seizure Control: Immediate Intravenous Benzodiazepines for active seizures.",
+              "Intracranial Pressure Management: Elevate head of bed to 30 degrees, maintain neutral neck position, and avoid hypovolemia."
             ]
           },
           {
-            title: "Empiric Therapy (PREFERRED REGIMEN: DUAL THERAPY)",
-            instructions: [
-              "Target: HSV-1 (most common cause of sporadic fatal encephalitis).",
-              "Note: Start Acyclovir IMMEDIATELY; do not wait for LP/imaging. Include Ceftriaxone until bacterial meningitis is excluded."
+            title: "Neuro-Diagnostic Workup [DR]",
+            orders: [
+              "Magnetic Resonance Imaging (MRI) Brain (Preferred): Focus on temporal lobe (Herpes Simplex) or thalamic changes.",
+              "Computed Tomography (CT) Brain: Perform if Magnetic Resonance Imaging is unavailable, primarily to exclude hemorrhage or mass effect before Lumbar Puncture.",
+              "Lumbar Puncture (Cerebrospinal Fluid): MANDATORY unless contraindicated by signs of severely raised intracranial pressure. Send for: Protein, Glucose, Cell Count, Gram Stain, Culture, and a Comprehensive Viral Polymerase Chain Reaction Panel (Herpes Simplex Virus 1/2, Varicella Zoster, Enterovirus, Adenovirus, Parechovirus)."
+            ]
+          },
+          {
+            title: "Empiric Therapeutics",
+            threshold: "START IMMEDIATELY",
+            orders: [
+              "Herpes Simplex Coverage: Start Acyclovir IMMEDIATELY; do not wait for imaging or Lumbar Puncture results.",
+              "Broad Bacterial Coverage: Include Ceftriaxone until Bacterial Meningitis is definitively excluded.",
+              "Renal Protection: Maintain adequate Intravenous hydration to prevent Acyclovir-induced crystal nephropathy."
             ],
             prescriptions: [
               {
-                drug: "Acyclovir (High Dose)",
-                dose: "20 mg/kg (if < 12y) or 10-15 mg/kg (if > 12y)",
-                route: "IV",
+                drug: "Acyclovir",
+                dose: "20 mg/kg (if < 12y) or 15 mg/kg (if > 12y)",
+                route: "Intravenous",
                 frequency: "Every 8 hours",
                 calculation: (w) => `${(20 * w).toFixed(0)} mg`,
-                notes: "Infuse over 1 hour. Maintain hydration to prevent renal crystal formation."
-              },
-              {
-                drug: "Ceftriaxone",
-                dose: "100 mg/kg",
-                route: "IV",
-                frequency: "Once daily",
-                calculation: (w) => `${Math.min(100 * w, 4000).toFixed(0)} mg`,
-                notes: "Include until Bacterial Meningitis is excluded."
+                notes: "Infuse over 1 hour. Ensure patient is well-hydrated."
               }
             ]
           }
         ]
       },
       {
-        label: "Monitoring & Neuro-Protection",
-        shortLabel: "Monitoring & Neuro-Protection",
+        label: "Stage 2: Neuro-Protection & Monitoring",
+        shortLabel: "Monitoring",
         color: "amber",
         cards: [
           {
-            title: "Neurological Surveillance",
-            threshold: "Q1H - Q4H DEPENDING ON STABILITY",
+            title: "Nursing: Neurological Surveillance [NS]",
             isCritical: true,
-            instructions: [
-              "Monitor: GCS, Pupil size/reactivity, and focal motor deficits.",
-              "Cranial Nerve Check: Focus on III, IV, VI and VII.",
-              "EEG Monitoring: Indicated if GCS remains low or if subtle twitching (rule out non-convulsive status)."
+            nursing: [
+              "Glasgow Coma Scale: Check and document every 1-2 hours depending on stability.",
+              "Pupillary Assessment: Monitor size and reactivity to light every 2 hours.",
+              "Cranial Nerve Check: Focused assessment of nerves III, IV, VI, and VII every shift.",
+              "Vital Signs: Monitor for Cushing's Triad (Bradycardia, Hypertension, and irregular breathing)."
             ]
           },
           {
-            title: "Response Check (Day 3)",
-            threshold: "AT 72 HOURS",
-            instructions: [
-              "If CSF PCR is negative AND patient is clinically improving: Consider stopping Acyclovir.",
-              "If CSF PCR is negative but patient is NOT improving: Re-check PCR (may be negative early) or consider alternative (Autoimmune/Malignancy)."
+            title: "Advanced Monitoring [DR]",
+            orders: [
+              "Electroencephalogram (EEG): Indicated if consciousness remains low or to rule out non-convulsive status epilepticus.",
+              "Electrolyte Monitoring: Monitor Sodium levels closely (Risk of Syndrome of Inappropriate Antidiuretic Hormone Secretion)."
             ]
           }
         ]
       },
       {
-        label: "Complications & Upgrade",
-        shortLabel: "Complications & Upgrade",
+        label: "Stage 3: Complication Management [!]",
+        shortLabel: "Complications",
         color: "red",
         cards: [
           {
-            title: "Complication: REFRACTORY SEIZURES",
+            title: "Escalation: Refractory Seizures",
             threshold: "STATUS EPILEPTICUS",
-            isCritical: true,
-            instructions: [
-              "Proceed to Status Epilepticus Protocol.",
-              "Options: Phenytoin/Fosphenytoin, Levetiracetam, or Midazolam infusion."
+            orders: [
+              "Escalate to Status Epilepticus Protocol.",
+              "Options include Fosphenytoin, Levetiracetam, or a Midazolam infusion."
             ]
           },
           {
-            title: "Complication: RAISED ICP / HERNIATION",
-            threshold: "CUSHING TRIAD / SUDDEN GCS DROP",
-            isCritical: true,
-            instructions: [
-              "Action: URGENT Mannitol or Hypertonic Saline.",
-              "Radiology: Repeat CT Brain to check for midline shift or worsening edema."
+            title: "Escalation: Raised Intracranial Pressure",
+            threshold: "SUDDEN DROP IN CONSCIOUSNESS",
+            orders: [
+              "Emergency Osmotherapy: Administer Mannitol or 3% Hypertonic Saline.",
+              "Urgent Radiology: Repeat Computed Tomography to check for midline shift."
             ]
           },
           {
-            title: "Alternative Path: AUTOIMMUNE ENCEPHALITIS",
-            threshold: "VIRAL PCR NEGATIVE / CHRONIC COURSE",
-            instructions: [
-              "Consider NMDA Receptor Antibody testing.",
-              "Treatment: Pulse Steroids (Methylprednisolone), IVIG, or Plasmapheresis."
+            title: "Alternative Path: Autoimmune Encephalitis",
+            threshold: "VIRAL PCR NEGATIVE",
+            orders: [
+              "Consider testing for Anti-NMDA Receptor Antibodies if the course is atypical or the patient fails to improve.",
+              "Consult Pediatric Rheumatology/Neurology for potential Pulse Steroids or Intravenous Immunoglobulin."
             ]
           }
         ]
       },
       {
-        label: "Recovery & Long-term Care",
-        shortLabel: "Recovery & Long-term Care",
+        label: "Stage 4: Recovery & Rehabilitation",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Treatment Duration",
-            threshold: "PCR CONFIRMED HSV",
-            instructions: [
-              "Course: 21 days of IV Acyclovir (minimum).",
-              "Repeat LP: Required before stopping to ensure PCR negativity in HSV cases."
+            title: "Treatment Completion",
+            orders: [
+              "Confirmed Herpes Simplex: Minimum 21 days of Intravenous Acyclovir therapy.",
+              "Repeat Lumbar Puncture: Mandatory before stopping therapy to ensure Polymerase Chain Reaction negativity."
             ]
           },
           {
-            title: "Discharge & Rehabilitation",
-            instructions: [
-              "1. Neurologically stable and afebrile.",
-              "2. Functional assessment: Swallow test and mobility check.",
-              "3. Referral: Neuro-rehabilitation (OT/PT/Speech) for all patients with deficits."
-            ]
-          },
-          {
-            title: "Follow-up",
-            instructions: [
-              "Clinical review at 4-6 weeks.",
-              "Assess for cognitive/behavioral changes and school performance."
+            title: "Discharge & Neuro-Rehabilitation",
+            nursing: [
+              "Swallow assessment before transitioning to oral intake.",
+              "Mobility and safety check prior to discharge."
+            ],
+            orders: [
+              "Referrals: Occupational Therapy, Physical Therapy, and Speech Therapy for all patients with residual deficits.",
+              "Follow-up: Clinical review in 4-6 weeks to assess cognitive and school performance."
             ]
           }
         ]

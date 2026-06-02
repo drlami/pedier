@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const vpShuntMalfunctionProtocol: DiseaseProtocol = {
   id: 'vp-shunt-malfunction',
   name: 'VP Shunt Malfunction',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Emergency assessment of suspected shunt failure or infection in patients with hydrocephalus.',
   image: {
     url: "https://picsum.photos/seed/shunt/600/400",

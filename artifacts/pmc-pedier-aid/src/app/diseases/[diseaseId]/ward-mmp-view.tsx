@@ -273,6 +273,11 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
                                 {card.calculator.id === 'pram-score' && <PramCalculator />}
                                 {card.calculator.id === 'wang-score' && <WangCalculator />}
                                 {card.calculator.id === 'westley-score' && <WestleyCalculator />}
+                                {card.calculator.id === 'aki-fluid-calc' && <FluidTitrationCalculator weight={weight} />}
+                                {card.calculator.id === 'dka-fluid-calc' && <DkaTwoBagCalculator weight={weight} />}
+                                {card.calculator.id === 'adrenal-stress-calc' && <AdrenalStressDoseCalculator weight={weight} />}
+                                {card.calculator.id === 'dextrose-bolus-calc' && <DextroseBolusCalculator weight={weight} />}
+                                {card.calculator.id === 'gir-calculator' && <GirCalculator weight={weight} />}
                               </div>
                             )}
                           </div>
@@ -721,6 +726,293 @@ function WestleyCalculator() {
       <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Westley Score</span>
         <span className="text-4xl font-black text-blue-400 leading-none tracking-tighter">{total} <span className="text-xs text-slate-600">/ 17</span></span>
+      </div>
+    </div>
+  );
+}
+
+function FluidTitrationCalculator({ weight }: { weight?: number }) {
+  const [urineOutput, setUrineOutput] = useState<number>(0);
+  
+  // Insensible Water Loss calculation
+  const insensibleLoss = weight ? (weight < 10 ? weight * 30 : weight * 20) : 0;
+  const totalFluidLimit = insensibleLoss + urineOutput;
+
+  return (
+    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fluid Titration Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
+          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
+            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">24-Hour Urine Output (mL)</label>
+          <Input 
+            type="number" 
+            value={urineOutput || ''} 
+            onChange={(e) => setUrineOutput(Number(e.target.value))}
+            className="bg-slate-800 border-slate-700 text-white rounded-xl font-bold h-11"
+            placeholder="Enter total mL per day"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 space-y-1">
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Insensible Water Loss</span>
+            <p className="text-lg font-black text-amber-400 tracking-tight">{insensibleLoss} <span className="text-[10px] opacity-50">mL/day</span></p>
+          </div>
+          <div className="p-4 bg-blue-600 rounded-2xl border border-blue-500 space-y-1 shadow-lg">
+            <span className="text-[9px] font-black text-blue-200 uppercase tracking-widest">Total Fluid Limit</span>
+            <p className="text-lg font-black text-white tracking-tight">{totalFluidLimit} <span className="text-[10px] opacity-70">mL/day</span></p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50">
+        <p className="text-[10px] font-bold text-slate-400 italic leading-relaxed">
+          * Calculation Details: Insensible Water Loss ({weight && weight < 10 ? "30 mL/kg" : "20 mL/kg"}) + Previous 24-hour Urine Output. This total represents the daily fluid restriction target for patients with established Acute Kidney Injury.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DkaTwoBagCalculator({ weight }: { weight?: number }) {
+  // Fluid calculation logic
+  const getFluidData = (w: number) => {
+    let dailyMaintenance = 0;
+    if (w <= 10) dailyMaintenance = 100 * w;
+    else if (w <= 20) dailyMaintenance = 1000 + 50 * (w - 10);
+    else dailyMaintenance = 1500 + 20 * (w - 20);
+    
+    const maintenanceRate = dailyMaintenance / 24;
+    const deficitVolume = w * 10 * 8.5; 
+    const totalRate = (deficitVolume + (maintenanceRate * 48)) / 48;
+    
+    return { maintenanceRate, deficitVolume, totalRate };
+  };
+
+  const data = weight ? getFluidData(weight) : null;
+
+  return (
+    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">DKA Two-Bag Fluid Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
+          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
+            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          </div>
+        </div>
+
+        {data && (
+          <div className="grid grid-cols-1 gap-3">
+             <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Calculated Total IV Rate</span>
+                <p className="text-3xl font-black text-blue-400 tracking-tighter">
+                    {data.totalRate.toFixed(1)} <span className="text-xs text-slate-500">mL/hour</span>
+                </p>
+                <p className="text-[9px] font-bold text-slate-500 mt-2 italic">
+                    Includes 10% deficit replacement over 48 hours + Maintenance.
+                </p>
+             </div>
+
+             <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Maintenance</span>
+                    <p className="text-lg font-black text-slate-300">{data.maintenanceRate.toFixed(1)} <span className="text-[10px] opacity-50">mL/hr</span></p>
+                </div>
+                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">48h Deficit</span>
+                    <p className="text-lg font-black text-slate-300">{data.deficitVolume.toFixed(0)} <span className="text-[10px] opacity-50">mL</span></p>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="p-4 bg-blue-950/30 rounded-2xl border border-blue-900/50 space-y-3">
+        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Titration Protocol (Constant Total Rate)</p>
+        <div className="space-y-1 text-[10px] font-bold text-slate-400">
+            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG {">"} 300 mg/dL:</span> <span className="text-white">Bag A 100%</span></div>
+            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 250-300:</span> <span className="text-white">Bag A 75% | Bag B 25%</span></div>
+            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 200-250:</span> <span className="text-white">Bag A 50% | Bag B 50%</span></div>
+            <div className="flex justify-between border-b border-blue-900/20 pb-1"><span>BG 150-200:</span> <span className="text-white">Bag A 25% | Bag B 75%</span></div>
+            <div className="flex justify-between"><span>BG {"<"} 150:</span> <span className="text-white">Bag B 100%</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdrenalStressDoseCalculator({ weight }: { weight?: number }) {
+  // Rescue dose logic based on weight brackets
+  const getRescueDose = (w: number) => {
+    if (w < 5) return "25 mg";
+    if (w < 15) return "50 mg";
+    return "100 mg";
+  };
+
+  const dose = weight ? getRescueDose(weight) : null;
+
+  return (
+    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Hydrocortisone Stress Dose Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
+          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
+            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          </div>
+        </div>
+
+        <div className="p-6 bg-blue-600 rounded-[28px] border-2 border-blue-400 shadow-lg text-center space-y-2">
+            <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">Recommended Rescue Dose</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {dose || "?? mg"}
+            </p>
+            <p className="text-[10px] font-bold text-blue-200 italic">
+                (Administer Intravenous or Intramuscular IMMEDIATELY)
+            </p>
+        </div>
+      </div>
+      
+      <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 space-y-3">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-700/50 pb-2">Reference Dosing Brackets</p>
+        <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-center">
+            <div className="space-y-1"><p className="text-slate-500 uppercase tracking-tighter">Infants {"<"} 5kg</p><p className="text-white bg-slate-800 py-1 rounded-lg">25 mg</p></div>
+            <div className="space-y-1"><p className="text-slate-500 uppercase tracking-tighter">Child 5-15kg</p><p className="text-white bg-slate-800 py-1 rounded-lg">50 mg</p></div>
+            <div className="space-y-1"><p className="text-slate-500 uppercase tracking-tighter">Adult {">"} 15kg</p><p className="text-white bg-slate-800 py-1 rounded-lg">100 mg</p></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DextroseBolusCalculator({ weight }: { weight?: number }) {
+  // Dextrose 10% bolus calculation (5 mL/kg)
+  const bolusVolume = weight ? weight * 5 : 0;
+
+  return (
+    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dextrose Bolus Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
+          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
+            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          </div>
+        </div>
+
+        <div className="p-6 bg-amber-500 rounded-[28px] border-2 border-amber-400 shadow-lg text-center space-y-2">
+            <span className="text-[10px] font-black text-amber-100 uppercase tracking-widest">Recommended 10% Dextrose Bolus</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {bolusVolume || "??"} <span className="text-lg">mL</span>
+            </p>
+            <p className="text-[10px] font-bold text-amber-100 italic">
+                (Dose: 5 mL/kg of D10W)
+            </p>
+        </div>
+      </div>
+      
+      <div className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50">
+        <p className="text-[10px] font-bold text-slate-400 italic leading-relaxed">
+          * Safety Note: Always use 10% Dextrose (D10W) in neonates and young infants. In older children with large central access, 25% Dextrose (2 mL/kg) may be considered, but D10W is preferred for peripheral safety.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function GirCalculator({ weight }: { weight?: number }) {
+  const [ivRate, setIvRate] = useState<number>(0);
+  const [dextroseConc, setDextroseConc] = useState<number>(10);
+  
+  // GIR = (Rate * Dextrose%) / (6 * Weight)
+  const gir = (weight && weight > 0) ? (ivRate * dextroseConc) / (6 * weight) : 0;
+
+  return (
+    <div className="p-5 bg-slate-900 text-white rounded-[32px] space-y-5 shadow-2xl border border-slate-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><Calculator className="h-4 w-4" /></div>
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Glucose Infusion Rate (GIR) Calculator</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Patient Weight (kg)</label>
+          <div className="p-3 bg-slate-800 rounded-xl text-sm font-bold text-blue-400">
+            {weight ? `${weight} kg` : "Please enter weight in the main section"}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">IV Fluid Rate (mL/hr)</label>
+                <Input 
+                    type="number" 
+                    value={ivRate || ''} 
+                    onChange={(e) => setIvRate(Number(e.target.value))}
+                    className="bg-slate-800 border-slate-700 text-white rounded-xl font-bold h-11"
+                    placeholder="e.g. 50"
+                />
+            </div>
+            <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Dextrose Conc. (%)</label>
+                <Input 
+                    type="number" 
+                    value={dextroseConc || ''} 
+                    onChange={(e) => setDextroseConc(Number(e.target.value))}
+                    className="bg-slate-800 border-slate-700 text-white rounded-xl font-bold h-11"
+                    placeholder="e.g. 10"
+                />
+            </div>
+        </div>
+
+        <div className="p-6 bg-blue-600 rounded-[28px] border-2 border-blue-400 shadow-lg text-center space-y-1">
+            <span className="text-[10px] font-black text-blue-100 uppercase tracking-widest">Calculated GIR</span>
+            <p className="text-4xl font-black text-white tracking-tighter">
+                {gir.toFixed(1)} <span className="text-xs opacity-70">mg/kg/min</span>
+            </p>
+        </div>
+      </div>
+      
+      <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 space-y-2">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-700/50 pb-2">Target Ranges</p>
+        <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-center">
+            <div className="space-y-1"><p className="text-slate-500">Neonate/Infant</p><p className="text-white">6 - 8 mg/kg/min</p></div>
+            <div className="space-y-1"><p className="text-slate-500">Child/Adolescent</p><p className="text-white">2 - 4 mg/kg/min</p></div>
+        </div>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ export const wardGiBleedingProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior management of non-variceal and variceal GI bleeding: Stabilization, PPI therapy, and endoscopy timing.',
+  description: 'Gastrointestinal (GI) bleeding in children encompasses both upper and lower tract hemorrhage, ranging from minor mucosal irritation to life-threatening variceal or peptic ulcer bleeding. This pathway focuses on rapid hemodynamic stabilization, transfusion protocols, pharmacological suppression of acid, and the timing of endoscopic intervention.',
   image: {
     url: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Hematemesis or Melena assessment"
@@ -19,27 +19,39 @@ export const wardGiBleedingProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management follows the 'Resuscitate-Localize-Intervene' priority: (1) Aggressive volume resuscitation and correction of coagulopathy, (2) Medical suppression with high-dose Proton Pump Inhibitors (PPIs) or vasoactive agents for varices, and (3) Coordination with Gastroenterology for timely endoscopy. Serial hemoglobin monitoring and a restrictive transfusion strategy (target 7-9 g/dL) are paramount.",
     stages: [
       {
-        label: "Hemodynamic Stabilization",
-        shortLabel: "Hemodynamic Stabilization",
+        label: "Stage 1: Hemodynamic Resuscitation",
+        shortLabel: "Resuscitation",
         color: "red",
         cards: [
           {
-            title: "Immediate Triage & Access",
+            title: "Initial Physician Orders [DR]",
             isCritical: true,
-            instructions: [
-              "1. Two large-bore IVs (or IO if unstable).",
-              "2. Volume Expansion: 20 mL/kg Isotonic Crystalloid boluses until stable.",
-              "3. Bloods: CBC, Cross-match (2 units), PT/PTT/INR, LFTs, BUN/Creatinine (BUN/Cr ratio > 30 suggests Upper GI bleed)."
+            orders: [
+              "Secure two large-bore Intravenous access lines (or Intraosseous if unstable).",
+              "Volume Expansion: Administer 20 mL/kg Isotonic Crystalloid (Normal Saline) boluses until hemodynamically stable.",
+              "Laboratory Evaluation: Complete Blood Count, Type and Cross-match (2-4 units), Prothrombin Time (PT), Partial Thromboplastin Time (PTT), International Normalized Ratio (INR).",
+              "Biochemical Markers: Liver Function Tests, Blood Urea Nitrogen (BUN), and Creatinine (BUN/Creatinine ratio > 30 suggests an Upper GI source).",
+              "Keep Patient NPO (Nothing by mouth) in anticipation of endoscopy."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Continuous Cardiac and Pulse Oximetry monitoring.",
+              "Check Heart Rate and Blood Pressure every 15-30 minutes during active bleeding.",
+              "Strict Intake and Output charting; monitor for signs of shock (prolonged capillary refill, cool extremities).",
+              "Observe and document the volume and characteristics of hematemesis, coffee-ground emesis, melena, or hematochezia."
             ]
           },
           {
             title: "Transfusion Triggers",
-            instructions: [
-              "1. Hemoglobin < 7 g/dL (Restricted strategy).",
-              "2. Ongoing Massive Bleeding (regardless of Hb).",
-              "3. Target Hb: 7-9 g/dL (avoid over-transfusion in portal hypertension)."
+            orders: [
+              "Hemoglobin < 7 g/dL (Restrictive strategy for stable patients).",
+              "Ongoing Massive Bleeding: Transfuse regardless of initial Hemoglobin level if there is clinical shock.",
+              "Target Hemoglobin: 7-9 g/dL (avoid over-transfusion, especially in portal hypertension, to prevent rebound bleeding)."
             ],
             prescriptions: [
               {
@@ -54,15 +66,15 @@ export const wardGiBleedingProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Medical Therapy (Upper GI Focus)",
-        shortLabel: "Medical Therapy (Upper GI Focus)",
+        label: "Stage 2: Medical Management & Pharmacotherapy",
+        shortLabel: "Medical Management",
         color: "blue",
         cards: [
           {
-            title: "Proton Pump Inhibitor (PPI) Directive",
-            instructions: [
-              "For suspected Peptic Ulcer Disease or Gastritis.",
-              "Route: IV preferred for active/severe bleeding."
+            title: "Proton Pump Inhibitor (PPI) Therapy",
+            orders: [
+              "Indication: Suspected Peptic Ulcer Disease, Gastritis, or Esophagitis.",
+              "Intravenous route is preferred for active or severe bleeding to ensure rapid acid suppression."
             ],
             prescriptions: [
               {
@@ -75,11 +87,12 @@ export const wardGiBleedingProtocol: DiseaseProtocol = {
             ]
           },
           {
-            title: "Vasoactive Therapy (Suspected Variceal)",
+            title: "Vasoactive Therapy (Suspected Variceal Bleeding)",
             threshold: "LIVER DISEASE / PORTAL HYPERTENSION",
-            instructions: [
-              "Indication: Suspected esophageal varices bleeding.",
-              "Consult Pediatric Gastroenterology immediately."
+            orders: [
+              "Indication: Suspected esophageal varices bleeding (e.g., in patients with known Cirrhosis or Biliary Atresia).",
+              "Immediately notify Pediatric Gastroenterology and Pediatric Surgery.",
+              "Ensure Vitamin K and Fresh Frozen Plasma are available to correct coagulopathy."
             ],
             prescriptions: [
               {
@@ -94,40 +107,40 @@ export const wardGiBleedingProtocol: DiseaseProtocol = {
         ]
       },
       {
-        label: "Endoscopy & Surgical Referral",
-        shortLabel: "Endoscopy & Surgical Referral",
+        label: "Stage 3: Definitive Intervention",
+        shortLabel: "Endoscopy",
         color: "amber",
         cards: [
           {
-            title: "Endoscopy Timing (NASPGHAN)",
-            instructions: [
-              "1. Urgent (within 12h): Hemodynamic instability despite resuscitation, or suspected variceal bleed.",
-              "2. Early (within 24h): Most other cases of significant hematemesis/melena.",
-              "3. Elective: Stable minor bleeding."
+            title: "Endoscopy Timing (NASPGHAN Guidelines)",
+            orders: [
+              "Urgent (within 12 hours): Persistent hemodynamic instability despite resuscitation, or suspected variceal bleeding.",
+              "Early (within 24 hours): Most other cases of significant hematemesis or melena once stabilized.",
+              "Elective: Stable patients with minor bleeding or those with a suspected chronic source."
             ]
           },
           {
-            title: "Lower GI Bleeding Triage",
-            threshold: "MELENA OR BRBPR",
-            instructions: [
-              "1. Neonate: APT test (maternal blood), NEC, Volvulus.",
-              "2. Infant: Anal fissure, Cow's milk protein allergy, Intussusception.",
-              "3. Child: Meckel's diverticulum, Polyps, IBD, HSP."
+            title: "Differential Diagnosis by Age (Lower GI)",
+            threshold: "MELENA OR BRIGHT RED BLOOD PER RECTUM",
+            orders: [
+              "Neonates: APT test (to rule out swallowed maternal blood), Necrotizing Enterocolitis, Midgut Volvulus.",
+              "Infants: Anal fissure, Cow's milk protein allergy, Intussusception.",
+              "Children: Meckel's diverticulum, Juvenile polyps, Inflammatory Bowel Disease (IBD), Henoch-Schönlein Purpura (HSP)."
             ]
           }
         ]
       },
       {
-        label: "Post-Procedure & Step-down",
-        shortLabel: "Post-Procedure & Step-down",
+        label: "Stage 4: Recovery & Step-down",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Monitoring & Diet",
-            instructions: [
-              "1. Serial Hemoglobin: Every 6-12h until stable for 24h.",
-              "2. Diet: NPO until Endoscopy (if planned); then clear liquids to full diet as tolerated.",
-              "3. Discharge: Stable Hb, no active bleeding for 24-48h, clear outpatient follow-up plan."
+            title: "Stabilization & Discharge Markers",
+            orders: [
+              "Serial Hemoglobin monitoring: Check every 6-12 hours until stable for at least 24 hours.",
+              "Gradual reintroduction of diet: NPO until Endoscopy (if planned); then progress from clear liquids to full diet as tolerated.",
+              "Discharge Criteria: Stable hemoglobin without transfusion, no active bleeding for 24-48 hours, and a clear outpatient follow-up plan."
             ]
           }
         ]

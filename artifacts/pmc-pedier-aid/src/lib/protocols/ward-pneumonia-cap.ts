@@ -12,7 +12,7 @@ export const wardPneumoniaCapProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Full-cycle management with 48h pivot logic, complication pathways (effusion/abscess), and Malaysian ward pearls.',
+  description: 'Community-Acquired Pneumonia (CAP) is an infection of the lung parenchyma characterized by inflammation and consolidation of the alveoli. This exhaustive consultant-level directive covers 48h pivot logic and complication pathways.',
   image: {
     url: "https://images.unsplash.com/photo-1581594658553-359424894362?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Senior Physician Decision Support"
@@ -58,6 +58,7 @@ export const wardPneumoniaCapProtocol: DiseaseProtocol = {
             title: "1st-Line Rx (PREFERRED REGIMEN: MONOTHERAPY)",
             threshold: "FULLY IMMUNIZED",
             orders: [
+              "PREFERRED REGIMEN: MONOTHERAPY (Amoxicillin) for uncomplicated CAP.",
               "Target: Narrow-spectrum Streptococcus pneumoniae coverage.",
               "Uncomplicated Duration: 5-7 days total (IV + PO)."
             ],
@@ -133,6 +134,7 @@ export const wardPneumoniaCapProtocol: DiseaseProtocol = {
             title: "2nd-Line Upgrade (PREFERRED REGIMEN: DUAL THERAPY)",
             threshold: "TREATMENT FAILURE",
             orders: [
+              "PREFERRED REGIMEN: DUAL THERAPY to cover resistant pathogens.",
               "Target: Resistant S. pneumoniae, Hib, and S. aureus.",
               "Duration: 10-14 days if complicated."
             ],

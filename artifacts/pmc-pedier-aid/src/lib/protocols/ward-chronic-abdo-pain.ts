@@ -11,7 +11,7 @@ export const wardChronicAbdoPainProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Structured approach to persistent or recurrent abdominal pain: Identifying organic red flags vs functional disorders.',
+  description: 'Chronic Abdominal Pain is defined as continuous or intermittent abdominal pain of at least 2 months duration that interferes with daily activities. This pathway focuses on distinguishing between organic pathology (e.g., Inflammatory Bowel Disease, Celiac disease) and functional gastrointestinal disorders (e.g., Irritable Bowel Syndrome) using ROME IV criteria and a step-wise diagnostic strategy.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Clinical assessment of abdominal pain"
@@ -19,92 +19,105 @@ export const wardChronicAbdoPainProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management of chronic abdominal pain utilizes a dual-track approach: (1) Vigilant screening for 'Organic Red Flags' (weight loss, growth failure, nighttime waking) and (2) Early identification of functional disorders to avoid over-investigation. Treatment transitions from medical workup to a biopsychosocial model, emphasizing that the pain is real despite normal test results, and prioritizing the restoration of normal daily functioning and school attendance.",
     stages: [
       {
-        label: "Red Flag Screening & Initial Labs",
-        shortLabel: "Red Flag Screening & Initial Labs",
+        label: "Stage 1: Red Flag Screening & Initial Investigations",
+        shortLabel: "Assessment",
         color: "red",
         cards: [
           {
             title: "Organic Red Flags (MANDATORY)",
             isCritical: true,
-            instructions: [
-              "1. Systematic Symptoms: Unexplained fever, weight loss, growth failure.",
-              "2. Gastrointestinal: Persistent vomiting, significant diarrhea, GI bleeding.",
-              "3. Examination: Localized RUQ/RLQ tenderness, organomegaly, perianal disease.",
-              "4. Family History: IBD, Celiac disease, Peptic ulcer."
+            orders: [
+              "Systematic Symptoms: Unexplained fever, weight loss, or significant growth failure/stunting.",
+              "Gastrointestinal: Persistent vomiting, significant diarrhea, or visible Blood in Stool (Hematochezia).",
+              "Nighttime Symptoms: Waking from sleep due to pain or the need to defecate.",
+              "Examination Findings: Localized Right Upper Quadrant or Right Lower Quadrant tenderness, Organomegaly, or Perianal disease (tags, fistulas).",
+              "Family History: Documented Inflammatory Bowel Disease, Celiac disease, or Peptic ulcer disease."
             ]
           },
           {
-            title: "Baseline Laboratory Panel",
-            instructions: [
-              "1. CBC, ESR/CRP (Inflammatory screen).",
-              "2. LFTs, Amylase/Lipase, Urinalysis.",
-              "3. Celiac Screen: IgA + Tissue Transglutaminase (tTG) IgA.",
-              "4. Stool: Calprotectin (high sensitivity for IBD), Guaiac (occult blood)."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Complete Blood Count with differential to screen for anemia or infection.",
+              "Inflammatory Markers: Erythrocyte Sedimentation Rate (ESR) and C-Reactive Protein (CRP).",
+              "Metabolic Panel: Liver Function Tests, Amylase, Lipase, and Urinalysis.",
+              "Celiac Screening: Total Immunoglobulin A (IgA) and Tissue Transglutaminase (tTG) IgA.",
+              "Stool Analysis: Fecal Calprotectin (highly sensitive for bowel inflammation) and Occult Blood testing."
+            ]
+          },
+          {
+            title: "Nursing: Clinical Monitoring [NS]",
+            nursing: [
+              "Accurate Daily Weight and Height measurement (plotted on growth charts).",
+              "Detailed Pain Diary: Record timing, location, duration, and relationship to meals or bowel movements.",
+              "Stool Tracking: Use Bristol Stool Scale to document consistency and frequency.",
+              "Monitor for Red Flags: Report any nocturnal waking or new onset of vomiting."
             ]
           }
         ]
       },
       {
-        label: "Step-wise Imaging & Workup",
-        shortLabel: "Step-wise Imaging & Workup",
+        label: "Stage 2: Targeted Imaging & Specialized Workup",
+        shortLabel: "Investigations",
         color: "blue",
         cards: [
           {
-            title: "Imaging Choice",
-            instructions: [
-              "1. Ultrasound Abdomen: Initial tool for biliary, renal, or gynecological causes.",
-              "2. Abdominal X-ray: Reserved for suspected constipation or obstruction (limited utility).",
-              "3. CT/MRI: ONLY if specific organic pathology suspected (e.g., Crohn's, mass)."
+            title: "Imaging Choice Guide",
+            orders: [
+              "Ultrasound of the Abdomen: Primary tool for assessing biliary system, kidneys, or gynecological causes in females.",
+              "Abdominal X-ray: Reserved strictly for suspected severe Constipation or Bowel Obstruction; not useful for routine pain assessment.",
+              "Advanced Imaging (CT or MRI): Only if specific organic pathology is strongly suspected (e.g., Crohn's disease, abdominal mass)."
             ]
           },
           {
-            title: "H. Pylori Testing",
-            threshold: "IF DYSPEPSIA / EPIGASTRIC PAIN",
-            instructions: [
-              "1. Stool Antigen or Urea Breath Test (avoid PPI/Antibiotics for 2-4 weeks prior).",
-              "2. If positive: Triple therapy (PPI + Amoxicillin + Clarithromycin)."
+            title: "Helicobacter Pylori Testing",
+            threshold: "IF DYSPEPSIA OR EPIGASTRIC PAIN",
+            orders: [
+              "Perform Stool Antigen or Urea Breath Test.",
+              "Ensure patient has avoided Proton Pump Inhibitors (PPIs) for 2 weeks and Antibiotics for 4 weeks prior to testing.",
+              "If positive: Initiate Triple Therapy (Proton Pump Inhibitor + Amoxicillin + Clarithromycin)."
             ]
           }
         ]
       },
       {
-        label: "Functional GI Disorders (ROME IV)",
-        shortLabel: "Functional GI Disorders (ROME IV)",
+        label: "Stage 3: Functional GI Disorders & Biopsychosocial Care",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Functional Disorders Identification",
-            instructions: [
-              "1. Irritable Bowel Syndrome (IBS): Pain related to defecation or change in stool.",
-              "2. Functional Dyspepsia: Pain centered in upper abdomen, post-prandial fullness.",
-              "3. Abdominal Migraine: Paroxysmal episodes of intense pain, vomiting, pallor.",
-              "4. Functional Abdominal Pain - NOS: Does not meet above criteria."
+            title: "Functional Disorders Identification (ROME IV)",
+            orders: [
+              "Irritable Bowel Syndrome (IBS): Pain related to defecation or a change in stool frequency/form.",
+              "Functional Dyspepsia: Pain centered in the upper abdomen, often with post-prandial fullness or early satiety.",
+              "Abdominal Migraine: Paroxysmal episodes of intense pain associated with vomiting, pallor, or light sensitivity.",
+              "Functional Abdominal Pain - Not Otherwise Specified: Pain that does not meet the specific criteria above but has no organic cause."
             ]
           },
           {
-            title: "Management of Functional Pain",
-            instructions: [
-              "1. Validation: Acknowledge the pain is real despite normal tests.",
-              "2. Biopsychosocial Model: Address stressors, school attendance, and sleep.",
-              "3. Dietary: Low FODMAP (under dietitian supervision) or fiber optimization.",
-              "4. Pharmacotherapy (Consultant Choice): Cyproheptadine, Amitriptyline (low dose), or Peppermint oil."
+            title: "Management Strategy",
+            orders: [
+              "Validation: Explicitly acknowledge that the pain is real and distressing despite normal test results.",
+              "Biopsychosocial Model: Address school-related stressors, sleep hygiene, and psychological triggers.",
+              "Dietary Interventions: Consider a trial of Low FODMAP diet under dietitian supervision or increased soluble fiber.",
+              "Pharmacotherapy (Specialist Consultation): Consider low-dose Amitriptyline, Cyproheptadine, or Peppermint Oil capsules."
             ]
           }
         ]
       },
       {
-        label: "Specialty Referral & Follow-up",
-        shortLabel: "Specialty Referral & Follow-up",
+        label: "Stage 4: Specialty Referral & Long-term Follow-up",
+        shortLabel: "Referral",
         color: "emerald",
         cards: [
           {
-            title: "Gastroenterology Referral",
-            instructions: [
-              "1. Any positive Red Flags or abnormal labs.",
-              "2. Failure of primary management for functional pain.",
-              "3. Suspicion of IBD, Celiac, or Eosinophilic Esophagitis."
+            title: "Gastroenterology Referral Criteria",
+            orders: [
+              "Presence of any 'Organic Red Flags' or significantly abnormal laboratory investigations.",
+              "Failure of primary care management for functional abdominal pain after 2-3 months.",
+              "Clinical suspicion of Inflammatory Bowel Disease, Celiac Disease, or Eosinophilic Esophagitis."
             ]
           }
         ]

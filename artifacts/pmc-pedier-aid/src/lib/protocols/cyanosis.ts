@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const cyanosisProtocol: DiseaseProtocol = {
   id: 'cyanosis',
   name: 'Neonatal Cyanosis',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of cyanosis in the neonate, focusing on differentiating cardiac, pulmonary, and other causes.',
   image: {
     url: "https://picsum.photos/seed/cyanosis/600/400",

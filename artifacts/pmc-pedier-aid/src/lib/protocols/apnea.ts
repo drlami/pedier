@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const apneaProtocol: DiseaseProtocol = {
   id: 'apnea',
   name: 'BRUE (Brief Resolved Unexplained Event)',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Risk stratification and management of BRUE in infants based on AAP 2016 Guidelines.',
   image: {
     url: "https://picsum.photos/seed/apnea/600/400",

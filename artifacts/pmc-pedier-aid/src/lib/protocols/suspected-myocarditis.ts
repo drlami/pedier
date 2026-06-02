@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const suspectedMyocarditisProtocol: DiseaseProtocol = {
   id: 'suspected-myocarditis',
   name: 'Suspected Myocarditis',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation for myocarditis, an inflammation of the heart muscle, often following a viral illness.',
   image: {
     url: "https://picsum.photos/seed/myocarditis-peds/600/400",

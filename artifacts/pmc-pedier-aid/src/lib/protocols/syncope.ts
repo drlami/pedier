@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const syncopeProtocol: DiseaseProtocol = {
   id: 'syncope',
   name: 'Syncope',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of syncope (fainting) in children to differentiate benign vasovagal syncope and pediatric mimics from dangerous cardiac causes.',
   image: {
     url: "https://picsum.photos/seed/syncope-peds/600/400",

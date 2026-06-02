@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const febrileSeizureProtocol: DiseaseProtocol = {
   id: 'febrile-seizure',
   name: 'Febrile Seizure',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Evaluation and management of a child presenting with a febrile seizure based on AAP guidelines.',
   image: {
     url: "https://picsum.photos/seed/febrile-seizure/600/400",

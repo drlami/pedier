@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const oxygenEscalationProtocol: DiseaseProtocol = {
   id: 'oxygen-escalation-guide',
   name: 'Oxygen Escalation Guide',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Clinical decision tool for escalating respiratory support from low-flow to HFNC/CPAP.',
   image: {
     url: "https://picsum.photos/seed/oxygen/600/400",

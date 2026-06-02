@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const constipationVsObstructionProtocol: DiseaseProtocol = {
   id: 'constipation-vs-obstruction',
   name: 'Constipation vs. Obstruction',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'Differentiating simple functional constipation from a more emergent bowel obstruction.',
   image: {
     url: 'https://picsum.photos/seed/constipation-vs-obstruction/600/400',

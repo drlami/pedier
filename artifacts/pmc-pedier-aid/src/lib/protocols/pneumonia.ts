@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const pneumoniaProtocol: DiseaseProtocol = {
   id: 'pneumonia',
   name: 'Pneumonia (Community Acquired)',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Assessment and management of CAP in children using BTS/WHO severity criteria.',
   image: {
     url: "https://picsum.photos/seed/pneumonia/600/400",

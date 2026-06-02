@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const tracheitisProtocol: DiseaseProtocol = {
   id: 'tracheitis',
   name: 'Bacterial Tracheitis',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Assessment and management of bacterial tracheitis, a severe airway infection.',
   image: {
     url: "https://picsum.photos/seed/tracheitis/600/400",

@@ -10,7 +10,7 @@ export const wardHusProtocol: DiseaseProtocol = {
   name: 'Hemolytic Uremic Syndrome Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Specialized inpatient directive for the clinical triad: MAHA, Thrombocytopenia, and AKI. Management of STEC-HUS and atypical variants.',
+  description: 'Hemolytic Uremic Syndrome (HUS) is a clinical triad of Microangiopathic Hemolytic Anemia (MAHA), Thrombocytopenia, and Acute Kidney Injury (AKI). This pathway guides the management of STEC-HUS and atypical variants, focusing on supportive care and renal protection.',
   image: {
     url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Microangiopathic hemolytic anemia and AKI management"
@@ -23,13 +23,21 @@ export const wardHusProtocol: DiseaseProtocol = {
   ],
 
   mmpData: {
-    snapshot: "Management is primarily supportive. Avoid anti-motility agents and use antibiotics with extreme caution (risk of increasing toxin release). Platelet transfusions are generally contraindicated unless life-threatening bleeding is present.",
+    snapshot: "HUS management is primarily supportive. Key pillars: (1) Maintain euvolemia without overload, (2) Avoid anti-motility agents and non-essential antibiotics, and (3) Early dialysis if AKI complications (AEIOU) arise. Platelets are contraindicated unless life-threatening bleeding occurs.",
     stages: [
       {
         label: "Stage 1: Verification & Multi-system Baseline",
         shortLabel: "Verification",
         color: "blue",
         cards: [
+          {
+            title: "Urine Output Monitoring",
+            orders: [
+              "Oliguria: < 0.5 mL/kg/hr.",
+              "Anuria: < 0.2 mL/kg/hr (Indicates high risk for dialysis).",
+              "Polyuria: > 3 mL/kg/hr (Common during recovery phase)."
+            ]
+          },
           {
             title: "Confirming the Triad [DR]",
             orders: [
@@ -55,6 +63,16 @@ export const wardHusProtocol: DiseaseProtocol = {
         shortLabel: "Supportive Care",
         color: "red",
         cards: [
+          {
+            title: "Fluid & AKI Management",
+            threshold: "CRITICAL SUPPORT",
+            orders: [
+              "If Hypovolemic: Use Isotonic Saline (0.9% NaCl). AVOID Potassium.",
+              "If Oliguric: Restrict fluids to IWL + Urine Output (mL for mL).",
+              "IWL calculation: ~400 mL/m²/day (~30 mL/kg for infants, 20 mL/kg for children).",
+              "Avoid Hypotonic fluids (risk of cerebral edema/hyponatremia)."
+            ]
+          },
           {
             title: "Transfusion Directive",
             isCritical: true,

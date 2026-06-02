@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const raisedIcpSuspicionProtocol: DiseaseProtocol = {
   id: 'raised-icp-suspicion',
   name: 'Increased ICP & Herniation Response',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Emergency management of increased intracranial pressure and impending brain herniation.',
   image: {
     url: "https://picsum.photos/seed/raised-icp-suspicion/600/400",

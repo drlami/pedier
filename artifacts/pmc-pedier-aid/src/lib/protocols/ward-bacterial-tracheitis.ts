@@ -12,7 +12,7 @@ export const wardBacterialTracheitisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive for the toxic airway: Early ENT/PICU involvement, aggressive IV broad-spectrum antibiotics, and airway security mandates.',
+  description: 'Bacterial Tracheitis is a rare but life-threatening invasive infection of the subglottic trachea, often following a viral respiratory illness. This pathway provides a high-acuity management plan for children with a "toxic" appearance who fail to respond to standard croup treatments, emphasizing early Ear, Nose, and Throat (ENT) and Pediatric Intensive Care Unit (PICU) involvement, airway security, and aggressive broad-spectrum intravenous antibiotic therapy.',
   image: {
     url: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Critical airway management"
@@ -20,138 +20,114 @@ export const wardBacterialTracheitisProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Bacterial Tracheitis is a critical airway emergency characterized by high fever, a toxic appearance, and failure to respond to nebulized adrenaline (unlike viral croup). Management prioritizes airway security, often requiring intubation and bronchoscopy to remove thick, obstructive tracheal secretions. Immediate involvement of ENT and PICU is mandatory. Avoid upsetting the child unnecessarily to prevent sudden airway closure.",
     stages: [
       {
-        label: "The 'Toxic Croup' Directive (Hour 0-2)",
-        shortLabel: "The 'Toxic Croup' Directive (Hour 0-2)",
+        label: "Stage 1: Identification & Airway Security",
+        shortLabel: "Assessment",
         color: "red",
         cards: [
           {
-            title: "When to Suspect (Consultant Level)",
+            title: "Suspecting Bacterial Tracheitis",
             threshold: "NOT VIRAL CROUP IF:",
-            instructions: [
-              "1. High Fever: Sustained T > 39°C (Rare in viral croup).",
-              "2. Toxic Appearance: Pale, mottled, lethargic, or poorly perfused.",
-              "3. Adrenaline Failure: No improvement or worsening after nebulized adrenaline.",
-              "4. Productive Cough: Thick, purulent secretions (often coughed up)."
+            orders: [
+              "High Fever: Sustained temperature > 39°C (Rare in viral croup).",
+              "Toxic Appearance: Child looks pale, mottled, lethargic, or has poor perfusion.",
+              "Adrenaline Failure: No clinical improvement after nebulized adrenaline.",
+              "Purulent Secretions: Productive cough with thick, yellow/green secretions (membranes)."
             ]
           },
           {
-            title: "Immediate 'Airway Security' Orders",
+            title: "Initial Physician Orders [DR]",
             isCritical: true,
-            instructions: [
-              "1. Consult ENT & PICU: Mandatory immediately upon suspicion.",
-              "2. Minimal Handling: Keep the child calm with parents; no upsetting procedures until team ready.",
-              "3. Preparation: Ensure difficult airway equipment (smaller tubes) is at bedside.",
-              "4. Transfer: Move to HDU/PICU for continuous observation."
-            ]
-          },
-          {
-            title: "Mandatory Admission Labs",
-            instructions: [
-              "1. CBC with Diff: Expect high WBC with left shift.",
-              "2. Blood Cultures: Required before antibiotics.",
-              "3. Tracheal Aspirate Culture: Mandatory if intubated (Highest yield).",
-              "4. VBG/Capillary Gas: Assess for respiratory acidosis/exhaustion."
+            orders: [
+              "Mandatory Consultation: Immediately notify ENT Surgeons and PICU team.",
+              "Minimal Handling: Keep the child calm in a position of comfort (usually in the parent's lap). Avoid invasive procedures until the airway team is ready.",
+              "Diagnostic Preparation: Order a Lateral Neck X-Ray ONLY if stable; look for 'steeple sign' or ragged tracheal column (subglottic narrowing).",
+              "Laboratory Screening: Complete Blood Count (CBC) with Differential and Blood Cultures.",
+              "Tracheal Culture: Mandatory if the patient is intubated (Highest diagnostic yield)."
             ]
           }
         ]
       },
       {
-        label: "Initial IV Antibiotic Strategy",
-        shortLabel: "Initial IV Antibiotic Strategy",
+        label: "Stage 2: Emergency IV Antibiotic Strategy",
+        shortLabel: "Management",
         color: "blue",
         cards: [
           {
-            title: "1st-Line Empirical Directive",
+            title: "Broad-Spectrum Empirical Coverage",
             threshold: "START IMMEDIATELY",
-            instructions: [
-              "Target Pathogens: S. aureus (including MRSA), S. pyogenes, S. pneumoniae, H. influenzae.",
-              "Broad coverage is essential due to high risk of airway obstruction."
+            orders: [
+              "Target Pathogens: Staphylococcus aureus (including MRSA), Streptococcus pyogenes, and Streptococcus pneumoniae.",
+              "Initial therapy must cover both Gram-positive and Gram-negative organisms."
             ],
             prescriptions: [
               {
-                drug: "Ceftriaxone (IV)",
+                drug: "Ceftriaxone",
                 dose: "80 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Once daily",
                 calculation: (w) => `${Math.min(80 * w, 2000).toFixed(0)} mg`,
-                notes: "Max 2g. Covers GNR and S. pneumoniae."
+                notes: "Maximum dose: 2g. Provides Gram-negative and Pneumococcal coverage."
               },
               {
-                drug: "Clindamycin (IV)",
+                drug: "Clindamycin",
                 dose: "10 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 8 hours",
                 calculation: (w) => `${(10 * w).toFixed(0)} mg`,
-                notes: "Covers S. aureus (including MRSA) and anaerobes."
+                notes: "Provides coverage for MRSA and anaerobic organisms."
               }
             ]
           },
           {
-            title: "Alternative: Vancomycin Option",
-            threshold: "IF SEVERE SEPSIS / KNOWN MRSA",
-            instructions: [
-              "Consider replacing Clindamycin with Vancomycin if patient is hemodynamically unstable."
-            ],
-            prescriptions: [
-              {
-                drug: "Vancomycin (IV)",
-                dose: "15 mg/kg",
-                route: "IV",
-                frequency: "Every 6-8 hours",
-                calculation: (w) => `${(15 * w).toFixed(0)} mg`,
-                notes: "Target trough levels per local policy."
-              }
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Continuous Cardiorespiratory and Pulse Oximetry monitoring.",
+              "Maintain 'Blow-by' oxygen if the child tolerates it; do not force a mask if it causes distress.",
+              "Prepare Emergency Equipment: Have appropriate-sized ET tubes (including one size smaller) and suction ready at the bedside.",
+              "Observe for Mucus Plugging: Sudden silence, loss of air entry, or rapid desaturation requires immediate action."
             ]
           }
         ]
       },
       {
-        label: "Complication Management",
-        shortLabel: "Complication Management",
+        label: "Stage 3: Complication & Crisis Management",
+        shortLabel: "Critical Care",
         color: "amber",
         cards: [
           {
-            title: "Complication 1: MUCUS PLUGGING",
-            threshold: "URGENT THREAT",
+            title: "Mucus Plug Crisis",
+            threshold: "URGENT LIFE-THREAT",
             isCritical: true,
-            instructions: [
-              "Triggers: Sudden desaturation, silent chest, or loss of air entry.",
-              "Action: Urgent tracheal suctioning. If intubated, perform saline-assisted suctioning.",
-              "ENT Action: Rigid Bronchoscopy for removal of thick pseudomembranes."
+            orders: [
+              "Clinical Triggers: Sudden desaturation, 'silent chest' on auscultation, or respiratory arrest.",
+              "Emergency Action: Immediate bag-valve-mask ventilation and notify ENT for emergency rigid bronchoscopy to remove thick secretions.",
+              "If intubated: Perform saline-assisted tracheal suctioning immediately."
             ]
           },
           {
-            title: "Complication 2: SEPTIC SHOCK",
-            instructions: [
-              "Monitor for tachycardia and capillary refill > 3s.",
-              "Fluid Resuscitation: 10-20 mL/kg Isotonic boluses.",
-              "Support: Inotrope initiation early if refractory to fluids."
+            title: "Sepsis Support",
+            orders: [
+              "Fluid Resuscitation: 10-20 mL/kg Isotonic Saline boluses for poor perfusion.",
+              "Hemodynamic Support: Early initiation of inotropes if shock persists despite fluids."
             ]
           }
         ]
       },
       {
-        label: "Recovery & Duration",
-        shortLabel: "Recovery & Duration",
+        label: "Stage 4: Recovery & Duration",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Treatment Duration Roadmap",
-            threshold: "CONSULTANT DIRECTIVE",
-            instructions: [
-              "1. Total Course: 10-14 days minimum.",
-              "2. IV Duration: At least 5-7 days until afebrile for 48h and secretions reduced.",
-              "3. Oral Step-down: Based on sensitivities (e.g. Augmentin or Clindamycin PO)."
-            ]
-          },
-          {
-            title: "Discharge & Follow-up",
-            instructions: [
-              "1. Airway Safety: No stridor at rest for > 48h.",
-              "2. Follow-up: Mandatory Pediatric Clinic review in 1 week.",
-              "3. Recovery: Pulmonary function is usually normal after recovery."
+            title: "Treatment Roadmap",
+            orders: [
+              "Total Antibiotic Duration: 10-14 days total course.",
+              "Step-down Strategy: Transition to oral antibiotics (e.g., Co-amoxiclav or Clindamycin) once afebrile for 48 hours and airway is stable.",
+              "Discharge Readiness: No stridor at rest for > 48 hours and completing oral course.",
+              "Follow-up: Pediatric Clinic review in 1 week to ensure complete resolution."
             ]
           }
         ]

@@ -11,7 +11,7 @@ export const wardGastroenteritisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior management of GE: Rehydration phases, early nutritional reintroduction, and anti-emetic stewardship.',
+  description: 'Acute Gastroenteritis is an inflammation of the stomach and intestines, typically manifesting as diarrhea and vomiting, which can lead to significant dehydration and electrolyte imbalances. This pathway focuses on rapid rehydration using Oral Rehydration Solution, early nutritional reintroduction to promote mucosal healing, and the judicious use of anti-emetics and zinc supplementation.',
   image: {
     url: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Senior clinical pathway for GE"
@@ -19,19 +19,40 @@ export const wardGastroenteritisProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management centers on the 'Rapid Rehydration and Early Feeding' protocol: (1) Correct dehydration using Oral Rehydration Solution (50-100 mL/kg over 4 hours) as the first-line therapy, utilizing Nasogastric tubes if oral intake is insufficient. (2) Facilitate intake with a single dose of Ondansetron in persistent vomiting. (3) Transition to an age-appropriate diet immediately following the rehydration phase to reduce stool volume and duration of illness. Daily weight monitoring remains the most accurate measure of hydration status.",
     stages: [
       {
-        label: "Admission & Rehydration Phase",
-        shortLabel: "Admission & Rehydration Phase",
+        label: "Stage 1: Admission & Rehydration Phase",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Assessment of Dehydration Severity: Classify as Mild, Moderate, or Severe based on clinical signs (e.g., skin turgor, mucous membranes, capillary refill).",
+              "Oral Rehydration Therapy: Prescribe Oral Rehydration Solution (50-100 mL/kg) to be administered over 4 hours.",
+              "Anti-Emetic Stewardship: Order a single dose of Ondansetron (0.15 mg/kg) if vomiting prevents successful oral rehydration.",
+              "Laboratory Investigations: Order Serum Electrolytes, Blood Urea Nitrogen, and Creatinine only if severe dehydration is suspected or if intravenous fluids are required.",
+              "Zinc Supplementation: Initiate Zinc Sulfate (10-20 mg daily) for all children to reduce diarrhea duration and recurrence risk.",
+              "Stool Studies: Request stool culture and virology if diarrhea is bloody, prolonged (more than 7 days), or in immunocompromised patients."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Accurate Intake and Output: Record every episode of vomiting and diarrhea (document consistency and volume) and all oral or intravenous intake.",
+              "Daily Morning Weight: Measure weight using the same scale and under the same conditions to track fluid loss/gain.",
+              "Hydration Status Assessment: Check mucous membranes, tears, and capillary refill every 4 hours during the rehydration phase.",
+              "Vital Signs: Monitor heart rate and blood pressure every 4 hours to detect early signs of hypovolemic shock."
+            ]
+          },
+          {
             title: "Rehydration Strategy (ESPGHAN/AAP)",
-            instructions: [
-              "1. First Line: Oral Rehydration Solution (ORS) - 50-100 mL/kg over 4 hours.",
-              "2. NG Rehydration: Equivalent to IV in efficacy for moderate dehydration; preferred if ORS fails.",
-              "3. IV Rehydration: Reserved for severe dehydration, shock, or failed NG trial.",
-              "4. Fluid Choice: Isotonic (0.9% NaCl + 5% Dextrose) for IV maintenance."
+            orders: [
+              "First Line: Oral Rehydration Solution (ORS) - 50-100 mL/kg over 4 hours.",
+              "Nasogastric Rehydration: Equivalent to Intravenous in efficacy for moderate dehydration; preferred if Oral Rehydration Solution fails.",
+              "Intravenous Rehydration: Reserved for severe dehydration, shock, or failed Nasogastric trial.",
+              "Fluid Choice: Isotonic (0.9% Sodium Chloride + 5% Dextrose) for Intravenous maintenance."
             ]
           },
           {

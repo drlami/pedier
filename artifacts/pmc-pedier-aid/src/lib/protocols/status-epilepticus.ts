@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const statusEpilepticusProtocol: DiseaseProtocol = {
   id: 'acute-seizure',
   name: 'Acute Seizure (Status Epilepticus)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'A time-based emergency algorithm for seizures lasting > 5 minutes.',
   image: {
     url: "https://picsum.photos/seed/status-epilepticus/600/400",

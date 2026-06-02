@@ -12,7 +12,7 @@ export const wardAsthmaProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: PRAM weaning logic, PICU transfer criteria, IV vs Oral steroid roadmap, and Maintenance ICS directives.',
+  description: 'Asthma is a chronic inflammatory airway disease characterized by reversible airway obstruction and bronchial hyper-responsiveness. This exhaustive consultant-level directive covers PRAM weaning logic, PICU transfer criteria, and maintenance ICS strategies.',
   image: {
     url: "https://images.unsplash.com/photo-1559839734-2b71f1e3c7e5?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Pediatric asthma clinical care"

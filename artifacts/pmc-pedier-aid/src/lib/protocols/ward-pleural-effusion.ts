@@ -12,7 +12,7 @@ export const wardPleuralEffusionProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Pleural fluid interpretation, surgical decision tree (VATS vs Pigtail), and aggressive medical therapy.',
+  description: 'Pleural Effusion is the abnormal accumulation of fluid in the pleural space, often occurring as a complication of pneumonia (parapneumonic effusion). Empyema represents the advanced, purulent stage of this process, characterized by the presence of bacteria and inflammatory cells within the pleural fluid. This exhaustive directive covers pleural fluid interpretation, the surgical decision tree (VATS vs. Pigtail drainage), and aggressive medical therapy.',
   image: {
     url: "https://images.unsplash.com/photo-1579152276502-545a248a69a7?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Ultrasound-guided pleural drainage"
@@ -20,70 +20,70 @@ export const wardPleuralEffusionProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "The management strategy centers on (1) Early identification of complicated effusions or empyema using Chest Ultrasound, (2) Aggressive intravenous antibiotic therapy covering Streptococcus pneumoniae and Staphylococcus aureus, and (3) Timely surgical intervention (Chest Tube drainage with fibrinolytics or Video-Assisted Thoracoscopic Surgery - VATS) for loculated or large, symptomatic collections. Clinicians must prioritize multidisciplinary care involving pediatric surgery and respiratory specialists.",
     stages: [
       {
         label: "Diagnostics & Fluid Interpretation",
-        shortLabel: "Diagnostics & Fluid Interpretation",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Phase 1: Advanced Radiology",
-            threshold: "URGENT ON SUSPICION",
-            instructions: [
-              "1. Chest Ultrasound (US): MANDATORY first-line tool. Identify fluid depth, fibrin strands, and loculations.",
-              "2. CXR (Lateral Decubitus): Only if US is unavailable to assess for free-flowing fluid.",
-              "3. Chest CT with Contrast: Not routine; reserved for suspected lung abscess or failed surgical intervention."
+            title: "Advanced Radiology Orders [DR]",
+            orders: [
+              "Chest Ultrasound: MANDATORY first-line tool to identify fluid depth, fibrin strands, and loculations.",
+              "Chest X-Ray: Perform lateral decubitus views ONLY if Ultrasound is unavailable to assess for free-flowing fluid.",
+              "Chest Computed Tomography (CT) with Contrast: Not routine; reserved for suspected lung abscess or failed surgical intervention."
             ]
           },
           {
             title: "Pleural Fluid Biochemical Targets",
             threshold: "IF THORACOCENTESIS PERFORMED",
-            instructions: [
-              "1. pH < 7.2: Highly suggestive of empyema; usually requires drainage.",
-              "2. Glucose < 40 mg/dL (2.2 mmol/L): Strong indicator for chest tube.",
-              "3. LDH > 1000 IU/L: Suggestive of complicated parapneumonic effusion.",
-              "4. Gram Stain & Culture: Send for aerobic/anaerobic culture and Pneumococcal PCR if possible."
+            orders: [
+              "pH Analysis: A pH < 7.2 is highly suggestive of empyema and usually requires drainage.",
+              "Glucose Level: A level < 40 mg/dL (2.2 mmol/L) is a strong indicator for chest tube placement.",
+              "Lactate Dehydrogenase (LDH): A level > 1000 IU/L suggests a complicated parapneumonic effusion.",
+              "Microbiology: Send for Gram Stain, aerobic/anaerobic Culture, and Pneumococcal Polymerase Chain Reaction (PCR)."
             ]
           },
           {
-            title: "Mandatory Admission Labs",
-            instructions: [
-              "1. Blood Cultures: Pre-antibiotic (if not done).",
-              "2. Serum Albumin: Low levels are common and predict prolonged drainage.",
-              "3. S. Electrolytes: Strict monitor for SIADH/Hyponatremia.",
-              "4. CBC & CRP: To track daily inflammatory response."
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Respiratory Assessment: Hourly checks for work of breathing, Respiratory Rate, and Oxygen Saturation.",
+              "Chest Tube Care: If present, monitor hourly drainage volume and assess for 'swinging' or 'bubbling'.",
+              "Positioning: Keep the patient in a comfortable position, often semi-upright or lying on the affected side.",
+              "Fluid Balance: Strict Intake and Output charting; monitor for signs of Syndrome of Inappropriate Antidiuretic Hormone secretion (SIADH)."
             ]
           }
         ]
       },
       {
         label: "Medical Therapy & Duration",
-        shortLabel: "Medical Therapy & Duration",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Aggressive IV Antibiotic Strategy",
+            title: "Aggressive Intravenous Antibiotic Strategy",
             threshold: "START IMMEDIATELY",
-            instructions: [
-              "Target Pathogens: S. pneumoniae, S. aureus (including MRSA), and S. pyogenes.",
-              "Duration: Minimum 2-4 weeks total (At least 10-14 days IV until stable)."
+            orders: [
+              "Target Pathogens: Streptococcus pneumoniae, Staphylococcus aureus, and Streptococcus pyogenes.",
+              "Duration: Minimum 2-4 weeks total course (At least 10-14 days Intravenous until clinical stability)."
             ],
             prescriptions: [
               {
-                drug: "Tazocin (Piperacillin-Tazobactam)",
+                drug: "Piperacillin-Tazobactam",
                 dose: "90 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
-                calculation: (w) => `${(90 * w).toFixed(0)} mg`,
-                notes: "Excellent choice for broad-spectrum and anaerobic coverage."
+                calculation: (w) => `${Math.min(90 * w, 4500).toFixed(0)} mg`,
+                notes: "Broad-spectrum coverage including anaerobes. Maximum 4.5 grams."
               },
               {
-                drug: "Clindamycin (IV)",
+                drug: "Clindamycin",
                 dose: "10 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 8 hours",
-                calculation: (w) => `${(10 * w).toFixed(0)} mg`,
-                notes: "ADD if S. aureus or MRSA is highly suspected."
+                calculation: (w) => `${Math.min(10 * w, 600).toFixed(0)} mg`,
+                notes: "Add if Methicillin-Resistant Staphylococcus aureus (MRSA) is suspected."
               }
             ]
           }
@@ -91,60 +91,50 @@ export const wardPleuralEffusionProtocol: DiseaseProtocol = {
       },
       {
         label: "Surgical Decision Tree",
-        shortLabel: "Surgical Decision Tree",
+        shortLabel: "Escalation",
         color: "red",
         cards: [
           {
             title: "Surgical Options & Triggers",
             isCritical: true,
-            instructions: [
-              "1. Pigtail Catheter (Small bore): For small-to-moderate non-loculated fluid.",
-              "2. Intrapleural Fibrinolytics (tPA/Urokinase): Use if loculations present to avoid VATS. Dose: 0.1 mg/kg (Max 4mg) tPA BID for 3 days.",
-              "3. VATS (Video-Assisted Thoracoscopic Surgery): GOLD STANDARD for loculated empyema (Type II/III). Early VATS is superior to repeat drainage.",
-              "4. Decortication (Open Surgery): Reserved for thick pleural 'peel' or failed VATS."
-            ]
-          },
-          {
-            title: "When to Consult Pediatric Surgery",
-            threshold: "CONSULTANT TRIGGER",
-            instructions: [
-              "1. Fluid depth > 10mm on ultrasound.",
-              "2. Evidence of loculations or 'fibrin lattice' on US.",
-              "3. Failure of respiratory improvement after 24-48h of correct medical therapy."
+            orders: [
+              "Pigtail Catheter (Small bore): For small-to-moderate non-loculated fluid collections.",
+              "Intrapleural Fibrinolytics: Use tissue Plasminogen Activator (tPA) or Urokinase if loculations are present to avoid major surgery.",
+              "Video-Assisted Thoracoscopic Surgery (VATS): Gold standard for loculated empyema (Type II/III).",
+              "Urgent Pediatric Surgery Consultation: Required if fluid depth > 10 mm on ultrasound or if fibrin lattice is present."
             ]
           }
         ]
       },
       {
         label: "Resolution & Discharge",
-        shortLabel: "Resolution & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Step-Down Rx & Recovery",
-            threshold: "HOME DIRECTIVE",
-            instructions: [
-              "1. Duration: Total 3-4 week course (IV + PO).",
-              "2. Physiotherapy: Active mobilization and breathing exercises are essential.",
-              "3. Discharge: Afebrile 24h + SpO2 normal on RA + Chest tube removed > 24h."
+            title: "Transition to Oral Therapy",
+            threshold: "CLINICALLY STABLE",
+            orders: [
+              "Total Course: 3-4 weeks (Intravenous plus Oral step-down).",
+              "Physiotherapy: Active mobilization and breathing exercises are essential for lung re-expansion.",
+              "Discharge Criteria: Afebrile for 24 hours, normal Oxygen Saturation on Room Air, and Chest Tube removed for > 24 hours."
             ],
             prescriptions: [
               {
-                drug: "Amoxicillin-Clavulanate (Augmentin)",
-                dose: "45 mg/kg (of Amox)",
-                route: "PO",
+                drug: "Amoxicillin-Clavulanate",
+                dose: "45 mg/kg (of Amoxicillin)",
+                route: "Oral",
                 frequency: "Every 12 hours",
                 calculation: (w) => `${(45 * w).toFixed(0)} mg`,
-                notes: "High-dose required for empyema step-down."
+                notes: "High-dose roadmap for empyema step-down."
               }
             ]
           },
           {
-            title: "Resolution Imaging Directive",
-            threshold: "AT 4-6 WEEKS",
-            instructions: [
-              "Repeat CXR: MANDATORY to ensure full radiographic resolution of empyema.",
-              "Follow-up: Clinical review by Pediatric Respiratory team."
+            title: "Follow-up Mandate",
+            orders: [
+              "Repeat Chest X-Ray: Mandatory at 4-6 weeks to ensure full radiographic resolution of the empyema.",
+              "Specialist Review: Schedule clinical review by the Pediatric Respiratory team."
             ]
           }
         ]

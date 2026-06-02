@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const murmurWithSymptomsProtocol: DiseaseProtocol = {
   id: 'murmur-with-symptoms',
   name: 'Murmur with Symptoms',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of a heart murmur in a child, distinguishing between benign (innocent) and pathologic murmurs.',
   image: {
     url: "https://picsum.photos/seed/murmur-peds/600/400",

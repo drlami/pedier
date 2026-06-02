@@ -11,7 +11,7 @@ export const wardIntussusceptionProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Post-radiological reduction care: Monitoring for recurrence (10%), feeding strategies, and surgical triggers.',
+  description: 'Intussusception is the telescoping of one segment of the intestine into another, most commonly the ileum into the cecum, causing bowel obstruction and potential ischemia. This pathway focuses on post-radiological reduction management, including monitoring for the 10% risk of recurrence, feeding advancement, and identifying surgical indications.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c299e0831?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Ultrasound showing target sign"
@@ -19,91 +19,77 @@ export const wardIntussusceptionProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management emphasizes the 'Observe-Feed-Detect' strategy: (1) Post-reduction observation for early recurrence (typically within the first 12-24 hours), (2) Graduated feeding starting after 4 hours of stability, and (3) Rapid identification of recurrence or complications requiring surgical intervention. Parental education on signs of recurrence is vital for safe discharge.",
     stages: [
       {
-        label: "Immediate Post-Reduction (Hours 0-4)",
-        shortLabel: "Immediate Post-Reduction (Hours 0-4)",
+        label: "Stage 1: Immediate Post-Reduction Care",
+        shortLabel: "Immediate Phase",
         color: "blue",
         cards: [
           {
-            title: "Observation & Vitals",
-            instructions: [
-              "1. NPO Status: Maintain NPO for first 2-4 hours post-reduction.",
-              "2. IV Fluids: Maintenance Isotonic fluids.",
-              "3. Vitals: Every 30-60 mins; watch for tachycardia or hypotension (sepsis/perforation)."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Maintain NPO (Nothing by mouth) status for the first 2-4 hours post-reduction.",
+              "Intravenous Fluids: Continue Isotonic maintenance fluids (e.g., Normal Saline or Ringer's Lactate) until enteral intake is established.",
+              "Pain Management: Monitor for rapid improvement in pain; persistent pain is a red flag for incomplete reduction or perforation.",
+              "Laboratory Evaluation: Only if clinical status worsens (e.g., Complete Blood Count, C-Reactive Protein)."
             ]
           },
           {
-            title: "Analgesia Strategy",
-            instructions: [
-              "Pain post-reduction should improve rapidly. Persistent pain is a RED FLAG for recurrence or incomplete reduction."
-            ],
-            prescriptions: [
-              {
-                drug: "Paracetamol",
-                dose: "15 mg/kg",
-                route: "PO/IV",
-                frequency: "Every 6 hours",
-                calculation: (w) => `${(15 * w).toFixed(0)} mg`
-              }
+            title: "Nursing: Strict Monitoring [NS]",
+            isCritical: true,
+            nursing: [
+              "Vitals: Check Temperature, Heart Rate, and Blood Pressure every 30-60 minutes for the first 4 hours.",
+              "Pain Scoring: Use age-appropriate pain scales hourly; notify physician immediately if colicky pain returns.",
+              "Abdominal Assessment: Check for distension, tenderness, or guarding every 2 hours.",
+              "Stool Watch: Document all bowel movements, specifically checking for 'currant jelly' (bloody/mucus) stool."
             ]
           }
         ]
       },
       {
-        label: "Feeding Trial (Hours 4-12)",
-        shortLabel: "Feeding Trial (Hours 4-12)",
+        label: "Stage 2: Graduated Feeding Trial",
+        shortLabel: "Feeding",
         color: "amber",
         cards: [
           {
-            title: "Graduated Enteral Intake",
-            instructions: [
-              "1. If pain-free and stable at 4h: Start Clear Liquids.",
-              "2. If tolerated for 2h: Advance to Full Diet (Breast milk/Formula/Age-appropriate).",
-              "3. If vomiting occurs: Stop feeds, return to NPO, and URGENT Ultrasound."
+            title: "Advancement Strategy [DR]",
+            orders: [
+              "Initial Trial: If the patient remains pain-free and stable at 4 hours, initiate Clear Liquid trial.",
+              "Feeding Escalation: If clear liquids are tolerated for 2 hours, advance to Full Diet (Breast milk, Formula, or Age-appropriate solids).",
+              "Failure Protocol: If vomiting or significant pain occurs, immediately return to NPO status and order an urgent repeat Ultrasound."
             ]
           }
         ]
       },
       {
-        label: "Recurrence Monitoring",
-        shortLabel: "Recurrence Monitoring",
+        label: "Stage 3: Recurrence & Surgical Surveillance",
+        shortLabel: "Surveillance",
         color: "red",
         cards: [
           {
             title: "Recurrence Watch (10% Risk)",
             threshold: "URGENT ULTRASOUND IF POSITIVE",
             isCritical: true,
-            instructions: [
-              "1. Clinical Signs: Return of colicky pain, lethargy, or vomiting.",
-              "2. Stool: Watch for 'currant jelly' stool (late sign).",
-              "3. Action: Immediate repeat Ultrasound. If recurrent, notify Radiology for repeat air/liquid enema."
-            ]
-          },
-          {
-            title: "Surgical Consultation Triggers",
-            threshold: "PEDIATRIC SURGERY REFERRAL",
-            instructions: [
-              "1. Evidence of Perforation (Free air on X-ray).",
-              "2. Signs of Peritonitis or Shock.",
-              "3. Failed Radiologic Reduction (usually after 2-3 attempts).",
-              "4. Multiple recurrences (> 2) or suspected lead point (e.g., Meckel's)."
+            orders: [
+              "Repeat Ultrasound: Indicated immediately if there is a return of colicky pain, persistent lethargy, or new-onset vomiting.",
+              "Re-Reduction: If recurrence is confirmed, notify Radiology for repeat air/liquid enema reduction (usually successful if performed early).",
+              "Surgical Referral: Consult Pediatric Surgery if there is evidence of bowel perforation, peritonitis, clinical shock, or failed radiologic reduction attempts."
             ]
           }
         ]
       },
       {
-        label: "Discharge Criteria",
-        shortLabel: "Discharge Criteria",
+        label: "Stage 4: Discharge & Safety Planning",
+        shortLabel: "Discharge",
         color: "emerald",
         cards: [
           {
-            title: "Safe for Home",
-            instructions: [
-              "1. Minimum 4-6 hours post-reduction observation (some centers prefer 12-24h).",
-              "2. Tolerating full enteral diet without vomiting.",
-              "3. No recurrence of colicky pain.",
-              "4. Parents educated on recurrence risk and return-to-ER triggers."
+            title: "Criteria for Home [DR]",
+            orders: [
+              "Minimum Observation: Ensure at least 6-12 hours of post-reduction stability (local protocol dependent).",
+              "Dietary Tolerance: Must be tolerating a full enteral diet without vomiting or abdominal distress.",
+              "Education: Parents must be educated on the risk of recurrence and instructed to return to the Emergency Department immediately for any recurring colicky pain or lethargy."
             ]
           }
         ]

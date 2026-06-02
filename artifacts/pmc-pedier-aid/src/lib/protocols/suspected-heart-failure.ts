@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const suspectedHeartFailureProtocol: DiseaseProtocol = {
   id: 'suspected-heart-failure',
   name: 'Suspected Heart Failure',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of a child with signs and symptoms concerning for heart failure (pump dysfunction).',
   image: {
     url: "https://picsum.photos/seed/heart-failure/600/400",

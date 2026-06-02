@@ -12,7 +12,7 @@ export const wardBronchiolitisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Evidence-based supportive care: Minimal intervention excellence, NG hydration roadmap, oxygen targets, and HFNC escalation triggers.',
+  description: 'Bronchiolitis is an acute viral infection of the lower respiratory tract, primarily affecting infants under 2 years of age, characterized by airway inflammation and mucus plugging. This pathway emphasizes evidence-based supportive care, focusing on minimal intervention excellence (avoiding unnecessary bronchodilators, steroids, or chest physiotherapy), standardized hydration strategies (Nasogastric preferred), and precise oxygen escalation triggers.',
   image: {
     url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Infant respiratory support"
@@ -20,128 +20,108 @@ export const wardBronchiolitisProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management of Bronchiolitis is centered on 'Supportive Excellence': (1) Oxygenation (Target SpO2 90-92%), (2) Hydration (Nasogastric or Intravenous if oral intake fails), and (3) Secretion Clearance (Gentle nasal suctioning). Routine use of Salbutamol, steroids, or chest physiotherapy is not recommended and may cause harm. Monitoring for apnea is critical in infants under 2 months of age or those born prematurely.",
     stages: [
       {
-        label: "Admission & Support Directive",
-        shortLabel: "Admission & Support Directive",
+        label: "Stage 1: Admission & Support Directive",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Phase 1: Minimal Intervention Rules",
+            title: "Minimal Intervention Rules",
             threshold: "DO NOT ORDER ROUTINELY",
             isCritical: true,
-            instructions: [
-              "1. No Salbutamol/Bronchodilators: Ineffective in bronchiolitis (AAP/NICE).",
-              "2. No Systemic Steroids: Do not reduce admission rate or stay.",
-              "3. No Antibiotics: Unless strong suspicion of secondary bacterial infection (Rare).",
-              "4. No Chest Physiotherapy: May increase distress and stay.",
-              "5. No Routine CXR: Only if localized signs or severe failure."
+            orders: [
+              "No Salbutamol/Bronchodilators: Proven ineffective in bronchiolitis as the mechanism is mucus plugging, not bronchospasm.",
+              "No Systemic Steroids: Do not reduce admission rate or duration of stay.",
+              "No Routine Antibiotics: Bronchiolitis is viral; only use if secondary bacterial pneumonia is strongly suspected.",
+              "No Chest Physiotherapy: May increase infant distress and does not improve outcomes.",
+              "No Routine Chest X-Ray: Only indicated if there are focal lung signs (suggesting consolidation) or sudden clinical deterioration."
             ]
           },
           {
-            title: "Hydration Roadmap",
-            threshold: "IF INTAKE < 50-75% BASELINE",
-            instructions: [
-              "1. NG Hydration (Preferred): 0.9% NaCl + 5% Dextrose. Maintains mucociliary clearance better than IV.",
-              "2. IV Hydration: Only if NG is not tolerated or child is in severe distress/impending failure.",
-              "3. Volume: Start at 2/3 (66%) maintenance to reduce SIADH/edema risk, titrate up to 100% as needed."
-            ]
-          },
-          {
-            title: "Admission Laboratories",
-            threshold: "THRESHOLD-BASED",
-            instructions: [
-              "1. Viral PCR (RSV/Flu/MPV): Mandatory for ward isolation planning.",
-              "2. VBG/Capillary Gas: Only if severe WOB or signs of exhaustion (pCO2 trend).",
-              "Note: CBC/CRP are NOT routinely indicated and often misleading."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Viral Identification: Order Respiratory Viral Panel (RSV, Influenza, COVID-19) for cohorting and isolation planning.",
+              "Hydration Assessment: Evaluate for signs of dehydration (sunken fontanelle, dry mucous membranes, reduced wet diapers).",
+              "Respiratory Scoring: Initiate standardized scoring (e.g., Wang Score) every 4-6 hours.",
+              "Apnea Precautions: Continuous monitoring for infants < 2 months of age or those born prematurely."
             ]
           }
         ]
       },
       {
-        label: "Monitoring & Oxygen Targets",
-        shortLabel: "Monitoring & Oxygen Targets",
+        label: "Stage 2: Hydration & Oxygen Titration",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Wang Respiratory Scoring",
-            threshold: "STANDARDIZED ASSESSMENT",
-            calculator: {
-              id: "wang-score",
-              title: "Wang Score"
-            },
-            instructions: [
-              "Mild (0-3) | Moderate (4-8) | Severe (9-12).",
-              "Perform scoring every 4-6 hours to monitor support adequacy."
+            title: "Hydration Roadmap",
+            threshold: "IF INTAKE < 50-75% BASELINE",
+            orders: [
+              "Nasogastric (NG) Hydration (Preferred): Use 0.9% Sodium Chloride + 5% Dextrose. Maintains mucociliary clearance better than intravenous fluids.",
+              "Intravenous (IV) Hydration: Reserve for infants in severe respiratory distress or those who do not tolerate NG tubes.",
+              "Fluid Volume: Start at 2/3 (66%) maintenance to reduce the risk of SIADH (fluid retention), titrating up to 100% as needed."
             ]
           },
           {
             title: "Oxygen Therapy Directive",
             threshold: "SPO2 TARGET 90-92%",
-            instructions: [
-              "1. Initial Target: Maintain SpO2 ≥ 90% (AAP) or ≥ 92% (NICE/RCH).",
-              "2. Weaning: Once stable, wean O2 by 0.5L every 4h. Discontinue if SpO2 stable above target.",
-              "3. Nasal Suction: Perform gentle superficial suctioning BEFORE feeds and sleep."
+            orders: [
+              "Initial Target: Maintain Oxygen Saturation (SpO2) ≥ 90% (per AAP) or ≥ 92% (per NICE/RCH).",
+              "Weaning: Once stable, wean oxygen by 0.5 Liters/minute every 4 hours. Discontinue if SpO2 remains stable above target.",
+              "Suctioning: Perform gentle, superficial nasal suctioning BEFORE feeds and sleep to clear obstructing mucus."
             ]
           },
           {
-            title: "Standardized Monitoring",
-            instructions: [
-              "1. Respiratory Score (e.g. Wang Score) every 4-6 hours.",
-              "2. Track Feeding Volumes: Mandatory 6-hourly totals (mL/kg).",
-              "3. Apnea Watch: Continuous monitoring for infants < 2 months or ex-premature."
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Respiratory Rate and Wang Score assessment every 4 hours.",
+              "Strict Intake and Output charting: Mandatory 6-hourly fluid totals (mL/kg).",
+              "Positioning: Keep head of bed elevated to 30 degrees to optimize respiratory effort.",
+              "Observe for Apnea: Immediate notification if pause in breathing > 20 seconds or associated with bradycardia."
             ]
           }
         ]
       },
       {
-        label: "Support Failure & Escalation",
-        shortLabel: "Support Failure & Escalation",
+        label: "Stage 3: Support Failure & Escalation",
+        shortLabel: "Escalation",
         color: "red",
         cards: [
           {
             title: "HFNC / CPAP Triggers",
             threshold: "IF FAILING STANDARD OXYGEN",
             isCritical: true,
-            instructions: [
-              "1. Persistent SpO2 < 90% despite 2L/min low-flow oxygen.",
-              "2. Rising Respiratory Rate: RR > 70-80 or rising trend.",
-              "3. Increasing Work of Breathing: Severe retractions or grunting.",
-              "4. pCO2 > 50-55 mmHg on gas (Respiratory Acidosis).",
-              "ACTION: Start High Flow Nasal Cannula (HFNC) at 2L/kg/min or CPAP 5-7 cmH2O."
-            ]
-          },
-          {
-            title: "Secondary Infection Watch",
-            threshold: "IF SYSTEMICALLY UNWELL",
-            instructions: [
-              "Criteria: New onset high fever (> 39°C), focal consolidation on CXR, or rising CRP/PCT.",
-              "Action: Obtain Blood Culture and consider IV Antibiotics (Ampicillin/Ceftriaxone)."
+            orders: [
+              "Clinical Failure: Persistent SpO2 < 90% despite 2 Liters/minute of low-flow oxygen.",
+              "Rising Effort: Respiratory Rate > 70-80 breaths/minute or severe chest retractions/grunting.",
+              "Exhaustion: Rising pCO2 on Blood Gas (Respiratory Acidosis).",
+              "ACTION: Initiate High-Flow Nasal Cannula (HFNC) at 2 Liters/kg/minute or Continuous Positive Airway Pressure (CPAP) at 5-7 cmH2O."
             ]
           }
         ]
       },
       {
-        label: "Weaning & Discharge",
-        shortLabel: "Weaning & Discharge",
+        label: "Stage 4: Recovery & Discharge Planning",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
             title: "Discharge Milestones",
             threshold: "NON-NEGOTIABLE",
-            instructions: [
-              "1. Stable SpO2: Above target (90 or 92%) on Room Air for 4-12 hours (including sleep).",
-              "2. Feeding: Tolerating > 60-75% of baseline fluid requirement orally.",
-              "3. WOB: Minimal/mild distress only.",
-              "4. Caregivers: Competent in nasal suctioning and recognize red flags."
+            orders: [
+              "Stable Oxygenation: Above target (90-92%) on Room Air for 4-12 hours (including a period of sleep).",
+              "Effective Feeding: Tolerating > 60-75% of baseline fluid requirement orally without significant distress.",
+              "Work of Breathing: Minimal to mild distress only.",
+              "Caregiver Competence: Parents are comfortable with nasal suctioning and recognize 'Red Flags' (retractions, apnea)."
             ]
           },
           {
-            title: "Safety Netting & Follow-up",
-            instructions: [
-              "1. Natural History: Educate parents that cough may last 3-4 weeks.",
-              "2. Red Flags: Poor feeding, increased WOB, or apnea.",
-              "3. Clinic Review: GP/Clinic review in 48-72 hours if early discharge."
+            title: "Follow-up",
+            orders: [
+              "Safety Netting: Educate parents that the post-viral cough may persist for 3-4 weeks.",
+              "Clinic Review: Outpatient pediatric review within 48-72 hours if discharged early."
             ]
           }
         ]

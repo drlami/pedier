@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const fbaProtocol: DiseaseProtocol = {
   id: 'fba',
   name: 'Foreign Body Aspiration (Suspected)',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Evaluation and emergency management of suspected foreign body aspiration.',
   image: {
     url: "https://picsum.photos/seed/fba/600/400",

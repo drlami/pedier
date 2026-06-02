@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const nephroticSyndromeProtocol: DiseaseProtocol = {
   id: 'nephrotic-syndrome',
   name: 'Nephrotic Syndrome',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
   description: 'Evaluation and management of nephrotic syndrome, characterized by massive proteinuria, hypoalbuminemia, and edema.',
   image: {
     url: "https://picsum.photos/seed/nephrotic/600/400",

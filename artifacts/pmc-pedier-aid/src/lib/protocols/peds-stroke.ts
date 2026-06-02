@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const pedsStrokeProtocol: DiseaseProtocol = {
   id: 'peds-stroke',
   name: 'Pediatric Stroke (ACT FAST)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Emergency identification and initial management of acute pediatric stroke.',
   image: {
     url: "https://picsum.photos/seed/peds-stroke/600/400",

@@ -8,156 +8,140 @@ import type { DiseaseProtocol } from './types';
 export const wardFebrileNeutropeniaProtocol: DiseaseProtocol = {
   id: 'ward-febrile-neutropenia',
   name: 'Febrile Neutropenia Master Pathway',
-  system: 'Infectious Diseases',
+  system: 'Hematology & Oncology',
   unit: 'ward',
   category: 'general',
-  lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive for the oncology patient: 60-min antibiotic mandate, central line management, and stepwise fungal escalation.',
+  lastUpdated: 'June 2026',
+  description: 'Febrile Neutropenia is a life-threatening oncological emergency defined by a single oral temperature ≥ 38.3°C (or ≥ 38.0°C sustained over 1 hour) in a patient with an Absolute Neutrophil Count less than 500 cells/microliter. This exhaustive directive covers the "Golden Hour" antibiotic window, comprehensive screening of central venous access devices, and structured management of complications like Typhlitis.',
   image: {
     url: "https://images.unsplash.com/photo-1579152276502-545a248a69a7?auto=format&fit=crop&q=80&w=600&h=400",
-    hint: "Oncology ward monitoring"
+    hint: "Oncology ward monitoring and infectious risk assessment"
   },
-  questions: [], 
+  questions: [
+    { id: 'weight', questionText: 'Current Patient Weight', type: 'number', unit: 'kg' },
+    { id: 'ancLevel', questionText: 'Absolute Neutrophil Count (cells/microliter)', type: 'number' },
+    { id: 'hemodynamicStable', questionText: 'Patient is hemodynamically stable (Normal Blood Pressure for age)?', type: 'boolean' },
+    { id: 'abdominalPain', questionText: 'Severe abdominal pain or bloody diarrhea (Suspected Typhlitis)?', type: 'boolean' },
+  ], 
 
   mmpData: {
+    snapshot: "Febrile Neutropenia management is driven by the 'Golden Hour' principle: (1) Immediate culture acquisition from all Central Venous Access Device lumens and peripheral sites, (2) Initiation of empirical broad-spectrum anti-pseudomonal therapy within 60 minutes, and (3) Systematic daily assessment for 'silent' foci such as the perianal area and oral mucosa. Clinicians must maintain a low threshold for broadening coverage to include Vancomycin or Antifungals if fevers persist.",
     stages: [
       {
-        label: "Emergency directive (Hour 0-1)",
-        shortLabel: "Emergency directive (Hour 0-1)",
+        label: "Stage 1: Emergency Stabilization (Hour 0-1)",
+        shortLabel: "Golden Hour",
         color: "red",
         cards: [
           {
-            title: "Definition & Thresholds",
-            threshold: "ONCOLOGY ALERT",
-            instructions: [
-              "1. Fever: Single T > 38.3°C or T > 38.0°C sustained for 1 hour.",
-              "2. Neutropenia: ANC < 500 cells/µL (or ANC < 1000 and predicted to drop).",
-              "3. MANDATE: Administer FIRST DOSE of antibiotics within 60 minutes of arrival."
+            title: "Initial Physician Orders [DR]",
+            threshold: "START WITHIN 60 MINUTES",
+            orders: [
+              "Blood Cultures: MANDATORY from ALL lumens of the Central Venous Access Device and at least one Peripheral site.",
+              "Complete Blood Count with Differential: Calculate the Absolute Neutrophil Count immediately.",
+              "Inflammatory Markers: C-Reactive Protein and Procalcitonin.",
+              "Metabolic Baseline: Urea, Electrolytes, Creatinine, and Liver Function Tests.",
+              "Initial Antibiotic: Administer the first dose of anti-pseudomonal coverage (e.g., Piperacillin-Tazobactam) IMMEDIATELY after cultures.",
+              "Urinalysis: Mandatory screening for occult infection even in the absence of urinary symptoms."
             ]
           },
           {
-            title: "Mandatory Baseline Labs",
-            threshold: "BEFORE FIRST ANTIBIOTIC",
-            instructions: [
-              "1. Blood Cultures: REQUIRED from ALL lumens of Central Line (CVAD) AND a Peripheral vein.",
-              "2. CBC with Differential: Essential for Absolute Neutrophil Count (ANC) calculation.",
-              "3. Inflammatory Markers: CRP and Procalcitonin baseline.",
-              "4. S. Electrolytes / LFTs: Baseline renal and liver function.",
-              "5. Urinalysis & Culture: Even if asymptomatic (Neutropenic patients often lack pyuria)."
-            ]
-          },
-          {
-            title: "1st-Line Anti-Pseudomonal Rx (PREFERRED REGIMEN: MONOTHERAPY)",
-            threshold: "STABLE PATIENT",
-            instructions: [
-              "Target: Pseudomonas aeruginosa and Gram-negatives.",
-              "Note: Monotherapy is standard for stable patients (ASCO/IDSA)."
+            title: "1st-Line Rx (PREFERRED REGIMEN: MONOTHERAPY)",
+            threshold: "HEMODYNAMICALLY STABLE",
+            orders: [
+              "Target Pathogens: Pseudomonas aeruginosa and other high-risk Gram-negative bacteria.",
+              "Drug of Choice: Piperacillin-Tazobactam (90 mg/kg) remains the international gold standard."
             ],
             prescriptions: [
               {
-                drug: "Tazocin (Piperacillin-Tazobactam)",
+                drug: "Piperacillin-Tazobactam (Tazocin)",
                 dose: "90 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
-                calculation: (w) => `${(90 * w).toFixed(0)} mg`,
-                notes: "Max 4.5g. Consultant gold standard for FN."
+                calculation: (w) => `${Math.min(90 * w, 4500).toFixed(0)} mg`,
+                notes: "Maximum 4.5 grams per dose."
               }
             ]
           }
         ]
       },
       {
-        label: "Monitoring & Risk Stratification",
-        shortLabel: "Monitoring & Risk Stratification",
+        label: "Stage 2: Risk Stratification & Surveillance",
+        shortLabel: "Monitoring",
         color: "amber",
         cards: [
           {
-            title: "Daily Assessment Focus",
-            instructions: [
-              "1. Physical Exam: Check Perianal area (abscess), Oral mucosa (mucositis), and CVAD exit site daily.",
-              "2. Lab Monitoring: Daily CBC with Diff (ANC tracking) and Electrolytes.",
-              "3. ANC Trend: Identify the 'nadir' (lowest point); recovery is marked by ANC > 500."
+            title: "Nursing: Vigilance Checks [NS]",
+            isCritical: true,
+            nursing: [
+              "Vital Signs: Monitor Heart Rate, Blood Pressure, and Respiratory Rate every 4 hours.",
+              "Temperature: Document every 2-4 hours; notify physician for any rise above 38.5°C.",
+              "Site Inspection: Daily examination of Central Line exit sites, oral mucosa (for mucositis), and the perianal area (for redness/abscess).",
+              "Hydration Status: Strict Intake and Output charting."
             ]
           },
           {
-            title: "When to Add Vancomycin",
-            threshold: "GRAM-POSITIVE COVERAGE",
-            instructions: [
-              "Consider adding Vancomycin immediately ONLY if:",
-              "1. Hemodynamic instability (Septic shock).",
-              "2. Severe mucositis or skin/soft tissue infection.",
-              "3. Known prior colonization with MRSA or PRSP.",
-              "4. Obvious CVAD-related infection (Redness/pus at exit site)."
+            title: "Secondary Coverage Triggers",
+            threshold: "GRAM-POSITIVE RISKS",
+            orders: [
+              "Consider adding Vancomycin (PREFERRED REGIMEN: DUAL THERAPY) if: Hemodynamic instability, severe Mucositis, or obvious Central Line site infection (pus/redness) occurs."
             ],
             prescriptions: [
               {
-                drug: "Vancomycin (IV)",
+                drug: "Vancomycin",
                 dose: "15 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
                 calculation: (w) => `${(15 * w).toFixed(0)} mg`,
-                notes: "Target trough 15-20 mcg/mL."
+                notes: "Target trough levels: 15-20 mcg/mL."
               }
             ]
           }
         ]
       },
       {
-        label: "Treatment Failure & Complications",
-        shortLabel: "Treatment Failure & Complications",
+        label: "Stage 3: Complication Management [!]",
+        shortLabel: "Complications",
         color: "red",
         cards: [
           {
-            title: "Persistent Fever Pivot (Day 3-5)",
+            title: "Persistent Fever (Day 3-5)",
             threshold: "FAILURE TO IMPROVE",
-            isCritical: true,
-            instructions: [
-              "1. Repeat Cultures: All CVAD lumens and peripheral sites.",
-              "2. Broaden Coverage: Replace Tazocin with Meropenem if clinically failing.",
-              "3. Fungal Screen: Order Chest CT and Galactomannan if fever persists > 4-7 days."
-            ],
-            prescriptions: [
-              {
-                drug: "Meropenem (IV)",
-                dose: "20-40 mg/kg",
-                route: "IV",
-                frequency: "Every 8 hours",
-                calculation: (w) => `${(40 * w).toFixed(0)} mg`,
-                notes: "Use higher dose (40mg/kg) for meningitis/sepsis."
-              }
+            orders: [
+              "Repeat Cultures: Redraw from all Central Venous Access Device lumens.",
+              "Broaden Therapy: Switch from Piperacillin-Tazobactam to Meropenem to cover resistant Gram-negative organisms.",
+              "Fungal Screen: If fever persists > 5-7 days, order Computed Tomography (CT) of the chest and Serum Galactomannan."
             ]
           },
           {
-            title: "Complication: TYPHLITIS (Neutropenic Enterocolitis)",
-            threshold: "ABDOMINAL PAIN / DIARRHEA",
+            title: "Typhlitis (Neutropenic Enterocolitis)",
+            threshold: "ABDOMINAL PAIN + FEVER",
             isCritical: true,
-            instructions: [
-              "Triggers: Abdominal pain, distention, or bloody diarrhea in a neutropenic patient.",
-              "Radiology: Urgent Abdominal CT (Look for cecal wall thickening > 4mm).",
-              "Action: Strict NPO, IV Fluids, and ensure anaerobic coverage (Metronidazole)."
+            orders: [
+              "Emergency: Strict NPO (Nil Per Os), aggressive Intravenous hydration, and ensure Anaerobic coverage (Metronidazole).",
+              "Radiology: Urgent Abdominal Computed Tomography (CT) to assess for cecal wall thickening greater than 4 millimeters."
             ]
           }
         ]
       },
       {
-        label: "ANC Recovery & Discharge",
-        shortLabel: "ANC Recovery & Discharge",
+        label: "Stage 4: Recovery & Recovery Roadmap",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Safe Discharge Criteria",
-            instructions: [
+            title: "Discharge Criteria",
+            orders: [
               "1. Afebrile for at least 24-48 hours.",
-              "2. Evidence of ANC Recovery: ANC > 500 or significant rising trend.",
-              "3. Cultures: All 48h-72h cultures negative.",
-              "4. Tolerating oral intake and baseline activity."
+              "2. Evidence of marrow recovery (Absolute Neutrophil Count showing a clear rising trend or > 500 cells/microliter).",
+              "3. Blood Cultures remain negative for at least 48 hours.",
+              "4. Tolerating adequate oral intake."
             ]
           },
           {
-            title: "Follow-up Management",
-            instructions: [
-              "1. Clinic Review: Review by Pediatric Oncology within 24-48h.",
-              "2. Instructions: Parents must return immediately for ANY new fever, even if ANC recovered."
+            title: "Follow-up",
+            orders: [
+              "Oncology Clinic: Review within 48 hours of discharge.",
+              "Family Education: Parents must return immediately for ANY new fever, even if the count was recovering."
             ]
           }
         ]
@@ -165,14 +149,26 @@ export const wardFebrileNeutropeniaProtocol: DiseaseProtocol = {
     ]
   },
 
-  // ER Legacy
-  calculateSeverity: () => ({ level: 'mild', details: [] }),
+  calculateSeverity: (data: FormData): Severity => {
+    if (data.hemodynamicStable === false || data.abdominalPain === true) {
+      return { level: 'critical', details: ["High-risk Febrile Neutropenia - Signs of shock or Typhlitis detected."] };
+    }
+    if (data.ancLevel && data.ancLevel < 100) {
+      return { level: 'severe', details: ["Profound Neutropenia (ANC < 100) - High risk for rapid bacterial dissemination."] };
+    }
+    return { level: 'moderate', details: ["Febrile Neutropenia in a clinically stable patient."] };
+  },
   getManagement: () => [],
-  getDisposition: () => [],
-  getRedFlags: () => [],
+  getDisposition: () => [
+    "Appropriate broad-spectrum antibiotics administered within the 'Golden Hour'.",
+    "Hemodynamically stable with normal Blood Pressure.",
+    "No abdominal symptoms (Typhlitis ruled out).",
+    "Absolute Neutrophil Count monitored and Nadir identified."
+  ],
+  getRedFlags: () => ["Hypotension", "Severe Abdominal Pain", "Lethargy", "New organic heart murmur", "Redness/Pus at Central Line site"],
   getDrugDoses: () => [],
   getReferences: () => [
     { title: "ASCO/IDSA: Management of Febrile Neutropenia in Pediatric Cancer Patients", url: "https://ascopubs.org/doi/10.1200/JCO.2012.44.5130" },
     { title: "RCH Melbourne: Febrile Neutropenia (Oncology)", url: "https://www.rch.org.au/clinicalguide/guideline_index/Febrile_Neutropenia/" }
-  ],
+  ]
 };

@@ -8,142 +8,149 @@ import type { DiseaseProtocol } from './types';
 export const wardKawasakiProtocol: DiseaseProtocol = {
   id: 'ward-kawasaki-disease',
   name: 'Kawasaki Disease Master Pathway',
-  system: 'Cardiology',
+  system: 'Immunology & Rheumatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive senior directive: Jones criteria validation, IVIG administration protocol, and coronary artery surveillance roadmap.',
+  description: 'Kawasaki Disease is an acute, self-limited febrile illness of unknown etiology, characterized by medium-vessel vasculitis with a predilection for the coronary arteries. This exhaustive directive covers diagnostic criteria validation, high-dose Intravenous Immunoglobulin administration, and a structured coronary artery surveillance roadmap.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Clinical assessment of Kawasaki signs"
   },
-  questions: [], 
+  questions: [
+    { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
+    { id: 'feverDays', questionText: 'Duration of fever (Days)', type: 'number' },
+    { id: 'signsCount', questionText: 'Number of clinical signs (Rash, Conjunctivitis, Mouth, Extremities, Node)', type: 'number' },
+  ], 
 
   mmpData: {
+    snapshot: "Management focuses on (1) Rapid administration of Intravenous Immunoglobulin within 10 days of onset to reduce coronary artery aneurysm risk from 25% to less than 5%, (2) Monitoring for Intravenous Immunoglobulin resistance (persistent fever 36 hours post-infusion), and (3) Life-long cardiovascular surveillance for patients with documented coronary anomalies.",
     stages: [
       {
-        label: "Diagnosis & Admission (Hour 0-4)",
-        shortLabel: "Diagnosis & Admission (Hour 0-4)",
+        label: "Stage 1: Diagnosis & Admission (Hour 0-4)",
+        shortLabel: "Diagnosis",
         color: "blue",
         cards: [
           {
             title: "Classic Diagnostic Criteria",
-            threshold: "FEVER >= 5 DAYS + 4/5 SIGNS",
-            instructions: [
-              "1. Conjunctivitis: Bilateral, non-exudative.",
-              "2. Mucosal: Cracked red lips, strawberry tongue, or oropharyngeal erythema.",
-              "3. Extremities: Edema, erythema, or periungual desquamation (late).",
-              "4. Rash: Polymorphous (Not vesicular).",
-              "5. Lymphadenopathy: Cervical, usually unilateral, > 1.5 cm.",
-              "INCOMPLETE KAWASAKI: Suspect if fever >= 5 days with 2-3 signs + high CRP/ESR."
+            threshold: "FEVER ≥ 5 DAYS + 4/5 SIGNS",
+            orders: [
+              "Conjunctivitis: Bilateral, non-exudative, sparing the limbus.",
+              "Mucosal Changes: Cracked red lips, strawberry tongue, or diffuse oropharyngeal erythema.",
+              "Extremity Changes: Acute edema/erythema of palms/soles, or periungual desquamation (recovery phase).",
+              "Rash: Polymorphous (maculopapular, erythema multiforme-like; never vesicular).",
+              "Lymphadenopathy: Cervical, usually unilateral, greater than 1.5 cm in diameter.",
+              "INCOMPLETE KAWASAKI: Suspect if fever ≥ 5 days with 2-3 signs + elevated C-Reactive Protein and Erythrocyte Sedimentation Rate."
             ]
           },
           {
-            title: "Mandatory Baseline Workup",
-            instructions: [
-              "1. Echocardiography: REQUIRED ASAP to assess coronary arteries and function.",
-              "2. Labs: CBC (look for thrombocytosis), ESR/CRP (markedly high), LFTs (mild hepatitis common), Urinalysis (sterile pyuria).",
-              "3. Baseline ECG: Check for PR interval prolongation or ST changes."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Echocardiogram: MANDATORY to establish baseline coronary Z-scores and assess ventricular function.",
+              "Complete Blood Count: Look for anemia and progressive thrombocytosis (often peaks in week 2-3).",
+              "Inflammatory Markers: C-Reactive Protein and Erythrocyte Sedimentation Rate.",
+              "Liver Function Tests: Assess for mild transaminitis or hypoalbuminemia.",
+              "Electrocardiogram: Check for PR interval prolongation, ST-segment changes, or arrhythmias.",
+              "Urinalysis: Collect via mid-stream or catheter to check for sterile pyuria."
             ]
           }
         ]
       },
       {
-        label: "Acute Phase Therapeutics",
-        shortLabel: "Acute Phase Therapeutics",
+        label: "Stage 2: Acute Phase Therapeutics",
+        shortLabel: "Therapeutics",
         color: "red",
         cards: [
           {
-            title: "Phase 2: IVIG Administration (PREFERRED REGIMEN: MONOTHERAPY)",
+            title: "Intravenous Immunoglobulin Protocol",
             threshold: "GIVE WITHIN 10 DAYS OF ONSET",
             isCritical: true,
-            instructions: [
-              "1. IVIG: Reduces coronary artery aneurysm risk from 25% to < 5%.",
-              "2. Pre-medication: Consider Paracetamol and Diphenhydramine 30m before infusion.",
-              "3. Monitoring: Check Vitals q15m for 1h, then q1h until complete."
+            orders: [
+              "Intravenous Immunoglobulin (IVIG): Reduces coronary artery aneurysm risk from 25% to less than 5%.",
+              "Pre-medication: Administer Paracetamol (15 mg/kg) and Diphenhydramine (1 mg/kg) 30 minutes prior to infusion.",
+              "Delay Live Vaccines: Postpone Measles, Mumps, and Rubella (MMR) and Varicella vaccines for 11 months following infusion."
+            ],
+            nursing: [
+              "Check Vital Signs every 15 minutes for the first hour of infusion.",
+              "Monitor every 1 hour until the infusion is complete.",
+              "Watch for infusion reactions: Fever, chills, hypotension, or rash."
             ],
             prescriptions: [
               {
-                drug: "IVIG (Intravenous Immunoglobulin)",
+                drug: "Intravenous Immunoglobulin (IVIG)",
                 dose: "2 g/kg",
-                route: "IV Infusion",
+                route: "Intravenous Infusion",
                 frequency: "Single Dose",
                 calculation: (w) => `${(w * 2).toFixed(1)} g`,
-                notes: "Infuse over 10-12 hours per local protocol."
+                notes: "Infuse slowly over 10-12 hours per local protocol."
               }
             ]
           },
           {
-            title: "Phase 2: High-Dose Aspirin Strategy",
+            title: "Aspirin Strategy (Anti-inflammatory)",
             threshold: "ACUTE FEBRILE PHASE",
-            instructions: [
-              "Target: Anti-inflammatory effect.",
-              "Duration: Continue until afebrile for 48-72 hours."
+            orders: [
+              "Target: High-dose therapy for anti-inflammatory effect during the febrile period.",
+              "Continue high-dose until the patient is afebrile for 48-72 hours."
             ],
             prescriptions: [
               {
                 drug: "Aspirin (High Dose)",
                 dose: "80-100 mg/kg/day",
-                route: "PO",
-                frequency: "Divided Every 6 hours",
+                route: "Oral",
+                frequency: "Divided every 6 hours",
                 calculation: (w) => `${(w * 20).toFixed(0)} - ${(w * 25).toFixed(0)} mg`,
-                notes: "Switch to low-dose (3-5 mg/kg) once afebrile."
+                notes: "Consultant preference may vary (some use 30-50 mg/kg/day)."
               }
             ]
           }
         ]
       },
       {
-        label: "Refractory & Complication Watch",
-        shortLabel: "Refractory & Complication Watch",
+        label: "Stage 3: Refractory & Complication Watch",
+        shortLabel: "Refractory",
         color: "amber",
         cards: [
           {
-            title: "IVIG Resistance",
-            threshold: "PERSISTENT FEVER 36H POST-IVIG",
-            instructions: [
-              "1. Repeat IVIG: Give a second dose of 2 g/kg.",
-              "2. Methylprednisolone Pulse: Consider 30 mg/kg IV for 3 days if still failing.",
-              "3. Involve Pediatric Rheumatology and Cardiology immediately."
+            title: "Resistance & Escalation [!]",
+            threshold: "FEVER 36H POST-IVIG",
+            orders: [
+              "Resistance: Defined as persistent or recrudescent fever 36 hours after completion of the first infusion.",
+              "Repeat Infusion: Administer a second dose of Intravenous Immunoglobulin (2 g/kg).",
+              "Pulse Steroids: Consider Methylprednisolone (30 mg/kg) for 3 days if fever persists.",
+              "Specialist Consult: Involve Pediatric Rheumatology and Cardiology immediately."
             ]
           },
           {
             title: "Coronary Artery Monitoring",
-            instructions: [
-              "1. Serial Echo: Mandatory at 2 weeks and 6-8 weeks post-discharge.",
-              "2. Z-Score Tracking: Directives to calculate BSA-adjusted coronary diameters."
+            orders: [
+              "Serial Echocardiograms: Mandatory at 2 weeks and 6-8 weeks post-discharge.",
+              "Z-Score Tracking: Use Body Surface Area-adjusted coronary diameters to monitor for aneurysms."
             ]
           }
         ]
       },
       {
-        label: "Long-Term Recovery & Follow-up",
-        shortLabel: "Long-Term Recovery & Follow-up",
+        label: "Stage 4: Recovery & Follow-up",
+        shortLabel: "Follow-up",
         color: "emerald",
         cards: [
           {
-            title: "Low-Dose Aspirin Phase",
+            title: "Low-Dose Aspirin (Anti-platelet)",
             threshold: "AFEBRILE 48-72 HOURS",
-            instructions: [
-              "Target: Anti-platelet effect.",
-              "Duration: Minimum 6-8 weeks or until repeat Echo confirms no aneurysms."
+            orders: [
+              "Target: Switch to low-dose for anti-platelet effect once afebrile.",
+              "Duration: Minimum 6-8 weeks or until repeat Echocardiogram confirms normal coronary arteries."
             ],
             prescriptions: [
               {
                 drug: "Aspirin (Low Dose)",
                 dose: "3-5 mg/kg/day",
-                route: "PO",
+                route: "Oral",
                 frequency: "Once daily",
                 calculation: (w) => `${(w * 5).toFixed(0)} mg`,
-                notes: "Suspend if varicella or influenza exposure (Reye Syndrome risk)."
+                notes: "MANDATORY: Suspend if exposure to Varicella or Influenza occurs (risk of Reye Syndrome)."
               }
-            ]
-          },
-          {
-            title: "Live Vaccine Directive",
-            isCritical: true,
-            instructions: [
-              "MANDATORY: Postpone MMR and Varicella vaccines for 11 MONTHS after IVIG administration (Reduced efficacy)."
             ]
           }
         ]

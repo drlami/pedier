@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const urinaryTractInfectionProtocol: DiseaseProtocol = {
   id: 'urinary-tract-infection',
   name: 'Urinary Tract Infection (UTI)',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
   description: 'Diagnosis and management of urinary tract infections in children, distinguishing between cystitis (lower tract) and pyelonephritis (upper tract).',
   image: {
     url: "https://picsum.photos/seed/uti/600/400",

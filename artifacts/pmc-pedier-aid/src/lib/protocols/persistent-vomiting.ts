@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const persistentVomitingProtocol: DiseaseProtocol = {
   id: 'persistent-vomiting',
   name: 'Persistent Vomiting Approach',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'A systematic approach to the differential diagnosis of persistent vomiting in children.',
   image: {
     url: 'https://picsum.photos/seed/persistent-vomiting/600/400',

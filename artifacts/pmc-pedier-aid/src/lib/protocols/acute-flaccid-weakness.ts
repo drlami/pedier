@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const acuteFlaccidWeaknessProtocol: DiseaseProtocol = {
   id: 'acute-flaccid-weakness',
   name: 'Acute Flaccid Weakness',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Emergency evaluation of rapidly progressive weakness (GBS vs. AFM).',
   image: {
     url: "https://picsum.photos/seed/weakness/600/400",

@@ -12,7 +12,7 @@ export const wardMeningitisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Neuroimaging criteria, repeat LP thresholds, contact prophylaxis grid, and complication surveillance.',
+  description: 'Meningitis is an acute inflammation of the protective membranes covering the brain and spinal cord, often caused by bacterial infection. This exhaustive consultant-level directive covers neuroimaging criteria, repeat LP thresholds, and complication surveillance.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Neurological infection management"
@@ -52,6 +52,7 @@ export const wardMeningitisProtocol: DiseaseProtocol = {
             threshold: "CRITICAL SAFETY DIRECTIVE",
             isCritical: true,
             instructions: [
+              "PREFERRED REGIMEN: DUAL THERAPY to cover standard bacterial pathogens.",
               "1. If CT is indicated or LP is delayed for ANY reason: START Antibiotics and Dexamethasone IMMEDIATELY after Blood Cultures.",
               "2. Steroid Timing: Dexamethasone MUST be given before or with the first ABX dose (Ideally within 30-60 mins)."
             ],

@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const biliousVomitingProtocol: DiseaseProtocol = {
   id: 'bilious-vomiting',
   name: 'Bilious Vomiting',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'Emergency evaluation of bilious (green) vomiting, a sign of intestinal obstruction until proven otherwise. This is a surgical emergency.',
   image: {
     url: "https://picsum.photos/seed/bilious-vomiting/600/400",

@@ -11,7 +11,7 @@ export const wardJaundiceChildProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Approach to jaundice beyond the neonatal period: Differentiating pre-hepatic, hepatocellular, and obstructive causes.',
+  description: 'Jaundice in the post-neonatal period is a clinical sign of hyperbilirubinemia that requires systematic differentiation between pre-hepatic (hemolysis), hepatocellular (liver injury), and obstructive (cholestatic) causes. This pathway guides the clinical evaluation, laboratory fractionation, and imaging strategies necessary to identify the underlying etiology and assess liver synthetic function.',
   image: {
     url: "https://images.unsplash.com/photo-1579154341098-e4e158cc7f55?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Scleral icterus assessment"
@@ -19,74 +19,78 @@ export const wardJaundiceChildProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management follows the 'Fractionate-Localize-Investigate' priority: (1) Immediate fractionation into conjugated vs. unconjugated bilirubin, (2) Assessment of liver synthetic function (INR/Albumin) and hepatocellular injury (ALT/AST), and (3) Targeted investigation including viral serology, autoimmune markers, and biliary imaging (Ultrasound). Conjugated hyperbilirubinemia always warrants urgent specialist consultation.",
     stages: [
       {
-        label: "Fractionation & Initial Triage",
-        shortLabel: "Fractionation & Initial Triage",
+        label: "Stage 1: Bilirubin Fractionation & Triage",
+        shortLabel: "Fractionation",
         color: "blue",
         cards: [
           {
-            title: "Bilirubin Fractionation (CRITICAL)",
+            title: "Initial Physician Orders [DR]",
             isCritical: true,
-            instructions: [
-              "1. Measure Total and Direct (Conjugated) Bilirubin.",
-              "2. Conjugated Hyperbilirubinemia: Direct > 1.0 mg/dL or > 20% of total. ALWAYS PATHOLOGIC.",
-              "3. Unconjugated Hyperbilirubinemia: Hemolysis, Gilbert's syndrome, or Crigler-Najjar."
+            orders: [
+              "Bilirubin Fractionation: Measure Total and Direct (Conjugated) Bilirubin immediately.",
+              "Conjugated Hyperbilirubinemia Definition: Direct Bilirubin greater than 1.0 mg/dL or greater than 20% of the Total Bilirubin. This is ALWAYS pathologic and requires urgent workup.",
+              "Liver Function Panel: Monitor Alanine Aminotransferase (ALT), Aspartate Aminotransferase (AST), Gamma-Glutamyl Transferase (GGT), and Alkaline Phosphatase.",
+              "Synthetic Function Markers: Check Albumin, Prothrombin Time (PT), and International Normalized Ratio (INR).",
+              "Hemolysis Screen: Complete Blood Count, Reticulocyte count, and Peripheral Blood Smear."
             ]
           },
           {
-            title: "Baseline Liver Panel",
-            instructions: [
-              "1. ALT/AST (Hepatocellular injury), GGT/Alkaline Phosphatase (Cholestasis).",
-              "2. Albumin, PT/INR (Synthetic function markers).",
-              "3. CBC with Reticulocyte count and Peripheral Smear (Hemolysis screen)."
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Daily Weight: Monitor for changes in nutritional status or fluid retention.",
+              "Stool and Urine Assessment: Document and describe color (e.g., pale/acholic stools or dark/tea-colored urine).",
+              "Symptom Documentation: Record severity of pruritus and any changes in mental status (irritability/lethargy).",
+              "Skin Integrity: Monitor for excoriations due to itching."
             ]
           }
         ]
       },
       {
-        label: "Hepatocellular Workup",
-        shortLabel: "Hepatocellular Workup",
+        label: "Stage 2: Hepatocellular Workup",
+        shortLabel: "Hepatocellular",
         color: "amber",
         cards: [
           {
-            title: "Infectious & Autoimmune Screen",
-            threshold: "HIGH ALT / AST",
-            instructions: [
-              "1. Viral Hepatitis: Hep A (IgM), Hep B (sAg), Hep C (Ab), EBV, CMV.",
-              "2. Autoimmune Hepatitis: ANA, ASMA (Anti-Smooth Muscle), LKM-1, IgG levels.",
-              "3. Wilson's Disease: Ceruloplasmin (if > 3-5 years old)."
+            title: "Diagnostic Investigation [DR]",
+            threshold: "ELEVATED ALT / AST",
+            orders: [
+              "Viral Hepatitis Screen: Order Hepatitis A (IgM), Hepatitis B (Surface Antigen/Core Antibody), Hepatitis C (Antibody), Epstein-Barr Virus (EBV), and Cytomegalovirus (CMV).",
+              "Autoimmune Panel: Anti-Nuclear Antibody (ANA), Anti-Smooth Muscle Antibody (ASMA), Liver-Kidney Microsomal Type 1 (LKM-1) antibodies, and total Immunoglobulin G (IgG) levels.",
+              "Metabolic Screening: Ceruloplasmin (if patient is older than 3 years to screen for Wilson's Disease) and Alpha-1 Antitrypsin level/phenotype."
             ]
           }
         ]
       },
       {
-        label: "Obstructive / Cholestatic Workup",
-        shortLabel: "Obstructive / Cholestatic Workup",
+        label: "Stage 3: Obstructive & Cholestatic Workup",
+        shortLabel: "Obstructive",
         color: "red",
         cards: [
           {
-            title: "Imaging Directive",
-            threshold: "HIGH GGT / DIRECT BILIRUBIN",
-            instructions: [
-              "1. Ultrasound RUQ (MANDATORY): Assess biliary tree, look for Choledochal cyst, Gallstones, or Biliary sludge.",
-              "2. MRCP: If US is inconclusive but biliary dilation present.",
-              "3. HIDA Scan: If biliary atresia still in differential (infants) or gallbladder dysfunction."
+            title: "Imaging Directive [DR]",
+            threshold: "ELEVATED GGT / DIRECT BILIRUBIN",
+            orders: [
+              "Right Upper Quadrant Ultrasound: Mandatory initial step to assess the biliary tree, look for Choledochal cysts, Gallstones, or Biliary sludge.",
+              "Advanced Imaging: Request Magnetic Resonance Cholangiopancreatography (MRCP) if Ultrasound is inconclusive but biliary dilation is present.",
+              "HIDA Scan: Consider if biliary atresia (in infants) or gallbladder dysfunction is suspected."
             ]
           }
         ]
       },
       {
-        label: "Management & Referral",
-        shortLabel: "Management & Referral",
+        label: "Stage 4: Management & Specialty Referral",
+        shortLabel: "Management",
         color: "emerald",
         cards: [
           {
-            title: "Supportive Care",
-            instructions: [
-              "1. Pruritus: Ursodeoxycholic Acid (UDCA) or Cholestyramine.",
-              "2. Nutrition: Fat-soluble vitamin (A, D, E, K) supplementation if cholestatic.",
-              "3. Specialist: Refer to Pediatric Hepatology for all conjugated jaundice or failing synthetic function."
+            title: "Therapeutic Strategy",
+            orders: [
+              "Pruritus Management: Consider Ursodeoxycholic Acid (UDCA) or Cholestyramine for symptomatic relief of itching.",
+              "Nutritional Support: Initiate Fat-soluble vitamin (A, D, E, K) supplementation if cholestasis is confirmed.",
+              "Specialist Consultation: Refer to Pediatric Hepatology/Gastroenterology for all cases of conjugated jaundice or if there is any evidence of failing liver synthetic function."
             ]
           }
         ]

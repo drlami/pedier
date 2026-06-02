@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const dehydrationGastroenteritisProtocol: DiseaseProtocol = {
   id: 'dehydration-gastroenteritis',
   name: 'Dehydration (Gastroenteritis)',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'Assessment and management of dehydration using the 4-item Clinical Dehydration Scale (CDS) / Gorelick Scale.',
    image: {
     url: "https://picsum.photos/seed/gastroenteritis/600/400",

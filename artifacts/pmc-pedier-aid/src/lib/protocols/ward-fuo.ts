@@ -11,7 +11,7 @@ export const wardFuoProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior diagnostic roadmap for persistent fever (>8 days): Stepwise Phase 1/2 logic, Malignancy/Autoimmune screening, and Fever Diary strategy.',
+  description: 'Fever of Unknown Origin (FUO) in children is traditionally defined as a temperature 38.0°C or higher lasting for 8 days or more without an identified source after preliminary investigation. This pathway provides a tiered diagnostic strategy to differentiate between common infections with unusual presentations, autoimmune disorders, and occult malignancies.',
   image: {
     url: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Diagnostic Logic for Persistent Fever"
@@ -19,36 +19,40 @@ export const wardFuoProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management follows a 'Tiered Diagnostic Approach': (1) Phase 1 focuses on broad screening (Complete Blood Count, Inflammatory Markers, Cultures, and Chest X-ray). (2) Phase 2 targets specific sub-specialty etiologies (Autoimmune markers, expanded serology, and Abdominal Ultrasound). (3) Phase 3 involves invasive testing (Bone Marrow Biopsy) if the diagnosis remains elusive. A key directive is the avoidance of empirical antibiotics or steroids in stable patients, as these can mask underlying diagnoses like tuberculosis or leukemia.",
     stages: [
       {
-        label: "Admission & Phase 1 Diagnostics",
-        shortLabel: "Admission & Phase 1 Diagnostics",
+        label: "Stage 1: Admission & Phase 1 Diagnostics",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Verify Fever Duration and Pattern: Confirm hospital-verified fever greater than 38.0°C and document the fever pattern (e.g., Quotidian, Intermittent).",
+              "Phase 1 Laboratory Screening: Order Complete Blood Count with Peripheral Smear, Erythrocyte Sedimentation Rate, and C-Reactive Protein.",
+              "Comprehensive Chemistry Panel: Include Liver Function Tests, Lactate Dehydrogenase, Uric Acid, and Electrolytes.",
+              "Multi-Site Cultures: Obtain repeat Blood Cultures and Urinalysis with Culture.",
+              "Baseline Imaging: Order a Chest X-ray to screen for occult pneumonia or hilar lymphadenopathy.",
+              "Tuberculin Skin Test or Interferon-Gamma Release Assay: To screen for latent or active Tuberculosis."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Fever Diary: Document every temperature spike, associated symptoms (e.g., chills, rash, joint pain), and the child's activity level during fever.",
+              "Vital Signs every 4 hours: Monitor heart rate, respiratory rate, and blood pressure.",
+              "Detailed Skin and Joint Assessment: Perform a daily head-to-toe check for new rashes, conjunctivitis, oral changes (strawberry tongue), or joint swelling.",
+              "Accurate Intake and Output: Monitor hydration status and oral intake."
+            ]
+          },
+          {
             title: "Defining FUO",
             threshold: "MANDATORY CRITERIA",
-            instructions: [
-              "1. Fever > 38.0°C (100.4°F) for ≥ 8 days.",
-              "2. No source identified after initial history and physical exam.",
-              "3. Note: If fever > 3 weeks, it meets the classic FUO definition."
-            ]
-          },
-          {
-            title: "Phase 1: Broad Screening",
-            instructions: [
-              "1. CBC + Peripheral Smear: Check for blasts (leukemia), cytopenias, or atypical lymphocytes (EBV/CMV).",
-              "2. Inflammatory Markers: ESR and CRP (Discordance ESR > CRP suggests Autoimmune/TB).",
-              "3. Cultures: Repeat Blood Culture, Urinalysis + Culture.",
-              "4. Chemistry: LFTs, LDH (marker for malignancy/turnover), Uric Acid.",
-              "5. Radiology: Chest X-ray (Occult pneumonia/hilar adenopathy)."
-            ]
-          },
-          {
-            title: "Fever Diary Directive",
-            instructions: [
-              "Hospital-Verified Fever: Document every temperature spike. True FUO must have hospital-verified fever.",
-              "Fever Pattern: Note if Remittent (classic), Intermittent, or Quotidian (suggests JIA)."
+            orders: [
+              "Fever > 38.0°C (100.4°F) for 8 days or longer.",
+              "No source identified after initial history and physical exam.",
+              "Note: If fever persists for more than 3 weeks, it meets the classic FUO definition."
             ]
           }
         ]

@@ -10,45 +10,56 @@ export const wardCkdOptimizationProtocol: DiseaseProtocol = {
   name: 'CKD Optimization Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Multidisciplinary inpatient roadmap for optimizing CKD complications: Anemia, Mineral Bone Disease (MBD), and nutritional growth strategy.',
+  description: 'Chronic Kidney Disease (CKD) Optimization involves the comprehensive inpatient management of metabolic complications arising from decreased glomerular filtration rate. This pathway provides a multidisciplinary roadmap for addressing Renal Anemia, Mineral Bone Disease (CKD-MBD), Growth Failure, and Acid-Base imbalances in children with Stage 3-5 CKD.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Nutrition and chronic kidney disease management"
   },
   questions: [
     { id: 'weight', questionText: 'Current Weight', type: 'number', unit: 'kg' },
-    { id: 'ckdStage', questionText: 'CKD Stage (eGFR)', type: 'select', options: [
-      { label: 'Stage 3 (30-59)', value: 'stage3' },
-      { label: 'Stage 4 (15-29)', value: 'stage4' },
+    { id: 'ckdStage', questionText: 'CKD Stage (Estimated Glomerular Filtration Rate)', type: 'select', options: [
+      { label: 'Stage 3 (30-59 mL/min/1.73m²)', value: 'stage3' },
+      { label: 'Stage 4 (15-29 mL/min/1.73m²)', value: 'stage4' },
       { label: 'Stage 5 (< 15 or Dialysis)', value: 'stage5' },
     ]},
     { id: 'hemoglobin', questionText: 'Hemoglobin (g/dL)', type: 'number' },
-    { id: 'ferritinLow', questionText: 'Ferritin < 100 ng/mL?', type: 'boolean' },
-    { id: 'highPhosphate', questionText: 'Phosphate above range for age?', type: 'boolean' },
+    { id: 'ferritinLow', questionText: 'Ferritin less than 100 ng/mL?', type: 'boolean' },
+    { id: 'highPhosphate', questionText: 'Phosphate above reference range for age?', type: 'boolean' },
   ],
 
   mmpData: {
-    snapshot: "CKD management requires a metabolic balancing act. Prioritize Iron sufficiency before starting ESAs, and ensure strict adherence to phosphate binders with every meal to prevent Renal Bone Disease.",
+    snapshot: "Inpatient CKD management requires a precise metabolic balancing act: (1) Optimize Iron stores before initiating Erythropoiesis-Stimulating Agents to ensure hemoglobin recovery. (2) Strictly synchronize phosphate binders with meal times to prevent secondary hyperparathyroidism and Renal Bone Disease. (3) Prioritize high-caloric nutritional intake to support linear growth, while monitoring fluid and electrolyte stability.",
     stages: [
       {
-        label: "Stage 1: Admission & Complication Scan",
+        label: "Stage 1: Admission & Multi-system Complication Scan",
         shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Mandatory Laboratory Screening",
+            title: "Initial Physician Orders: Laboratory Screening [DR]",
             orders: [
-              "Renal Profile: Creatinine, U&E, VBG (Bicarb).",
-              "Bone Profile: Calcium, Phosphate, ALP, and intact PTH.",
-              "Anemia Profile: CBC, Reticulocytes, Ferritin, Transferrin Saturation (TSAT).",
-              "Nutrition: Serum Albumin, Zinc, and Pre-albumin."
+              "Renal Profile: Serum Creatinine, Urea, Sodium, Potassium, and Chloride.",
+              "Acid-Base Status: Venous Blood Gas to monitor Bicarbonate levels.",
+              "Mineral Bone Profile: Ionized Calcium, Serum Phosphate, Alkaline Phosphatase, and Intact Parathyroid Hormone (PTH).",
+              "Anemia Profile: Complete Blood Count, Reticulocyte Count, Serum Ferritin, and Transferrin Saturation (TSAT).",
+              "Nutritional Assessment: Serum Albumin, Pre-albumin, and Zinc levels."
             ]
           },
           {
-            title: "Blood Pressure Directive",
+            title: "Blood Pressure Monitoring & Control",
             orders: [
-              "Target BP: < 90th percentile for age/height.",
-              "ACE Inhibitor/ARB: 1st-line if proteinuria present (monitor K closely)."
+              "Target Blood Pressure: Maintain below the 90th percentile for the child's age, sex, and height.",
+              "Antihypertensive Management: Utilize Angiotensin-Converting Enzyme (ACE) Inhibitors or Angiotensin Receptor Blockers (ARBs) as first-line therapy if Proteinuria is present.",
+              "Electrolyte Safety: Monitor Serum Potassium closely when starting or increasing doses of renal-protective medications."
+            ]
+          },
+          {
+            title: "Nursing: Admission Monitoring [NS]",
+            nursing: [
+              "Establish accurate baseline Height and Weight using standardized equipment.",
+              "Four-limb Blood Pressure measurements upon admission.",
+              "Strict Intake and Output charting, including all oral fluids and medications.",
+              "Clinical Assessment: Check for signs of fluid overload (edema, lung crackles) every 8 hours."
             ]
           }
         ]
@@ -60,63 +71,66 @@ export const wardCkdOptimizationProtocol: DiseaseProtocol = {
         cards: [
           {
             title: "Iron Sufficiency Roadmap",
-            threshold: "BEFORE STARTING ESA",
+            threshold: "CRITICAL: ENSURE STORES ARE FULL BEFORE STARTING ESA",
             orders: [
-              "Ensure Ferritin > 100 ng/mL and TSAT > 20%.",
-              "Oral Iron: 3-6 mg/kg/day (Elemental Iron).",
-              "IV Iron: Consider if oral intolerance or Stage 5/Dialysis."
+              "Target Levels: Aim for Serum Ferritin greater than 100 ng/mL and Transferrin Saturation (TSAT) greater than 20%.",
+              "Oral Iron Therapy: 3-6 mg/kg/day of Elemental Iron divided into two doses.",
+              "Intravenous Iron: Consider if the patient is intolerant to oral iron or has progressed to Stage 5 CKD/Dialysis."
             ]
           },
           {
-            title: "ESA Strategy",
-            threshold: "IF Hb < 10.0 g/dL",
+            title: "Erythropoiesis-Stimulating Agent (ESA) Strategy",
+            threshold: "IF HEMOGLOBIN LESS THAN 10.0 G/DL",
             orders: [
-              "Erythropoiesis-Stimulating Agents (ESA): e.g., Erythropoietin 50-100 U/kg SC/IV.",
-              "Frequency: Usually 1-3 times per week.",
-              "Target Hb: 11.0 - 12.0 g/dL (Avoid > 13.0 due to stroke risk)."
+              "Initiate Erythropoiesis-Stimulating Agents (e.g., Erythropoietin) at 50-100 Units/kg via Subcutaneous or Intravenous route.",
+              "Frequency: Administer 1 to 3 times per week based on clinical response.",
+              "Target Hemoglobin: Aim for 11.0 to 12.0 g/dL. AVOID exceeding 13.0 g/dL due to increased risk of thromboembolic events."
             ]
           }
         ]
       },
       {
-        label: "Stage 3: Mineral Bone Disease (CKD-MBD)",
+        label: "Stage 3: Mineral Bone Disease Management (CKD-MBD)",
         shortLabel: "Bone Health",
         color: "amber",
         cards: [
           {
-            title: "Phosphate Management [DR]",
+            title: "Phosphate Management Strategy [DR]",
             orders: [
-              "Restrict Dietary Phosphate: Consult Dietitian.",
-              "Phosphate Binders: Calcium Carbonate or Sevelamer.",
-              "MANDATE: Binders MUST be taken with meals to be effective."
+              "Dietary Restriction: Consult with a Pediatric Dietitian to limit high-phosphate foods and dairy intake.",
+              "Phosphate Binders: Administer Calcium Carbonate or Sevelamer.",
+              "MANDATORY TIMING: Binders MUST be taken exactly at the time of meal consumption to effectively bind dietary phosphate."
             ]
           },
           {
-            title: "Active Vitamin D Directive",
-            threshold: "IF PTH > 2X NORMAL",
+            title: "Active Vitamin D Therapy",
+            threshold: "IF PARATHYROID HORMONE (PTH) IS GREATER THAN 2X NORMAL RANGE",
             orders: [
-              "Calcitriol or Alfacalcidol: Start at low dose (e.g. 0.25 mcg).",
-              "WARNING: Hold if Phosphate is uncontrolled or Calcium is high."
+              "Calcitriol or Alfacalcidol: Begin at a low starting dose (e.g., 0.25 micrograms).",
+              "Safety Protocol: Hold Vitamin D therapy if Serum Phosphate is uncontrolled or if Hypercalcemia (high calcium) occurs."
             ]
           }
         ]
       },
       {
-        label: "Stage 4: Nutrition & Growth Roadmap",
+        label: "Stage 4: Nutritional Rehabilitation & Growth Optimization",
         shortLabel: "Nutrition",
         color: "emerald",
         cards: [
           {
-            title: "Growth Optimization [NS]",
+            title: "Growth Optimization Roadmap",
             orders: [
-              "Target Calories: 100-120% of RDA for age.",
-              "Protein: Maintain RDA (do not restrict protein in growing children).",
-              "Consider NG feeds if weight-for-age is falling below 3rd percentile."
-            ],
+              "Caloric Target: Provide 100% to 120% of the Recommended Dietary Allowance (RDA) for the child's age.",
+              "Protein Intake: Maintain the full Recommended Dietary Allowance; do not restrict protein in growing children unless specifically directed by Nephrology.",
+              "Invasive Support: Consider Nasogastric Tube feeding if the child's weight-for-age falls below the 3rd percentile or growth velocity is inadequate."
+            ]
+          },
+          {
+            title: "Nursing: Strict Growth Monitoring [NS]",
             nursing: [
-              "Weekly Height/Length (stadiometer).",
-              "Bi-weekly Weight (same scale).",
-              "Document meal completion percentage."
+              "Weekly Height or Length measurement using a calibrated stadiometer.",
+              "Bi-weekly Weight measurements on the same scale, wearing similar clothing.",
+              "Documentation: Record the percentage of each meal completed and any episodes of vomiting."
             ]
           }
         ]

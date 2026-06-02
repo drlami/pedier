@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const croupProtocol: DiseaseProtocol = {
   id: 'croup',
   name: 'Croup (Laryngotracheitis)',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Assessment and management of viral croup using the Westley Croup Score.',
    image: {
     url: "https://picsum.photos/seed/croup/600/400",

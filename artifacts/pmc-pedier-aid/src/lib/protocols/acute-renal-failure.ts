@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, DrugDose } from './types';
 export const acuteRenalFailureProtocol: DiseaseProtocol = {
   id: 'acute-renal-failure',
   name: 'Acute Kidney Injury',
-  system: 'Nephrology',
+  system: 'Renal & Urinary System',
   description: 'Evaluation and initial management of Acute Kidney Injury (AKI) in children, defined by a rise in creatinine or a decrease in urine output.',
   image: {
     url: "https://picsum.photos/seed/aki/600/400",

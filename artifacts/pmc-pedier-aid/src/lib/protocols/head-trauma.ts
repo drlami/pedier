@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const headTraumaProtocol: DiseaseProtocol = {
   id: 'head-trauma',
   name: 'Head Trauma (PECARN)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Clinical decision rule for Neuroimaging in children with minor blunt head trauma.',
    image: {
     url: "https://picsum.photos/seed/headtrauma/600/400",

@@ -8,11 +8,11 @@ import type { DiseaseProtocol } from './types';
 export const wardFailureToThriveProtocol: DiseaseProtocol = {
   id: 'ward-failure-to-thrive',
   name: 'Failure to Thrive Master Pathway',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Exhaustive consultant-level directive: Diagnostic criteria (Z-scores), stepwise investigation phases, refeeding risk management, and age-specific caloric fortification.',
+  description: 'Failure to Thrive (Growth Faltering) is a state of undernutrition where a child\'s weight or rate of weight gain is significantly below that of other children of similar age and sex. This pathway provides a systematic framework for differentiating organic from non-organic causes, managing refeeding risk, and implementing aggressive caloric fortification to achieve catch-up growth.',
   image: {
     url: "https://images.unsplash.com/photo-1559839734-2b71f1e3c7e5?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Growth monitoring and nutritional support"
@@ -20,42 +20,53 @@ export const wardFailureToThriveProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management follows a 'Diagnostic and Therapeutic Parallel Track': (1) Screen for organic triggers (Urinary Tract Infections, Celiac Disease, Renal Tubular Acidosis) while simultaneously (2) initiating caloric fortification (120-150% of recommended daily allowance). The most critical ward interventions are strict calorie counting, observing feeding dynamics, and monitoring for Refeeding Syndrome (Potassium, Phosphate, Magnesium) in severely malnourished children.",
     stages: [
       {
-        label: "Definition & Clinical Screening",
-        shortLabel: "Definition & Clinical Screening",
+        label: "Stage 1: Definition & Clinical Screening",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "MANDATORY DIAGNOSTIC CRITERIA",
+            title: "Mandatory Diagnostic Criteria",
             threshold: "NICE / WHO STANDARDS",
-            instructions: [
+            orders: [
               "Growth faltering is defined by meeting ANY of the following:",
               "1. Weight-for-Age: Drop across 2 or more major centiles (e.g. 75th to 25th).",
-              "2. Z-Score: Weight-for-age or BMI-for-age < -2.0 SD.",
-              "3. Low Weight: Weight < 3rd centile on a single measurement.",
+              "2. Z-Score: Weight-for-age or BMI-for-age less than -2.0 Standard Deviations.",
+              "3. Low Weight: Weight below the 3rd centile on a single measurement.",
               "4. Discrepancy: Weight centile more than 2 spaces below height centile."
             ]
           },
           {
-            title: "Phase 1: Initial Screening Labs",
-            threshold: "ALL ADMITTED FTT PATIENTS",
-            instructions: [
-              "1. Hematology: CBC with Diff (Anemia, infection) and Blood Film.",
-              "2. Chemistry: S. Electrolytes, Creatinine, LFTs, Albumin (Baseline nutritional marker).",
-              "3. Metabolic: Glucose, Calcium, Phosphate, Magnesium (Baseline for Refeeding check).",
-              "4. Infectious: Urinalysis & Culture (Silent UTI is a major cause).",
-              "5. Stool: Fecal Parasitology and occult blood."
+            title: "Initial Physician Orders [DR]",
+            threshold: "ALL ADMITTED PATIENTS",
+            orders: [
+              "Obtain Comprehensive History: Focus on birth weight, feeding volume, frequency, and preparation (if formula-fed).",
+              "Complete Blood Count with Differential and Blood Film: Screen for anemia and markers of chronic infection.",
+              "Comprehensive Metabolic Panel: Serum Electrolytes, Creatinine, Liver Function Tests, Albumin, Calcium, Phosphate, and Magnesium.",
+              "Urinalysis and Urine Culture: To rule out asymptomatic Urinary Tract Infection.",
+              "Stool Analysis: For parasites, pH (reducing substances), and occult blood.",
+              "Celiac Screening: Tissue Transglutaminase Immunoglobulin A and total Immunoglobulin A if older than 1 year."
+            ]
+          },
+          {
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Daily morning weight checks: Use the same scale and ensure the child is undressed.",
+              "Precise Calorie Count: Record every milliliter of milk and gram of food consumed over 72 hours.",
+              "Observed Feeding Sessions: Nurse to observe and document parent-child interaction and child's interest in feeding.",
+              "Monitor for Refeeding Signs: Assess for edema, rapid heart rate, or respiratory distress twice daily."
             ]
           },
           {
             title: "Red Flags for Organic Disease",
             isCritical: true,
-            instructions: [
-              "• Recurrent vomiting or bloody diarrhea.",
-              "• Developmental delay or dysmorphic features.",
-              "• Significant lymphadenopathy or hepatosplenomegaly.",
-              "• Failure to respond to 1 week of intensive caloric fortification."
+            orders: [
+              "Recurrent vomiting or bloody diarrhea.",
+              "Developmental delay or dysmorphic features.",
+              "Significant lymphadenopathy or enlargement of the liver and spleen.",
+              "Failure to respond to 1 week of intensive caloric fortification."
             ]
           }
         ]

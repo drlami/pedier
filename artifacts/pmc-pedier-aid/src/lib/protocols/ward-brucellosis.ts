@@ -12,7 +12,7 @@ export const wardBrucellosisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior directive for Brucella species: IV induction criteria, triple therapy logic, and management of focal complications (Neuro/Endo).',
+  description: 'Brucellosis is a systemic zoonotic infection caused by Brucella species, typically transmitted through the consumption of unpasteurized dairy products or contact with infected animals. This pathway provides a comprehensive roadmap for the management of pediatric Brucellosis (Malta Fever), including criteria for intravenous induction in severe cases, detailed multi-drug therapy logic (combining synergistic agents), and specialized protocols for focal complications like neurobrucellosis or osteoarticular involvement.',
   image: {
     url: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Brucellosis Management Roadmap"
@@ -20,168 +20,151 @@ export const wardBrucellosisProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management of Brucellosis centers on preventing relapse and managing focal complications through long-term multi-drug therapy. Key principles include: (1) Mandatory use of at least two synergistic antibiotics to target the intracellular nature of the pathogen, (2) A minimum treatment duration of 6 weeks (extending to months for focal disease), and (3) Close monitoring of Liver Function Tests and renal function during therapy. Intravenous induction with Gentamicin is recommended in the acute phase for toxic patients or those with focal complications.",
     stages: [
       {
-        label: "Admission & IV Induction Logic",
-        shortLabel: "Admission & IV Induction Logic",
+        label: "Stage 1: Admission & IV Induction Logic",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
             title: "Mandatory Admission Workup",
-            instructions: [
-              "1. Blood Culture: REQUIRED (Note: requires extended incubation up to 14-21 days; notify lab).",
-              "2. Brucella Serology: SAT (Standard Agglutination Test) titer > 1:160 is suggestive.",
-              "3. Baseline Monitoring: CBC (look for cytopenias), LFTs (hepatotoxicity risk), and U&E.",
-              "4. Radiology: Ultrasound of abdomen to assess hepatosplenomegaly."
+            orders: [
+              "Blood Cultures: REQUIRED (Note: Notify the microbiology lab to hold cultures for at least 14-21 days as Brucella is slow-growing).",
+              "Standard Agglutination Test (SAT): Serum titer ≥ 1:160 is highly suggestive in symptomatic patients.",
+              "Baseline Laboratories: Complete Blood Count (to check for leukopenia or thrombocytopenia), Liver Function Tests (LFTs), and Urea & Electrolytes.",
+              "Imaging: Abdominal Ultrasound to assess for hepatosplenomegaly or focal abscesses."
             ]
           },
           {
-            title: "Indications for IV Induction",
-            threshold: "START IV IF:",
+            title: "Initial Physician Orders [DR]",
             isCritical: true,
-            instructions: [
-              "1. Severe Systemic Toxicity: High fever, prostration, or septic appearance.",
-              "2. Inability to Tolerate Oral: Persistent vomiting or severe anorexia.",
-              "3. Focal Complications: Neurobrucellosis or Endocarditis (Mandatory IV).",
-              "4. Acute Phase: Many consultants prefer 7-14 days of IV Gentamicin to rapidly reduce bacterial load before moving to purely oral therapy."
+            orders: [
+              "Identify Indications for Intravenous (IV) Induction: Severe systemic toxicity, inability to tolerate oral medications, or suspected focal complications (Neurobrucellosis/Endocarditis).",
+              "Induction Plan: Many consultants prefer 7-14 days of IV Gentamicin to rapidly reduce the bacterial load before transitioning to a purely oral regimen.",
+              "CNS Involvement: Order Lumbar Puncture (LP) for CSF SAT titers, PCR, and culture if neurobrucellosis is suspected."
             ]
           },
           {
-            title: "IV Induction Therapeutics (PREFERRED REGIMEN: TRIPLE THERAPY)",
-            instructions: [
-              "Note: Gentamicin is the preferred parenteral addition to the oral backbone.",
-              "Use Ceftriaxone for CNS involvement."
+            title: "IV Induction Regimens",
+            orders: [
+              "Note: Gentamicin is the preferred parenteral agent to be used in combination with an oral backbone (Doxycycline or Co-trimoxazole)."
             ],
             prescriptions: [
               {
-                drug: "Gentamicin (IV)",
+                drug: "Gentamicin",
                 dose: "5 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Once daily",
                 calculation: (w) => `${(5 * w).toFixed(0)} mg`,
-                notes: "Induction course: 7-14 days. Monitor renal function/ototoxicity."
+                notes: "Induction course: 7-14 days. Monitor renal function and watch for signs of ototoxicity (hearing/balance issues)."
               },
               {
-                drug: "Ceftriaxone (IV)",
-                dose: "100 mg/kg/day",
-                route: "IV",
+                drug: "Ceftriaxone",
+                dose: "100 mg/kg",
+                route: "Intravenous",
                 frequency: "Divided Every 12 hours",
                 calculation: (w) => `${Math.min(w * 50, 2000).toFixed(0)} mg per dose`,
-                notes: "Mandatory for suspected/confirmed Neurobrucellosis."
+                notes: "Mandatory for Neurobrucellosis. Maximum dose 4g per day."
               }
             ]
           }
         ]
       },
       {
-        label: "Pivot to Oral Triple Therapy",
-        shortLabel: "Pivot to Oral Triple Therapy",
+        label: "Stage 2: Pivot to Oral Multi-Drug Therapy",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
             title: "Shift to Oral Logic",
             threshold: "IF CLINICALLY STABLE",
-            instructions: [
-              "Criteria: Afebrile for 48h, tolerating oral intake, and improving symptoms (e.g. joint pain).",
-              "Note: Brucellosis MUST be treated with at least 2 or 3 agents to prevent high relapse rates."
+            orders: [
+              "Transition Criteria: Afebrile for 48 hours, improving systemic symptoms (e.g., resolving joint pain), and tolerating oral intake.",
+              "Dual/Triple Therapy: Brucellosis MUST always be treated with at least 2 agents to prevent high relapse rates (which can exceed 20% with monotherapy)."
             ]
           },
           {
-            title: "Oral Choice: Option A (> 8 years) (PREFERRED REGIMEN: DUAL THERAPY)",
-            instructions: [
-              "Standard combination: Doxycycline + Rifampicin.",
-              "Duration: Minimum 6 weeks total course."
+            title: "Regimen A: Children > 8 Years (Preferred)",
+            orders: [
+              "Standard Backbone: Doxycycline combined with Rifampicin.",
+              "Total Duration: Minimum 6 weeks for uncomplicated disease."
             ],
             prescriptions: [
               {
                 drug: "Doxycycline",
-                dose: "2.2 mg/kg (Max 100mg)",
-                route: "PO",
+                dose: "2.2 mg/kg",
+                route: "Oral",
                 frequency: "Every 12 hours",
                 calculation: (w) => `${Math.min(w * 2.2, 100).toFixed(0)} mg`,
-                notes: "The backbone of therapy in older children."
+                notes: "Maximum dose: 100mg twice daily. Use with caution to avoid gastric irritation."
               },
               {
                 drug: "Rifampicin",
-                dose: "15 mg/kg (Max 600-900mg)",
-                route: "PO",
+                dose: "15 mg/kg",
+                route: "Oral",
                 frequency: "Once daily",
                 calculation: (w) => `${Math.min(w * 15, 600).toFixed(0)} mg`,
-                notes: "Monitor LFTs weekly."
+                notes: "Maximum dose: 600-900mg daily. Monitor LFTs weekly."
               }
             ]
           },
           {
-            title: "Oral Choice: Option B (< 8 years) (PREFERRED REGIMEN: DUAL THERAPY)",
-            instructions: [
-              "Standard combination: Co-trimoxazole + Rifampicin.",
-              "Note: Use this path for young children to avoid Doxycycline."
+            title: "Regimen B: Children < 8 Years",
+            orders: [
+              "Combination: Co-trimoxazole (TMP-SMX) and Rifampicin.",
+              "Note: This avoids the risk of permanent teeth staining associated with tetracyclines in young children."
             ],
             prescriptions: [
               {
                 drug: "Co-trimoxazole (TMP-SMX)",
                 dose: "8-10 mg/kg (of TMP component)",
-                route: "PO",
+                route: "Oral",
                 frequency: "Every 12 hours",
                 calculation: (w) => `${(w * 4).toFixed(0)} mg (TMP)`,
-                notes: "Standard alternative to Doxycycline."
-              },
-              {
-                drug: "Rifampicin",
-                dose: "15 mg/kg",
-                route: "PO",
-                frequency: "Once daily",
-                calculation: (w) => `${(w * 15).toFixed(0)} mg`
+                notes: "Standard alternative to Doxycycline in younger patients."
               }
             ]
           }
         ]
       },
       {
-        label: "Complication Protocols",
-        shortLabel: "Complication Protocols",
+        label: "Stage 3: Complication Management & Monitoring",
+        shortLabel: "Complications",
         color: "red",
         cards: [
           {
-            title: "Complication 1: NEUROBRUCELLOSIS",
-            isCritical: true,
-            instructions: [
-              "Diagnostics: Mandatory LP (CSF SAT titers/PCR/Culture) and MRI.",
-              "Management: Prolonged course (3-6 months).",
-              "Induction: 4-6 weeks of IV Ceftriaxone + Rifampicin + Doxycycline."
+            title: "Nursing: Strict Monitoring [NS]",
+            nursing: [
+              "Monitor temperature chart 4-hourly; report persistent fever after 7 days of treatment.",
+              "Observe for signs of drug-induced hepatotoxicity: Jaundice, nausea, or abdominal pain (related to Rifampicin).",
+              "Check for adherence to the multi-drug regimen, as compliance is critical to success.",
+              "Assess joint range of motion and weight-bearing status daily."
             ]
           },
           {
-            title: "Complication 2: ENDOCARDITIS / OSTEOMYELITIS",
+            title: "Focal Disease Protocols",
             isCritical: true,
-            instructions: [
-              "Endocarditis: Involve Cardiac Surgery; course 3-6 months.",
-              "Spondylodiscitis: Check for spinal abscess (MRI); course 3-6 months."
+            orders: [
+              "Neurobrucellosis: Requires 3-6 months of therapy (Ceftriaxone induction for 4-6 weeks + Doxycycline + Rifampicin).",
+              "Osteomyelitis/Spondylitis: Requires 12 weeks of therapy. Order MRI of the spine if back pain or neurological signs develop.",
+              "Endocarditis: Mandatory consultation with Cardiac Surgery; treatment lasts 3-6 months."
             ]
           }
         ]
       },
       {
-        label: "Recovery & Relapse Prevention",
-        shortLabel: "Recovery & Relapse Prevention",
+        label: "Stage 4: Recovery & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
-            title: "Total Duration Roadmap",
-            threshold: "MANDATORY MINIMUMS",
-            instructions: [
-              "1. Uncomplicated (standard): 6 weeks total.",
-              "2. Focal Disease (Joints/Spine): 12 weeks total.",
-              "3. CNS/Endocarditis: 3-6 months total.",
-              "WARNING: Stopping before 6 weeks has a > 20% relapse rate."
-            ]
-          },
-          {
-            title: "Follow-up Directive",
-            instructions: [
-              "Clinical Review: Monthly until completion.",
-              "Serology Check: SAT titers at 3, 6, and 12 months post-recovery.",
-              "Relapse Check: Any new fever or bone pain requires repeat cultures."
+            title: "Discharge & Follow-up Roadmap",
+            orders: [
+              "Discharge Readiness: Clinically stable, afebrile, and clear understanding of the 6-week minimum therapy duration.",
+              "Monthly Clinic Review: Monitor clinical resolution and check LFTs.",
+              "Serological Monitoring: Repeat SAT titers at 3, 6, and 12 months to confirm cure and detect early relapse.",
+              "Relapse Warning: Educate parents that any return of fever or joint pain requires immediate evaluation."
             ]
           }
         ]

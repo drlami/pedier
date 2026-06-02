@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const epiglottitisProtocol: DiseaseProtocol = {
   id: 'epiglottitis',
   name: 'Epiglottitis (Supraglottitis)',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Emergency assessment and stabilization of acute epiglottitis.',
   image: {
     url: "https://picsum.photos/seed/epiglottitis/600/400",

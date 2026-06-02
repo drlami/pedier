@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const abdominalPainProtocol: DiseaseProtocol = {
   id: 'abdominal-pain',
   name: 'Abdominal Pain Evaluation',
-  system: 'Gastrointestinal',
+  system: 'Gastrointestinal & Hepatology',
   description: 'A framework for evaluating acute abdominal pain in children, organized by pain location.',
   image: {
     url: "https://picsum.photos/seed/abdominal-pain/600/400",

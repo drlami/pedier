@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const firstAfebrileSeizureProtocol: DiseaseProtocol = {
   id: 'first-afebrile-seizure',
   name: 'First Afebrile Seizure',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Evaluation and management of a child after a first-time, unprovoked (afebrile) seizure.',
   image: {
     url: "https://picsum.photos/seed/first-afebrile-seizure/600/400",

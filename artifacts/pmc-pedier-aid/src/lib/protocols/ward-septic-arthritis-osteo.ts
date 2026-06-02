@@ -11,7 +11,7 @@ export const wardSepticArthritisOsteoProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior directive for bone and joint infections: Joint aspiration, surgical drainage, IV-to-PO transition, and long-term antibiotic strategy.',
+  description: 'Septic Arthritis is a purulent infection of a joint space, while Acute Hematogenous Osteomyelitis is an infection of the bone, typically occurring via bloodstream seeding. Both conditions represent orthopedic emergencies requiring rapid diagnosis and source control to prevent permanent joint destruction or bone necrosis. This exhaustive directive covers joint aspiration, surgical drainage criteria, and the Intravenous-to-Oral antibiotic transition strategy.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Bone and Joint Infection Management"
@@ -19,188 +19,178 @@ export const wardSepticArthritisOsteoProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management hinges on (1) Early source control through joint aspiration (Septic Arthritis) or surgical debridement if an abscess is present, (2) Initiation of high-dose intravenous antibiotics targeting Staphylococcus aureus and Kingella kingae, and (3) Serial monitoring of C-Reactive Protein to guide the transition to oral therapy. Clinicians must maintain a high index of suspicion for Methicillin-Resistant Staphylococcus aureus in toxic-appearing patients and monitor for complications like Deep Vein Thrombosis in cases of pelvic or severe staphylococcal osteomyelitis.",
     stages: [
       {
         label: "Admission & Source Control",
-        shortLabel: "Admission & Source Control",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Immediate Diagnostic Workup",
-            threshold: "BEFORE ANTIBIOTICS",
-            instructions: [
-              "1. Blood Culture: REQUIRED (positive in 40-50% of cases).",
-              "2. Inflammatory Markers: Baseline CBC, CRP, and ESR (ESR is critical for long-term tracking).",
-              "3. Joint Aspiration (Arthrocentesis): GOLD STANDARD for septic arthritis. Send for Gram stain, culture, and cell count (>50,000 WBC/mm³ with >75% neutrophils is suggestive).",
-              "4. Bone Biopsy: Consider if diagnosis of osteomyelitis is unclear or if failing therapy."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Blood Culture: MANDATORY before the first dose of antibiotics (positive in 40-50% of cases).",
+              "Baseline Inflammatory Markers: Complete Blood Count, C-Reactive Protein, and Erythrocyte Sedimentation Rate. The Erythrocyte Sedimentation Rate is critical for long-term tracking of resolution.",
+              "Joint Aspiration (Arthrocentesis): GOLD STANDARD for suspected septic arthritis. Send fluid for Gram Stain, Culture, and Cell Count (White Blood Cell count > 50,000/mm³ with > 75% neutrophils is highly suggestive).",
+              "Bone Biopsy: Consider if the diagnosis of osteomyelitis is unclear or if the patient is failing to respond to therapy."
             ]
           },
           {
-            title: "Radiology Directive",
-            instructions: [
-              "Plain X-ray: Required to exclude fracture/malignancy (Note: early Osteo may show no X-ray changes for 10-14 days).",
-              "Ultrasound: Excellent for detecting joint effusion (Septic Arthritis) and subperiosteal abscess.",
-              "MRI with Contrast: Most sensitive for early Osteomyelitis and defining extent of soft tissue involvement."
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Pain Assessment: Monitor pain levels every 4 hours using age-appropriate scales.",
+              "Limb Assessment: Monitor the affected limb for increasing redness, swelling, and warmth every 4 hours.",
+              "Range of Motion: Document the ability to move the joint or bear weight at least once per shift.",
+              "Vital Signs: Heart Rate and Temperature monitoring every 4 hours.",
+              "Neurovascular Check: Check pulses, sensation, and capillary refill distal to the site of infection every 8 hours."
             ]
           },
           {
-            title: "Empiric IV Therapy (Standard) (PREFERRED REGIMEN: DUAL THERAPY)",
-            threshold: "AGE > 3 MONTHS",
-            instructions: [
-              "Target: Staphylococcus aureus (MSSA/MRSA) and Kingella kingae (in toddlers).",
-              "Switch to targeted therapy once cultures return."
+            title: "Radiology Strategy",
+            orders: [
+              "Plain Radiography (X-ray): Mandatory to exclude fracture or malignancy (Note: early Osteomyelitis may show no X-ray changes for 10-14 days).",
+              "Ultrasound: Highly effective for detecting joint effusion and subperiosteal abscesses.",
+              "Magnetic Resonance Imaging (MRI) with Contrast: The most sensitive modality for early Osteomyelitis and defining soft tissue involvement."
+            ]
+          }
+        ]
+      },
+      {
+        label: "Empiric Intravenous Therapy",
+        shortLabel: "Management",
+        color: "amber",
+        cards: [
+          {
+            title: "1st-Line Strategy (Age > 3 Months)",
+            orders: [
+              "Target Pathogens: Staphylococcus aureus (Methicillin-Susceptible) and Kingella kingae (common in toddlers).",
+              "Switch to targeted therapy once culture results and sensitivities are available."
             ],
             prescriptions: [
               {
                 drug: "Flucloxacillin",
                 dose: "50 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
-                calculation: (w) => `${(50 * w).toFixed(0)} mg`,
-                notes: "Target: MSSA. Max 2g."
+                calculation: (w) => `${Math.min(50 * w, 2000).toFixed(0)} mg`,
+                notes: "Target: Methicillin-Susceptible Staphylococcus aureus. Maximum 2 grams."
               },
               {
                 drug: "Ceftriaxone",
-                dose: "50-80 mg/kg",
-                route: "IV",
+                dose: "80 mg/kg",
+                route: "Intravenous",
                 frequency: "Once daily",
                 calculation: (w) => `${Math.min(80 * w, 2000).toFixed(0)} mg`,
-                notes: "Add if Hib/Gram-negative risk or if unimmunized."
+                notes: "Add if Gram-negative risk is high or the patient is unimmunized (Haemophilus influenzae type b risk)."
               }
             ]
           },
           {
-            title: "Empiric IV Therapy (MRSA Suspected) (PREFERRED REGIMEN: DUAL THERAPY)",
-            threshold: "HIGH LOCAL PREVALENCE OR TOXIC",
-            instructions: [
-              "Consider if patient is septic, has multi-focal involvement, or prior MRSA history."
+            title: "Methicillin-Resistant S. aureus (MRSA) / Toxic Regimen",
+            threshold: "HIGH RISK / SEVERE TOXICITY",
+            orders: [
+              "Consider if the patient is septic, has multi-focal involvement, or a history of prior Methicillin-Resistant Staphylococcus aureus infection."
             ],
             prescriptions: [
               {
                 drug: "Clindamycin",
-                dose: "10-13 mg/kg",
-                route: "IV",
+                dose: "13 mg/kg",
+                route: "Intravenous",
                 frequency: "Every 8 hours",
-                calculation: (w) => `${(10 * w).toFixed(0)} mg`,
-                notes: "Excellent bone penetration. Check local resistance."
+                calculation: (w) => `${Math.min(13 * w, 900).toFixed(0)} mg`,
+                notes: "Excellent bone penetration. Check local resistance patterns."
               },
               {
                 drug: "Vancomycin",
                 dose: "15 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6 hours",
                 calculation: (w) => `${(15 * w).toFixed(0)} mg`,
-                notes: "Monitor troughs (Target 10-15 mcg/mL)."
+                notes: "Monitor trough levels (Target 10-15 mcg/mL)."
               }
             ]
           }
         ]
       },
       {
-        label: "Monitoring & 48h Response",
-        shortLabel: "Monitoring & 48h Response",
-        color: "amber",
-        cards: [
-          {
-            title: "Clinical Response Tracking",
-            instructions: [
-              "Fever: Improvement expected within 48-72h of effective drainage and antibiotics.",
-              "Pain/Function: Assess range of motion and weight-bearing daily.",
-              "CRP Trend: Repeat CRP every 48h. A 50% drop is a strong predictor of successful therapy."
-            ]
-          },
-          {
-            title: "Surgical Trigger",
-            threshold: "FAILURE TO IMPROVE AT 48H",
-            isCritical: true,
-            instructions: [
-              "1. Persistent Fever or worsening pain despite IV antibiotics.",
-              "2. Rising or stagnant CRP after 48h.",
-              "3. Ultrasound evidence of enlarging subperiosteal abscess or persistent joint effusion.",
-              "ACTION: Urgent Orthopedic consultation for washout/debridement."
-            ]
-          }
-        ]
-      },
-      {
-        label: "Complications & Treatment Failure",
-        shortLabel: "Complications & Treatment Failure",
+        label: "Monitoring & Surgical Triggers",
+        shortLabel: "Monitoring",
         color: "red",
         cards: [
           {
-            title: "Complication: DEEP VEIN THROMBOSIS (DVT)",
-            threshold: "S. AUREUS OSTEOMYELITIS",
-            isCritical: true,
-            instructions: [
-              "Screen for DVT (especially in pelvic osteomyelitis or if S. aureus PVL+).",
-              "Symptoms: Unexplained leg swelling or respiratory distress (PE)."
+            title: "Response Tracking",
+            orders: [
+              "Fever Curve: Clinical improvement is expected within 48-72 hours of effective drainage and antibiotics.",
+              "C-Reactive Protein Trend: Repeat C-Reactive Protein every 48 hours. A 50% decrease from the peak is a strong predictor of successful therapy."
             ]
           },
           {
-            title: "Therapy Upgrade (Gram Negative / Anaerobic) (PREFERRED REGIMEN: MONOTHERAPY)",
-            threshold: "COMPLEX / PENETRATING TRAUMA",
-            instructions: [
-              "Broaden coverage if soil contamination or fecal contamination suspected."
-            ],
-            prescriptions: [
-              {
-                drug: "Tazocin (Piperacillin/Tazobactam)",
-                dose: "90 mg/kg",
-                route: "IV",
-                frequency: "Every 6 hours",
-                calculation: (w) => `${(90 * w).toFixed(0)} mg`,
-                notes: "Broad-spectrum coverage including anaerobes. Max 4.5g."
-              }
+            title: "Surgical Intervention Triggers",
+            threshold: "FAILURE TO IMPROVE AT 48 HOURS",
+            isCritical: true,
+            orders: [
+              "1. Persistent Fever or worsening pain despite appropriate Intravenous antibiotics.",
+              "2. Rising or stagnant C-Reactive Protein after 48 hours.",
+              "3. Ultrasound evidence of an enlarging subperiosteal abscess or persistent joint effusion.",
+              "ACTION: Urgent Orthopedic consultation for joint washout or bone debridement."
+            ]
+          },
+          {
+            title: "Complication: Deep Vein Thrombosis",
+            threshold: "STAPHYLOCOCCUS AUREUS INFECTION",
+            orders: [
+              "Screen for Deep Vein Thrombosis, especially in pelvic osteomyelitis or if Panton-Valentine Leukocidin (PVL) positive Staphylococcus aureus is confirmed.",
+              "Monitor for sudden limb swelling or respiratory distress (Pulmonary Embolism)."
             ]
           }
         ]
       },
       {
-        label: "PO Transition & Discharge",
-        shortLabel: "PO Transition & Discharge",
+        label: "Oral Transition & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
             title: "Criteria for Oral Step-Down",
             threshold: "MANDATORY CHECKLIST",
-            instructions: [
+            orders: [
               "1. Afebrile for at least 24-48 hours.",
-              "2. CRP decreased by > 30-50% from peak.",
-              "3. Clinical improvement: Decreased swelling/tenderness, improved range of motion.",
-              "4. Able to tolerate high-dose oral medications."
+              "2. C-Reactive Protein decreased by more than 30-50% from the peak value.",
+              "3. Clinical improvement: Decreased swelling/tenderness and improved range of motion.",
+              "4. Demonstrating the ability to tolerate high-dose oral medications."
             ]
           },
           {
             title: "Discharge Antibiotic Roadmap",
-            instructions: [
-              "Duration Septic Arthritis: 2-3 weeks total.",
-              "Duration Osteomyelitis: 3-4 weeks minimum (up to 6 weeks for MRSA or complex cases).",
-              "Note: Oral doses are often higher than standard (e.g., Cephalexin 33 mg/kg Q8h)."
+            orders: [
+              "Septic Arthritis Duration: 2-3 weeks total course.",
+              "Osteomyelitis Duration: 3-4 weeks minimum (up to 6 weeks for Methicillin-Resistant Staphylococcus aureus or complex cases).",
+              "Note: Oral doses are often higher than standard maintenance doses for bone penetration."
             ],
             prescriptions: [
               {
                 drug: "Cephalexin",
                 dose: "33 mg/kg",
-                route: "PO",
+                route: "Oral",
                 frequency: "Every 8 hours",
                 calculation: (w) => `${(33 * w).toFixed(0)} mg`,
-                notes: "High-dose oral step-down for MSSA."
+                notes: "High-dose oral step-down for Methicillin-Susceptible Staphylococcus aureus."
               },
               {
                 drug: "Clindamycin",
                 dose: "10 mg/kg",
-                route: "PO",
+                route: "Oral",
                 frequency: "Every 8 hours",
                 calculation: (w) => `${(10 * w).toFixed(0)} mg`,
-                notes: "Step-down for MRSA or Pen-allergic."
+                notes: "Step-down for Methicillin-Resistant Staphylococcus aureus or Penicillin-allergic patients."
               }
             ]
           },
           {
             title: "Follow-up Directive",
-            instructions: [
-              "Week 1 post-discharge: Repeat CRP/ESR and clinical review.",
-              "End of therapy: Clinical review ± repeat X-ray (if Osteo) to ensure no pathological fracture or sequestration."
+            orders: [
+              "Week 1 post-discharge: Repeat C-Reactive Protein and Erythrocyte Sedimentation Rate with clinical review.",
+              "End of therapy: Final clinical review; repeat X-ray (if Osteomyelitis) to ensure no pathological fracture or bone sequestration."
             ]
           }
         ]

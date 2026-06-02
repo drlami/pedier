@@ -10,7 +10,7 @@ export const wardUtiProtocol: DiseaseProtocol = {
   name: 'UTI & Pyelonephritis Master Pathway',
   system: 'Renal & Urinary System',
   unit: 'ward',
-  description: 'Professional inpatient management of pediatric UTI/Pyelonephritis: Targeted IV-to-Oral transition, AAP-aligned imaging workflows, and recurrence prevention.',
+  description: 'Urinary Tract Infection (UTI) is an infection of the urinary system, commonly involving the bladder (cystitis) or kidneys (pyelonephritis). This pathway provides professional inpatient management including IV-to-Oral transition, AAP-aligned imaging, and complication screening.',
   image: {
     url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Kidney and urinary tract infection management"
@@ -22,13 +22,21 @@ export const wardUtiProtocol: DiseaseProtocol = {
   ],
 
   mmpData: {
-    snapshot: "Transition to oral antibiotics as soon as afebrile for 24h and clinically improving. In infants < 6m, renal ultrasound is mandatory before discharge or within 6 weeks.",
+    snapshot: "Management centers on rapid sterilization of urine and identifying structural abnormalities. Monitor renal function closely in toxic infants; switch to oral therapy once afebrile for 24h. Maintain high suspicion for AKI if output drops.",
     stages: [
       {
         label: "Stage 1: Admission & Initial Orders (Hour 0-6)",
         shortLabel: "Admission",
         color: "blue",
         cards: [
+          {
+            title: "Urine Output & Renal Function",
+            orders: [
+              "Target UO: > 1.0 mL/kg/hr.",
+              "Report Oliguria: < 0.5 mL/kg/hr immediately.",
+              "Assess Baseline Creatinine in all toxic infants or those with suspected dehydration."
+            ]
+          },
           {
             title: "Immediate Physician Directives",
             orders: [

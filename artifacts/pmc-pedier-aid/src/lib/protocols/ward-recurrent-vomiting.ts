@@ -11,7 +11,7 @@ export const wardRecurrentVomitingProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Approach to chronic or episodic vomiting: Differentiating GI, Neurological, and Metabolic causes.',
+  description: 'Recurrent Vomiting is defined as multiple, discrete episodes of vomiting occurring over weeks or months. This clinical challenge requires a systematic approach to differentiate between Gastroesophageal Reflux Disease (GERD), Cyclic Vomiting Syndrome (CVS), and serious underlying neurological, surgical, or metabolic conditions. This exhaustive directive covers the complete diagnostic evaluation and targeted management strategies.',
   image: {
     url: "https://images.unsplash.com/photo-1516613835066-ad1bc5b51dba?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Evaluation of nausea and vomiting"
@@ -19,67 +19,80 @@ export const wardRecurrentVomitingProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "Management focuses on the 'Red Flag' screening for life-threatening causes (Raised Intracranial Pressure, Intestinal Malrotation, or Inborn Errors of Metabolism). For episodic patterns, the priority is verifying the criteria for Cyclic Vomiting Syndrome and implementing aggressive abortive therapy (Ondansetron, Aprepitant) in a low-stimulation environment. Chronic cases require a stepwise workup including trial acid suppression, upper gastrointestinal imaging, and potentially gastric emptying studies or mitochondrial support.",
     stages: [
       {
         label: "Emergency Red Flag Screening",
-        shortLabel: "Emergency Red Flag Screening",
+        shortLabel: "Safety",
         color: "red",
         cards: [
           {
-            title: "Critical Red Flags",
+            title: "Critical Physician Orders [DR]",
             isCritical: true,
-            instructions: [
-              "1. Neurological: Morning vomiting, headache, bulging fontanelle (Raised ICP).",
-              "2. Surgical: Bilious vomiting, severe distension, prior abdominal surgery.",
-              "3. Metabolic: Acute decompensation, lethargy, odd odor (Inborn Error of Metabolism).",
-              "4. Renal: Polyuria, polydipsia (CKD/DKA)."
+            orders: [
+              "Neurological Screen: Specifically assess for morning vomiting, headache, or bulging fontanelle (Raised Intracranial Pressure).",
+              "Surgical Screen: Evaluate for bilious vomiting, severe abdominal distension, or history of prior abdominal surgery.",
+              "Metabolic Screen: Assess for acute decompensation, lethargy, or unusual body odor (Inborn Error of Metabolism).",
+              "Renal Screen: Monitor for excessive thirst (polydipsia) or excessive urination (polyuria) as indicators of Chronic Kidney Disease or Diabetic Ketoacidosis."
             ]
           },
           {
             title: "Stat Investigations",
-            instructions: [
-              "1. Serum Electrolytes, BUN/Cr, Glucose.",
-              "2. Venous Blood Gas (Check for metabolic alkalosis vs acidosis).",
-              "3. Urinalysis (Specific gravity, ketones, glucose).",
-              "4. Ammonia (if altered mental status)."
+            orders: [
+              "Serum Electrolytes, Blood Urea Nitrogen (BUN), and Creatinine.",
+              "Serum Glucose: Rule out hypoglycemia or Diabetic Ketoacidosis.",
+              "Venous Blood Gas: Check for metabolic alkalosis (common in pyloric stenosis) versus metabolic acidosis.",
+              "Urinalysis: Monitor for ketones, glucose, and specific gravity.",
+              "Serum Ammonia: Mandatory if altered mental status is present."
+            ]
+          },
+          {
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Vomiting Log: Record every episode, noting volume, color (especially bile), and relationship to meals.",
+              "Hydration Status: Monitor mucous membranes, capillary refill time, and skin turgor every 4 hours.",
+              "Vital Signs: Heart Rate and Blood Pressure every 4 hours to monitor for dehydration or raised Intracranial Pressure.",
+              "Neurological Check: Perform Glasgow Coma Scale (GCS) and pupil checks every 8 hours."
             ]
           }
         ]
       },
       {
         label: "Cyclic Vomiting Syndrome (CVS) Management",
-        shortLabel: "Cyclic Vomiting Syndrome (CVS) Management",
+        shortLabel: "Cyclic Vomiting",
         color: "blue",
         cards: [
           {
-            title: "NASPGHAN CVS Criteria",
-            instructions: [
-              "1. At least 3 discrete episodes in 6 months.",
-              "2. Stereotypical episodes (same time, same duration).",
-              "3. Intense nausea/vomiting followed by return to baseline health."
+            title: "Diagnostic Criteria Checklist",
+            orders: [
+              "Verify the presence of at least 3 discrete episodes in 6 months.",
+              "Confirm stereotypical episodes (occurrence at the same time and of the same duration).",
+              "Ensure episodes consist of intense nausea and vomiting followed by a complete return to baseline health."
             ]
           },
           {
-            title: "CVS Abortive Therapy",
+            title: "Abortive Therapy Directive",
             threshold: "ACUTE ATTACK",
-            instructions: [
-              "Goal: Rapidly terminate the 'emetic storm'. Provide 'Dark, Quiet Room'."
+            orders: [
+              "Environmental Control: Provide a 'Dark, Quiet Room' and minimize all stimuli.",
+              "Fluid Resuscitation: Use Intravenous fluids with Dextrose (e.g., D5 0.9% Sodium Chloride) to prevent ketosis, which can perpetuate the attack."
             ],
             prescriptions: [
               {
                 drug: "Ondansetron",
                 dose: "0.15 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Every 6-8 hours",
-                calculation: (w) => `${(0.15 * w).toFixed(1)} mg`
+                calculation: (w) => `${(0.15 * w).toFixed(1)} mg`,
+                notes: "Maximum 8 mg per dose."
               },
               {
-                drug: "Aprepitant (Neurokinin-1 antagonist)",
-                dose: "125 mg (>12yr), 3mg/kg (6mo-12yr)",
-                route: "PO",
+                drug: "Aprepitant",
+                dose: "125 mg (>12 years), 3 mg/kg (6 months-12 years)",
+                route: "Oral",
                 frequency: "Once daily (Day 1 dose)",
                 calculation: (w) => w > 40 ? "125 mg" : `${(3 * w).toFixed(0)} mg`,
-                notes: "Consultant use only for refractory CVS."
+                notes: "Consultant use only for refractory cases of Cyclic Vomiting Syndrome."
               }
             ]
           }
@@ -87,48 +100,49 @@ export const wardRecurrentVomitingProtocol: DiseaseProtocol = {
       },
       {
         label: "GERD & Gastroparesis Workup",
-        shortLabel: "GERD & Gastroparesis Workup",
+        shortLabel: "Chronic Workup",
         color: "amber",
         cards: [
           {
-            title: "Gastro-Esophageal Reflux Disease (GERD)",
-            instructions: [
-              "1. Symptoms: Heartburn, sandifer syndrome, hematemesis.",
-              "2. Trials: 2-4 week trial of Acid Suppression (PPI).",
-              "3. Advanced: pH-Impedance probe (Gold standard)."
+            title: "Reflux Management",
+            orders: [
+              "Symptom Review: Screen for heartburn, Sandifer syndrome, or hematemesis (vomiting blood).",
+              "Acid Suppression Trial: Start a 2-4 week trial of a Proton Pump Inhibitor (PPI).",
+              "Advanced Evaluation: Consider pH-Impedance probe (Gold Standard) if symptoms are atypical."
             ],
             prescriptions: [
               {
                 drug: "Esomeprazole",
                 dose: "1 mg/kg",
-                route: "PO",
+                route: "Oral",
                 frequency: "Once daily",
-                calculation: (w) => `${(1 * w).toFixed(0)} mg`
+                calculation: (w) => `${(1 * w).toFixed(0)} mg`,
+                notes: "Administer 30 minutes before a meal."
               }
             ]
           },
           {
             title: "Imaging & Functional Studies",
-            instructions: [
-              "1. Upper GI Series (Barium): Exclude malrotation/stenosis.",
-              "2. Gastric Emptying Study: If gastroparesis suspected (common post-viral).",
-              "3. CT/MRI Brain: If morning vomiting or focal neuro signs."
+            orders: [
+              "Upper Gastrointestinal Barium Series: Essential to exclude malrotation or anatomical stenosis.",
+              "Gastric Emptying Study: Perform if gastroparesis is suspected (common post-viral complication).",
+              "Brain Imaging: Perform Computed Tomography (CT) or Magnetic Resonance Imaging (MRI) if morning vomiting or focal neurological signs are present."
             ]
           }
         ]
       },
       {
         label: "Prophylaxis & Long-term Care",
-        shortLabel: "Prophylaxis & Long-term Care",
+        shortLabel: "Prevention",
         color: "emerald",
         cards: [
           {
-            title: "CVS Prophylaxis",
+            title: "Prophylaxis Strategy",
             threshold: "EPISODES > 1 PER MONTH",
-            instructions: [
-              "1. Cyproheptadine (if < 5 years old).",
-              "2. Amitriptyline (if > 5 years old).",
-              "3. Coenzyme Q10 and L-Carnitine (Mitochondrial support)."
+            orders: [
+              "For children < 5 years old: Consider Cyproheptadine.",
+              "For children > 5 years old: Consider Amitriptyline.",
+              "Mitochondrial Support: Consider Coenzyme Q10 and L-Carnitine for those with suspected mitochondrial dysfunction."
             ]
           }
         ]

@@ -12,7 +12,7 @@ export const wardPertussisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Full-cycle management: Isolation, apnea monitoring, and exhaustive complication protocols for pneumonia, encephalopathy, and pulmonary hypertension.',
+  description: 'Pertussis, or \"Whooping Cough,\" is a highly contagious respiratory tract infection caused by the bacterium Bordetella pertussis, characterized by paroxysms of coughing, inspiratory whoops, and post-tussive emesis. This exhaustive directive covers isolation protocols, apnea monitoring, and management of complications such as pneumonia, encephalopathy, and pulmonary hypertension.',
   image: {
     url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Infant respiratory monitoring"
@@ -20,34 +20,45 @@ export const wardPertussisProtocol: DiseaseProtocol = {
   questions: [], 
 
   mmpData: {
+    snapshot: "Management in infants focuses on vigilant monitoring for life-threatening complications, including apnea, secondary pneumonia, and malignant pertussis (characterized by extreme leukocytosis and pulmonary hypertension). Early administration of macrolides is essential for public health eradication but has limited impact on the clinical paroxysmal phase. High-risk infants (less than 6 months old) require continuous cardiopulmonary monitoring and strict droplet isolation.",
     stages: [
       {
         label: "Admission & Initial Directive",
-        shortLabel: "Admission & Initial Directive",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
-            title: "Baseline Clinical Baseline",
-            instructions: [
-              "1. Droplet Isolation: MANDATORY for 5 days of macrolide therapy.",
-              "2. Initial Labs: PCR (Nasopharyngeal), CBC with Diff (Absolute Lymphocyte Count), and baseline Na+ (SIADH check).",
-              "3. Baseline CXR: To rule out pre-existing collapse or pneumonia."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Droplet Isolation: MANDATORY for a minimum of 5 days of effective macrolide therapy.",
+              "Nasopharyngeal Swab: For Bordetella pertussis Polymerase Chain Reaction (PCR) and Culture.",
+              "Baseline Laboratory Screening: Complete Blood Count (CBC) with differential (note the Absolute Lymphocyte Count) and serum Sodium (to screen for SIADH).",
+              "Baseline Chest X-Ray: Required to rule out pre-existing lung collapse or pneumonia."
+            ]
+          },
+          {
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Cardiopulmonary Monitoring: Continuous Oxygen Saturation and Heart Rate monitoring is mandatory for all infants under 6 months of age.",
+              "Paroxysm Log: Document the frequency, duration, and severity of coughing fits and any associated apnea or cyanosis.",
+              "Hydration Monitoring: Track oral intake and document all episodes of post-tussive emesis (vomiting after coughing).",
+              "Positioning: Maintain the infant in a semi-upright position during and after feeds to reduce aspiration risk."
             ]
           },
           {
             title: "1st-Line Macrolide Selection",
-            instructions: [
-              "Goal: Eradicate B. pertussis from nasopharynx to prevent spread.",
-              "Note: Antibiotics do not alter clinical course if started late in the paroxysmal phase."
+            orders: [
+              "Goal: Eradicate Bordetella pertussis from the nasopharynx to prevent transmission.",
+              "Azithromycin is the preferred agent, especially in infants under 1 month of age (lower risk of pyloric stenosis)."
             ],
             prescriptions: [
               {
                 drug: "Azithromycin",
                 dose: "10 mg/kg (Day 1), then 5 mg/kg",
-                route: "PO / IV",
+                route: "Oral or Intravenous",
                 frequency: "Once daily",
                 calculation: (w) => `Day 1: ${(w * 10).toFixed(0)} mg, then ${(w * 5).toFixed(0)} mg`,
-                notes: "5-day course. Safest for infants < 1 month."
+                notes: "Total 5-day course. Monitor for Gastrointestinal side effects."
               }
             ]
           }
@@ -55,94 +66,85 @@ export const wardPertussisProtocol: DiseaseProtocol = {
       },
       {
         label: "Monitoring & Pivot Triggers",
-        shortLabel: "Monitoring & Pivot Triggers",
+        shortLabel: "Monitoring",
         color: "amber",
         cards: [
           {
-            title: "Standard Monitoring Roadmap",
-            instructions: [
-              "1. Continuous SpO2/HR Monitoring (Mandatory for all < 6 months).",
-              "2. Paroxysm Tracking: Log frequency and length of apneic episodes.",
-              "3. Feed Tolerance: Monitor for post-tussive emesis and hydration status."
-            ]
-          },
-          {
             title: "When to Suspect Treatment Failure",
             threshold: "CLINICAL DETERIORATION",
-            instructions: [
-              "1. New-onset high fever (> 38.5°C) - (Viral pertussis is usually afebrile).",
-              "2. Sustained tachypnea/distress BETWEEN paroxysms.",
-              "3. Rapidly rising WBC (> 30k-50k absolute lymphocytes)."
+            orders: [
+              "Monitor for new-onset high fever (greater than 38.5°C) — primary pertussis is typically afebrile.",
+              "Assess for sustained Respiratory Rate elevation (Tachypnea) or distress BETWEEN paroxysms.",
+              "Follow White Blood Cell counts: A rapidly rising count (Absolute Lymphocyte Count > 30,000) is a major red flag."
             ]
           }
         ]
       },
       {
         label: "Complication Management Modules",
-        shortLabel: "Complication Management Modules",
+        shortLabel: "Complications",
         color: "red",
         cards: [
           {
-            title: "Complication 1: SECONDARY PNEUMONIA",
+            title: "Complication: Secondary Bacterial Pneumonia",
             threshold: "NEW FEVER / FOCAL FINDINGS",
             isCritical: true,
-            instructions: [
-              "Triggers: Sustained distress between coughs, high fever, or new focal crackles.",
-              "Radiology: Repeat CXR to look for focal consolidation.",
-              "Management: Broad-spectrum coverage required (Targeting S. pneumoniae / S. aureus)."
+            orders: [
+              "Triggers: New fever, focal lung crackles, or increased oxygen requirement between coughs.",
+              "Action: Repeat Chest X-Ray and escalate to broad-spectrum Intravenous antibiotics targeting Streptococcus pneumoniae and Staphylococcus aureus."
             ],
             prescriptions: [
               {
-                drug: "Ceftriaxone (IV)",
+                drug: "Ceftriaxone",
                 dose: "80 mg/kg",
-                route: "IV",
+                route: "Intravenous",
                 frequency: "Once daily",
                 calculation: (w) => `${Math.min(80 * w, 2000).toFixed(0)} mg`,
-                notes: "Targeting secondary bacterial pathogens."
+                notes: "Empiric coverage for secondary bacterial pathogens."
               }
             ]
           },
           {
-            title: "Complication 2: SEIZURES / ENCEPHALOPATHY",
+            title: "Complication: Pertussis Encephalopathy",
             threshold: "NEUROLOGICAL CHANGES",
             isCritical: true,
-            instructions: [
-              "Triggers: Generalized/focal seizures, altered mental status, or extreme lethargy.",
-              "Management: Stabilize airway (NRP/PALS), check glucose/electrolytes, and consult Pediatric Neurology.",
-              "Radiology: Urgent Brain Imaging (CT/MRI) only if focal or non-recovering."
+            orders: [
+              "Triggers: New-onset seizures, altered mental status, or extreme lethargy.",
+              "Action: Urgent check of Blood Glucose and Electrolytes; consult Pediatric Neurology.",
+              "Radiology: Perform urgent Brain Computed Tomography (CT) or Magnetic Resonance Imaging (MRI) if focal signs are present."
             ]
           },
           {
-            title: "Complication 3: MALIGNANT PERTUSSIS / PHTN",
+            title: "Complication: Malignant Pertussis",
             threshold: "WBC > 50,000 / HYPOXEMIA",
             isCritical: true,
-            instructions: [
-              "Definition: Hyperleukocytosis causing pulmonary hypertension (PHTN) and cardiac failure.",
-              "Action: URGENT PICU TRANSFER.",
-              "Therapy: Involve senior team for Leukoreduction / Exchange Transfusion consideration."
+            orders: [
+              "Warning: Hyperleukocytosis causing pulmonary hypertension and rapid cardiac failure.",
+              "Action: IMMEDIATE Pediatric Intensive Care Unit (PICU) transfer.",
+              "Senior Intervention: Consider urgent Leukoreduction or Exchange Transfusion."
             ]
           }
         ]
       },
       {
         label: "Recovery & Discharge",
-        shortLabel: "Recovery & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
             title: "Discharge Safety Metrics",
-            instructions: [
-              "1. No apnea or cyanosis for > 48 hours.",
-              "2. Completion of 5-day Azithromycin course.",
-              "3. Oral intake > 75% baseline and stable/gaining weight."
+            orders: [
+              "No episodes of apnea or cyanosis for more than 48 hours.",
+              "Completion of the 5-day Azithromycin course.",
+              "Consistent oral intake greater than 75% of baseline with stable weight."
             ]
           },
           {
             title: "Public Health & Follow-up",
-            instructions: [
-              "1. Prophylaxis: All household contacts require Azithromycin regardless of vaccine status.",
-              "2. Follow-up: Clinical review in 48-72h by primary pediatrician.",
-              "3. Vaccination: Ensure DTaP/Tdap series is initiated/updated."
+            orders: [
+              "Post-Exposure Prophylaxis: All household contacts require Azithromycin regardless of their vaccination status.",
+              "Clinical Follow-up: Schedule a review with the primary pediatrician within 72 hours of discharge.",
+              "Vaccination Update: Ensure the Pertussis vaccine series is initiated or updated prior to or shortly after discharge."
             ]
           }
         ]

@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const acuteAtaxiaProtocol: DiseaseProtocol = {
   id: 'acute-ataxia',
   name: 'Acute Ataxia (Unsteady Gait)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Assessment of acute imbalance or gait abnormality in children.',
   image: {
     url: "https://picsum.photos/seed/ataxia/600/400",

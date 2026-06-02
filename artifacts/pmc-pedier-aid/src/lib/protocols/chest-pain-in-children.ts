@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity } from './types';
 export const chestPainInChildrenProtocol: DiseaseProtocol = {
   id: 'chest-pain-in-children',
   name: 'Chest Pain in Children',
-  system: 'Cardiology',
+  system: 'Cardiovascular System',
   description: 'Evaluation of chest pain in children and adolescents, focusing on identifying rare but serious cardiac causes vs. common benign etiologies.',
   image: {
     url: "https://picsum.photos/seed/chest-pain-peds/600/400",

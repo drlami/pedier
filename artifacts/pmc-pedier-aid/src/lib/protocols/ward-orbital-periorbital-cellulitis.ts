@@ -11,7 +11,7 @@ export const wardOrbitalPeriorbitalCellulitisProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Senior directive for eye infections: Differentiating pre- vs post-septal, CT triggers, and multidisciplinary surgical thresholds.',
+  description: 'Periorbital (Pre-septal) Cellulitis is an infection of the tissues anterior to the orbital septum, while Orbital (Post-septal) Cellulitis is a more serious infection of the contents of the orbit posterior to the septum. This exhaustive directive covers the critical differentiation between these entities, Computed Tomography imaging triggers, and multidisciplinary surgical thresholds.',
   image: {
     url: "https://images.unsplash.com/photo-1579154235602-3c2c2aa5d72f?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Orbital Infection Management"
@@ -19,157 +19,142 @@ export const wardOrbitalPeriorbitalCellulitisProtocol: DiseaseProtocol = {
   questions: [],
 
   mmpData: {
+    snapshot: "The critical management priority is the rapid differentiation between pre-septal and post-septal infection through meticulous bedside examination (assessing for proptosis, ophthalmoplegia, and visual acuity). Orbital cellulitis requires aggressive intravenous antibiotic therapy, urgent ophthalmology consultation, and a low threshold for Computed Tomography (CT) imaging and surgical intervention if a subperiosteal abscess or vision-threatening complications are suspected.",
     stages: [
       {
         label: "Admission & Critical Differentiation",
-        shortLabel: "Admission & Critical Differentiation",
+        shortLabel: "Assessment",
         color: "blue",
         cards: [
           {
             title: "Pre-septal vs. Orbital Differentiation",
             threshold: "MANDATORY BEDSIDE EXAM",
             isCritical: true,
-            instructions: [
-              "Orbital Cellulitis (POST-SEPTAL) Signs: 1. Proptosis, 2. Ophthalmoplegia (pain/restriction with eye movement), 3. Decreased visual acuity, 4. Afferent Pupillary Defect (APD).",
-              "Pre-septal Cellulitis: Eyelid edema and erythema ONLY. Eye movements and vision are NORMAL."
+            orders: [
+              "Orbital Cellulitis (Post-Septal) Signs: 1. Proptosis (eye bulging), 2. Ophthalmoplegia (pain or restriction with eye movement), 3. Decreased Visual Acuity, 4. Afferent Pupillary Defect (APD).",
+              "Pre-septal Cellulitis: Eyelid edema and redness ONLY. Eye movements and vision must be NORMAL."
             ]
           },
           {
-            title: "Initial Workup",
-            instructions: [
-              "1. CBC and CRP: Baseline inflammatory markers.",
-              "2. Blood Culture: REQUIRED (though yield is low).",
-              "3. Eye Swab: ONLY if there is purulent discharge.",
-              "4. Vision Assessment: Baseline visual acuity, color vision (red desaturation), and pupillary response."
+            title: "Initial Physician Orders [DR]",
+            orders: [
+              "Baseline Inflammatory Markers: Complete Blood Count (CBC) and C-Reactive Protein (CRP).",
+              "Blood Culture: MANDATORY before starting Intravenous antibiotics.",
+              "Eye Swab: Perform ONLY if purulent discharge is present.",
+              "Urgent Ophthalmology Consultation: Required for all suspected cases of orbital involvement.",
+              "Vision Baseline: Document visual acuity, color vision (red desaturation), and pupillary responses."
             ]
           },
           {
-            title: "Radiology: CT Trigger",
-            threshold: "IF ORBITAL INVOLVEMENT SUSPECTED",
-            isCritical: true,
-            instructions: [
-              "Indication for CT (Orbits/Sinuses with Contrast): 1. Inability to fully examine the eye, 2. Proptosis/Ophthalmoplegia, 3. Vision loss/APD, 4. No improvement or worsening after 24-48h of IV Rx, 5. CNS signs."
-            ]
-          },
-          {
-            title: "Empiric IV Rx (Pre-septal) (PREFERRED REGIMEN: DUAL THERAPY)",
-            threshold: "UNCOMPLICATED",
-            instructions: [
-              "Target: S. aureus, S. pyogenes, S. pneumoniae."
-            ],
-            prescriptions: [
-              {
-                drug: "Flucloxacillin",
-                dose: "50 mg/kg",
-                route: "IV",
-                frequency: "Every 6 hours",
-                calculation: (w) => `${(50 * w).toFixed(0)} mg`,
-                notes: "Target: MSSA. Max 2g."
-              },
-              {
-                drug: "Ceftriaxone",
-                dose: "50 mg/kg",
-                route: "IV",
-                frequency: "Once daily",
-                calculation: (w) => `${Math.min(50 * w, 2000).toFixed(0)} mg`,
-                notes: "Add if Hib risk or severe."
-              }
-            ]
-          },
-          {
-            title: "Empiric IV Rx (Orbital / Sinusitis)",
-            threshold: "COMPLICATED / SINUS SOURCE",
-            instructions: [
-              "Target: Respiratory flora plus anaerobes from sinuses."
-            ],
-            prescriptions: [
-              {
-                drug: "Tazocin (Piperacillin/Tazobactam)",
-                dose: "90 mg/kg",
-                route: "IV",
-                frequency: "Every 6 hours",
-                calculation: (w) => `${(90 * w).toFixed(0)} mg`,
-                notes: "Broad-spectrum including anaerobes. Max 4.5g."
-              }
+            title: "Nursing & Monitoring [NS]",
+            nursing: [
+              "Eye Assessment: Monitor for new proptosis or restriction of eye movement every 4 hours.",
+              "Vision Check: Assess visual acuity (e.g., ability to read or recognize objects) every 4 hours.",
+              "Vital Signs: Heart Rate, Respiratory Rate, and Temperature every 4 hours.",
+              "Eyelid Tracking: Monitor and mark the extent of eyelid redness/edema every 12 hours."
             ]
           }
         ]
       },
       {
-        label: "Monitoring & Escalation",
-        shortLabel: "Monitoring & Escalation",
+        label: "Management & Radiology Strategy",
+        shortLabel: "Management",
         color: "amber",
         cards: [
           {
-            title: "Serial Eye Exams",
-            threshold: "EVERY 4-6 HOURS",
-            instructions: [
-              "Assess: Visual acuity, Eye movements, and Proptosis.",
-              "Deterioration in vision or new ophthalmoplegia requires URGENT CT and Surgical review."
+            title: "Radiology: CT Trigger",
+            threshold: "IF ORBITAL INVOLVEMENT SUSPECTED",
+            isCritical: true,
+            orders: [
+              "Perform Computed Tomography (CT) of the Orbits and Sinuses with Contrast if:",
+              "1. Inability to fully examine the eye due to severe swelling.",
+              "2. Presence of Proptosis or Ophthalmoplegia.",
+              "3. Documented Vision Loss or Afferent Pupillary Defect.",
+              "4. Failure to improve or clinical worsening after 24-48 hours of Intravenous therapy.",
+              "5. Signs of Central Nervous System (CNS) involvement."
             ]
           },
           {
-            title: "Multidisciplinary Consults",
-            instructions: [
-              "Ophthalmology: Required for all cases of suspected Orbital Cellulitis.",
-              "ENT: Required if CT shows significant sinusitis or subperiosteal abscess (SPA)."
+            title: "Intravenous Antibiotic Selection",
+            orders: [
+              "Target Pathogens: Staphylococcus aureus, Streptococcus pyogenes, and Streptococcus pneumoniae.",
+              "For Sinusitis-related cases: Cover respiratory flora and anaerobes."
+            ],
+            prescriptions: [
+              {
+                drug: "Piperacillin-Tazobactam",
+                dose: "90 mg/kg",
+                route: "Intravenous",
+                frequency: "Every 6 hours",
+                calculation: (w) => `${Math.min(90 * w, 4500).toFixed(0)} mg`,
+                notes: "Broad-spectrum coverage including anaerobes. Maximum 4.5 grams."
+              },
+              {
+                drug: "Flucloxacillin",
+                dose: "50 mg/kg",
+                route: "Intravenous",
+                frequency: "Every 6 hours",
+                calculation: (w) => `${Math.min(50 * w, 2000).toFixed(0)} mg`,
+                notes: "Alternative for uncomplicated pre-septal cellulitis."
+              }
             ]
           }
         ]
       },
       {
         label: "Surgical Complications",
-        shortLabel: "Surgical Complications",
+        shortLabel: "Escalation",
         color: "red",
         cards: [
           {
-            title: "Complication: SUBPERIOSTEAL ABSCESS (SPA)",
+            title: "Complication: Subperiosteal Abscess (SPA)",
             threshold: "CT CONFIRMED",
             isCritical: true,
-            instructions: [
-              "Surgical Drainage Trigger: 1. Age > 9 years (higher risk of anaerobes), 2. Frontal sinus involvement, 3. Large abscess (>1cm), 4. Failure to improve on IV Rx within 48h."
+            orders: [
+              "Surgical Drainage Triggers: 1. Age > 9 years, 2. Frontal sinus involvement, 3. Large abscess (>1 cm), 4. Failure to improve on Intravenous therapy within 48 hours.",
+              "Urgent Ear, Nose, and Throat (ENT) Consultation: Required if significant sinusitis or abscess is present."
             ]
           },
           {
-            title: "Complication: CAVERNOUS SINUS THROMBOSIS",
+            title: "Complication: Cavernous Sinus Thrombosis",
             threshold: "BILATERAL SIGNS / CNS DISTRESS",
             isCritical: true,
-            instructions: [
-              "Signs: Bilateral proptosis, rapid progression, CN III, IV, VI palsies.",
-              "Action: Urgent MRI/MRV and upgrade to Meropenem + Vancomycin."
+            orders: [
+              "Warning Signs: Bilateral proptosis, rapid progression, or cranial nerve III, IV, or VI palsies.",
+              "Immediate Action: Urgent Magnetic Resonance Imaging (MRI/MRV) and upgrade antibiotics to Meropenem plus Vancomycin."
             ]
           }
         ]
       },
       {
         label: "Step-down & Discharge",
-        shortLabel: "Step-down & Discharge",
+        shortLabel: "Recovery",
         color: "emerald",
         cards: [
           {
             title: "Criteria for Oral Step-down",
-            instructions: [
-              "1. Afebrile for > 24 hours.",
-              "2. Improving eyelid edema/erythema.",
-              "3. Normal eye movements and vision (for orbital cases).",
-              "4. Decreasing inflammatory markers."
+            orders: [
+              "Afebrile for more than 24 hours.",
+              "Improving eyelid edema and erythema.",
+              "Normal eye movements and visual acuity (for orbital cases).",
+              "Falling inflammatory markers (C-Reactive Protein)."
             ]
           },
           {
             title: "Discharge Roadmap",
-            threshold: "TOTAL COURSE 10-14 DAYS",
-            instructions: [
-              "Pre-septal: 7-10 days total.",
-              "Orbital: 10-14 days minimum (up to 3 weeks if significant sinusitis/SPA)."
+            threshold: "TOTAL COURSE 10-21 DAYS",
+            orders: [
+              "Pre-septal Cellulitis: 7-10 days total duration.",
+              "Orbital Cellulitis: 10-14 days minimum (up to 21 days if significant sinusitis or abscess was present)."
             ],
             prescriptions: [
               {
-                drug: "Amoxicillin-Clavulanate (Augmentin)",
-                dose: "45 mg/kg (of Amox)",
-                route: "PO",
+                drug: "Amoxicillin-Clavulanate",
+                dose: "45 mg/kg (of Amoxicillin)",
+                route: "Oral",
                 frequency: "Every 12 hours",
                 calculation: (w) => `${(45 * w).toFixed(0)} mg`,
-                notes: "Standard oral step-down."
+                notes: "Standard high-dose oral step-down therapy."
               }
             ]
           }

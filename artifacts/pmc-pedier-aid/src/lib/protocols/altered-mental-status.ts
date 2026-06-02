@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const alteredMentalStatusProtocol: DiseaseProtocol = {
   id: 'altered-mental-status',
   name: 'Altered Mental Status (AMS)',
-  system: 'Neurology',
+  system: 'Neurological System',
   description: 'Systematic approach to the unconscious or confused child using AEIOU-TIPS and GCS.',
   image: {
     url: "https://picsum.photos/seed/ams/600/400",

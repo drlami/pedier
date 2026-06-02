@@ -3,7 +3,7 @@ import type { DiseaseProtocol, FormData, Severity, SeverityLevel } from './types
 export const bronchiolitisProtocol: DiseaseProtocol = {
   id: 'bronchiolitis',
   name: 'Bronchiolitis',
-  system: 'Respiratory',
+  system: 'Respiratory System',
   description: 'Assessment and management of viral bronchiolitis using the Modified Tal Score.',
   image: {
     url: "https://picsum.photos/seed/bronchiolitis/600/400",

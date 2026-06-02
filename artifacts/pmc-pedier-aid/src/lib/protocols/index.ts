@@ -1,10 +1,13 @@
 import type { DiseaseProtocol } from './types';
 import { bronchiolitisProtocol } from './bronchiolitis';
 import { asthmaProtocol } from './asthma';
+import { wardAnemiaProtocol } from './ward-anemia';
 import { croupProtocol } from './croup';
 import { dehydrationGastroenteritisProtocol } from './dehydration-gastroenteritis';
 import { pneumoniaProtocol } from './pneumonia';
 import { tracheitisProtocol } from './tracheitis';
+import { wardAtopicDermatitisProtocol } from './ward-atopic-dermatitis';
+import { wardUrticariaAngioedemaProtocol } from './ward-urticaria-angioedema';
 import { epiglottitisProtocol } from './epiglottitis';
 import { fbaProtocol } from './fba';
 import { cyanosisProtocol } from './cyanosis';
@@ -88,23 +91,42 @@ import { wardCroupProtocol } from './ward-croup';
 import { wardPertussisProtocol } from './ward-pertussis';
 import { wardBacterialTracheitisProtocol } from './ward-bacterial-tracheitis';
 import { wardAspirationPneumoniaProtocol } from './ward-aspiration-pneumonia';
+import { wardArfProtocol } from './ward-arf';
+import { wardAdrenalCrisisProtocol } from './ward-adrenal-crisis';
 import { wardPleuralEffusionProtocol } from './ward-pleural-effusion';
 import { wardMeningitisProtocol } from './ward-meningitis';
+import { wardMitochondrialProtocol } from './ward-mitochondrial';
 import { wardFebrileNeutropeniaProtocol } from './ward-febrile-neutropenia';
 import { wardSepticArthritisOsteoProtocol } from './ward-septic-arthritis-osteo';
 import { wardTyphoidProtocol } from './ward-typhoid';
+import { wardTyrosinemiaProtocol } from './ward-tyrosinemia';
 import { wardLeishmaniasisProtocol } from './ward-leishmaniasis';
 import { wardBrucellosisProtocol } from './ward-brucellosis';
 import { wardOrbitalPeriorbitalCellulitisProtocol } from './ward-orbital-periorbital-cellulitis';
+import { wardOrganicAcidemiasProtocol } from './ward-organic-acidemias';
+import { wardFaodProtocol } from './ward-faod';
+import { wardMsudProtocol } from './ward-msud';
 import { wardMastoiditisProtocol } from './ward-mastoiditis';
+import { wardMediastinalMassProtocol } from './ward-mediastinal-mass';
+import { wardChickenpoxProtocol } from './ward-chickenpox';
+import { wardPancytopeniaProtocol } from './ward-pancytopenia';
+import { wardAihaProtocol } from './ward-aiha';
+import { wardDkaProtocol } from './ward-dka';
+import { wardAdrenalCrisisProtocol } from './ward-adrenal-crisis';
+import { wardMetabolicCrisisProtocol } from './ward-metabolic-crisis';
+import { wardUreaCycleProtocol } from './ward-urea-cycle';
 import { wardViralEncephalitisProtocol } from './ward-viral-encephalitis';
 import { wardInfectiveEndocarditisProtocol } from './ward-infective-endocarditis';
 import { wardFeverNoSourceProtocol } from './ward-fever-no-source';
 import { wardFuoProtocol } from './ward-fuo';
 import { wardSkinCellulitisProtocol } from './ward-skin-cellulitis';
 import { wardGastroenteritisProtocol } from './ward-gastroenteritis';
+import { wardG6pdProtocol } from './ward-g6pd';
+import { wardGsd1Protocol } from './ward-gsd1';
 import { wardIntussusceptionProtocol } from './ward-intussusception';
+import { wardItpProtocol } from './ward-itp';
 import { wardGiBleedingProtocol } from './ward-gi-bleeding';
+import { wardHypoglycemiaProtocol } from './ward-hypoglycemia';
 import { wardChronicAbdoPainProtocol } from './ward-chronic-abdo-pain';
 import { wardChronicDiarrheaProtocol } from './ward-chronic-diarrhea';
 import { wardRecurrentVomitingProtocol } from './ward-recurrent-vomiting';
@@ -113,7 +135,21 @@ import { wardHepatitisAProtocol } from './ward-hepatitis-a';
 import { wardLiverFailureProtocol } from './ward-liver-failure';
 import { wardFailureToThriveProtocol } from './ward-failure-to-thrive';
 import { wardKawasakiProtocol } from './ward-kawasaki';
+import { wardPfapaProtocol } from './ward-pfapa';
+import { wardFmfProtocol } from './ward-fmf';
+import { wardGalactosemiaProtocol } from './ward-galactosemia';
+import { wardHspProtocol } from './ward-hsp';
+import { wardHemophiliaProtocol } from './ward-hemophilia';
+import { wardSleProtocol } from './ward-sle';
+import { wardJiaProtocol } from './ward-jia';
 import { wardStatusEpilepticusProtocol } from './ward-status-epilepticus';
+import { wardSickleCellProtocol } from './ward-sickle-cell';
+import { wardTumorLysisProtocol } from './ward-tumor-lysis';
+import { wardThalassemiaProtocol } from './ward-thalassemia';
+import { wardViralExanthemsProtocol } from './ward-viral-exanthems';
+import { wardSjsTenProtocol } from './ward-sjs-ten';
+import { wardScabiesProtocol } from './ward-scabies';
+import { wardSsssProtocol } from './ward-ssss';
 import { wardUtiProtocol } from './ward-uti';
 import { wardNephroticFirstProtocol } from './ward-nephrotic-first';
 import { wardNephroticRelapseProtocol } from './ward-nephrotic-relapse';
@@ -209,23 +245,44 @@ export const allProtocols: DiseaseProtocol[] = [
   wardPertussisProtocol,
   wardBacterialTracheitisProtocol,
   wardAspirationPneumoniaProtocol,
+  wardAnemiaProtocol,
+  wardArfProtocol,
+  wardAdrenalCrisisProtocol,
+  wardMetabolicCrisisProtocol,
+  wardUreaCycleProtocol,
+  wardOrganicAcidemiasProtocol,
+  wardFaodProtocol,
+  wardMsudProtocol,
+  wardGalactosemiaProtocol,
+  wardGsd1Protocol,
   wardPleuralEffusionProtocol,
   wardMeningitisProtocol,
+  wardMitochondrialProtocol,
   wardFebrileNeutropeniaProtocol,
   wardSepticArthritisOsteoProtocol,
   wardTyphoidProtocol,
+  wardTyrosinemiaProtocol,
   wardLeishmaniasisProtocol,
   wardBrucellosisProtocol,
   wardOrbitalPeriorbitalCellulitisProtocol,
   wardMastoiditisProtocol,
+  wardMediastinalMassProtocol,
+  wardChickenpoxProtocol,
+  wardPancytopeniaProtocol,
   wardViralEncephalitisProtocol,
   wardInfectiveEndocarditisProtocol,
+  wardAtopicDermatitisProtocol,
+  wardUrticariaAngioedemaProtocol,
   wardFeverNoSourceProtocol,
   wardFuoProtocol,
   wardSkinCellulitisProtocol,
   wardGastroenteritisProtocol,
+  wardG6pdProtocol,
   wardIntussusceptionProtocol,
+  wardItpProtocol,
   wardGiBleedingProtocol,
+  wardAihaProtocol,
+  wardHypoglycemiaProtocol,
   wardChronicAbdoPainProtocol,
   wardChronicDiarrheaProtocol,
   wardRecurrentVomitingProtocol,
@@ -234,7 +291,20 @@ export const allProtocols: DiseaseProtocol[] = [
   wardLiverFailureProtocol,
   wardFailureToThriveProtocol,
   wardKawasakiProtocol,
+  wardPfapaProtocol,
+  wardFmfProtocol,
+  wardHspProtocol,
+  wardHemophiliaProtocol,
+  wardSleProtocol,
+  wardJiaProtocol,
   wardStatusEpilepticusProtocol,
+  wardSickleCellProtocol,
+  wardTumorLysisProtocol,
+  wardThalassemiaProtocol,
+  wardViralExanthemsProtocol,
+  wardSjsTenProtocol,
+  wardScabiesProtocol,
+  wardSsssProtocol,
   wardUtiProtocol,
   wardNephroticFirstProtocol,
   wardNephroticRelapseProtocol,
@@ -245,18 +315,21 @@ export const allProtocols: DiseaseProtocol[] = [
 ];
 
 export const CLINICAL_SYSTEMS = [
-  "Cardiology",
-  "Electrolyte Disturbances",
+  "Respiratory System",
+  "Cardiovascular System",
+  "Gastrointestinal & Hepatology",
+  "Neurological System",
+  "Renal & Urinary System",
+  "Hematology & Oncology",
   "Endocrinology",
-  "Gastrointestinal",
-  "Infectious Diseases",
   "Metabolic Diseases",
-  "Neonatology",
-  "Nephrology",
-  "Neurology",
-  "Respiratory",
+  "Infectious Diseases",
+  "Immunology & Rheumatology",
+  "Dermatology",
+  "Nutrition & Growth",
   "Shock and Resuscitation",
   "Toxins and Poisoning",
+  "Neonatology",
 ] as const;
 
 export type ClinicalSystem = typeof CLINICAL_SYSTEMS[number];
