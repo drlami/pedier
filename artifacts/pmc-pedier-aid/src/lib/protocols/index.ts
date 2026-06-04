@@ -172,9 +172,59 @@ import { wardAkiProtocol } from './ward-aki';
 import { wardHusProtocol } from './ward-hus';
 import { wardCkdOptimizationProtocol } from './ward-ckd-optimization';
 import { picuPlaceholders } from './picu-placeholders';
+import { picuRespiratoryFailureProtocol } from './picu-respiratory-failure';
+import { picuSepticShockProtocol } from './picu-septic-shock';
+import { picuRaisedIcpProtocol } from './picu-raised-icp';
+import { picuStatusEpilepticusProtocol } from './picu-status-epilepticus';
+import { picuSevereDkaProtocol } from './picu-severe-dka';
+import { picuAkiCrrtProtocol } from './picu-aki-crrt';
+import { picuShockApproachProtocol } from './picu-shock-approach';
+import { picuPostArrestProtocol } from './picu-post-arrest';
+import { picuCardiogenicShockProtocol } from './picu-cardiogenic-shock';
+import { picuComaProtocol } from './picu-coma';
+import { picuSedationWithdrawalProtocol } from './picu-sedation-withdrawal';
+import { picuFluidElectrolytesProtocol } from './picu-fluid-electrolytes';
+import { picuExtubationReadinessProtocol } from './picu-extubation-readiness';
+import { picuPneumothoraxProtocol } from './picu-pneumothorax';
+import { picuStatusAsthmaticusProtocol } from './picu-status-asthmaticus';
+import { picuSvtVtProtocol } from './picu-svt-vt';
+import { picuHypertensiveEmergencyProtocol } from './picu-hypertensive-emergency';
+import { picuCriticalElectrolytesProtocol } from './picu-critical-electrolytes';
+import { picuSepsisProtocol } from './picu-sepsis';
+import { picuFebrileNeutropeniaProtocol } from './picu-febrile-neutropenia';
+import { picuSevereAnemiaProtocol } from './picu-severe-anemia';
+import { picuDicBleedingProtocol } from './picu-dic-bleeding';
+import { picuUnknownPoisoningProtocol } from './picu-unknown-poisoning';
+import { picuOrganophosphateProtocol } from './picu-organophosphate';
+import { picuEnvenomationProtocol } from './picu-envenomation';
 
 export const allProtocols: DiseaseProtocol[] = [
   ...picuPlaceholders,
+  picuRespiratoryFailureProtocol,
+  picuSepticShockProtocol,
+  picuRaisedIcpProtocol,
+  picuStatusEpilepticusProtocol,
+  picuSevereDkaProtocol,
+  picuAkiCrrtProtocol,
+  picuShockApproachProtocol,
+  picuPostArrestProtocol,
+  picuCardiogenicShockProtocol,
+  picuComaProtocol,
+  picuSedationWithdrawalProtocol,
+  picuFluidElectrolytesProtocol,
+  picuExtubationReadinessProtocol,
+  picuPneumothoraxProtocol,
+  picuStatusAsthmaticusProtocol,
+  picuSvtVtProtocol,
+  picuHypertensiveEmergencyProtocol,
+  picuCriticalElectrolytesProtocol,
+  picuSepsisProtocol,
+  picuFebrileNeutropeniaProtocol,
+  picuSevereAnemiaProtocol,
+  picuDicBleedingProtocol,
+  picuUnknownPoisoningProtocol,
+  picuOrganophosphateProtocol,
+  picuEnvenomationProtocol,
   bronchiolitisProtocol,
   asthmaProtocol,
   croupProtocol,

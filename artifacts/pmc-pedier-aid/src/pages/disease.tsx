@@ -13,6 +13,14 @@ import { HFOVProtocol } from "@/app/hfov/hfov-protocol";
 
 import { MechVentProtocol } from "@/app/mech-vent/mech-vent-protocol";
 
+import { ARDSProtocol } from "@/app/ards/ards-protocol";
+
+import { NIVProtocol } from "@/app/niv/niv-protocol";
+
+import { VentTroubleshootingProtocol } from "@/app/vent-troubleshooting/vent-troubleshooting-protocol";
+
+import { PicuGlossaryPanel } from "@/components/picu-glossary-panel";
+
 export default function DiseasePage() {
   const params = useParams<{ diseaseId: string }>();
   const { isLoading } = useProtocolsContext();
@@ -37,6 +45,9 @@ export default function DiseasePage() {
   }
 
   const isWard = protocol.unit === 'ward';
+  // Any protocol carrying a Master Management Pathway renders the rich staged view,
+  // regardless of unit (used by Ward and now PICU management protocols).
+  const useMMPView = !!protocol.mmpData;
   const pinned = isPinned({ type: 'protocol', id: protocol.id });
 
   return (
@@ -105,11 +116,19 @@ export default function DiseasePage() {
         <HFOVProtocol />
       ) : protocol.id === 'picu-mech-ventilation' ? (
         <MechVentProtocol />
-      ) : isWard ? (
+      ) : protocol.id === 'picu-ards' ? (
+        <ARDSProtocol />
+      ) : protocol.id === 'picu-niv' ? (
+        <NIVProtocol />
+      ) : protocol.id === 'picu-vent-troubleshooting' ? (
+        <VentTroubleshootingProtocol />
+      ) : (isWard || useMMPView) ? (
         <WardMMPView protocol={protocol} />
       ) : (
         <AssessmentForm diseaseId={params.diseaseId} />
       )}
+
+      {protocol.unit === 'picu' && <PicuGlossaryPanel protocol={protocol} />}
     </div>
   );
 }

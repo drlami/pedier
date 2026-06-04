@@ -2,6 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { DiseaseProtocol } from '@/lib/protocols/types';
+import { PicuDkaCalculator } from '@/components/calculators/picu-dka-calculator';
+import { VasoactiveCalculator } from '@/components/calculators/vasoactive-calculator';
+import { SedationWeaningCalculator } from '@/components/calculators/sedation-weaning-calculator';
+import { SedationScoresCalculator } from '@/components/calculators/sedation-scores-calculator';
+import { OICalculator } from '@/components/calculators/oi-calculator';
+import { MapCppCalculator } from '@/components/calculators/map-cpp-calculator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
@@ -271,7 +277,7 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
               <div>
                 <h4 className="font-black text-sm tracking-tight uppercase">Management Pathway</h4>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-blue-500/20 text-blue-300 border-none text-[9px] font-black tracking-widest px-1.5 h-4">WARD DIRECTIVE</Badge>
+                  <Badge className="bg-blue-500/20 text-blue-300 border-none text-[9px] font-black tracking-widest px-1.5 h-4">{protocol.unit === 'picu' ? 'PICU DIRECTIVE' : 'WARD DIRECTIVE'}</Badge>
                   <span className="text-[10px] font-bold text-slate-400 italic">Review: {protocol.lastUpdated || 'May 2026'}</span>
                 </div>
               </div>
@@ -412,6 +418,12 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
                                 {card.calculator.id === 'westley-score' && <WestleyCalculator />}
                                 {card.calculator.id === 'aki-fluid-calc' && <FluidTitrationCalculator weight={weight} />}
                                 {card.calculator.id === 'dka-fluid-calc' && <DkaTwoBagCalculator weight={weight} />}
+                                {card.calculator.id === 'picu-dka-calc' && <PicuDkaCalculator weight={weight} />}
+                                {card.calculator.id === 'picu-vasoactive-calc' && <VasoactiveCalculator weight={weight} />}
+                                {card.calculator.id === 'sedation-weaning-calc' && <SedationWeaningCalculator weight={weight} />}
+                                {card.calculator.id === 'sedation-scores' && <SedationScoresCalculator />}
+                                {card.calculator.id === 'oi-calc' && <OICalculator />}
+                                {card.calculator.id === 'map-cpp-calc' && <MapCppCalculator />}
                                 {card.calculator.id === 'chf-management-calc' && <ChfManagementCalculator weight={weight} />}
                                 {card.calculator.id === 'bp-safety-calc' && <BpSafetyCalculator weight={weight} />}
                                 {card.calculator.id === 'gbs-clinical-monitor' && <GbsClinicalMonitor weight={weight} />}
