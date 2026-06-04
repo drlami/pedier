@@ -136,3 +136,29 @@ export const calculateCorrectedCalcium = (measuredCa: number, albumin: number): 
   if (albumin >= 4.0) return measuredCa;
   return measuredCa + 0.8 * (4.0 - albumin);
 };
+
+/**
+ * Oxygenation Index (OI) — PALICC-2 primary severity index
+ * Requires invasive MV with PEEP ≥5 cmH₂O per PALICC-2
+ * @param fio2Fraction FiO2 as a fraction (0.21–1.0)
+ * @param mapCmH2O Mean airway pressure in cmH₂O
+ * @param pao2mmHg Arterial PaO2 in mmHg
+ * @returns OI (dimensionless)
+ */
+export const calculateOI = (fio2Fraction: number, mapCmH2O: number, pao2mmHg: number): number => {
+  if (pao2mmHg <= 0) return 0;
+  return (fio2Fraction * mapCmH2O * 100) / pao2mmHg;
+};
+
+/**
+ * Oxygen Saturation Index (OSI) — PALICC-2 non-invasive surrogate for OI
+ * Valid only when SpO2 ≤ 97% (saturation curve linear region)
+ * @param fio2Fraction FiO2 as a fraction (0.21–1.0)
+ * @param mapCmH2O Mean airway pressure in cmH₂O
+ * @param spo2Percent SpO2 as a percentage (1–100)
+ * @returns OSI (dimensionless)
+ */
+export const calculateOSI = (fio2Fraction: number, mapCmH2O: number, spo2Percent: number): number => {
+  if (spo2Percent <= 0) return 0;
+  return (fio2Fraction * mapCmH2O * 100) / spo2Percent;
+};
