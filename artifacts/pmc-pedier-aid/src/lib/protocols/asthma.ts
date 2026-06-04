@@ -2,7 +2,7 @@ import type { DiseaseProtocol, ErData, FormData, Severity, SeverityLevel } from 
 
 const erData: ErData = {
   historyChecklist: [
-    { id: 'duration',    question: 'How long has wheezing / breathlessness been present?', ifYes: 'Onset helps distinguish acute vs. chronic exacerbation' },
+    { id: 'sudden_onset', question: 'Sudden onset over minutes (rather than gradual over hours/days)?', redFlag: true, ifYes: 'Reconsider the diagnosis — anaphylaxis, foreign body aspiration, or inhaled irritant. Especially if first episode.' },
     { id: 'first',       question: 'First episode ever (no prior asthma diagnosis)?', ifYes: 'Broaden differential — consider FBA, vascular ring, vocal cord dysfunction' },
     { id: 'icu',         question: 'Previous ICU admission or intubation for asthma?', redFlag: true, ifYes: 'HIGH RISK — lower threshold for admission, senior review, early PICU notification' },
     { id: 'saba',        question: 'Using reliever inhaler (SABA) > 2× per week at baseline?', redFlag: true, ifYes: 'Poorly controlled asthma — escalate controller therapy at follow-up' },
