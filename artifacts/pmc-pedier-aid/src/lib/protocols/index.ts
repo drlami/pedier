@@ -172,6 +172,16 @@ import { wardAkiProtocol } from './ward-aki';
 import { wardHusProtocol } from './ward-hus';
 import { wardCkdOptimizationProtocol } from './ward-ckd-optimization';
 import { picuPlaceholders } from './picu-placeholders';
+import { nicuStubs } from './nicu-stubs';
+import { nicuRdsProtocol } from './nicu-rds';
+import { nicuTtnProtocol } from './nicu-ttn';
+import { nicuMasProtocol } from './nicu-mas';
+import { nicuPphnProtocol } from './nicu-pphn';
+import { nicuBpdProtocol } from './nicu-bpd';
+import { nicuApneaProtocol } from './nicu-apnea';
+import { nicuAirLeakProtocol } from './nicu-air-leak';
+import { nicuCongenitalPneumoniaProtocol } from './nicu-congenital-pneumonia';
+import { nicuPulmonaryHemorrhageProtocol } from './nicu-pulmonary-hemorrhage';
 import { picuRespiratoryFailureProtocol } from './picu-respiratory-failure';
 import { picuSepticShockProtocol } from './picu-septic-shock';
 import { picuRaisedIcpProtocol } from './picu-raised-icp';
@@ -199,6 +209,20 @@ import { picuOrganophosphateProtocol } from './picu-organophosphate';
 import { picuEnvenomationProtocol } from './picu-envenomation';
 
 export const allProtocols: DiseaseProtocol[] = [
+  // NICU — Respiratory (full protocols)
+  nicuRdsProtocol,
+  nicuTtnProtocol,
+  nicuMasProtocol,
+  nicuPphnProtocol,
+  nicuBpdProtocol,
+  nicuApneaProtocol,
+  nicuAirLeakProtocol,
+  nicuCongenitalPneumoniaProtocol,
+  nicuPulmonaryHemorrhageProtocol,
+  // NICU — remaining stubs (other systems)
+  ...nicuStubs,
+
+  // PICU
   ...picuPlaceholders,
   picuRespiratoryFailureProtocol,
   picuSepticShockProtocol,

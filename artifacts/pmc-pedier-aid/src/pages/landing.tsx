@@ -104,32 +104,29 @@ export default function LandingPage() {
           </Link>
 
           {/* NEONATAL ICU CARD */}
-          <div className="group relative overflow-hidden rounded-[40px] border-2 border-teal-100 bg-teal-50/50 p-8 transition-all opacity-80 hover:opacity-100 cursor-not-allowed">
+          <Link href="/nicu" className="group relative overflow-hidden rounded-[40px] border-2 border-teal-100 bg-teal-50/50 p-8 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-teal-200/50 active:scale-[0.98]">
             <div className="relative z-10 flex flex-col h-full justify-between min-h-[220px]">
               <div className="space-y-6">
                 <div className="w-16 h-16 rounded-[24px] bg-teal-600 text-white flex items-center justify-center shadow-lg shadow-teal-200">
                   <Baby className="h-9 w-9" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-black tracking-tight text-teal-900 flex items-center gap-3">
-                    Neonatal ICU
-                    <span className="text-[10px] font-black tracking-widest uppercase bg-teal-200 text-teal-800 px-2 py-1 rounded-lg">Coming Soon</span>
-                  </h2>
+                  <h2 className="text-3xl font-black tracking-tight text-teal-900">Neonatal ICU</h2>
                   <p className="text-teal-700/70 font-medium leading-relaxed">
-                    Premature care, hyperbilirubinemia advanced protocols, and neonatal resuscitation.
+                    Neonatal protocols, NeoDose drug calculator, and resuscitation tools.
                   </p>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2 text-teal-400 font-bold text-sm mt-8">
-                Section in Development <ChevronRight className="h-4 w-4" />
+
+              <div className="flex items-center gap-2 text-teal-600 font-bold text-sm mt-8 group-hover:gap-3 transition-all">
+                Enter Neonatal Unit <ChevronRight className="h-4 w-4" />
               </div>
             </div>
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 bg-teal-100/50 rounded-full blur-3xl group-hover:bg-teal-200/50 transition-colors" />
             <div className="absolute bottom-4 right-8 opacity-5 group-hover:opacity-10 transition-opacity">
               <Baby className="w-32 h-32 text-teal-900" />
             </div>
-          </div>
+          </Link>
         </div>
 
         <div className="text-center">

@@ -116,6 +116,43 @@ export interface MasterManagementPathway {
   stages: MMPStage[];
 }
 
+// ─── ER Interactive Data ──────────────────────────────────────────────────────
+
+export interface ErHistoryItem {
+  id: string;
+  question: string;
+  redFlag?: boolean;
+  ifYes?: string;
+}
+
+export interface ErInvestigation {
+  test: string;
+  category: 'urgent' | 'blood' | 'radiology' | 'other';
+  indication?: string;
+  criticalValue?: string;
+}
+
+export interface ErTimerStep {
+  minutesMark: number;
+  label: string;
+  action: string;
+}
+
+export interface ErData {
+  historyChecklist: ErHistoryItem[];
+  investigations: ErInvestigation[];
+  admissionCriteria: string[];          // Absolute — admit regardless of response
+  highRiskFactors?: string[];           // Lower threshold — admit if incomplete response or borderline
+  dischargeCriteria: string[];
+  safetyNetting: string[];
+  timer?: {
+    label: string;
+    steps: ErTimerStep[];
+  };
+}
+
+// ─── DiseaseProtocol ──────────────────────────────────────────────────────────
+
 export interface DiseaseProtocol {
   id: string;
   name: string;
@@ -130,7 +167,8 @@ export interface DiseaseProtocol {
   };
   questions: Question[];
   wardHandbook?: WardHandbookData; // Legacy / Fallback
-  mmpData?: MasterManagementPathway; // The new professional engine
+  mmpData?: MasterManagementPathway; // Staged pathway (NICU/PICU)
+  erData?: ErData; // Interactive ER mode
   calculateSeverity: (data: FormData) => Severity;
   getInvestigations?: (severity: Severity, data: FormData) => { title: string; list: string[] }[];
   getManagement: (severity: Severity, data: FormData) => { title: string; recommendations: string[] }[];

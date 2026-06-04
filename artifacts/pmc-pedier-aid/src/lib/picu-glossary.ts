@@ -86,6 +86,31 @@ export const PICU_GLOSSARY: GlossaryTerm[] = [
   // Imaging
   { term: 'POCUS', full: 'Point-of-Care Ultrasound', def: 'Bedside ultrasound (e.g. for pneumothorax, cardiac function, volume).' },
   { term: 'CXR', full: 'Chest X-ray', def: 'Chest radiograph.' },
+
+  // Neonatal
+  { term: 'PMA', full: 'Postmenstrual Age', def: 'Gestational age + postnatal age, in weeks — the key maturity variable for neonatal drug dosing.' },
+  { term: 'PNA', full: 'Postnatal Age', def: 'Age since birth (days) — affects dosing intervals and fluid needs.' },
+  { term: 'GA', full: 'Gestational Age', def: 'Completed weeks of pregnancy at birth.' },
+  { term: 'RDS', full: 'Respiratory Distress Syndrome', def: 'Surfactant-deficiency lung disease of prematurity; treated with CPAP ± surfactant.' },
+  { term: 'TTN', full: 'Transient Tachypnea of the Newborn', def: 'Delayed clearance of fetal lung fluid; self-limiting tachypnea.' },
+  { term: 'MAS', full: 'Meconium Aspiration Syndrome', def: 'Respiratory distress from aspirated meconium; risk of PPHN/air leak.' },
+  { term: 'PPHN', full: 'Persistent Pulmonary Hypertension of the Newborn', def: 'Failure of the normal fall in pulmonary vascular resistance → right-to-left shunting and hypoxemia.' },
+  { term: 'BPD', full: 'Bronchopulmonary Dysplasia (chronic lung disease)', def: 'Chronic lung disease of prematurity; oxygen dependence at 36 weeks PMA.' },
+  { term: 'CPAP', full: 'Continuous Positive Airway Pressure', def: 'Continuous distending pressure to keep alveoli open — first-line for neonatal RDS.' },
+  { term: 'INSURE', full: 'INtubate–SURfactant–Extubate', def: 'Give surfactant via brief intubation then extubate back to CPAP. (LISA/MIST = less-invasive surfactant administration.)', match: ['INSURE', 'LISA', 'MIST'] },
+  { term: 'surfactant', full: 'Pulmonary surfactant', def: 'Replacement therapy that lowers alveolar surface tension in RDS.', match: ['surfactant'] },
+  { term: 'PDA', full: 'Patent Ductus Arteriosus', def: 'Persistent ductal flow; may need fluid restriction, ibuprofen/indomethacin/paracetamol, or closure.' },
+  { term: 'NEC', full: 'Necrotising Enterocolitis', def: 'Inflammatory bowel necrosis of (mostly preterm) neonates; staged by Modified Bell criteria.' },
+  { term: 'HIE', full: 'Hypoxic-Ischemic Encephalopathy', def: 'Brain injury from perinatal asphyxia; graded by Sarnat/Thompson; may need therapeutic hypothermia.' },
+  { term: 'IVH', full: 'Intraventricular Haemorrhage', def: 'Germinal-matrix/ventricular bleeding in preterm infants; graded I–IV.' },
+  { term: 'NAS', full: 'Neonatal Abstinence Syndrome', def: 'Withdrawal in infants of opioid-exposed mothers; scored by Finnegan or Eat-Sleep-Console.' },
+  { term: 'EOS', full: 'Early-Onset Sepsis', def: 'Neonatal sepsis ≤ 72 h of life; risk estimated with the Kaiser EOS calculator.' },
+  { term: 'LOS', full: 'Late-Onset Sepsis', def: 'Neonatal sepsis > 72 h of life, often catheter/healthcare-associated.' },
+  { term: 'GIR', full: 'Glucose Infusion Rate', def: 'mg/kg/min of glucose delivered: (% dextrose × rate mL/h × 0.167) ÷ weight(kg). Titrated for hypoglycemia.' },
+  { term: 'NRP', full: 'Neonatal Resuscitation Program', def: 'The delivery-room resuscitation algorithm for newborns.' },
+  { term: 'IDM', full: 'Infant of a Diabetic Mother', def: 'At risk of hypoglycemia, macrosomia, hypocalcemia, polycythemia, cardiomyopathy.' },
+  { term: 'Sarnat', full: 'Sarnat staging (HIE)', def: 'Grades HIE severity (mild/moderate/severe) by consciousness, tone, reflexes, autonomic signs.' },
+  { term: 'Silverman', full: 'Silverman-Andersen score', def: 'Scores neonatal respiratory distress (retractions, grunting, nasal flaring).', match: ['Silverman'] },
 ];
 
 function tokenInText(text: string, token: string): boolean {

@@ -3,6 +3,7 @@ import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-conte
 import { usePinnedItems } from "@/contexts/pinned-items-context";
 import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
 import { WardMMPView } from "@/app/diseases/[diseaseId]/ward-mmp-view";
+import { ErProtocolView } from "@/app/diseases/[diseaseId]/er-protocol-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Stethoscope, Loader2, BookOpen, Activity, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ export default function DiseasePage() {
   }
 
   const isWard = protocol.unit === 'ward';
+  const useErView = !!protocol.erData;
   // Any protocol carrying a Master Management Pathway renders the rich staged view,
   // regardless of unit (used by Ward and now PICU management protocols).
   const useMMPView = !!protocol.mmpData;
@@ -122,13 +124,15 @@ export default function DiseasePage() {
         <NIVProtocol />
       ) : protocol.id === 'picu-vent-troubleshooting' ? (
         <VentTroubleshootingProtocol />
+      ) : useErView ? (
+        <ErProtocolView protocol={protocol} />
       ) : (isWard || useMMPView) ? (
         <WardMMPView protocol={protocol} />
       ) : (
         <AssessmentForm diseaseId={params.diseaseId} />
       )}
 
-      {protocol.unit === 'picu' && <PicuGlossaryPanel protocol={protocol} />}
+      {(protocol.unit === 'picu' || protocol.unit === 'nicu') && <PicuGlossaryPanel protocol={protocol} />}
     </div>
   );
 }

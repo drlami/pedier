@@ -17,6 +17,9 @@ import ERDashboard from "@/pages/er-dashboard";
 import LandingPage from "@/pages/landing";
 import WardDashboard from "@/pages/ward-dashboard";
 import PICUDashboard from "@/pages/picu-dashboard";
+import NICUDashboard from "@/pages/nicu-dashboard";
+import NeonatalToolsPage from "@/pages/neonatal-tools";
+import NicuDrugsPage from "@/pages/nicu-drugs";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
@@ -170,6 +173,8 @@ function Router() {
       <Route path="/er" component={() => <ProtectedRoute component={ERDashboard} />} />
       <Route path="/ward" component={() => <ProtectedRoute component={WardDashboard} />} />
       <Route path="/picu" component={() => <ProtectedRoute component={PICUDashboard} />} />
+      <Route path="/nicu/drugs" component={() => <ProtectedRoute component={NicuDrugsPage} />} />
+      <Route path="/nicu" component={() => <ProtectedRoute component={NICUDashboard} />} />
 
       {/* Specific Routes first */}
       <Route path="/cardiac-arrest" component={() => <ProtectedRoute component={CardiacArrestPage} />} />
