@@ -13,10 +13,7 @@ import { fbaProtocol } from './fba';
 import { cyanosisProtocol } from './cyanosis';
 import { apneaProtocol } from './apnea';
 import { cervicalLymphadenitisProtocol } from './cervical-lymphadenitis';
-import { fever1To2MonthsProtocol } from './fever-1-2-months';
-import { fever2To3MonthsProtocol } from './fever-2-3-months';
-import { fever3To36MonthsProtocol } from './fever-3-36-months';
-import { feverNeonateProtocol } from './fever-neonate';
+import { feverWithoutSourceProtocol } from './fever-without-source';
 import { feverNeutropeniaProtocol } from './fever-neutropenia';
 import { feverRashProtocol } from './fever-rash';
 import { mastoiditisProtocol } from './mastoiditis';
@@ -25,8 +22,8 @@ import { orbitalCellulitisProtocol } from './orbital-cellulitis';
 import { periorbitalCellulitisProtocol } from './periorbital-cellulitis';
 import { septicShockProtocol } from './septic-shock';
 import { sstiProtocol } from './ssti';
-import { toxicAssessmentProtocol } from './toxic-assessment';
-import { viralVsBacterialProtocol } from './viral-vs-bacterial';
+import { tachycardiaSvtProtocol } from './tachycardia-svt';
+import { heartFailureMyocarditisProtocol } from './heart-failure-myocarditis';
 import { febrileSeizureProtocol } from './febrile-seizure';
 import { firstAfebrileSeizureProtocol } from './first-afebrile-seizure';
 import { statusEpilepticusProtocol } from './status-epilepticus';
@@ -39,22 +36,16 @@ import { pedsStrokeProtocol } from './peds-stroke';
 import { persistentVomitingProtocol } from './persistent-vomiting';
 import { biliousVomitingProtocol } from './bilious-vomiting';
 import { abdominalPainProtocol } from './abdominal-pain';
-import { constipationVsObstructionProtocol } from './constipation-vs-obstruction';
+import { abdominalDistentionConstipationProtocol } from './abdominal-distention-constipation';
 import { giBleedingProtocol } from './gi-bleeding';
 import { intussusceptionProtocol } from './intussusception';
-import { abdominalDistentionProtocol } from './abdominal-distention';
 import { shockManagementProtocol } from './shock-management';
-import { fluidResuscitationProtocol } from './fluid-resuscitation';
 import { anaphylacticShockProtocol } from './anaphylactic-shock';
 import { bradycardiaProtocol } from './bradycardia';
-import { tachycardiaProtocol } from './tachycardia';
-import { svtProtocol } from './svt';
 import { murmurWithSymptomsProtocol } from './murmur-with-symptoms';
 import { chestPainInChildrenProtocol } from './chest-pain-in-children';
 import { syncopeProtocol } from './syncope';
 import { palpitationsProtocol } from './palpitations';
-import { suspectedMyocarditisProtocol } from './suspected-myocarditis';
-import { suspectedHeartFailureProtocol } from './suspected-heart-failure';
 import { snakeBiteProtocol } from './snake-bite';
 import { scorpionStingProtocol } from './scorpion-sting';
 import { paracetamolToxicityProtocol } from './paracetamol-toxicity';
@@ -73,16 +64,12 @@ import { hyponatremiaProtocol } from './hyponatremia';
 import { hypercalcemiaProtocol } from './hypercalcemia';
 import { hypocalcemiaProtocol } from './hypocalcemia';
 import { acuteRenalFailureProtocol } from './acute-renal-failure';
-import { chronicRenalFailureProtocol } from './chronic-renal-failure';
-import { nephroticSyndromeProtocol } from './nephrotic-syndrome';
-import { nephriticSyndromeProtocol } from './nephritic-syndrome';
 import { urinaryTractInfectionProtocol } from './urinary-tract-infection';
 import { metabolicCrisisProtocol } from './metabolic-crisis';
 
 
 import { headTraumaProtocol } from './head-trauma';
 import { smokeInhalationProtocol } from './smoke-inhalation-burns';
-import { oxygenEscalationProtocol } from './oxygen-escalation-guide';
 import { vpShuntMalfunctionProtocol } from './vp-shunt-malfunction';
 import { wardPneumoniaCapProtocol } from './ward-pneumonia-cap';
 import { wardAsthmaProtocol } from './ward-asthma';
@@ -256,17 +243,13 @@ export const allProtocols: DiseaseProtocol[] = [
   headTraumaProtocol,
   pneumoniaProtocol,
   smokeInhalationProtocol,
-  oxygenEscalationProtocol,
   tracheitisProtocol,
   epiglottitisProtocol,
   fbaProtocol,
   cyanosisProtocol,
   apneaProtocol,
   cervicalLymphadenitisProtocol,
-  fever1To2MonthsProtocol,
-  fever2To3MonthsProtocol,
-  fever3To36MonthsProtocol,
-  feverNeonateProtocol,
+  feverWithoutSourceProtocol,
   feverNeutropeniaProtocol,
   feverRashProtocol,
   mastoiditisProtocol,
@@ -274,8 +257,6 @@ export const allProtocols: DiseaseProtocol[] = [
   orbitalCellulitisProtocol,
   periorbitalCellulitisProtocol,
   sstiProtocol,
-  toxicAssessmentProtocol,
-  viralVsBacterialProtocol,
   febrileSeizureProtocol,
   firstAfebrileSeizureProtocol,
   statusEpilepticusProtocol,
@@ -289,22 +270,19 @@ export const allProtocols: DiseaseProtocol[] = [
   persistentVomitingProtocol,
   biliousVomitingProtocol,
   abdominalPainProtocol,
-  constipationVsObstructionProtocol,
+  abdominalDistentionConstipationProtocol,
   giBleedingProtocol,
   intussusceptionProtocol,
-  abdominalDistentionProtocol,
   shockManagementProtocol,
-  fluidResuscitationProtocol,
+  septicShockProtocol,
   anaphylacticShockProtocol,
   bradycardiaProtocol,
-  tachycardiaProtocol,
-  svtProtocol,
+  tachycardiaSvtProtocol,
+  heartFailureMyocarditisProtocol,
   murmurWithSymptomsProtocol,
   chestPainInChildrenProtocol,
   syncopeProtocol,
   palpitationsProtocol,
-  suspectedMyocarditisProtocol,
-  suspectedHeartFailureProtocol,
   snakeBiteProtocol,
   scorpionStingProtocol,
   paracetamolToxicityProtocol,
@@ -323,9 +301,6 @@ export const allProtocols: DiseaseProtocol[] = [
   hypercalcemiaProtocol,
   hypocalcemiaProtocol,
   acuteRenalFailureProtocol,
-  chronicRenalFailureProtocol,
-  nephroticSyndromeProtocol,
-  nephriticSyndromeProtocol,
   urinaryTractInfectionProtocol,
   metabolicCrisisProtocol,
   wardPneumoniaCapProtocol,

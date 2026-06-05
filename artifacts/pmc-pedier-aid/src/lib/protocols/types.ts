@@ -14,6 +14,7 @@ export interface Question {
   placeholder?: string;
   unit?: string;
   info?: string;
+  questionGroup?: 'suspicion' | 'severity';
 }
 
 export type SeverityLevel = 'mild' | 'moderate' | 'severe' | 'critical' | 'low' | 'some' | 'no' | 'impending respiratory failure' | 'unknown';
@@ -31,6 +32,8 @@ export interface Severity {
   score?: number;
   scoreDetails?: StandardizedScore;
   details: string[];
+  diagnosticConfidence?: 'high' | 'moderate' | 'low';
+  alternativeProtocol?: { id: string; name: string };
 }
 
 export type FormData = { [key: string]: string | number | boolean | undefined };

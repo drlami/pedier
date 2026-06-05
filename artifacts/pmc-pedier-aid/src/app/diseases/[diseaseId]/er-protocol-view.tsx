@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle, CheckCircle2, FlaskConical, Stethoscope, LogOut, History,
-  Activity, Copy, Check,
+  Activity, Copy, Check, HelpCircle, ArrowRight,
 } from 'lucide-react';
+import { Link } from 'wouter';
 import {
   getVitalsNormals, parseAgeToMonths, hrStatus, rrStatus, spo2Status,
   statusColor, statusLabel, type VitalsNormals,
@@ -59,6 +60,77 @@ function VitalInput({
 
 // ─── ASSESS TAB ──────────────────────────────────────────────────────────────
 
+function QuestionCard({ q, val, onSelect }: {
+  q: import('@/lib/protocols/types').Question;
+  val: string | number | boolean | undefined;
+  onSelect: (v: string | number | boolean) => void;
+}) {
+  if (q.type === 'select' && q.options) {
+    return (
+      <div className="bg-card rounded-2xl border p-4 space-y-2.5">
+        <div className="text-sm font-black text-foreground">{q.questionText}</div>
+        <div className="flex flex-wrap gap-2">
+          {q.options.map(opt => {
+            const selected = String(val) === String(opt.value);
+            const score = opt.score ?? 0;
+            const isHigh = score >= 2;
+            return (
+              <button
+                key={String(opt.value)}
+                onClick={() => onSelect(opt.value as string | number)}
+                className={cn(
+                  'px-3 py-2 rounded-xl text-xs font-black transition-all border-2',
+                  selected
+                    ? isHigh
+                      ? 'bg-red-500 text-white border-red-500'
+                      : score === 1
+                      ? 'bg-amber-500 text-white border-amber-500'
+                      : 'bg-emerald-500 text-white border-emerald-500'
+                    : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80',
+                )}
+              >
+                {opt.label}
+                {opt.score !== undefined && <span className="ml-1 opacity-70">+{opt.score}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  if (q.type === 'boolean') {
+    return (
+      <div className="bg-card rounded-2xl border p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-black text-foreground">{q.questionText}</div>
+            {q.info && <div className="text-xs text-muted-foreground mt-0.5">{q.info}</div>}
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {['Yes', 'No'].map(opt => (
+              <button
+                key={opt}
+                onClick={() => onSelect(opt === 'Yes')}
+                className={cn(
+                  'px-4 py-2 rounded-xl text-xs font-black border-2 transition-all',
+                  String(val) === String(opt === 'Yes')
+                    ? opt === 'Yes'
+                      ? 'bg-red-500 text-white border-red-500'
+                      : 'bg-emerald-500 text-white border-emerald-500'
+                    : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80',
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 function AssessTab({ protocol, formData, setFormData, weight }: {
   protocol: DiseaseProtocol;
   formData: FormData;
@@ -66,8 +138,16 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
   weight: number;
 }) {
   const severity = useMemo(() => protocol.calculateSeverity(formData), [formData, protocol]);
-  const answered = protocol.questions.filter(q => q.id !== 'weight' && formData[q.id] !== undefined).length;
-  const scorable = protocol.questions.filter(q => q.id !== 'weight' && q.type === 'select').length;
+
+  // Split questions into suspicion group vs severity group
+  const allQ = protocol.questions.filter(q => q.id !== 'weight');
+  const suspicionQs = allQ.filter(q => q.questionGroup === 'suspicion');
+  const severityQs  = allQ.filter(q => q.questionGroup !== 'suspicion');
+  const hasSuspicionGroup = suspicionQs.length > 0;
+
+  const suspicionAnswered = suspicionQs.filter(q => formData[q.id] !== undefined).length;
+  const answered = allQ.filter(q => formData[q.id] !== undefined).length;
+  const scorable  = allQ.filter(q => q.type === 'select').length;
 
   const severityStyleMap: Record<string, { bg: string; text: string; badge: string }> = {
     mild:    { bg: 'bg-emerald-50 border-emerald-300', text: 'text-emerald-800', badge: 'bg-emerald-500' },
@@ -82,9 +162,80 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
   };
   const ss = severityStyleMap[severity.level] ?? severityStyleMap.unknown;
 
+  // Diagnostic confidence banner config
+  const conf = severity.diagnosticConfidence;
+  const confConfig = conf === 'high'
+    ? { bg: 'bg-emerald-50 border-emerald-200', icon: 'text-emerald-600', text: 'text-emerald-800', label: 'High diagnostic confidence', icon2: CheckCircle2 }
+    : conf === 'moderate'
+    ? { bg: 'bg-amber-50 border-amber-200',   icon: 'text-amber-600',   text: 'text-amber-800',   label: 'Moderate diagnostic confidence', icon2: HelpCircle }
+    : conf === 'low'
+    ? { bg: 'bg-orange-50 border-orange-300', icon: 'text-orange-600',  text: 'text-orange-800',  label: 'Low diagnostic confidence', icon2: AlertTriangle }
+    : null;
+
+  const handleSet = (id: string, v: string | number | boolean) =>
+    setFormData({ ...formData, [id]: v });
+
   return (
     <div className="space-y-4">
-      {/* Score result */}
+
+      {/* ── DIAGNOSTIC CRITERIA section (only for protocols with suspicion questions) ── */}
+      {hasSuspicionGroup && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+              Diagnostic Criteria
+            </span>
+          </div>
+
+          {suspicionQs.map(q => (
+            <QuestionCard key={q.id} q={q} val={formData[q.id]} onSelect={v => handleSet(q.id, v)} />
+          ))}
+
+          {/* Confidence banner — only appears once ≥1 suspicion question is answered */}
+          {suspicionAnswered > 0 && confConfig && (
+            <div className={cn('rounded-2xl border-2 p-4', confConfig.bg)}>
+              <div className="flex items-start gap-3">
+                <confConfig.icon2 className={cn('h-5 w-5 shrink-0 mt-0.5', confConfig.icon)} />
+                <div className="flex-1 min-w-0">
+                  <div className={cn('text-sm font-black', confConfig.text)}>{confConfig.label}</div>
+                  {conf === 'low' && severity.alternativeProtocol && (
+                    <div className={cn('text-xs font-bold mt-1 leading-snug', confConfig.text)}>
+                      Clinical picture does not strongly support <span className="font-black">{protocol.name}</span>.
+                      Consider:{' '}
+                      <Link
+                        href={`/diseases/${severity.alternativeProtocol.id}`}
+                        className="underline inline-flex items-center gap-0.5 hover:opacity-80"
+                      >
+                        {severity.alternativeProtocol.name}
+                        <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+                  {conf === 'moderate' && (
+                    <div className={cn('text-xs font-medium mt-1', confConfig.text)}>
+                      Some features present — continue assessment carefully.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Divider before severity section */}
+          {severityQs.length > 0 && (
+            <div className="flex items-center gap-2 pt-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                Clinical Severity
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SEVERITY SCORE card ── */}
       <div className={cn('rounded-2xl border-2 p-4', ss.bg)}>
         <div className="flex items-center justify-between">
           <div>
@@ -113,7 +264,6 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
             ))}
           </div>
         </div>
-        {/* Score bar */}
         {severity.scoreDetails && (
           <div className="mt-3">
             <div className="h-2 bg-white/50 rounded-full overflow-hidden">
@@ -136,77 +286,11 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
         )}
       </div>
 
-      {/* Questions */}
+      {/* ── SEVERITY questions ── */}
       <div className="space-y-3">
-        {protocol.questions.filter(q => q.id !== 'weight').map(q => {
-          const val = formData[q.id];
-          if (q.type === 'select' && q.options) {
-            return (
-              <div key={q.id} className="bg-card rounded-2xl border p-4 space-y-2.5">
-                <div className="text-sm font-black text-foreground">{q.questionText}</div>
-                <div className="flex flex-wrap gap-2">
-                  {q.options.map(opt => {
-                    const selected = String(val) === String(opt.value);
-                    const score = opt.score ?? 0;
-                    const isHigh = score >= 2;
-                    return (
-                      <button
-                        key={String(opt.value)}
-                        onClick={() => setFormData({ ...formData, [q.id]: opt.value })}
-                        className={cn(
-                          'px-3 py-2 rounded-xl text-xs font-black transition-all border-2',
-                          selected
-                            ? isHigh
-                              ? 'bg-red-500 text-white border-red-500'
-                              : score === 1
-                              ? 'bg-amber-500 text-white border-amber-500'
-                              : 'bg-emerald-500 text-white border-emerald-500'
-                            : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
-                        )}
-                      >
-                        {opt.label}
-                        {opt.score !== undefined && (
-                          <span className="ml-1 opacity-70">+{opt.score}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          }
-          if (q.type === 'boolean') {
-            return (
-              <div key={q.id} className="bg-card rounded-2xl border p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-black text-foreground">{q.questionText}</div>
-                    {q.info && <div className="text-xs text-muted-foreground mt-0.5">{q.info}</div>}
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    {['Yes', 'No'].map(opt => (
-                      <button
-                        key={opt}
-                        onClick={() => setFormData({ ...formData, [q.id]: opt === 'Yes' })}
-                        className={cn(
-                          'px-4 py-2 rounded-xl text-xs font-black border-2 transition-all',
-                          String(val) === String(opt === 'Yes')
-                            ? opt === 'Yes'
-                              ? 'bg-red-500 text-white border-red-500'
-                              : 'bg-emerald-500 text-white border-emerald-500'
-                            : 'bg-muted border-transparent text-muted-foreground hover:bg-muted/80'
-                        )}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            );
-          }
-          return null;
-        })}
+        {severityQs.map(q => (
+          <QuestionCard key={q.id} q={q} val={formData[q.id]} onSelect={v => handleSet(q.id, v)} />
+        ))}
       </div>
 
       {/* Reset */}
@@ -677,22 +761,32 @@ function DisposeTab({ protocol }: { protocol: DiseaseProtocol }) {
 
 export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
   const [tab, setTab] = useState<TabId>('assess');
-  const [ageStr, setAgeStr] = useState('');
+  const [ageNum, setAgeNum] = useState('');
+  const [ageUnit, setAgeUnit] = useState<'days' | 'months' | 'years'>('months');
   const [weightStr, setWeightStr] = useState('');
   const [spo2Str, setSpo2Str] = useState('');
   const [hrStr, setHrStr] = useState('');
   const [formData, setFormData] = useState<FormData>({});
 
-  const ageMonths = useMemo(() => parseAgeToMonths(ageStr), [ageStr]);
+  const ageMonths = useMemo(() => {
+    const n = parseFloat(ageNum) || 0;
+    if (ageUnit === 'days')  return n / 30.4;
+    if (ageUnit === 'years') return n * 12;
+    return n;
+  }, [ageNum, ageUnit]);
   const weight = parseFloat(weightStr) || 0;
   const spo2 = parseFloat(spo2Str) || 0;
   const hr = parseFloat(hrStr) || 0;
   const normals: VitalsNormals = useMemo(() => getVitalsNormals(ageMonths), [ageMonths]);
 
-  // Keep weight in formData for drug dose calculations
+  // Sync weight and age into formData so protocols can use them
   useEffect(() => {
     if (weight > 0) setFormData(prev => ({ ...prev, weight }));
   }, [weight]);
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, ageMonths: ageMonths > 0 ? ageMonths : undefined }));
+  }, [ageMonths]);
 
   const severity = useMemo(() => protocol.calculateSeverity(formData), [formData, protocol]);
 
@@ -721,10 +815,31 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
           )}
         </div>
         <div className="flex gap-2 overflow-x-auto">
-          <VitalInput
-            label="Age" placeholder="e.g. 4y" value={ageStr}
-            onChange={setAgeStr}
-          />
+          <div className="flex-1 min-w-[130px]">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Age</div>
+            <div className="flex gap-1">
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={ageNum}
+                onChange={e => setAgeNum(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 w-14 shrink-0"
+              />
+              <select
+                value={ageUnit}
+                onChange={e => setAgeUnit(e.target.value as 'days' | 'months' | 'years')}
+                className="h-10 flex-1 text-xs font-bold rounded-xl border-2 border-input bg-background px-2 cursor-pointer"
+              >
+                <option value="days">Days</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+              </select>
+            </div>
+            {ageMonths > 0 && (
+              <div className="text-[10px] text-muted-foreground mt-0.5">{normals.ageLabel}</div>
+            )}
+          </div>
           <VitalInput
             label="Weight" unit="kg" placeholder="e.g. 18"
             value={weightStr} onChange={setWeightStr}

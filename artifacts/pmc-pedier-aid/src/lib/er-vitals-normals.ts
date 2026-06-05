@@ -70,14 +70,17 @@ export function statusLabel(s: VitalStatus, type: 'hr' | 'rr' | 'spo2', value: n
 export function parseAgeToMonths(input: string): number {
   if (!input.trim()) return 0;
   const lower = input.toLowerCase().trim();
-  // "18m" or "18 m"
-  const mOnly = lower.match(/^(\d+\.?\d*)\s*m$/);
+  // "22d" or "22 days"
+  const dOnly = lower.match(/^(\d+\.?\d*)\s*d(ay[s]?)?$/);
+  if (dOnly) return parseFloat(dOnly[1]) / 30.4;
+  // "18m" or "18 months"
+  const mOnly = lower.match(/^(\d+\.?\d*)\s*m(o(nth[s]?)?)?$/);
   if (mOnly) return parseFloat(mOnly[1]);
   // "2y6m" or "2y 6m"
   const ym = lower.match(/^(\d+\.?\d*)\s*y\s*(\d+\.?\d*)?\s*m?$/);
   if (ym) return parseFloat(ym[1]) * 12 + parseFloat(ym[2] || '0');
-  // "2y" or "2 y"
-  const yOnly = lower.match(/^(\d+\.?\d*)\s*y$/);
+  // "2y" or "2 years"
+  const yOnly = lower.match(/^(\d+\.?\d*)\s*y(ear[s]?)?$/);
   if (yOnly) return parseFloat(yOnly[1]) * 12;
   // plain number → interpret as years
   const plain = parseFloat(lower);
