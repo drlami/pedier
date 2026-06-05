@@ -162,11 +162,10 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
       recommendations: [
         '1. PICU / senior review NOW.',
         '2. HIGH-FLOW NASAL CANNULA (HFNC): start at 1 L/kg/min, O₂ titrated to SpO₂ ≥ 94%. Maximum 2 L/kg/min (max 25 L/min). If no improvement in 1–2 h → escalate.',
-        '3. Nebulised 3% hypertonic saline 4 mL q4–6h — evidence supports reduced length of stay in inpatients. Stop if bronchospasm occurs.',
+        '3. Nebulised 3% hypertonic saline 4 mL q4–6h — INPATIENT ONLY after ward/PICU admission. Evidence does NOT support use in the ER/ED (SALINE trial NEJM 2018; Cochrane 2023 — no reduction in admission rates). Stop if bronchospasm occurs.',
         '4. IV or NG fluid maintenance if RR > 60 (NPO) or oral intake < 50%.',
         '5. VBG if tiring, CO₂ rising, or SpO₂ not responding — PaCO₂ > 50 mmHg = respiratory failure.',
-        '6. Salbutamol TRIAL (0.15 mg/kg neb) ONLY if documented prior wheeze or strong family history of asthma. Assess objective response at 30 min. Stop if no benefit.',
-        '7. Do NOT use: adrenaline (epinephrine) nebulisation, oral/IV steroids, antibiotics, or chest physiotherapy routinely.',
+        '6. Do NOT use: adrenaline (epinephrine) nebulisation, oral/IV steroids, antibiotics, or chest physiotherapy routinely.',
       ],
     };
 
@@ -217,6 +216,7 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
             'Oxygen if SpO₂ < 92% — low-flow nasal cannula 0.5–1 L/min.',
             'Trial oral feeding; if RR > 60 or intake < 50% → NG feeds or IV fluids.',
             'Continuous SpO₂ monitoring throughout ER stay.',
+            'SALBUTAMOL TRIAL (selected patients only): offer ONE dose (0.15 mg/kg neb) if age ≥ 6 months AND family history of asthma/atopy, OR prior documented wheeze episode. Reassess Tal score + RR objectively at 30–60 min. If no measurable improvement → STOP, do not repeat. Document response clearly.',
             isHighRisk ? 'HIGH-RISK PATIENT: contact PICU early even at this severity level.' : '',
           ].filter(Boolean),
         },
@@ -224,6 +224,7 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
           title: 'STEP 2 — REASSESS Modified Tal Score at 2–4 hours',
           recommendations: [
             'Tal ≤ 5 + SpO₂ ≥ 92% + feeding ≥ 50% → eligible for discharge (see Dispose tab).',
+            'Salbutamol responder (documented Tal/RR improvement) → may continue q4–6h as bronchodilator therapy.',
             'Tal unchanged or worsening → admit to ward + STEP 3.',
             'Any apnea episode during observation → immediate PICU referral.',
           ],
@@ -290,9 +291,9 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
     const hfncMax  = Math.min((2 * wt), 25).toFixed(0);
 
     doses.push({ drugName: 'Nasal saline 0.9% (isotonic)', dose: '2–3 drops each nostril before suction and feeds', notes: 'Safe in all ages. DO NOT use hypertonic saline drops — nebulised only.' });
-    doses.push({ drugName: 'Nebulised 3% hypertonic saline (admitted patients)', dose: '4 mL via nebuliser q4–6h', notes: 'Inpatient use — reduces secretion viscosity. Stop if bronchospasm. Not indicated for outpatients.' });
+    doses.push({ drugName: 'Nebulised 3% hypertonic saline', dose: '4 mL via nebuliser q4–6h', notes: 'INPATIENT ONLY — start after ward/PICU admission. Evidence does NOT support ER use (SALINE trial, NEJM 2018; Cochrane 2023 — no reduction in ED admission rates). Inpatient benefit: modest reduction in length of stay. Stop if bronchospasm occurs.' });
     doses.push({ drugName: 'High-Flow Nasal Cannula (HFNC)', dose: `Start ${hfncFlow} L/min (1 L/kg/min), max ${hfncMax} L/min (2 L/kg/min)`, notes: 'Titrate FiO₂ to SpO₂ 92–95%. Escalate to CPAP if no improvement after 1–2 h.' });
-    doses.push({ drugName: 'Salbutamol neb — TRIAL ONLY if prior wheeze / atopy', dose: `${salb} mg (0.15 mg/kg) via nebuliser`, notes: 'Only if asthma history or strong family history. Assess objective response at 30 min. DO NOT continue if no benefit.' });
+    doses.push({ drugName: 'Salbutamol neb — TRIAL (selected patients only)', dose: `${salb} mg (0.15 mg/kg) via nebuliser`, notes: 'Only if age ≥ 6 months AND (family history of asthma/atopy OR prior wheeze). Give ONE dose, reassess Tal score + RR at 30–60 min. Continue only if objective improvement documented. STOP if no measurable benefit — do not repeat.' });
     doses.push({ drugName: 'Maintenance IV fluids (if NPO or poor intake)', dose: `${(wt <= 10 ? 100 * wt : wt <= 20 ? 1000 + 50 * (wt - 10) : 1500 + 20 * (wt - 20)).toFixed(0)} mL/day (Holliday-Segar)`, notes: '0.9% NaCl + 5% dextrose. Restrict to 80% maintenance if SIADH risk (viral illness).' });
 
     return doses;
@@ -302,6 +303,7 @@ export const bronchiolitisProtocol: DiseaseProtocol = {
     { title: 'AAP Clinical Practice Guideline: Bronchiolitis (2014, affirmed 2021)', url: 'https://publications.aap.org/pediatrics/article/134/2/e547/32906/' },
     { title: 'NICE NG9 — Bronchiolitis in children: diagnosis and management 2021', url: 'https://www.nice.org.uk/guidance/ng9' },
     { title: 'Tal A et al. — Modified Tal Score validation. Pediatr Pulmonol 1983', url: 'https://doi.org/10.1002/ppul.1950030208' },
-    { title: 'Cochrane Review — Hypertonic saline for acute bronchiolitis (2017)', url: 'https://doi.org/10.1002/14651858.CD006458.pub4' },
+    { title: 'Florin TA et al. — Nebulised hypertonic saline for bronchiolitis (SALINE trial). NEJM 2018', url: 'https://doi.org/10.1056/NEJMoa1807070' },
+    { title: 'Cochrane Review — Hypertonic saline for acute bronchiolitis (2023 update)', url: 'https://doi.org/10.1002/14651858.CD006458.pub4' },
   ],
 };

@@ -12,16 +12,150 @@ import {
   LayoutGrid,
   Stethoscope,
   X,
+  Wind,
+  Thermometer,
+  Brain,
+  FlaskConical,
+  Skull,
+  Shield,
+  Droplets,
+  Activity,
+  Zap,
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
 import { PinnedWorkspace } from "@/components/pinned-workspace";
-import {
-  CALCULATOR_SHORTCUTS,
-} from "@/lib/clinical-dashboard";
+import { CALCULATOR_SHORTCUTS } from "@/lib/clinical-dashboard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+// ─── Category mapping ────────────────────────────────────────────────────────
+// Maps protocol ID → ER presentation category.
+// Protocols not listed here fall back to "Other".
+const ER_CATEGORY_MAP: Record<string, string> = {
+  // Breathing Difficulty
+  asthma:                        'Breathing Difficulty',
+  bronchiolitis:                 'Breathing Difficulty',
+  croup:                         'Breathing Difficulty',
+  pneumonia:                     'Breathing Difficulty',
+  epiglottitis:                  'Breathing Difficulty',
+  fba:                           'Breathing Difficulty',
+  tracheitis:                    'Breathing Difficulty',
+
+  // Fever & Infections
+  'fever-without-source':        'Fever & Infections',
+  'fever-neutropenia':           'Fever & Infections',
+  'fever-rash':                  'Fever & Infections',
+  'meningitis-encephalitis':     'Fever & Infections',
+  'septic-shock':                'Fever & Infections',
+  ssti:                          'Fever & Infections',
+  mastoiditis:                   'Fever & Infections',
+  'orbital-cellulitis':          'Fever & Infections',
+  'periorbital-cellulitis':      'Fever & Infections',
+  'cervical-lymphadenitis':      'Fever & Infections',
+
+  // Shock & Cardiovascular
+  'shock-management':            'Shock & Cardiovascular',
+  'anaphylactic-shock':          'Shock & Cardiovascular',
+  'tachycardia-svt':             'Shock & Cardiovascular',
+  bradycardia:                   'Shock & Cardiovascular',
+  'heart-failure-myocarditis':   'Shock & Cardiovascular',
+  'chest-pain-in-children':      'Shock & Cardiovascular',
+  syncope:                       'Shock & Cardiovascular',
+  palpitations:                  'Shock & Cardiovascular',
+  'murmur-with-symptoms':        'Shock & Cardiovascular',
+
+  // Seizures & Neurology
+  'status-epilepticus':          'Seizures & Neurology',
+  'febrile-seizure':             'Seizures & Neurology',
+  'first-afebrile-seizure':      'Seizures & Neurology',
+  'altered-mental-status':       'Seizures & Neurology',
+  'headache-red-flags':          'Seizures & Neurology',
+  'raised-icp-suspicion':        'Seizures & Neurology',
+  'peds-stroke':                 'Seizures & Neurology',
+  'acute-flaccid-weakness':      'Seizures & Neurology',
+  'acute-ataxia':                'Seizures & Neurology',
+  'vp-shunt-malfunction':        'Seizures & Neurology',
+
+  // Abdominal
+  'abdominal-pain':              'Abdominal',
+  'bilious-vomiting':            'Abdominal',
+  'abdominal-distention-constipation': 'Abdominal',
+  intussusception:               'Abdominal',
+  'gi-bleeding':                 'Abdominal',
+  'persistent-vomiting':         'Abdominal',
+  'dehydration-gastroenteritis': 'Abdominal',
+
+  // Metabolic & Endocrine
+  dka:                           'Metabolic & Endocrine',
+  hypoglycemia:                  'Metabolic & Endocrine',
+  'adrenal-crisis':              'Metabolic & Endocrine',
+  hyperkalemia:                  'Metabolic & Endocrine',
+  hypokalemia:                   'Metabolic & Endocrine',
+  hypomagnesemia:                'Metabolic & Endocrine',
+  hypernatremia:                 'Metabolic & Endocrine',
+  hyponatremia:                  'Metabolic & Endocrine',
+  hypercalcemia:                 'Metabolic & Endocrine',
+  hypocalcemia:                  'Metabolic & Endocrine',
+  'metabolic-crisis':            'Metabolic & Endocrine',
+
+  // Toxicology & Envenomation
+  'paracetamol-toxicity':        'Toxicology & Envenomation',
+  'iron-toxicity':               'Toxicology & Envenomation',
+  'organophosphorus-ingestion':  'Toxicology & Envenomation',
+  'co-poisoning':                'Toxicology & Envenomation',
+  'chlorine-inhalation':         'Toxicology & Envenomation',
+  'snake-bite':                  'Toxicology & Envenomation',
+  'scorpion-sting':              'Toxicology & Envenomation',
+
+  // Trauma & Airway
+  'head-trauma':                 'Trauma & Airway',
+  'smoke-inhalation-burns':      'Trauma & Airway',
+  cyanosis:                      'Trauma & Airway',
+  apnea:                         'Trauma & Airway',
+
+  // Renal & Urinary
+  'urinary-tract-infection':     'Renal & Urinary',
+  'acute-renal-failure':         'Renal & Urinary',
+};
+
+// ─── Category config: display order, icon, accent colour ────────────────────
+type CategoryConfig = {
+  icon: React.ElementType;
+  color: string;       // Tailwind bg class for icon container
+  textColor: string;   // Tailwind text class for icon
+};
+
+const CATEGORY_ORDER = [
+  'Shock & Cardiovascular',
+  'Breathing Difficulty',
+  'Fever & Infections',
+  'Seizures & Neurology',
+  'Abdominal',
+  'Metabolic & Endocrine',
+  'Trauma & Airway',
+  'Toxicology & Envenomation',
+  'Renal & Urinary',
+  'Other',
+];
+
+const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
+  'Shock & Cardiovascular':   { icon: HeartPulse,   color: 'bg-red-50',    textColor: 'text-red-600'    },
+  'Breathing Difficulty':     { icon: Wind,          color: 'bg-sky-50',    textColor: 'text-sky-600'    },
+  'Fever & Infections':       { icon: Thermometer,   color: 'bg-orange-50', textColor: 'text-orange-600' },
+  'Seizures & Neurology':     { icon: Zap,           color: 'bg-violet-50', textColor: 'text-violet-600' },
+  'Abdominal':                { icon: Activity,      color: 'bg-emerald-50',textColor: 'text-emerald-600'},
+  'Metabolic & Endocrine':    { icon: FlaskConical,  color: 'bg-teal-50',   textColor: 'text-teal-600'   },
+  'Trauma & Airway':          { icon: Shield,        color: 'bg-slate-100', textColor: 'text-slate-600'  },
+  'Toxicology & Envenomation':{ icon: Skull,         color: 'bg-yellow-50', textColor: 'text-yellow-700' },
+  'Renal & Urinary':          { icon: Droplets,      color: 'bg-blue-50',   textColor: 'text-blue-600'   },
+  'Other':                    { icon: BookOpen,      color: 'bg-muted',     textColor: 'text-muted-foreground' },
+};
+
+function getCategory(p: DiseaseProtocol): string {
+  return ER_CATEGORY_MAP[p.id] ?? 'Other';
+}
 
 function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: any; description?: string }) {
   return (
@@ -46,40 +180,50 @@ export default function ERDashboard() {
     return allProtocols.filter(p => (p.unit || "er") === "er");
   }, [allProtocols]);
 
-  const selectedSystem = useMemo(() => {
+  const selectedCategory = useMemo(() => {
     const params = new URLSearchParams(routeSearch);
-    return params.get("system") || "";
+    return params.get("category") || "";
   }, [routeSearch]);
 
   const searchResults = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return { protocols: [], calculators: [] };
-    
     return {
-      protocols: erProtocols.filter(p => 
-        p.name.toLowerCase().includes(q) || p.system.toLowerCase().includes(q)
-      ).sort((a,b) => a.name.localeCompare(b.name)),
-      calculators: CALCULATOR_SHORTCUTS.filter(c => 
+      protocols: erProtocols.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.system.toLowerCase().includes(q) ||
+        (ER_CATEGORY_MAP[p.id] ?? '').toLowerCase().includes(q)
+      ).sort((a, b) => a.name.localeCompare(b.name)),
+      calculators: CALCULATOR_SHORTCUTS.filter(c =>
         c.label.toLowerCase().includes(q)
-      )
+      ),
     };
   }, [searchTerm, erProtocols]);
 
-  const systems = useMemo(() => {
-    const set = new Set(erProtocols.map(p => p.system));
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  // Build ordered category list with counts
+  const categories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of erProtocols) {
+      const cat = getCategory(p);
+      counts[cat] = (counts[cat] ?? 0) + 1;
+    }
+    return CATEGORY_ORDER
+      .filter(cat => (counts[cat] ?? 0) > 0)
+      .map(cat => ({ name: cat, count: counts[cat] ?? 0, ...CATEGORY_CONFIG[cat] }));
   }, [erProtocols]);
 
-  const systemProtocols = useMemo(() => {
-    if (!selectedSystem) return [];
+  const categoryProtocols = useMemo(() => {
+    if (!selectedCategory) return [];
     return erProtocols
-      .filter(p => p.system === selectedSystem)
+      .filter(p => getCategory(p) === selectedCategory)
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [selectedSystem, erProtocols]);
+  }, [selectedCategory, erProtocols]);
+
+  const selectedConfig = selectedCategory ? (CATEGORY_CONFIG[selectedCategory] ?? CATEGORY_CONFIG['Other']) : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-32 px-2 sm:px-4">
-      {/* 1. EMERGENCY HERO */}
+      {/* EMERGENCY HERO */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
         <Link href="/cardiac-arrest" className="md:col-span-5 group relative overflow-hidden rounded-[32px] bg-red-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
           <div className="relative z-10 h-full flex flex-col justify-between min-h-[140px]">
@@ -106,7 +250,7 @@ export default function ERDashboard() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
             <Input
               type="search"
-              placeholder="Search e.g. DKA, Seizure, Dose..."
+              placeholder="Search e.g. DKA, Seizure, Fever..."
               className="w-full pl-12 pr-4 h-14 text-base rounded-[20px] bg-muted/40 border-transparent focus:bg-background focus:border-primary/20 shadow-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,7 +266,6 @@ export default function ERDashboard() {
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60">Search Results</h3>
             <Button variant="ghost" size="sm" onClick={() => setSearchTerm("")} className="text-xs font-bold underline">Clear Search</Button>
           </div>
-          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {searchResults.calculators.map(calc => (
               <div key={calc.href} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
@@ -132,88 +275,114 @@ export default function ERDashboard() {
                   </div>
                   <span className="font-bold text-sm">{calc.label}</span>
                 </Link>
-                <button onClick={() => togglePin({ type: "calculator", href: calc.href })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "calculator", href: calc.href }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                <button
+                  onClick={() => togglePin({ type: "calculator", href: calc.href })}
+                  className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "calculator", href: calc.href }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}
+                >
                   <Pin className="h-4 w-4" />
                 </button>
               </div>
             ))}
-            {searchResults.protocols.map(p => (
-              <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
-                <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
-                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
-                    <BookOpen className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-sm block">{p.name}</span>
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{p.system}</span>
-                  </div>
-                </Link>
-                <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
-                  <Pin className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+            {searchResults.protocols.map(p => {
+              const cat = getCategory(p);
+              const cfg = CATEGORY_CONFIG[cat] ?? CATEGORY_CONFIG['Other'];
+              return (
+                <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                  <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
+                    <div className={cn("p-2.5 rounded-xl", cfg.color, cfg.textColor)}>
+                      <cfg.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-sm block">{p.name}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{cat}</span>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => togglePin({ type: "protocol", id: p.id })}
+                    className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}
+                  >
+                    <Pin className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
+            {searchResults.protocols.length === 0 && searchResults.calculators.length === 0 && (
+              <p className="col-span-2 text-center text-sm text-muted-foreground py-8">No results for "{searchTerm}"</p>
+            )}
           </div>
         </section>
-      ) : selectedSystem ? (
-        /* SYSTEM VIEW */
+
+      ) : selectedCategory ? (
+        /* CATEGORY DRILL-DOWN */
         <section className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Stethoscope className="h-4 w-4" />
-              </div>
-              <h3 className="text-xl font-black tracking-tight">{selectedSystem}</h3>
+              {selectedConfig && (
+                <div className={cn("p-2 rounded-lg", selectedConfig.color, selectedConfig.textColor)}>
+                  <selectedConfig.icon className="h-4 w-4" />
+                </div>
+              )}
+              <h3 className="text-xl font-black tracking-tight">{selectedCategory}</h3>
+              <span className="text-sm text-muted-foreground font-medium">{categoryProtocols.length} protocols</span>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setLocation("/er")} className="text-xs font-bold text-muted-foreground">
-              <X className="mr-2 h-3.5 w-3.5" /> Close
+              <X className="mr-2 h-3.5 w-3.5" /> Back
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {systemProtocols.map(p => (
+            {categoryProtocols.map(p => (
               <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
                 <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
-                  <div className="p-2 rounded-full bg-primary/5 text-primary opacity-40 group-hover:opacity-100 transition-opacity">
+                  <div className={cn(
+                    "p-2 rounded-full opacity-40 group-hover:opacity-100 transition-opacity",
+                    selectedConfig ? cn(selectedConfig.color, selectedConfig.textColor) : "bg-primary/5 text-primary"
+                  )}>
                     <ChevronRight className="h-4 w-4" />
                   </div>
-                  <span className="font-bold text-sm">{p.name}</span>
+                  <div>
+                    <span className="font-bold text-sm block">{p.name}</span>
+                    {p.erData && (
+                      <span className="text-[10px] font-black tracking-widest text-emerald-600 uppercase">Interactive</span>
+                    )}
+                  </div>
                 </Link>
-                <button onClick={() => togglePin({ type: "protocol", id: p.id })} className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}>
+                <button
+                  onClick={() => togglePin({ type: "protocol", id: p.id })}
+                  className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}
+                >
                   <Pin className="h-4 w-4" />
                 </button>
               </div>
             ))}
           </div>
         </section>
+
       ) : (
         <>
           <PinnedWorkspace />
 
-          {/* 3. SYSTEMS BROWSER */}
+          {/* CATEGORY BROWSER */}
           <section className="space-y-6">
-            <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
+            <SectionHeader title="Browse by Presentation" icon={LayoutGrid} description="Tap a category to see all protocols" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {systems.map(system => {
-                const count = erProtocols.filter(p => p.system === system).length;
-                return (
-                  <button 
-                    key={system}
-                    onClick={() => setLocation(`/er?system=${encodeURIComponent(system)}`)}
-                    className="flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-xl bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <BookOpen className="h-4 w-4" />
-                      </div>
-                      <div className="text-left">
-                        <span className="font-bold text-sm block">{system}</span>
-                        <span className="text-[10px] text-muted-foreground font-medium">{count} subjects</span>
-                      </div>
+              {categories.map(cat => (
+                <button
+                  key={cat.name}
+                  onClick={() => setLocation(`/er?category=${encodeURIComponent(cat.name)}`)}
+                  className="flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={cn("p-2.5 rounded-xl transition-all", cat.color, cat.textColor)}>
+                      <cat.icon className="h-5 w-5" />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-all" />
-                  </button>
-                );
-              })}
+                    <div className="text-left">
+                      <span className="font-bold text-sm block">{cat.name}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">{cat.count} protocols</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-all" />
+                </button>
+              ))}
             </div>
           </section>
         </>
