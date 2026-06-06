@@ -96,7 +96,7 @@ export const nicuTtnProtocol: DiseaseProtocol = {
             title: 'Feeding Hold & IV Fluids',
             orders: [
               'WITHHOLD ORAL FEEDS while RR > 60/min — risk of aspiration into fluid-filled airways.',
-              'IV FLUIDS: 10% dextrose at 60–80 mL/kg/day. Check blood glucose within 1 h of admission and 2-hourly until feeds established. Target BG 2.6–5.5 mmol/L.',
+              'IV FLUIDS: 10% dextrose at 60–80 mL/kg/day. Check blood glucose within 1 h of admission and 2-hourly until feeds established. Target BG 47–100 mg/dL.',
               'RESUME FEEDS when RR < 60/min sustained for ≥ 2 h. Start with small volume nasogastric (NG) feeds — 1–2 mL/kg 3-hourly — before offering breast/bottle.',
               'ELECTROLYTES: not routinely needed if resolving within 24 h. Add NaCl to IV fluids from day 2 if not feeding (2–3 mmol/kg/day).',
             ],
@@ -107,7 +107,7 @@ export const nicuTtnProtocol: DiseaseProtocol = {
             ],
             triggers: [
               'Bilious aspirate → stop feeds → abdominal XR → surgical review',
-              'BG < 2.6 mmol/L → dextrose 10% 2 mL/kg IV bolus → increase GIR',
+              'BG < 47 mg/dL → dextrose 10% 2 mL/kg IV bolus → increase GIR',
             ],
           },
           {

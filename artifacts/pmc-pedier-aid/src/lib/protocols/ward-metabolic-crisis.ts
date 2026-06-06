@@ -61,7 +61,7 @@ export const wardMetabolicCrisisProtocol: DiseaseProtocol = {
               "Nutritional Halt: Stop ALL natural protein and milk immediately. Do NOT stop breastfeeding if a metabolic disorder is not yet confirmed and the infant is stable.",
               "Dextrose Loading: Start 10% Dextrose (D10W) with appropriate electrolytes at 1.5 times the maintenance rate to suppress catabolism.",
               "Glucose Infusion Rate: Target a minimum of 8-10 mg/kg/minute in infants and 6-8 mg/kg/minute in children.",
-              "Insulin Support: Consider a low-dose Insulin infusion (0.01-0.05 Units/kg/hour) to facilitate glucose uptake and further suppress catabolism if Blood Glucose exceeds 10 mmol/L."
+              "Insulin Support: Consider a low-dose Insulin infusion (0.01-0.05 Units/kg/hour) to facilitate glucose uptake and further suppress catabolism if Blood Glucose exceeds 180 mg/dL."
             ]
           }
         ]

@@ -17,7 +17,7 @@ const erData: ErData = {
 
   investigations: [
     { test: 'Continuous SpO₂ monitoring', category: 'urgent', indication: 'Mandatory in all sepsis/shock. SpO₂ < 94% = respiratory organ dysfunction (PELOD domain).' },
-    { test: 'Bedside blood glucose (BGL)', category: 'urgent', indication: 'Immediately. Hypoglycaemia (< 3.3 mmol/L) is life-threatening and instantly correctable. Repeat hourly during active resuscitation.' },
+    { test: 'Bedside blood glucose (BGL)', category: 'urgent', indication: 'Immediately. Hypoglycaemia (< 60 mg/dL) is life-threatening and instantly correctable. Repeat hourly during active resuscitation.' },
     { test: 'Venous or arterial lactate', category: 'urgent', indication: 'Mandatory. Lactate ≥ 2 mmol/L = tissue hypoperfusion (even with normal BP). Lactate ≥ 4 mmol/L = severe shock. Repeat every 2 h — target > 10% clearance per hour.', criticalValue: 'Lactate ≥ 4 mmol/L → immediate PICU notification + start vasopressors regardless of BP' },
     { test: '12-lead ECG', category: 'urgent', indication: 'Before starting vasopressors — detect arrhythmia, myocarditis (global ST changes), or prolonged QTc.' },
 
@@ -279,7 +279,7 @@ export const septicShockProtocol: DiseaseProtocol = {
         '   • Dose: 2 mg/kg IV bolus (max 100 mg), then 1–2 mg/kg/day divided every 6 h.',
         '   • Do NOT use for fluid-refractory shock alone before starting vasopressors — steroids are adjunctive, not primary.',
         '   • Do NOT stop abruptly — taper once vasopressor dose is decreasing.',
-        'CORRECT METABOLIC BARRIERS (these blunt vasopressor response): BGL < 4 mmol/L → 2 mL/kg 10% dextrose. Ionised Ca²⁺ < 1.1 mmol/L → 0.5 mL/kg 10% calcium gluconate slowly. Hb < 70 g/L → pRBC 10 mL/kg.',
+        'CORRECT METABOLIC BARRIERS (these blunt vasopressor response): BGL < 72 mg/dL → 2 mL/kg 10% dextrose. Ionised Ca²⁺ < 1.1 mmol/L → 0.5 mL/kg 10% calcium gluconate slowly. Hb < 70 g/L → pRBC 10 mL/kg.',
         'SERIAL LACTATE every 2 h — target > 10% clearance per hour. Lactate not clearing = source not controlled or inadequate perfusion pressure.',
       ],
     };
@@ -515,7 +515,7 @@ export const septicShockProtocol: DiseaseProtocol = {
       // Dextrose bolus
       const dex10Vol = (2 * wt).toFixed(0);
       doses.push({
-        drugName: '10% Dextrose (IV) — Hypoglycaemia (BGL < 4 mmol/L)',
+        drugName: '10% Dextrose (IV) — Hypoglycaemia (BGL < 72 mg/dL)',
         dose:  `${dex10Vol} mL (2 mL/kg) IV bolus over 5 min`,
         notes: 'Recheck BGL 15 min after bolus. Start maintenance dextrose infusion to prevent recurrence (GIR 4–6 mg/kg/min).',
       });

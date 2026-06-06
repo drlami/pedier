@@ -12,7 +12,7 @@ export const wardDkaProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'May 2026',
-  description: 'Diabetic Ketoacidosis is a life-threatening metabolic state characterized by hyperglycemia (Blood Glucose > 200 mg/dL or 11 mmol/L), metabolic acidosis (Venous pH < 7.3 or Bicarbonate < 15 mmol/L), and ketosis (Blood beta-hydroxybutyrate ≥ 3 mmol/L or moderate/large urine ketones). This exhaustive directive focuses on the ISPAD 2022 guidelines, emphasizing the Two-Bag fluid system for precise dextrose titration and the prevention of cerebral edema.',
+  description: 'Diabetic Ketoacidosis is a life-threatening metabolic state characterized by hyperglycemia (Blood Glucose > 200 mg/dL), metabolic acidosis (Venous pH < 7.3 or Bicarbonate < 15 mmol/L), and ketosis (Blood beta-hydroxybutyrate ≥ 3 mmol/L or moderate/large urine ketones). This exhaustive directive focuses on the ISPAD 2022 guidelines, emphasizing the Two-Bag fluid system for precise dextrose titration and the prevention of cerebral edema.',
   image: {
     url: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Critical care endocrine management"

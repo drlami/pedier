@@ -160,11 +160,11 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
       {/* STEP 4: TITRATION */}
       <div className="p-6 bg-slate-900 rounded-[28px] border border-slate-800 space-y-3">
         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2">4 · Titrate ratio by blood glucose (mL/hr)</h4>
-        <TitrationRow label="Glucose > 300 mg/dL (>17)" b1={100} b2={0} total={totalRate} />
-        <TitrationRow label="Glucose 250–300 (14–17)" b1={75} b2={25} total={totalRate} />
-        <TitrationRow label="Glucose 200–250 (11–14)" b1={50} b2={50} total={totalRate} />
-        <TitrationRow label="Glucose 150–200 (8–11)" b1={25} b2={75} total={totalRate} />
-        <TitrationRow label="Glucose < 150 mg/dL (<8)" b1={0} b2={100} total={totalRate} />
+        <TitrationRow label="Glucose > 300 mg/dL" b1={100} b2={0} total={totalRate} />
+        <TitrationRow label="Glucose 250–300 mg/dL" b1={75} b2={25} total={totalRate} />
+        <TitrationRow label="Glucose 200–250 mg/dL" b1={50} b2={50} total={totalRate} />
+        <TitrationRow label="Glucose 150–200 mg/dL" b1={25} b2={75} total={totalRate} />
+        <TitrationRow label="Glucose < 150 mg/dL" b1={0} b2={100} total={totalRate} />
         <p className="text-[10px] font-bold text-amber-400/80 italic pt-1">If glucose still &lt; 150 on 100% Bag 2, increase dextrose to 12.5% — DO NOT stop insulin.</p>
       </div>
 

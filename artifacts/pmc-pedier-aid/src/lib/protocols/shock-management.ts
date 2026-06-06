@@ -13,7 +13,7 @@ const erData: ErData = {
   ],
 
   investigations: [
-    { test: 'Glucose (bedside POC)', category: 'urgent', indication: 'Mandatory in ALL shock. Hypoglycaemia is common, easily corrected, and life-threatening if missed.', criticalValue: '< 3.3 mmol/L → give 2 mL/kg of 10% dextrose IV immediately.' },
+    { test: 'Glucose (bedside POC)', category: 'urgent', indication: 'Mandatory in ALL shock. Hypoglycaemia is common, easily corrected, and life-threatening if missed.', criticalValue: '< 60 mg/dL → give 2 mL/kg of 10% dextrose IV immediately.' },
     { test: 'Venous blood gas + lactate', category: 'urgent', indication: 'Lactate reflects global tissue perfusion. Serial lactate guides adequacy of resuscitation.', criticalValue: 'Lactate ≥ 4 mmol/L = severe tissue hypoperfusion. Metabolic acidosis = decompensated shock.' },
     { test: 'Continuous SpO₂ + cardiac monitoring + BP q5 min', category: 'urgent', indication: 'Baseline vitals every 5 min during resuscitation. Trend is more important than single values.' },
     { test: 'IV / IO access — 2 large-bore sites', category: 'urgent', indication: 'IO immediately if IV fails after 2 attempts or > 90 seconds. Do NOT delay resuscitation for IV access.' },
@@ -135,7 +135,7 @@ export const shockManagementProtocol: DiseaseProtocol = {
         recommendations: [
           'AIRWAY: High-flow O₂ 100% via non-rebreather. Assist ventilation if inadequate.',
           'CIRCULATION: 2 large-bore IVs or IO immediately.',
-          'GLUCOSE: Bedside glucose NOW — correct if < 3.3 mmol/L (2 mL/kg 10% dextrose).',
+          'GLUCOSE: Bedside glucose NOW — correct if < 60 mg/dL (2 mL/kg 10% dextrose).',
           shockType === 'anaphylaxis'
             ? '🔴 ANAPHYLAXIS → Adrenaline IM 0.01 mg/kg outer thigh NOW — before fluids or IV.'
             : shockType === 'obstructive'
@@ -207,7 +207,7 @@ export const shockManagementProtocol: DiseaseProtocol = {
 
     doses.push({ drugName: 'Fluid bolus — standard', dose: `${(20*wt).toFixed(0)} mL (20 mL/kg) over 5–10 min`, notes: 'Septic / hypovolemic. Repeat to 60 mL/kg max.' });
     doses.push({ drugName: 'Fluid bolus — cautious (cardiogenic)', dose: `${(5*wt).toFixed(0)}–${(10*wt).toFixed(0)} mL (5–10 mL/kg) over 15–30 min`, notes: 'Cardiogenic shock only.' });
-    doses.push({ drugName: 'Dextrose 10% IV', dose: `${(2*wt).toFixed(0)} mL (2 mL/kg)`, notes: 'For glucose < 3.3 mmol/L.' });
+    doses.push({ drugName: 'Dextrose 10% IV', dose: `${(2*wt).toFixed(0)} mL (2 mL/kg)`, notes: 'For glucose < 60 mg/dL.' });
     doses.push({ drugName: 'Adrenaline IM — anaphylaxis', dose: `${Math.min(0.01*wt, 0.5).toFixed(3)} mg IM (0.01 mg/kg, max 0.5 mg)`, notes: 'Outer thigh. First-line anaphylaxis.' });
     doses.push({ drugName: 'Adrenaline infusion — cold / cardiogenic shock', dose: '0.05–0.3 mcg/kg/min', notes: `Rule of 6: ${epiR6} mg in 100 mL NS → 1 mL/h = 0.1 mcg/kg/min` });
     doses.push({ drugName: 'Noradrenaline infusion — warm / distributive shock', dose: '0.05–0.5 mcg/kg/min', notes: `Rule of 6: ${epiR6} mg in 100 mL NS → 1 mL/h = 0.1 mcg/kg/min` });

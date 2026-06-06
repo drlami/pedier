@@ -40,7 +40,7 @@ export const wardPleuralEffusionProtocol: DiseaseProtocol = {
             threshold: "IF THORACOCENTESIS PERFORMED",
             orders: [
               "pH Analysis: A pH < 7.2 is highly suggestive of empyema and usually requires drainage.",
-              "Glucose Level: A level < 40 mg/dL (2.2 mmol/L) is a strong indicator for chest tube placement.",
+              "Glucose Level: A level < 40 mg/dL is a strong indicator for chest tube placement.",
               "Lactate Dehydrogenase (LDH): A level > 1000 IU/L suggests a complicated parapneumonic effusion.",
               "Microbiology: Send for Gram Stain, aerobic/anaerobic Culture, and Pneumococcal Polymerase Chain Reaction (PCR)."
             ]

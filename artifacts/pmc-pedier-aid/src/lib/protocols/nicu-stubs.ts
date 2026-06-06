@@ -166,7 +166,7 @@ export const nicuStubs: DiseaseProtocol[] = [
     'nicu-hypoglycemia',
     'Neonatal Hypoglycemia',
     'Endocrine & Metabolic',
-    'Blood glucose < 2.6 mmol/L in the neonate — risk stratification (IDM, SGA, preterm), oral dextrose gel, IV dextrose bolus + infusion, and hyperinsulinism workup.'
+    'Blood glucose < 47 mg/dL in the neonate — risk stratification (IDM, SGA, preterm), oral dextrose gel, IV dextrose bolus + infusion, and hyperinsulinism workup.'
   ),
   stub(
     'nicu-cah',

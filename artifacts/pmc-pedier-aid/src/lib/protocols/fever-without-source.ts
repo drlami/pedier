@@ -19,7 +19,7 @@ const erData: ErData = {
   investigations: [
     { test: 'Temperature — confirm method (rectal preferred in < 3 months)', category: 'urgent', indication: 'Axillary and tympanic underestimate in infants. Rectal ≥ 38.0°C = fever in neonate; ≥ 38.0°C = fever in infant.' },
     { test: 'Continuous SpO₂ + HR monitoring', category: 'urgent', indication: 'Tachycardia out of proportion to fever = possible sepsis (HR > 180 in infant, > 160 in toddler). SpO₂ < 94% = respiratory source or sepsis.' },
-    { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Neonates and young infants are hypoglycaemia-prone during fever and fasting. Correct immediately if < 3.3 mmol/L.' },
+    { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Neonates and young infants are hypoglycaemia-prone during fever and fasting. Correct immediately if < 60 mg/dL.' },
 
     { test: 'Blood culture × 1 (before antibiotics)', category: 'blood', indication: 'Mandatory for: ALL neonates, ALL ill-appearing children, all 29-60d infants, well-appearing infants with elevated CRP/PCT, or incomplete vaccination. Not routine for well-appearing low-risk toddlers.', criticalValue: 'Never delay antibiotics > 15 min for blood culture collection' },
     { test: 'CBC with differential', category: 'blood', indication: 'WBC > 15,000 or < 5,000 + ANC > 10,000 = higher SBI risk. Neutropenia (ANC < 500) = febrile neutropenia emergency.' },

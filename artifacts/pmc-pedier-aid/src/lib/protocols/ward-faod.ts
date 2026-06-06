@@ -37,7 +37,7 @@ export const wardFaodProtocol: DiseaseProtocol = {
             title: "Metabolic Hallmarks",
             threshold: "HYPOKETOTIC HYPOGLYCEMIA",
             orders: [
-              "Glucose Search: Blood Glucose < 3.3 mmol/L (60 mg/dL) requiring urgent rescue.",
+              "Glucose Search: Blood Glucose < 60 mg/dL requiring urgent rescue.",
               "Ketone Check: Mandatory Urinalysis. If ketones are negative or trace despite significant hypoglycemia, FAOD is highly likely.",
               "Note: Healthy children should have 3+ or 4+ ketones during hypoglycemia; the absence of ketones indicates a failure of fatty acid oxidation.",
               "VLCAD/LCHAD Specifics: Look for hepatomegaly, cardiomyopathy, or skeletal muscle weakness."

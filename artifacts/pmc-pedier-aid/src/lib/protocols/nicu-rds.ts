@@ -47,7 +47,7 @@ export const nicuRdsProtocol: DiseaseProtocol = {
               'Continuous pre-ductal SpO₂ monitoring from birth (right hand or wrist)',
               'Cardiorespiratory monitoring — HR, RR, SpO₂ every 15 min initially',
               'Thermoregulation: servo-controlled incubator at 36.5–37.5°C; 80–85% humidity for ELBW',
-              'Glucose check within 30 min of admission — target 2.6–5.5 mmol/L',
+              'Glucose check within 30 min of admission — target 47–100 mg/dL',
             ],
             triggers: [
               'Apnoea or inadequate respiratory effort → immediate positive pressure ventilation',
@@ -223,7 +223,7 @@ export const nicuRdsProtocol: DiseaseProtocol = {
             triggers: [
               'Caffeine toxicity: HR > 180 sustained, jitteriness → check level (target 8–20 mg/L)',
               'Cultures positive or CRP rising → continue / escalate antibiotics accordingly',
-              'Blood glucose < 2.6 mmol/L → treat (see Hypoglycaemia protocol)',
+              'Blood glucose < 47 mg/dL → treat (see Hypoglycaemia protocol)',
             ],
           },
         ],
@@ -323,7 +323,7 @@ export const nicuRdsProtocol: DiseaseProtocol = {
             orders: [
               'FLUID RESTRICTION in first 3–5 days of life — RDS and surfactant use increase risk of pulmonary oedema and haemodynamically significant PDA with excessive fluids.',
               'FLUID TARGETS: Day 1: 60–80 mL/kg/day. Day 2: 80–100 mL/kg/day. Day 3–5: 100–120 mL/kg/day. Adjust upward for phototherapy (+ 10–20 mL/kg/day), radiant warmer (+ 20–30 mL/kg/day), and excessive weight loss (> 10% in term, > 15% in preterm by day 5). Adjust downward if oedematous, FiO₂ rising, or PDA suspected.',
-              'GLUCOSE INFUSION RATE (GIR): start 6 mg/kg/min (= 10% dextrose at 60 mL/kg/day in 1 kg infant). Titrate to avoid hypoglycaemia (target BG 2.6–5.5 mmol/L). Increase to 8–10 mg/kg/min if hypoglycaemic. Reduce TPN glucose if BG > 10 mmol/L persistently.',
+              'GLUCOSE INFUSION RATE (GIR): start 6 mg/kg/min (= 10% dextrose at 60 mL/kg/day in 1 kg infant). Titrate to avoid hypoglycaemia (target BG 47–100 mg/dL). Increase to 8–10 mg/kg/min if hypoglycaemic. Reduce TPN glucose if BG > 180 mg/dL persistently.',
               'ELECTROLYTES: NO sodium in day 1 (avoid sodium chloride in first 48 h — allow physiological postnatal weight loss). Add sodium from day 2–3: 2–5 mmol/kg/day. Potassium: add from day 2 when urine output confirmed: 1–3 mmol/kg/day. Monitor daily electrolytes until stable.',
               'PARENTERAL NUTRITION (TPN): start within 4–6 h of admission for infants < 29 weeks or those unable to feed. Amino acids: 3–4 g/kg/day from day 1. Lipids (Intralipid 20%): 1 g/kg/day from day 1, increase by 0.5–1 g/kg/day to max 3.5 g/kg/day.',
               'ENTERAL NUTRITION: commence minimal enteral nutrition (MEN) as trophic feeds within 24–48 h if haemodynamically stable — preferably breast / donor human milk at 1–2 mL/kg/feed 3-hourly. Do NOT withhold feeds due to CPAP (CPAP is not a contraindication to feeding). Advance by 10–30 mL/kg/day depending on gestation.',
@@ -338,7 +338,7 @@ export const nicuRdsProtocol: DiseaseProtocol = {
             triggers: [
               'Weight loss > 15% (preterm) or > 10% (term) from birthweight by day 5 → increase fluids cautiously',
               'Urine output < 0.5 mL/kg/h × 2 h + oedema → review fluid balance; check renal function',
-              'BG < 2.6 mmol/L → treat hypoglycaemia (dextrose 10% 2 mL/kg bolus + increase GIR)',
+              'BG < 47 mg/dL → treat hypoglycaemia (dextrose 10% 2 mL/kg bolus + increase GIR)',
             ],
           },
           {
@@ -370,7 +370,7 @@ export const nicuRdsProtocol: DiseaseProtocol = {
               'POSITIONING: midline head position (avoid head rotation > 45° — impairs cerebral venous drainage → IVH risk). Elevate head of bed 15–30° if stable.',
               'HAEMODYNAMIC STABILITY: avoid rapid fluid boluses (> 10 mL/kg over < 30 min). Treat hypotension gently (10 mL/kg NaCl 0.9% over 30 min, then consider vasopressor). Rapid shifts in blood pressure → germinal matrix rupture → IVH.',
               'AVOID HYPOCAPNIA: PaCO₂ < 35 mmHg causes cerebral vasoconstriction → periventricular ischaemia → PVL. Monitor blood gas regularly; permissive hypercapnia is neuroprotective.',
-              'AVOID HYPO/HYPERGLYCAEMIA: hypoglycaemia → neuronal death; hyperglycaemia → osmotic disequilibrium. Target BG 2.6–5.5 mmol/L.',
+              'AVOID HYPO/HYPERGLYCAEMIA: hypoglycaemia → neuronal death; hyperglycaemia → osmotic disequilibrium. Target BG 47–100 mg/dL.',
               'ANTENATAL MgSO₄ (exposure at < 30 weeks): ask mother / obstetric notes — reduces CP/motor disability if given. Does not alter acute management.',
               'CRANIAL ULTRASOUND: Day 1–3 (within 12 h of birth for < 28 weeks), Day 7–10, at 36 weeks PMA. IVH grading (Papile I–IV): Grade I = subependymal; II = into ventricle without dilatation; III = with ventricular dilatation; IV = parenchymal.',
               'PHVD: if IVH with progressive ventricular dilatation → weekly cranial US, neurology / neurosurgery review, consider ventricular access device if rapidly progressive.',

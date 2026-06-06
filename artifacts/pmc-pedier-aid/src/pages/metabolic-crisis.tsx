@@ -1,5 +1,22 @@
 'use client';
 
+/* ============================================================================
+ *  ✅ FINALISED — DO NOT MODIFY
+ *  ---------------------------------------------------------------------------
+ *  "Suspected Metabolic Crisis" — bespoke ER decision-support tool.
+ *  This file is the GOLD-STANDARD pattern-based (A/B/C/D) IEM crisis tool and
+ *  is considered DONE. Do not refactor, restyle, or "convert to erData".
+ *
+ *  Wiring (do not change):
+ *   - Routed at /diseases/metabolic-crisis via an override in src/App.tsx.
+ *   - The registration shim src/lib/protocols/metabolic-crisis.ts puts the card
+ *     in the ER dashboard ("Metabolic & Endocrine"); that shim MUST stay empty
+ *     and MUST NOT be deleted, or the tool vanishes from ER navigation.
+ *
+ *  Only touch this file for a clinical-content correction explicitly requested
+ *  by the user.
+ * ========================================================================== */
+
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1001,7 +1018,7 @@ export default function MetabolicCrisisPage() {
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  No escalation criteria currently triggered. Criteria: encephalopathy, seizures, shock, ammonia &gt;150, pH &lt;7.2, glucose &lt;2.5, lactate &gt;5, bicarbonate &lt;10, neonate.
+                  No escalation criteria currently triggered. Criteria: encephalopathy, seizures, shock, ammonia &gt;150, pH &lt;7.2, glucose &lt;45 mg/dL, lactate &gt;5, bicarbonate &lt;10, neonate.
                 </p>
               )}
             </CardContent>

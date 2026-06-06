@@ -12,7 +12,7 @@ export const wardHypoglycemiaProtocol: DiseaseProtocol = {
   unit: 'ward',
   category: 'general',
   lastUpdated: 'June 2026',
-  description: 'Hypoglycemia is defined as a Blood Glucose level less than 3.3 mmol/L (60 mg/dL) in infants and children, and represents a neurological emergency. This exhaustive directive covers rapid glucose correction, the mandatory "Critical Sample" diagnostic window, and a structured search for underlying metabolic or endocrine disorders.',
+  description: 'Hypoglycemia is defined as a Blood Glucose level less than 60 mg/dL in infants and children, and represents a neurological emergency. This exhaustive directive covers rapid glucose correction, the mandatory "Critical Sample" diagnostic window, and a structured search for underlying metabolic or endocrine disorders.',
   image: {
     url: "https://images.unsplash.com/photo-1576089234161-460d3d523b0a?auto=format&fit=crop&q=80&w=600&h=400",
     hint: "Glucose monitoring and neuroglycopenic assessment"
@@ -109,13 +109,13 @@ export const wardHypoglycemiaProtocol: DiseaseProtocol = {
             orders: [
               "Indication: To document the duration of fasting safety and provoke the metabolic defect under controlled conditions.",
               "Supervision: Must be performed under strict medical and nursing supervision with hourly glucose monitoring.",
-              "Stop Criteria: Terminate the fast if Blood Glucose falls below 2.8 mmol/L (50 mg/dL) or symptoms develop."
+              "Stop Criteria: Terminate the fast if Blood Glucose falls below 50 mg/dL or symptoms develop."
             ]
           },
           {
             title: "Discharge Criteria",
             orders: [
-              "Safety: Ability to maintain Blood Glucose > 3.3 mmol/L during a standard age-appropriate fast (e.g., 8-12 hours).",
+              "Safety: Ability to maintain Blood Glucose > 60 mg/dL during a standard age-appropriate fast (e.g., 8-12 hours).",
               "Education: Parents trained on home glucose monitoring and emergency management.",
               "Follow-up: Arranged with Pediatric Endocrinology or Metabolic Specialists."
             ]

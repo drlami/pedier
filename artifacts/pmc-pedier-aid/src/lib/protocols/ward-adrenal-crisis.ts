@@ -20,7 +20,7 @@ export const wardAdrenalCrisisProtocol: DiseaseProtocol = {
   questions: [
     { id: 'weight', questionText: 'Current Patient Weight', type: 'number', unit: 'kg' },
     { id: 'refractoryShock', questionText: 'Shock unresponsive to initial fluid boluses?', type: 'boolean' },
-    { id: 'hypoglycemia', questionText: 'Blood Glucose less than 3.3 mmol/L (60 mg/dL)?', type: 'boolean' },
+    { id: 'hypoglycemia', questionText: 'Blood Glucose less than 60 mg/dL?', type: 'boolean' },
     { id: 'knownAI', questionText: 'Known history of Adrenal Insufficiency or chronic steroid use?', type: 'boolean' },
   ],
 
@@ -74,7 +74,7 @@ export const wardAdrenalCrisisProtocol: DiseaseProtocol = {
         cards: [
           {
             title: "Hypoglycemia Correction",
-            threshold: "GLUCOSE < 3.3 MMOL/L",
+            threshold: "GLUCOSE < 60 MG/DL",
             orders: [
               "Bolus: Give 5 mL/kg of 10% Dextrose (D10W).",
               "Maintenance: Start 10% Dextrose in 0.9% Sodium Chloride to prevent recurrent drops in Blood Glucose.",

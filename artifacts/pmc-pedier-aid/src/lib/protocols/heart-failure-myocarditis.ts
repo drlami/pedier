@@ -16,7 +16,7 @@ const erData: ErData = {
   investigations: [
     { test: '12-lead EKG — STAT', category: 'urgent', indication: 'Look for: sinus tachycardia, low QRS voltages (< 5 mm all limb leads = pericardial effusion or diffuse myocardial oedema), ST changes, arrhythmias, heart block.', criticalValue: 'New arrhythmia + viral prodrome = fulminant myocarditis until proven otherwise.' },
     { test: 'SpO₂ + continuous cardiac monitoring', category: 'urgent', indication: 'SpO₂ < 94% = significant pulmonary oedema. Any new arrhythmia on monitor = escalate immediately.' },
-    { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Hypoglycaemia common in decompensated HF in infants. Correct immediately if < 3.3 mmol/L.' },
+    { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Hypoglycaemia common in decompensated HF in infants. Correct immediately if < 60 mg/dL.' },
 
     { test: 'Troponin I or T (high-sensitivity)', category: 'blood', indication: 'Elevated in myocarditis and ischaemic HF. Serial troponin (0 h and 3–6 h) to detect rise. Normal troponin does NOT rule out myocarditis.', criticalValue: 'Rising troponin trend = active myocardial necrosis. Escalate immediately.' },
     { test: 'BNP or NT-proBNP', category: 'blood', indication: 'Best biomarker of ventricular wall stress. Elevated in decompensated HF. Guides severity and monitors response to diuresis.', criticalValue: 'NT-proBNP > 10,000 pg/mL = severe cardiac dysfunction. PICU level care.' },

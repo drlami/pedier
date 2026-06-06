@@ -148,7 +148,7 @@ export const nicuBpdProtocol: DiseaseProtocol = {
             triggers: [
               'K⁺ < 3.0 mmol/L → oral or IV KCl supplement, increase spironolactone',
               'No extubation 48 h into DART → reassess readiness — ensure caffeine on board, consider NIPPV',
-              'BG > 10 mmol/L sustained on DART → consider insulin infusion (see NeoDose)',
+              'BG > 180 mg/dL sustained on DART → consider insulin infusion (see NeoDose)',
             ],
           },
         ],

@@ -36,7 +36,7 @@ export const wardGsd1Protocol: DiseaseProtocol = {
             title: "Metabolic Hallmarks",
             threshold: "FASTING INTOLERANCE",
             orders: [
-              "Hypoglycemia: Blood Glucose < 3.9 mmol/L (70 mg/dL) can occur within 2-4 hours of fasting.",
+              "Hypoglycemia: Blood Glucose < 70 mg/dL can occur within 2-4 hours of fasting.",
               "Lactic Acidosis: Blood Lactate levels are typically elevated (> 2.5 mmol/L) and worsen significantly during hypoglycemia.",
               "Physical Findings: 'Doll-like' facial features and massive hepatomegaly (kidneys are also often enlarged).",
               "Note: Unlike many other metabolic diseases, GSD1 patients typically do NOT have significant ketosis during hypoglycemia (as ketones are suppressed by high lactate and other metabolites)."

@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 const GLOSSARY = [
   { term: "TDD", full: "Total Daily Dose", desc: "The total amount of insulin (Basal + Bolus) a patient requires in a 24-hour period." },
-  { term: "ISF", full: "Insulin Sensitivity Factor", desc: "How many mmol/L the blood glucose is expected to drop per 1 unit of rapid-acting insulin. Also called 'Correction Factor'." },
+  { term: "ISF", full: "Insulin Sensitivity Factor", desc: "How many mg/dL the blood glucose is expected to drop per 1 unit of rapid-acting insulin. Also called 'Correction Factor'." },
   { term: "Basal", full: "Background Insulin", desc: "Long-acting insulin (e.g. Glargine) that suppresses glucose production between meals and overnight." },
   { term: "Bolus", full: "Meal-time Insulin", desc: "Rapid-acting insulin (e.g. Novorapid) given to cover carbohydrate intake from a meal." },
   { term: "SC", full: "Subcutaneous", desc: "Injected under the skin into the fatty tissue." },
@@ -32,7 +32,7 @@ const GLOSSARY = [
 export default function DkaTransitionPage() {
   const [weight, setWeight] = useState<string>("");
   const [status, setStatus] = useState<"pre-pubertal" | "pubertal">("pre-pubertal");
-  const [unit, setUnit] = useState<"mmol" | "mgdl">("mgdl");
+  const unit = "mgdl"; // App standardised to mg/dL for all glucose values
   
   // Titration State
   const [currentTdd, setCurrentTdd] = useState<string>("");
@@ -54,8 +54,7 @@ export default function DkaTransitionPage() {
     const bolusTotal = tdd * 0.5;
     const mealDose = bolusTotal / 3;
 
-    // 3. ISF Calculation (100 Rule for mmol/L, 1800 Rule for mg/dL)
-    const isfMmol = 100 / tdd;
+    // 3. ISF Calculation — 1800 Rule (mg/dL; app standardised to mg/dL)
     const isfMgdl = 1800 / tdd;
 
     return {
@@ -63,11 +62,10 @@ export default function DkaTransitionPage() {
       basal: basalTotal.toFixed(1),
       bolus: bolusTotal.toFixed(1),
       mealDose: mealDose.toFixed(1),
-      isf: unit === "mmol" ? isfMmol.toFixed(1) : isfMgdl.toFixed(0),
-      isfMmol,
+      isf: isfMgdl.toFixed(0),
       isfMgdl
     };
-  }, [weight, status, unit]);
+  }, [weight, status]);
 
   const titrationResults = useMemo(() => {
     const tdd = parseFloat(currentTdd);
@@ -155,16 +153,6 @@ export default function DkaTransitionPage() {
                 <p className="text-[9px] text-muted-foreground font-medium px-1 italic">
                   {status === 'pre-pubertal' ? "Uses 0.7 U/kg factor" : "Uses 1.0 U/kg factor (High resistance)"}
                 </p>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-dashed">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Glucose Unit</Label>
-                <Tabs value={unit} onValueChange={(v: any) => setUnit(v)} className="w-full">
-                  <TabsList className="grid grid-cols-2 w-full h-10 rounded-xl p-1 bg-muted/50">
-                    <TabsTrigger value="mmol" className="rounded-lg font-bold text-xs">mmol/L</TabsTrigger>
-                    <TabsTrigger value="mgdl" className="rounded-lg font-bold text-xs">mg/dL</TabsTrigger>
-                  </TabsList>
-                </Tabs>
               </div>
             </CardContent>
           </Card>
@@ -289,18 +277,18 @@ export default function DkaTransitionPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-muted/50 border-b border-muted-foreground/10 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        <th className="px-6 py-4 text-left">Blood Glucose ({unit === 'mmol' ? 'mmol/L' : 'mg/dL'})</th>
+                        <th className="px-6 py-4 text-left">Blood Glucose (mg/dL)</th>
                         <th className="px-6 py-4 text-center">Addition to Meal Dose</th>
                         <th className="px-6 py-4 text-right">TOTAL DOSE TO INJECT</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-muted-foreground/10">
-                      <CorrectionRow bgRange={unit === 'mmol' ? `< 4.0` : `< 72`} addAmount={0} mealDose={parseFloat(results.mealDose)} directive="Treat Hypoglycemia" color="text-red-600" unit={unit} isHypo />
-                      <CorrectionRow bgRange={unit === 'mmol' ? `4.0 - 8.0` : `72 - 144`} addAmount={0} mealDose={parseFloat(results.mealDose)} directive="Target Range" color="text-emerald-600" unit={unit} isTarget />
-                      <CorrectionRow bgRange={unit === 'mmol' ? `8.1 - 12.0` : `145 - 216`} addAmount={1} mealDose={parseFloat(results.mealDose)} directive="Low Correction" color="text-amber-600" unit={unit} />
-                      <CorrectionRow bgRange={unit === 'mmol' ? `12.1 - 16.0` : `217 - 288`} addAmount={2} mealDose={parseFloat(results.mealDose)} directive="Moderate Correction" color="text-orange-600" unit={unit} />
-                      <CorrectionRow bgRange={unit === 'mmol' ? `16.1 - 20.0` : `289 - 360`} addAmount={3} mealDose={parseFloat(results.mealDose)} directive="High Correction" color="text-rose-600" unit={unit} />
-                      <CorrectionRow bgRange={unit === 'mmol' ? `> 20.0` : `> 360`} addAmount={4} mealDose={parseFloat(results.mealDose)} directive="Check Blood Ketones" color="text-red-700 font-black" unit={unit} />
+                      <CorrectionRow bgRange={`< 72`} addAmount={0} mealDose={parseFloat(results.mealDose)} directive="Treat Hypoglycemia" color="text-red-600" unit={unit} isHypo />
+                      <CorrectionRow bgRange={`72 - 144`} addAmount={0} mealDose={parseFloat(results.mealDose)} directive="Target Range" color="text-emerald-600" unit={unit} isTarget />
+                      <CorrectionRow bgRange={`145 - 216`} addAmount={1} mealDose={parseFloat(results.mealDose)} directive="Low Correction" color="text-amber-600" unit={unit} />
+                      <CorrectionRow bgRange={`217 - 288`} addAmount={2} mealDose={parseFloat(results.mealDose)} directive="Moderate Correction" color="text-orange-600" unit={unit} />
+                      <CorrectionRow bgRange={`289 - 360`} addAmount={3} mealDose={parseFloat(results.mealDose)} directive="High Correction" color="text-rose-600" unit={unit} />
+                      <CorrectionRow bgRange={`> 360`} addAmount={4} mealDose={parseFloat(results.mealDose)} directive="Check Blood Ketones" color="text-red-700 font-black" unit={unit} />
                     </tbody>
                   </table>
                   <div className="p-4 bg-muted/20 border-t border-dashed">
@@ -481,7 +469,7 @@ function CorrectionRow({ bgRange, addAmount, mealDose, directive, color, unit, i
   const totalDose = (mealDose + addAmount).toFixed(1);
   return (
     <tr className={cn("hover:bg-muted/30 transition-colors", isTarget ? "bg-emerald-50/20" : "")}>
-      <td className="px-6 py-4 font-black text-slate-900">{bgRange} <span className="text-[9px] font-bold text-muted-foreground ml-1">{unit === 'mmol' ? 'mmol/L' : 'mg/dL'}</span></td>
+      <td className="px-6 py-4 font-black text-slate-900">{bgRange} <span className="text-[9px] font-bold text-muted-foreground ml-1">mg/dL</span></td>
       <td className="px-6 py-4 text-center">
         <div className="flex flex-col items-center">
            <Badge className={cn("px-3 py-1 font-black", addAmount === 0 ? "bg-muted text-muted-foreground" : "bg-blue-600 text-white")}>

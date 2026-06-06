@@ -31,7 +31,7 @@ export const picuSevereDkaProtocol: DiseaseProtocol = {
             title: 'Confirm DKA & assess severity',
             isCritical: true,
             orders: [
-              'Diagnosis: hyperglycemia (> 11 mmol/L / 200 mg/dL) + ketosis/ketonuria + acidosis (pH < 7.3 or HCO₃ < 15).',
+              'Diagnosis: hyperglycemia (> 200 mg/dL) + ketosis/ketonuria + acidosis (pH < 7.3 or HCO₃ < 15).',
               'Severity by pH/HCO₃: mild (pH < 7.3), moderate (pH < 7.2), severe (pH < 7.1 or HCO₃ < 5).',
               'Send: glucose, VBG, U&E, ketones (β-hydroxybutyrate), calcium/magnesium/phosphate, osmolality; weigh the child.',
               'Identify precipitant (new diagnosis, infection, insulin omission); examine neuro status as a baseline.',
@@ -72,7 +72,7 @@ export const picuSevereDkaProtocol: DiseaseProtocol = {
             calculator: { id: 'picu-dka-calc', title: 'DKA Fluid & Insulin Calculator' },
             orders: [
               'Replace deficit (5–10% by severity) + maintenance evenly over 48 h — use the calculator for the exact rate.',
-              'Two-bag system (Bag 1 no dextrose, Bag 2 D10) titrated by glucose; add D10 once glucose < ~250–300 mg/dL (14–17 mmol/L).',
+              'Two-bag system (Bag 1 no dextrose, Bag 2 D10) titrated by glucose; add D10 once glucose < ~250–300 mg/dL.',
               'Potassium: add 40 mmol/L once urine output confirmed and K not high. If K < 3.0–3.3, give KCl and DELAY insulin until rising.',
               'Insulin: start 1–2 h AFTER fluids at 0.05–0.1 units/kg/h infusion, NO bolus. Prepare 50 units in 50 mL saline (1 unit/mL).',
               'Continue insulin until acidosis resolves (pH > 7.3, HCO₃ > 15, ketones < 0.6) — not just until glucose normalises.',
@@ -101,7 +101,7 @@ export const picuSevereDkaProtocol: DiseaseProtocol = {
               },
             ],
             triggers: [
-              'Glucose falling > 5 mmol/L (90 mg/dL) per hour — slow it / add dextrose',
+              'Glucose falling > 90 mg/dL per hour — slow it / add dextrose',
               'K < 3.0 despite replacement — hold insulin, senior review',
               'Failure to clear acidosis — reassess insulin delivery, sepsis, dose',
             ],
@@ -181,7 +181,7 @@ export const picuSevereDkaProtocol: DiseaseProtocol = {
     'Headache / falling GCS / irritability (cerebral edema)',
     'Bradycardia with rising blood pressure',
     'Potassium < 3.0 or peaked T-waves',
-    'Glucose falling faster than 5 mmol/L (90 mg/dL)/h',
+    'Glucose falling faster than 90 mg/dL/h',
     'Failure of acidosis to improve',
   ],
   getDrugDoses: (severity, data) => {
