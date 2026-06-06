@@ -21,10 +21,9 @@ const erData: ErData = {
     { test: 'Continuous SpO₂ + HR monitoring', category: 'urgent', indication: 'Tachycardia out of proportion to fever = possible sepsis (HR > 180 in infant, > 160 in toddler). SpO₂ < 94% = respiratory source or sepsis.' },
     { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Neonates and young infants are hypoglycaemia-prone during fever and fasting. Correct immediately if < 60 mg/dL.' },
 
-    { test: 'Blood culture × 1 (before antibiotics)', category: 'blood', indication: 'Mandatory for: ALL neonates, ALL ill-appearing children, all 29-60d infants, well-appearing infants with elevated CRP/PCT, or incomplete vaccination. Not routine for well-appearing low-risk toddlers.', criticalValue: 'Never delay antibiotics > 15 min for blood culture collection' },
-    { test: 'CBC with differential', category: 'blood', indication: 'WBC > 15,000 or < 5,000 + ANC > 10,000 = higher SBI risk. Neutropenia (ANC < 500) = febrile neutropenia emergency.' },
-    { test: 'CRP (C-reactive protein)', category: 'blood', indication: 'CRP ≥ 20 mg/L = elevated IBI risk in young infants (29-90d). Less reliable in first 6-12 h of fever onset — serial testing adds value.', criticalValue: 'CRP ≥ 40 mg/L + well-appearing 29-60d infant → parenteral antibiotics + admit' },
-    { test: 'Procalcitonin (PCT)', category: 'blood', indication: 'PCT ≥ 0.5 ng/mL = raised SBI risk; PCT ≥ 2 ng/mL = high risk. More sensitive than CRP in first 6-12 h. Use alongside CRP.', criticalValue: 'PCT ≥ 2 ng/mL → treat as high-risk regardless of appearance' },
+    { test: 'Blood culture × 1 (before antibiotics)', category: 'blood', indication: 'Mandatory for: ALL neonates, ALL ill-appearing children, all 29-60d infants, well-appearing infants with elevated CRP or ANC, or incomplete vaccination. Not routine for well-appearing low-risk toddlers.', criticalValue: 'Never delay antibiotics > 15 min for blood culture collection' },
+    { test: 'CBC with differential', category: 'blood', indication: 'WBC > 15,000 or < 5,000 raises SBI risk. ANC > 4,000/mm³ is the abnormal cut-off for invasive bacterial infection (AAP 2021 / PECARN). With procalcitonin unavailable, ANC + CRP together carry the marker decision. Neutropenia (ANC < 500) = febrile neutropenia emergency.', criticalValue: 'ANC > 4,000/mm³ in a well-appearing 29–90d infant → treat as raised IBI risk' },
+    { test: 'CRP (C-reactive protein)', category: 'blood', indication: 'PRIMARY inflammatory marker at this facility (procalcitonin not available). CRP ≥ 20 mg/L = elevated IBI risk in young infants (29–90d). Less reliable in first 6–12 h of fever onset — a normal early CRP does NOT exclude IBI. Repeat at 6–12 h and/or observe rather than discharge a borderline young infant on a single value.', criticalValue: 'CRP ≥ 40 mg/L + well-appearing 29-60d infant → parenteral antibiotics + admit' },
     { test: 'Blood gas (venous) ± lactate', category: 'blood', indication: 'For ill-appearing infants, suspected sepsis, or respiratory distress. Metabolic acidosis + high lactate = organ dysfunction.', criticalValue: 'Lactate ≥ 4 mmol/L → sepsis protocol + PICU notification' },
 
     { test: 'Urinalysis (UA) + urine culture — catheter specimen', category: 'blood', indication: 'Mandatory for: ALL females < 24 months; ALL uncircumcised males < 12 months; ALL neonates; urinary symptoms at any age. ALWAYS use catheter (never bag urine for culture — unacceptably high false positive rate).', criticalValue: 'Positive UA (LE or nitrite) → start antibiotics immediately, culture pending' },
@@ -38,7 +37,7 @@ const erData: ErData = {
     'ALL neonates ≤ 28 days with any fever ≥ 38.0°C — no exceptions, admit for full sepsis workup and empiric antibiotics',
     'Ill-appearing child of any age: toxic, lethargic, poor perfusion, inconsolable — full sepsis workup + PICU consideration',
     'Fever + petechiae or purpuric rash — meningococcemia; immediate antibiotics + PICU',
-    'Infant 29–60 days: well-appearing with CRP ≥ 20 mg/L OR PCT ≥ 0.5 OR positive UA — parenteral antibiotics + admit',
+    'Infant 29–60 days: well-appearing with CRP ≥ 20 mg/L OR ANC > 4,000/mm³ OR positive UA — parenteral antibiotics + admit',
     'Any child with confirmed bacteraemia on blood culture',
     'Immunocompromised child with any fever — admit all for IV broad-spectrum antibiotics',
     'Fever ≥ 38°C in an incompletely vaccinated infant < 6 months',
@@ -49,7 +48,7 @@ const erData: ErData = {
 
   highRiskFactors: [
     'Young infant 29–60d well-appearing with CRP 10–20 mg/L (borderline): high observation admission or ceftriaxone IM + guaranteed 12-hour follow-up minimum',
-    'Infant 61–90d well-appearing: positive UA = treat UTI; elevated CRP/PCT = blood culture + consider admit vs careful outpatient with 24 h follow-up',
+    'Infant 61–90d well-appearing: positive UA = treat UTI; elevated CRP or ANC = blood culture + consider admit vs careful outpatient with 24 h follow-up',
     'Fever > 48 h without source in child < 12 months — higher SBI probability; blood culture + review',
     'Incomplete vaccination (especially Hib, PCV) in child < 5 years — occult bacteraemia risk remains; check inflammatory markers',
     'Prior serious bacterial infection (bacteraemia, meningitis, UTI) — lower threshold for repeat workup',
@@ -61,7 +60,7 @@ const erData: ErData = {
     'NOTE: Neonates ≤ 28 days with fever are NEVER discharged from the ER — admit is mandatory',
     'Child remains well-appearing throughout the entire ER stay (no deterioration in appearance)',
     'UA negative by dipstick (if obtained) — if positive, UTI treated and improvement confirmed',
-    'CRP < 20 mg/L and PCT < 0.5 ng/mL (if checked; not required for low-risk toddlers)',
+    'CRP < 20 mg/L and ANC < 4,000/mm³ (if checked; not required for low-risk toddlers). PCT is unavailable here — do NOT discharge a young infant on a single early CRP; repeat or observe if borderline',
     'Blood culture drawn (if indicated) — do not wait for result before discharging if low-risk; ensure method of notification in place if culture grows',
     'Tolerating oral fluids adequately; no dehydration',
     'Clear identifiable viral source found (e.g. URTI, roseola pattern) OR reliable low-risk profile confirmed',
@@ -105,8 +104,8 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
   id: 'fever-without-source',
   name: 'Fever Without Source',
   system: 'Infectious Diseases',
-  description: 'Age-stratified evaluation of fever without an identified source — from neonates to 36 months. Integrates AAP 2021 guidelines with risk-score-based management decisions.',
-  lastUpdated: '2024',
+  description: 'Age-stratified evaluation of fever without an identified source — neonate to 36 months. History red flags and Assess findings both feed a transparent risk score; inflammatory markers (CRP/ANC) drive decisions only in infants < 90 days, while 3–36 months is appearance- and UTI-driven (post-PCV13). Management cards adapt to the data entered. Procalcitonin-free pathway.',
+  lastUpdated: '2026',
   image: {
     url: 'https://picsum.photos/seed/fever-without-source/600/400',
     hint: 'infant temperature',
@@ -135,7 +134,7 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
       { label: '10–19 mg/L — borderline',   value: 'bord', score: 1 },
       { label: '20–39 mg/L — elevated',     value: 'high', score: 2 },
       { label: '≥ 40 mg/L — markedly high', value: 'vhigh',score: 3 },
-    ]},
+    ], info: 'CRP only contributes to the risk score in infants < 90 days, where it is validated. In 3–36 months it is NOT a recommended risk marker (well-appearing immunised children have <0.5% occult bacteraemia) — risk there is driven by appearance + UTI evaluation; WBC ≥ 15,000 is the adjunct if any blood test is considered.' },
     { id: 'vaccines',     questionText: 'Hib + Pneumococcal Vaccination Status', type: 'select', options: [
       { label: 'Complete / up-to-date',      value: 'complete',   score: 0 },
       { label: 'Incomplete or unknown',      value: 'incomplete', score: 1 },
@@ -158,6 +157,18 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
     const vax  = data.vaccines as string;
     const sex  = data.sex as string;
 
+    // ── History-tab inputs (booleans keyed by historyChecklist id) — now scored ──
+    const petechiae         = data.petechiae === true;
+    const immunocompromised = data.immunocompromised === true;
+    const hsvRisk           = data.hsv_risk === true;
+    const noVaccines        = data.no_vaccines === true;
+    const priorUti          = data.prior_uti === true;
+    const premature         = data.premature === true;
+    const recentAbx         = data.recent_abx === true;
+    const sourceFound       = data.source_found === true;
+    const urineSymptoms     = data.urine_symptoms === true;
+    const kawasaki          = data.kawasaki_risk === true;
+
     const details: string[] = [];
 
     // Auto-derived age group label
@@ -172,60 +183,98 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
       details.push(`Age: ${ageLabel(data)} → ${agGroupLabel[ag] ?? ag}`);
     }
 
-    // Neonates with fever — always severe, no scoring needed
+    if (sourceFound) {
+      details.push('Source identified on history/exam — strictly no longer "fever WITHOUT source". Manage that source; use this pathway only as a sepsis safety-net.');
+    }
+
+    // ── Hard red flags (History or Assess) — force SEVERE regardless of score ──
+    if (petechiae) {
+      details.unshift('PETECHIAE / NON-BLANCHING RASH + fever → treat as MENINGOCOCCAEMIA. Ceftriaxone IV now — do NOT wait for LP.');
+      return { level: 'severe', scoreDetails: { systemName: 'FWS Risk', totalScore: 14, maxScore: 14, interpretation: 'Petechiae + fever — Critical' }, details };
+    }
     if (ag === 'neonate' && temp !== 'none' && temp !== undefined) {
       details.unshift('NEONATAL FEVER — medical emergency. Full sepsis workup and empiric antibiotics mandatory. Admit.');
-      return {
-        level: 'severe',
-        scoreDetails: { systemName: 'FWS Risk', totalScore: 10, maxScore: 10, interpretation: 'Neonatal Fever — Always High Risk' },
-        details,
-      };
+      if (hsvRisk) details.push('HSV risk flagged on history — add IV Acyclovir to the empiric regimen.');
+      return { level: 'severe', scoreDetails: { systemName: 'FWS Risk', totalScore: 14, maxScore: 14, interpretation: 'Neonatal Fever — Always High Risk' }, details };
     }
-
-    // Ill-appearing — always severe
+    if (immunocompromised) {
+      details.unshift('IMMUNOCOMPROMISED + fever → full workup + broad-spectrum anti-Pseudomonal cover; admit. Never discharge.');
+      return { level: 'severe', scoreDetails: { systemName: 'FWS Risk', totalScore: 13, maxScore: 14, interpretation: 'Immunocompromised — High Risk' }, details };
+    }
     if (appearance === 'ill') {
       details.unshift('ILL-APPEARING CHILD — treat as serious bacterial infection until proven otherwise. Full sepsis workup.');
-      return {
-        level: 'severe',
-        scoreDetails: { systemName: 'FWS Risk', totalScore: 9, maxScore: 10, interpretation: 'Toxic Appearance — High Risk' },
-        details,
-      };
+      return { level: 'severe', scoreDetails: { systemName: 'FWS Risk', totalScore: 12, maxScore: 14, interpretation: 'Toxic Appearance — High Risk' }, details };
     }
 
-    // Score calculation for well-appearing children
+    // CRP is a validated risk marker ONLY in young infants < 90 days (AAP 2021 / Step-by-Step).
+    // In 3–36 months, well-appearing immunised children have ~0.25–0.5% occult bacteraemia and
+    // CRP is explicitly NOT recommended for risk stratification — risk is driven by appearance,
+    // UTI evaluation, temperature, vaccination and the history red flags (Baraff / Texas Children's / Wilkinson).
+    const markersValidated = ag === 'inf1' || ag === 'inf2';
+    const vaxRisk = vax === 'incomplete' || noVaccines;
+
+    // ── Composite score (well-appearing) — Assess + History both contribute ──
     let score = 0;
     if (temp === 'high')  score += 2;
     if (temp === 'vhigh') score += 3;
-    if (ua   === 'pos')   score += 3;
-    if (crp  === 'bord')  score += 1;
-    if (crp  === 'high')  score += 2;
-    if (crp  === 'vhigh') score += 3;
-    if (vax  === 'incomplete') score += 1;
+    if (ua === 'pos')     score += 3;
+    if (vaxRisk)          score += 1;
+    if (priorUti)         score += 1;
+    if (urineSymptoms)    score += 2;
+    if (recentAbx)        score += 1;
+    if (premature && ag !== 'older') score += 1;
+    if (markersValidated) {
+      if (crp === 'bord')  score += 1;
+      if (crp === 'high')  score += 2;
+      if (crp === 'vhigh') score += 3;
+    }
 
-    // Age-specific UTI risk (female <24m, uncircumcised male <12m) adds implicit moderate flag
+    // Age-specific UTI risk (female <24m, uncircumcised male <12m)
     const utiRiskAge = (sex === 'female' && (ag === 'inf1' || ag === 'inf2' || ag === 'tod')) ||
                        (sex === 'munC' && (ag === 'inf1' || ag === 'inf2'));
 
-    if (utiRiskAge && ua !== 'pos') details.push('UTI risk: UA mandatory — female ≤ 24 m or uncircumcised male ≤ 12 m.');
-    if (ua === 'pos') details.push('Positive UA — UTI likely. Start antibiotics after urine culture collected.');
-    if (crp === 'high' || crp === 'vhigh') details.push('Elevated CRP — increased IBI risk. Blood culture if not already sent.');
-    if (vax === 'incomplete') details.push('Incomplete vaccination — occult bacteraemia risk higher than expected for age.');
+    // ── Transparency: show every contributor that fired ──────────────────────
+    if (utiRiskAge && ua !== 'pos') details.push('UTI risk age — catheter UA + culture mandatory (female ≤ 24 m or uncircumcised male ≤ 12 m).');
+    if (ua === 'pos') details.push('Positive UA (+3) — UTI likely. Start antibiotics after urine culture collected.');
+    if (urineSymptoms) details.push('Urinary symptoms (+2) — send catheter urine culture even if dipstick equivocal.');
+    if (priorUti) details.push('Prior UTI / tract abnormality (+1) — higher recurrence risk.');
+    if (vaxRisk) details.push('Incomplete / unknown Hib + PCV (+1) — occult bacteraemia risk higher than expected for age.');
+    if (recentAbx) details.push('Antibiotics within 2 weeks (+1) — may mask signs and sterilise cultures; lower threshold to treat/admit.');
+    if (premature && ag !== 'older') details.push('Premature (+1) — risk-stratify as a chronologically younger infant.');
+    if (markersValidated && (crp === 'high' || crp === 'vhigh')) details.push('Elevated CRP — increased IBI risk in this < 90 day infant.');
+    if (!markersValidated && (ag === 'tod' || ag === 'older') && (crp === 'high' || crp === 'vhigh')) details.push('CRP is NOT a validated marker in 3–36 months and does NOT change the score — use appearance + UTI evaluation (WBC ≥ 15,000/mm³ is the adjunct if a CBC is sent).');
+    if (kawasaki) details.push('Fever ≥ 5 days — actively exclude Kawasaki disease (≥ 4 of 5 clinical criteria; echocardiogram if met).');
 
     let level: SeverityLevel;
     let interpretation: string;
 
-    if (score >= 5 || (ag === 'inf1' && (crp === 'high' || crp === 'vhigh' || ua === 'pos'))) {
+    const isYoungInf = markersValidated;            // < 90 days
+    const isOlder    = ag === 'tod' || ag === 'older'; // ≥ 90 days, well-appearing
+
+    if (isYoungInf && (ua === 'pos' || crp === 'high' || crp === 'vhigh')) {
+      // < 90 days: a UTI or raised marker mandates admission + parenteral antibiotics
       level = 'severe';
-      interpretation = 'High Risk — Full workup + empiric antibiotics';
-      details.unshift('HIGH RISK — well-appearing but markers or UA positive. Parenteral antibiotics + admission.');
-    } else if (score >= 2 || utiRiskAge || (ag === 'inf1') || (ag === 'inf2' && (crp === 'bord' || ua !== 'neg'))) {
+      interpretation = ua === 'pos' ? 'UTI < 90 days — ADMIT (parenteral)' : 'Raised CRP < 90 days — ADMIT';
+      details.unshift(ua === 'pos'
+        ? 'HIGH RISK — young infant (< 90 d) with positive UA: UTI requiring PARENTERAL antibiotics + ADMISSION. Oral / outpatient is NOT appropriate under 90 days, regardless of the numeric total.'
+        : 'HIGH RISK — young infant (< 90 d) with raised CRP: blood culture ± LP, parenteral antibiotics + admission.');
+    } else if (isOlder && ua === 'pos') {
+      // Well-appearing child ≥ 90 days with positive UA = UTI — usually outpatient-treatable
       level = 'moderate';
-      interpretation = 'Intermediate Risk — targeted workup needed';
-      details.unshift('INTERMEDIATE RISK — targeted investigations needed before safe discharge decision.');
+      interpretation = 'UTI (well-appearing) — treat; outpatient possible';
+      details.unshift('UTI LIKELY — positive UA in a well-appearing child ≥ 90 days. Treat as a UTI: ORAL antibiotics, OUTPATIENT acceptable if tolerating fluids + reliable follow-up. Admit only if not tolerating oral, dehydrated, or no follow-up.');
+    } else if (isYoungInf && score >= 5) {
+      level = 'severe';
+      interpretation = 'High Risk (young infant) — admit';
+      details.unshift('HIGH RISK — young infant with multiple risk factors: blood culture, parenteral antibiotics + admission.');
+    } else if (score >= 2 || utiRiskAge || kawasaki || isYoungInf) {
+      level = 'moderate';
+      interpretation = 'Intermediate Risk — targeted workup';
+      details.unshift('INTERMEDIATE RISK — targeted investigations before any discharge decision.');
     } else {
       level = 'mild';
-      interpretation = 'Low Risk — supportive care';
-      details.unshift('LOW RISK — well-appearing, no concerning markers. Supportive care + safety netting.');
+      interpretation = 'Low Risk — discharge with safety-net';
+      details.unshift('LOW RISK — well-appearing, no concerning features. Supportive care + safety netting.');
     }
 
     return {
@@ -233,12 +282,12 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
       scoreDetails: {
         systemName: 'FWS Risk Score',
         totalScore: score,
-        maxScore: 10,
+        maxScore: 14,
         interpretation,
         referenceTable: [
-          { range: '0–1',  meaning: 'Low Risk' },
-          { range: '2–4',  meaning: 'Intermediate' },
-          { range: '5–10', meaning: 'High Risk' },
+          { range: '0–1', meaning: 'Low Risk' },
+          { range: '2–4', meaning: 'Intermediate' },
+          { range: '5+',  meaning: 'High Risk' },
         ],
       },
       details,
@@ -253,144 +302,189 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
     const isToddler    = ag === 'tod';
     const isYoungInf   = isInf1 || isInf2;
     const ua           = data.ua as string;
-    const crp          = data.crp as string;
     const sex          = data.sex as string;
-    const hasHsv       = data.hsv_risk === true;
+
+    // History/Assess inputs that drive the cards
+    const petechiae        = data.petechiae === true;
+    const immunocompromised= data.immunocompromised === true;
+    const hsvRisk          = data.hsv_risk === true;
+    const priorUti         = data.prior_uti === true;
+    const urineSymptoms    = data.urine_symptoms === true;
+    const sourceFound      = data.source_found === true;
+    const kawasaki         = data.kawasaki_risk === true;
+    const recentAbx        = data.recent_abx === true;
+    const premature        = data.premature === true;
+
+    // Drop falsy conditional entries so cards only show relevant lines
+    const clean = (arr: (string | false | undefined | null)[]): string[] => arr.filter(Boolean) as string[];
+
+    // ── Data-driven PRIORITY card — surfaces exactly what was entered ─────────
+    const priorityActions = clean([
+      sourceFound && 'SOURCE IDENTIFIED on history/exam — this is no longer "fever without source"; treat the identified source. Use the steps below only as a sepsis safety-net.',
+      petechiae && '🔴 PETECHIAE / non-blanching rash + fever → Ceftriaxone IV NOW (meningococcaemia). Do not wait for LP or results.',
+      immunocompromised && '🔴 IMMUNOCOMPROMISED → blood + urine + LP and broad-spectrum anti-Pseudomonal cover (Piperacillin-Tazobactam or Cefepime). Admit; never discharge.',
+      hsvRisk && '🔴 HSV RISK → add IV Acyclovir 20 mg/kg/dose q8h; send CSF HSV PCR.',
+      (urineSymptoms || priorUti) && 'Urinary symptoms / prior UTI → catheter urine culture mandatory even if dipstick borderline.',
+      kawasaki && 'FEVER ≥ 5 DAYS → screen for Kawasaki disease (rash, conjunctivitis, lip/oral changes, extremity changes, cervical node); ESR + CRP, echocardiogram if criteria met.',
+      recentAbx && 'Recent antibiotics (≤ 2 weeks) → may mask signs / sterilise cultures; lower threshold to treat and admit.',
+      premature && ag !== 'older' && 'Premature (< 37 wk, corrected age ≤ 3 m) → risk-stratify as a chronologically younger infant.',
+    ]);
+    const priorityCard = priorityActions.length
+      ? [{ title: 'PRIORITY — flags from Assess / History', recommendations: priorityActions }]
+      : [];
 
     // ── Age-specific Step 1 text ────────────────────────────────────────────
-    const step1Recs = isNeonate ? [
+    const step1Recs = isNeonate ? clean([
       'FULL SEPSIS WORKUP — mandatory for ALL neonates with fever ≥ 38.0°C, regardless of appearance.',
       'Obtain: Blood culture (before antibiotics) + CBC + CRP + Blood gas.',
       'Catheterised urine: UA + urine culture.',
       'LP (CSF analysis + culture) — do immediately if haemodynamically stable. Do NOT delay antibiotics for LP if unstable.',
       'IV access (peripheral, do not delay for umbilical line).',
       'Bedside glucose now.',
-      hasHsv ? '⚠ HSV RISK PRESENT — add IV Acyclovir 20 mg/kg/dose q8h immediately.' : 'Ask specifically about HSV risk (maternal herpes, vesicles on infant) — if any concern, add Acyclovir.',
+      hsvRisk ? '⚠ HSV RISK PRESENT — add IV Acyclovir 20 mg/kg/dose q8h immediately.' : 'Ask specifically about HSV risk (maternal herpes, vesicles on infant) — if any concern, add Acyclovir.',
       'Start empiric antibiotics within 30 min — see Drugs tab.',
-    ] : isInf1 ? [
+    ]) : isInf1 ? clean([
       'Well-appearing 29–60 day infant with fever requires a structured workup regardless of appearance.',
-      'Obtain: Blood culture + CBC + CRP + Procalcitonin.',
+      'Obtain: Blood culture + CBC (with ANC) + CRP. (Procalcitonin not available here — rely on CRP + ANC + serial assessment.)',
       'Catheterised urine: UA + urine culture (mandatory in this age group).',
-      'LP: perform if CRP ≥ 20, PCT ≥ 0.5, positive UA, or any change in appearance. If LP not done, reassess decision at 4–6 h.',
+      'LP: perform if CRP ≥ 20, ANC > 4,000, positive UA, or any change in appearance. If LP not done, reassess decision at 4–6 h.',
       'Bedside glucose.',
-    ] : isInf2 ? [
+    ]) : isInf2 ? clean([
       'Well-appearing 61–90 day infant with fever: risk is lower than 29–60d but workup still recommended.',
       'Obtain: UA + urine culture (catheterised) — mandatory.',
       'CRP + blood culture if: fever ≥ 39°C, CRP not yet done, incomplete vaccines, or any concern.',
       'LP only if: appears unwell, CRP ≥ 20, fever ≥ 40°C, or parents are unable to describe appearance change.',
       'Bedside glucose.',
-    ] : [
-      'Well-appearing child 3–36 months: UA is the most important immediate investigation.',
+    ]) : clean([
+      'Well-appearing child 3–36 months: UA is the most important immediate investigation. In a fully immunised well-appearing child, occult bacteraemia is <0.5% — bloods/markers and empiric antibiotics are NOT routinely indicated.',
       sex === 'female' ? 'FEMALE ≤ 24 months — catheterised UA + urine culture is MANDATORY (UTI risk regardless of symptoms).' :
       sex === 'munC'   ? 'UNCIRCUMCISED MALE ≤ 12 months — catheterised UA + urine culture is MANDATORY.' :
       'UA if any urinary symptoms, prolonged fever (> 48 h), or temp ≥ 39°C without source.',
-      'Blood culture only if: toxic-looking, temp ≥ 39°C + incomplete vaccines, or CRP significantly elevated.',
+      'Blood culture only if: toxic-looking, OR temp ≥ 39°C + incomplete vaccines, OR WBC ≥ 15,000/mm³ (the evidence-based trigger in this age — CRP is NOT recommended for risk stratification here).',
       'No routine LP in well-appearing toddlers unless meningism, petechiae, or altered consciousness.',
-    ];
+    ]);
 
-    const STEP2_REASSESS = {
-      title: 'STEP 2 — REASSESS at 1–2 h with results in hand',
-      recommendations: [
-        'IMPROVED APPEARANCE + LOW MARKERS + NEG UA: → proceed to discharge pathway (Dispose tab). Give safety-netting advice.',
-        'UA POSITIVE: → start oral antibiotics (UTI). If 29–60d or ill-appearing → parenteral antibiotics + admit.',
-        'CRP ≥ 20 mg/L (any infant < 90d) OR PCT ≥ 0.5: → obtain blood culture if not yet done. Consider parenteral antibiotics + admit.',
-        'APPEARANCE WORSENING at any point: → escalate immediately to STEP 3.',
-        '⚠ Do NOT discharge a young infant (< 90d) on the basis of appearance alone — a well-appearing infant can deteriorate rapidly.',
-      ],
+    // ── STEP 2 — age-aware (markers for < 90 d; appearance + UTI for 3–36 m) ──
+    const STEP2_YOUNG = {
+      title: 'STEP 2 — REASSESS at 1–2 h with results in hand (< 90 days)',
+      recommendations: clean([
+        'IMPROVED appearance + CRP/ANC not raised + UA negative → discharge pathway (Dispose tab) ONLY after senior review.',
+        ua === 'pos' ? 'UA is POSITIVE here → UTI: parenteral antibiotics + admit (parenteral preferred < 90 days).'
+                     : 'If UA POSITIVE → start antibiotics for UTI; if 29–60d treat parenterally.',
+        'CRP ≥ 20 mg/L OR ANC > 4,000/mm³ → blood culture if not done + parenteral antibiotics + admit.',
+        'APPEARANCE WORSENS at any point → STEP 3.',
+        '⚠ Do NOT discharge a < 90 day infant on appearance alone — they can deteriorate rapidly.',
+      ]),
     };
+    const STEP2_TODDLER = {
+      title: 'STEP 2 — REASSESS at 1–2 h (3–36 months)',
+      recommendations: clean([
+        'Re-examine APPEARANCE — in this age this is the decision driver, NOT blood markers (CRP is not used here).',
+        ua === 'pos' ? 'UA is POSITIVE here → treat UTI: oral antibiotics if well + tolerating fluids; parenteral + admit if toxic or not tolerating oral.'
+                     : 'UA result: positive → treat UTI; negative + child remains well → no antibiotics indicated.',
+        'STILL WELL-APPEARING + UA negative → discharge with safety-netting (Dispose tab). Bloods/cultures NOT required in a fully immunised well child.',
+        'WBC ≥ 15,000/mm³ (only if a CBC was actually sent) → consider blood culture ± empiric ceftriaxone; otherwise observe.',
+        'APPEARANCE WORSENS → STEP 3.',
+      ]),
+    };
+    const STEP2 = (isNeonate || isYoungInf) ? STEP2_YOUNG : STEP2_TODDLER;
 
     const STEP3_ESCALATION = {
       title: 'STEP 3 — ESCALATION: Worsening appearance or concerning results after initial workup',
-      recommendations: [
+      recommendations: clean([
         '1. CALL SENIOR — escalating fever + worsening appearance in a young infant must be reviewed by a consultant.',
-        '2. START / ESCALATE ANTIBIOTICS: if not yet started → start empiric antibiotics NOW. If already on antibiotics and worsening → broaden (add Vancomycin + anti-Pseudomonal).',
+        '2. ANTIBIOTICS: ensure the FIRST-LINE empiric antibiotic has been given without delay (see Drugs tab). Any broadening of cover is a senior / PICU decision under the local sepsis protocol — it is not initiated from this ER pathway.',
+        hsvRisk && '2b. HSV risk flagged → ensure IV Acyclovir is running.',
         '3. REPEAT BLOOD GAS + LACTATE — metabolic acidosis or lactate > 2 mmol/L = sepsis → SEPTIC SHOCK PROTOCOL.',
-        '4. IV FLUID: if any signs of dehydration or poor perfusion → 10 mL/kg isotonic crystalloid bolus.',
+        '4. IV FLUID: if any signs of dehydration or poor perfusion → 10 mL/kg isotonic crystalloid bolus (reassess after each).',
         '5. If LP not yet performed and meningitis now suspected → CSF now (if stable) or give antibiotics and LP later.',
         '6. PICU NOTIFICATION if: altered consciousness, apnoea, haemodynamic instability, or persistent fever with worsening markers despite antibiotics.',
-      ],
+      ]),
     };
 
     const STEP4_FAILURE = {
       title: 'STEP 4 — Life-threatening: Meningitis / Sepsis / Septic Shock',
-      recommendations: [
+      recommendations: clean([
         'RECOGNISE: altered consciousness, apnoea, petechiae/purpura, haemodynamic instability, seizure, bulging fontanelle.',
         'SENIOR + PICU at bedside NOW.',
         'If Meningococcemia suspected (petechiae + fever) → Ceftriaxone IV push without any delay — do NOT wait.',
-        'Bacterial meningitis → Dexamethasone 0.15 mg/kg IV before or with first antibiotic dose (reduces neurological sequelae in H. influenzae and pneumococcal meningitis). Use with caution in neonates.',
+        'Bacterial meningitis → Dexamethasone 0.15 mg/kg IV before or with first antibiotic dose (reduces neurological sequelae in H. influenzae and pneumococcal meningitis). NOT recommended in neonates / infants < 6 weeks.',
         'Haemodynamic compromise → follow SEPTIC SHOCK PROTOCOL: fluid bolus 10–20 mL/kg + vasopressors (see Septic Shock protocol).',
         'Neonatal HSV encephalitis (seizure + vesicles + fever) → IV Acyclovir 20 mg/kg q8h; CSF HSV PCR; MRI brain.',
         'Seizure management: benzodiazepine first-line (see Status Epilepticus protocol if prolonged).',
-      ],
+      ]),
     };
 
     switch (severity.level) {
       case 'severe':
         return [
+          ...priorityCard,
           {
             title: `STEP 1 — Immediate: Full Workup + Empiric Antibiotics${isNeonate ? ' (NEONATE)' : isYoungInf ? ' (Young Infant)' : ''}`,
             recommendations: step1Recs,
           },
-          STEP2_REASSESS,
+          STEP2,
           STEP3_ESCALATION,
           STEP4_FAILURE,
         ];
 
       case 'moderate':
         return [
+          ...priorityCard,
           {
             title: `STEP 1 — Targeted Workup: Intermediate Risk${isInf2 ? ' (61–90 days)' : isToddler ? ' (3–36 months)' : ''}`,
             recommendations: step1Recs,
           },
-          STEP2_REASSESS,
+          STEP2,
           STEP3_ESCALATION,
           STEP4_FAILURE,
         ];
 
       case 'mild':
         return [
+          ...priorityCard,
           {
             title: 'STEP 1 — Low Risk: Supportive Care',
-            recommendations: [
+            recommendations: clean([
               'Antipyretics — paracetamol 15 mg/kg now if distressed by fever. Ibuprofen if ≥ 6 months and drinking well.',
-              ua !== 'neg' && sex === 'female' ? 'Obtain catheterised UA + culture — UTI risk age even in low-risk group.' : 'UA may be deferred if very low-risk, but low threshold to send given age.',
+              sex === 'female' ? 'Female ≤ 24 months — still send catheterised UA + culture (UTI risk age even in low-risk group).' : 'Low threshold to send UA given age; otherwise no routine bloods.',
+              'No routine blood tests or antibiotics for a low-risk well-appearing child.',
               'Observe in ER for 1–2 h before discharge decision.',
-              'No routine blood tests or antibiotics for low-risk well-appearing children.',
-            ],
+            ]),
           },
-          {
-            title: 'STEP 2 — REASSESS at 1 h: Still well-appearing and comfortable?',
-            recommendations: [
-              'STILL WELL → discharge with safety netting (Dispose tab). Confirm follow-up within 24–48 h.',
-              'UA POSITIVE → start oral antibiotics (UTI). Reassess for admission need based on age.',
-              'APPEARANCE CHANGED → escalate: send full workup, escalate to STEP 3.',
-              '⚠ Never discharge without documenting that caregiver understands return precautions.',
-            ],
-          },
+          STEP2,
           STEP3_ESCALATION,
         ];
 
       default:
         return [
-          { title: 'Select age group in Assess tab', recommendations: ['Choose the patient\'s age group and complete the assessment to display management steps.'] },
+          { title: 'Complete the Assess tab', recommendations: ['Enter age, appearance and any available results to generate management steps.'] },
         ];
     }
   },
 
   getDisposition: (severity, data) => {
+    const ag = deriveAgeGroup(data);
+    const ua = data.ua as string;
+    const isYoungInf = ag === 'inf1' || ag === 'inf2';
+    const isOlder = ag === 'tod' || ag === 'older';
+    const reliableFu = data.reliable_fu === true || data.reliableFollowup === true;
+
     if (severity.level === 'severe') {
-      return [
-        deriveAgeGroup(data) === 'neonate'
-          ? 'ADMIT — all neonates with fever require inpatient management regardless of appearance.'
-          : 'ADMIT — ill-appearing or high-risk young infant. PICU if haemodynamically unstable.',
-      ];
+      if (ag === 'neonate') return ['ADMIT — all neonates with fever: full sepsis workup + parenteral empiric antibiotics, regardless of appearance. Never discharge.'];
+      if (isYoungInf && ua === 'pos') return ['ADMIT — young infant (< 90 days) UTI: parenteral antibiotics + inpatient care. Outpatient is NOT appropriate in this age.'];
+      return ['ADMIT — high-risk / ill-appearing: parenteral antibiotics + full workup. PICU if haemodynamically unstable.'];
     }
     if (severity.level === 'moderate') {
-      return [
-        'Admission or extended observation for intermediate-risk presentations. Outpatient only if UA negative, markers reassuring, and 12–24 h follow-up is confirmed.',
-      ];
+      if (isOlder && ua === 'pos') {
+        return [reliableFu
+          ? 'OUTPATIENT — well-appearing UTI: start oral antibiotics, discharge with urine-culture follow-up and 24–48 h review. Admit only if unable to tolerate oral or dehydrated.'
+          : 'Treat UTI (oral first-line). OUTPATIENT acceptable ONLY if tolerating fluids AND a reliable 24–48 h follow-up is arranged — otherwise admit for parenteral antibiotics.'];
+      }
+      if (isYoungInf) return ['Young infant: complete targeted workup. Admit or observe; outpatient only after senior review with reassuring markers AND guaranteed 12–24 h follow-up.'];
+      return ['Targeted (UA-led) workup. OUTPATIENT acceptable if well-appearing, UA negative or UTI treated orally, and 24–48 h follow-up is confirmed; otherwise observe / admit.'];
     }
-    return ['Discharge home with safety-netting advice and documented 24–48 h follow-up.'];
+    return ['DISCHARGE home with safety-netting advice and a documented 24–48 h follow-up.'];
   },
 
   getRedFlags: () => [
@@ -439,7 +533,7 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
       doses.push({
         drugName: 'Ampicillin (IV) — Neonatal first-line',
         dose: `${ampMg} mg IV (100 mg/kg) every 12 h (0–7 days) or every 8 h (> 7 days)`,
-        notes: 'Covers Group B Strep + Listeria. Mandatory component of neonatal empiric regimen.',
+        notes: 'Covers Group B Strep + Listeria. Mandatory component of neonatal empiric regimen. Meningitic dosing is HIGHER — up to 300–400 mg/kg/day divided — if CSF suggests meningitis.',
       });
       doses.push({
         drugName: 'Gentamicin (IV) — Neonatal partner',
