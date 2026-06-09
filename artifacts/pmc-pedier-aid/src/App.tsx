@@ -66,6 +66,33 @@ import NutritionalRecoveryPage from "@/pages/nutritional-recovery";
 import DkaTransitionPage from "@/pages/dka-insulin-transition";
 import TaperingCalculatorPage from "@/pages/tapering-calculator";
 import ThompsonHIEPage from "@/pages/thompson-hie";
+import PEWSPage from "@/pages/pews";
+import AppendicitisScorePage from "@/pages/appendicitis-score";
+import MeningitisScorePage from "@/pages/meningitis-score";
+import CroupScorePage from "@/pages/croup-score";
+import PRAMAsthmaPage from "@/pages/pram-asthma";
+import FENaPage from "@/pages/fena";
+import TargetHeightPage from "@/pages/target-height";
+import TransfusionPage from "@/pages/transfusion";
+import AKIStagingPage from "@/pages/aki-staging";
+import KawasakiPage from "@/pages/kawasaki";
+import GrowthVelocityPage from "@/pages/growth-velocity";
+import VesikariPage from "@/pages/vesikari";
+import UPCRPage from "@/pages/upcr";
+import NeonatalPolycythemiaPage from "@/pages/neonatal-polycythemia";
+import PhoenixSepsisPage from "@/pages/phoenix-sepsis";
+import PecarnHeadPage from "@/pages/pecarn-head";
+import ComfortScorePage from "@/pages/comfort-score";
+import PrematurityPredictorPage from "@/pages/prematurity-predictor";
+import CAPSeverityPage from "@/pages/cap-severity";
+import FebrileSeizurePage from "@/pages/febrile-seizure";
+import DevelopmentalScreenerPage from "@/pages/developmental-screener";
+import FebrileNeutropeniaPage from "@/pages/febrile-neutropenia";
+import FluidBalancePage from "@/pages/fluid-balance";
+import DiabetesInsulinPage from "@/pages/diabetes-insulin";
+import StressHydrocortisonePage from "@/pages/stress-hydrocortisone";
+import VaccinationSchedulerPage from "@/pages/vaccination-scheduler";
+import AntibioticStewardshipPage from "@/pages/antibiotic-stewardship";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -214,6 +241,33 @@ function Router() {
       <Route path="/calculators/tapering-calculator" component={() => <ProtectedRoute component={TaperingCalculatorPage} />} />
       <Route path="/calculators/nutritional-recovery" component={() => <ProtectedRoute component={NutritionalRecoveryPage} />} />
       <Route path="/calculators/thompson-hie" component={() => <ProtectedRoute component={ThompsonHIEPage} />} />
+      <Route path="/calculators/pews" component={() => <ProtectedRoute component={PEWSPage} />} />
+      <Route path="/calculators/appendicitis-score" component={() => <ProtectedRoute component={AppendicitisScorePage} />} />
+      <Route path="/calculators/meningitis-score" component={() => <ProtectedRoute component={MeningitisScorePage} />} />
+      <Route path="/calculators/croup-score" component={() => <ProtectedRoute component={CroupScorePage} />} />
+      <Route path="/calculators/pram-asthma" component={() => <ProtectedRoute component={PRAMAsthmaPage} />} />
+      <Route path="/calculators/fena" component={() => <ProtectedRoute component={FENaPage} />} />
+      <Route path="/calculators/target-height" component={() => <ProtectedRoute component={TargetHeightPage} />} />
+      <Route path="/calculators/transfusion" component={() => <ProtectedRoute component={TransfusionPage} />} />
+      <Route path="/calculators/aki-staging" component={() => <ProtectedRoute component={AKIStagingPage} />} />
+      <Route path="/calculators/kawasaki" component={() => <ProtectedRoute component={KawasakiPage} />} />
+      <Route path="/calculators/growth-velocity" component={() => <ProtectedRoute component={GrowthVelocityPage} />} />
+      <Route path="/calculators/vesikari" component={() => <ProtectedRoute component={VesikariPage} />} />
+      <Route path="/calculators/upcr" component={() => <ProtectedRoute component={UPCRPage} />} />
+      <Route path="/calculators/neonatal-polycythemia" component={() => <ProtectedRoute component={NeonatalPolycythemiaPage} />} />
+      <Route path="/calculators/phoenix-sepsis" component={() => <ProtectedRoute component={PhoenixSepsisPage} />} />
+      <Route path="/calculators/pecarn-head" component={() => <ProtectedRoute component={PecarnHeadPage} />} />
+      <Route path="/calculators/comfort-score" component={() => <ProtectedRoute component={ComfortScorePage} />} />
+      <Route path="/calculators/prematurity-predictor" component={() => <ProtectedRoute component={PrematurityPredictorPage} />} />
+      <Route path="/calculators/cap-severity" component={() => <ProtectedRoute component={CAPSeverityPage} />} />
+      <Route path="/calculators/febrile-seizure" component={() => <ProtectedRoute component={FebrileSeizurePage} />} />
+      <Route path="/calculators/developmental-screener" component={() => <ProtectedRoute component={DevelopmentalScreenerPage} />} />
+      <Route path="/calculators/febrile-neutropenia" component={() => <ProtectedRoute component={FebrileNeutropeniaPage} />} />
+      <Route path="/calculators/fluid-balance" component={() => <ProtectedRoute component={FluidBalancePage} />} />
+      <Route path="/calculators/diabetes-insulin" component={() => <ProtectedRoute component={DiabetesInsulinPage} />} />
+      <Route path="/calculators/stress-hydrocortisone" component={() => <ProtectedRoute component={StressHydrocortisonePage} />} />
+      <Route path="/calculators/vaccination-scheduler" component={() => <ProtectedRoute component={VaccinationSchedulerPage} />} />
+      <Route path="/calculators/antibiotic-stewardship" component={() => <ProtectedRoute component={AntibioticStewardshipPage} />} />
       <Route path="/calculators" component={() => <ProtectedRoute component={CalculatorsPage} />} />
 
       <Route path="/neonatology/hyperbilirubinemia" component={() => <ProtectedRoute component={HyperbilirubinemiaCal} />} />
