@@ -46,7 +46,7 @@ export default function AdvancedFluidsCalc() {
     let phase1Label = "Phase 2: First 8 Hours";
     let phase2Label = "Phase 3: Next 16 Hours";
     let maxNaDrop24h = "N/A";
-    let recommendedFluid = "D5 ½ NS (0.45%)";
+    let recommendedFluid = "0.9% NS or LR ± 5% Dextrose";
 
     if (state === "hyper") {
         // --- GRADIENT CORRECTION LOGIC (2025 Standard) ---
@@ -301,9 +301,18 @@ export default function AdvancedFluidsCalc() {
                         <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10">
                             <div className="flex items-center gap-2 mb-3 text-primary">
                                 <Stethoscope className="h-4 w-4" />
-                                <span className="text-xs font-black uppercase tracking-wider">Clinical Protocol: {fluidPlan.state === "hyper" ? "Hypernatremia" : "Hyponatremia"}</span>
+                                <span className="text-xs font-black uppercase tracking-wider">Clinical Protocol: {fluidPlan.state === "hyper" ? "Hypernatremia" : fluidPlan.state === "hypo" ? "Hyponatremia" : "Isonatremic Dehydration"}</span>
                             </div>
                             <ul className="text-xs space-y-2 font-medium leading-relaxed">
+                                {fluidPlan.state === "iso" && (
+                                    <>
+                                        <li>• <strong>Isotonic Fluids Only:</strong> Use 0.9% NS or Lactated Ringer's. Hypotonic fluids (½ NS, ¼ NS) are no longer recommended — they cause iatrogenic hyponatremia in hospitalised children. <span className="text-primary font-bold">(NICE 2015, AAP 2018)</span></li>
+                                        <li>• <strong>Dextrose:</strong> Add 5% dextrose if at risk of hypoglycaemia (infants, prolonged poor oral intake, or low maintenance rate).</li>
+                                        <li>• <strong>Potassium:</strong> Add 10–20 mEq/L KCl once urine output is confirmed.</li>
+                                        <li>• <strong>Split approach:</strong> This calculator uses 50/50 (50% deficit over 8h, 50% over 16h). Uniform 24h replacement is also acceptable — both are supported in current guidelines.</li>
+                                        <li>• <strong>Reassess:</strong> Recheck serum electrolytes after 4–6 hours of IV therapy.</li>
+                                    </>
+                                )}
                                 {fluidPlan.state === "hyper" && (
                                     <>
                                         <li>• <strong>Gradient Approach:</strong> For Na &gt; 170, use 0.45% or 0.9% NS initially. Hypotonic fluids (0.225%) are only used in moderate cases (Na &lt; 157).</li>
@@ -336,6 +345,14 @@ export default function AdvancedFluidsCalc() {
                     </AccordionTrigger>
                     <AccordionContent className="p-6 space-y-4">
                         <div className="space-y-4 text-xs">
+                            <div className="p-3 border-l-4 border-emerald-500 bg-emerald-50/50">
+                                <p className="font-bold text-emerald-700 mb-1">NICE Guideline NG29 (2015) — KEY</p>
+                                <p className="italic text-muted-foreground">"IV fluid therapy in children and young people in hospital." Mandates isotonic solutions (Na 131–154 mmol/L) for maintenance. Hypotonic fluids (½ NS, ¼ NS) are contraindicated for routine use due to risk of iatrogenic hyponatremia.</p>
+                            </div>
+                            <div className="p-3 border-l-4 border-emerald-500 bg-emerald-50/50">
+                                <p className="font-bold text-emerald-700 mb-1">AAP Clinical Report (2018) — KEY</p>
+                                <p className="italic text-muted-foreground">Friedman JN et al. "Choosing the Right Intravenous Fluid." Pediatrics 2018. Recommends isotonic crystalloid (0.9% NaCl or LR) for IV maintenance in most hospitalised children. Formally replaced older hypotonic maintenance fluid practice.</p>
+                            </div>
                             <div className="p-3 border-l-4 border-primary bg-muted/20">
                                 <p className="font-bold text-primary mb-1">RCH Melbourne (2024)</p>
                                 <p className="italic text-muted-foreground">"Hypernatraemia: Clinical Management." Recommended for correction windows of 48-96h for Na &gt; 170.</p>

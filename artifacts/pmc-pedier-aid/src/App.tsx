@@ -65,6 +65,7 @@ import FentonChartsPage from "@/pages/fenton-charts";
 import NutritionalRecoveryPage from "@/pages/nutritional-recovery";
 import DkaTransitionPage from "@/pages/dka-insulin-transition";
 import TaperingCalculatorPage from "@/pages/tapering-calculator";
+import ThompsonHIEPage from "@/pages/thompson-hie";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -212,6 +213,7 @@ function Router() {
       <Route path="/calculators/dka-transition" component={() => <ProtectedRoute component={DkaTransitionPage} />} />
       <Route path="/calculators/tapering-calculator" component={() => <ProtectedRoute component={TaperingCalculatorPage} />} />
       <Route path="/calculators/nutritional-recovery" component={() => <ProtectedRoute component={NutritionalRecoveryPage} />} />
+      <Route path="/calculators/thompson-hie" component={() => <ProtectedRoute component={ThompsonHIEPage} />} />
       <Route path="/calculators" component={() => <ProtectedRoute component={CalculatorsPage} />} />
 
       <Route path="/neonatology/hyperbilirubinemia" component={() => <ProtectedRoute component={HyperbilirubinemiaCal} />} />

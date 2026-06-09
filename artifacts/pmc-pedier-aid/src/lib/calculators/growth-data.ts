@@ -74,55 +74,158 @@ export const WHO_HC_GIRLS: GrowthPoint[] = [
 ];
 
 /**
- * Simplified BP Percentile Lookup (95th Percentile)
- * Formula varies by age/sex/height, but for rapid ER screening:
- * Median BP = 80 + (Age in years * 2)
- * High BP (95th) approx = 95 + (Age in years * 2)
+ * Approximate 95th-percentile BP by age and sex (AAP 2017-aligned approximation).
+ * Stratified by age band to better reflect the non-linear normative curves.
+ * IMPORTANT: Precise values require height-adjusted AAP 2017 tables; these are
+ * ER screening estimates only — confirmed hypertension workup needs full nomogram.
+ * Fenton 2013 preterm chart used for neonatal growth data above.
  */
 export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 'female') => {
-    // 95th Percentile estimate for median height
-    const systolic95 = 95 + (ageYears * 2);
-    const diastolic95 = 60 + (ageYears * 1.5);
-    
-    return { systolic95, diastolic95 };
+  let systolic95: number;
+  let diastolic95: number;
+
+  if (ageYears < 1) {
+    systolic95 = sex === 'male' ? 100 : 100;
+    diastolic95 = sex === 'male' ? 74 : 74;
+  } else if (ageYears < 6) {
+    systolic95 = sex === 'male' ? 98 + ageYears * 2.5 : 96 + ageYears * 2.5;
+    diastolic95 = sex === 'male' ? 58 + ageYears * 1.5 : 57 + ageYears * 1.5;
+  } else if (ageYears < 13) {
+    systolic95 = sex === 'male' ? 105 + ageYears * 1.8 : 103 + ageYears * 1.8;
+    diastolic95 = sex === 'male' ? 63 + ageYears * 1.2 : 62 + ageYears * 1.2;
+  } else {
+    systolic95 = sex === 'male' ? 130 + (ageYears - 13) * 0.8 : 126 + (ageYears - 13) * 0.5;
+    diastolic95 = sex === 'male' ? 82 + (ageYears - 13) * 0.3 : 80 + (ageYears - 13) * 0.2;
+  }
+
+  return {
+    systolic95: Math.round(systolic95),
+    diastolic95: Math.round(diastolic95),
+  };
 };
 
 /**
- * Fenton Preterm Growth Data (Simplified)
- * Range: 22 - 50 weeks PMA
+ * Fenton 2013 Preterm Growth Chart Reference Data
+ * Source: Fenton TR, Kim JH. BMC Pediatrics. 2013;13:59.
+ * Biweekly reference points (22–50 weeks PMA); intermediate weeks are
+ * linearly interpolated at display time.
+ * Percentiles: p3/p10/p50/p90/p97 (correct clinical cutoffs for SGA/AGA/LGA).
+ * Note: these are clinical approximations — exact values require the published
+ * LMS parameter tables from the original paper.
  */
-export const FENTON_WEIGHT_BOYS: GrowthPoint[] = [
-  { month: 22, p3: 0.35, p15: 0.42, p50: 0.50, p85: 0.60, p97: 0.70 },
-  { month: 26, p3: 0.65, p15: 0.78, p50: 0.90, p85: 1.05, p97: 1.20 },
-  { month: 30, p3: 1.10, p15: 1.30, p50: 1.50, p85: 1.75, p97: 2.00 },
-  { month: 34, p3: 1.70, p15: 2.00, p50: 2.30, p85: 2.70, p97: 3.10 },
-  { month: 38, p3: 2.40, p15: 2.80, p50: 3.20, p85: 3.70, p97: 4.20 },
-  { month: 42, p3: 3.10, p15: 3.60, p50: 4.10, p85: 4.70, p97: 5.30 },
-  { month: 46, p3: 3.80, p15: 4.40, p50: 5.00, p85: 5.80, p97: 6.50 },
-  { month: 50, p3: 4.50, p15: 5.20, p50: 6.00, p85: 6.90, p97: 7.80 },
+export interface FentonPoint {
+  week: number;
+  p3: number;
+  p10: number;
+  p50: number;
+  p90: number;
+  p97: number;
+}
+
+export const FENTON_WEIGHT_BOYS: FentonPoint[] = [
+  { week: 22, p3: 0.36, p10: 0.41, p50: 0.57, p90: 0.76, p97: 0.87 },
+  { week: 24, p3: 0.49, p10: 0.56, p50: 0.76, p90: 1.01, p97: 1.14 },
+  { week: 26, p3: 0.67, p10: 0.76, p50: 1.00, p90: 1.30, p97: 1.47 },
+  { week: 28, p3: 0.88, p10: 1.01, p50: 1.31, p90: 1.67, p97: 1.90 },
+  { week: 30, p3: 1.15, p10: 1.31, p50: 1.67, p90: 2.10, p97: 2.38 },
+  { week: 32, p3: 1.49, p10: 1.69, p50: 2.12, p90: 2.63, p97: 2.97 },
+  { week: 34, p3: 1.88, p10: 2.13, p50: 2.62, p90: 3.21, p97: 3.61 },
+  { week: 36, p3: 2.30, p10: 2.59, p50: 3.14, p90: 3.81, p97: 4.27 },
+  { week: 38, p3: 2.68, p10: 3.02, p50: 3.59, p90: 4.32, p97: 4.82 },
+  { week: 40, p3: 2.97, p10: 3.32, p50: 3.76, p90: 4.44, p97: 4.93 },
+  { week: 42, p3: 3.23, p10: 3.58, p50: 4.05, p90: 4.73, p97: 5.23 },
+  { week: 44, p3: 3.46, p10: 3.82, p50: 4.33, p90: 5.03, p97: 5.56 },
+  { week: 46, p3: 3.68, p10: 4.05, p50: 4.59, p90: 5.31, p97: 5.86 },
+  { week: 48, p3: 3.88, p10: 4.27, p50: 4.84, p90: 5.57, p97: 6.14 },
+  { week: 50, p3: 4.07, p10: 4.48, p50: 5.07, p90: 5.82, p97: 6.41 },
 ];
 
-export const FENTON_WEIGHT_GIRLS: GrowthPoint[] = [
-  { month: 22, p3: 0.33, p15: 0.40, p50: 0.48, p85: 0.58, p97: 0.68 },
-  { month: 26, p3: 0.60, p15: 0.72, p50: 0.85, p85: 1.00, p97: 1.15 },
-  { month: 30, p3: 1.00, p15: 1.20, p50: 1.40, p85: 1.65, p97: 1.90 },
-  { month: 34, p3: 1.60, p15: 1.90, p50: 2.20, p85: 2.55, p97: 2.95 },
-  { month: 38, p3: 2.25, p15: 2.65, p50: 3.05, p85: 3.50, p97: 4.00 },
-  { month: 42, p3: 2.90, p15: 3.40, p50: 3.90, p85: 4.50, p97: 5.10 },
-  { month: 46, p3: 3.55, p15: 4.15, p50: 4.75, p85: 5.50, p97: 6.20 },
-  { month: 50, p3: 4.20, p15: 4.90, p50: 5.60, p85: 6.50, p97: 7.30 },
+export const FENTON_WEIGHT_GIRLS: FentonPoint[] = [
+  { week: 22, p3: 0.33, p10: 0.38, p50: 0.53, p90: 0.72, p97: 0.82 },
+  { week: 24, p3: 0.45, p10: 0.52, p50: 0.71, p90: 0.96, p97: 1.09 },
+  { week: 26, p3: 0.61, p10: 0.70, p50: 0.93, p90: 1.22, p97: 1.38 },
+  { week: 28, p3: 0.81, p10: 0.94, p50: 1.22, p90: 1.57, p97: 1.78 },
+  { week: 30, p3: 1.05, p10: 1.22, p50: 1.56, p90: 1.99, p97: 2.25 },
+  { week: 32, p3: 1.36, p10: 1.57, p50: 1.99, p90: 2.50, p97: 2.81 },
+  { week: 34, p3: 1.73, p10: 1.99, p50: 2.47, p90: 3.06, p97: 3.43 },
+  { week: 36, p3: 2.12, p10: 2.43, p50: 2.97, p90: 3.64, p97: 4.07 },
+  { week: 38, p3: 2.47, p10: 2.82, p50: 3.40, p90: 4.13, p97: 4.60 },
+  { week: 40, p3: 2.77, p10: 3.14, p50: 3.74, p90: 4.50, p97: 5.00 },
+  { week: 42, p3: 3.02, p10: 3.42, p50: 4.06, p90: 4.84, p97: 5.38 },
+  { week: 44, p3: 3.24, p10: 3.66, p50: 4.34, p90: 5.15, p97: 5.72 },
+  { week: 46, p3: 3.45, p10: 3.88, p50: 4.62, p90: 5.43, p97: 6.02 },
+  { week: 48, p3: 3.64, p10: 4.08, p50: 4.83, p90: 5.70, p97: 6.31 },
+  { week: 50, p3: 3.82, p10: 4.27, p50: 5.04, p90: 5.96, p97: 6.58 },
 ];
 
-export const FENTON_HC_BOYS: GrowthPoint[] = [
-  { month: 22, p3: 17.5, p15: 18.5, p50: 19.5, p85: 20.8, p97: 21.8 },
-  { month: 30, p3: 25.5, p15: 26.8, p50: 28.1, p85: 29.5, p97: 30.8 },
-  { month: 40, p3: 33.5, p15: 34.8, p50: 36.2, p85: 37.8, p97: 39.2 },
-  { month: 50, p3: 38.0, p15: 39.5, p50: 41.0, p85: 42.8, p97: 44.2 },
+export const FENTON_LENGTH_BOYS: FentonPoint[] = [
+  { week: 22, p3: 24.7, p10: 25.6, p50: 27.4, p90: 29.3, p97: 30.3 },
+  { week: 24, p3: 27.5, p10: 28.6, p50: 30.5, p90: 32.5, p97: 33.6 },
+  { week: 26, p3: 30.1, p10: 31.3, p50: 33.3, p90: 35.4, p97: 36.6 },
+  { week: 28, p3: 32.5, p10: 33.8, p50: 35.9, p90: 38.1, p97: 39.3 },
+  { week: 30, p3: 34.8, p10: 36.1, p50: 38.3, p90: 40.6, p97: 41.9 },
+  { week: 32, p3: 36.9, p10: 38.3, p50: 40.6, p90: 43.0, p97: 44.4 },
+  { week: 34, p3: 38.9, p10: 40.4, p50: 42.9, p90: 45.4, p97: 46.8 },
+  { week: 36, p3: 40.9, p10: 42.5, p50: 45.0, p90: 47.6, p97: 49.1 },
+  { week: 38, p3: 42.8, p10: 44.4, p50: 46.9, p90: 49.7, p97: 51.2 },
+  { week: 40, p3: 44.6, p10: 46.2, p50: 48.7, p90: 51.6, p97: 53.2 },
+  { week: 42, p3: 46.0, p10: 47.7, p50: 50.3, p90: 53.2, p97: 54.9 },
+  { week: 44, p3: 47.3, p10: 49.1, p50: 51.7, p90: 54.6, p97: 56.4 },
+  { week: 46, p3: 48.5, p10: 50.3, p50: 53.0, p90: 55.9, p97: 57.8 },
+  { week: 48, p3: 49.7, p10: 51.5, p50: 54.2, p90: 57.2, p97: 59.1 },
+  { week: 50, p3: 50.8, p10: 52.7, p50: 55.4, p90: 58.5, p97: 60.4 },
 ];
 
-export const FENTON_HC_GIRLS: GrowthPoint[] = [
-  { month: 22, p3: 17.0, p15: 18.0, p50: 19.0, p85: 20.2, p97: 21.2 },
-  { month: 30, p3: 24.8, p15: 26.0, p50: 27.2, p85: 28.5, p97: 29.8 },
-  { month: 40, p3: 32.5, p15: 33.8, p50: 35.2, p85: 36.8, p97: 38.2 },
-  { month: 50, p3: 37.0, p15: 38.5, p50: 40.0, p85: 41.8, p97: 43.2 },
+export const FENTON_LENGTH_GIRLS: FentonPoint[] = [
+  { week: 22, p3: 24.2, p10: 25.2, p50: 27.0, p90: 28.9, p97: 29.9 },
+  { week: 24, p3: 27.0, p10: 28.1, p50: 30.0, p90: 32.0, p97: 33.1 },
+  { week: 26, p3: 29.5, p10: 30.7, p50: 32.7, p90: 34.8, p97: 36.0 },
+  { week: 28, p3: 31.9, p10: 33.2, p50: 35.2, p90: 37.4, p97: 38.7 },
+  { week: 30, p3: 34.1, p10: 35.5, p50: 37.6, p90: 39.9, p97: 41.2 },
+  { week: 32, p3: 36.1, p10: 37.6, p50: 39.9, p90: 42.3, p97: 43.7 },
+  { week: 34, p3: 38.2, p10: 39.8, p50: 42.2, p90: 44.6, p97: 46.0 },
+  { week: 36, p3: 40.3, p10: 41.9, p50: 44.3, p90: 46.8, p97: 48.3 },
+  { week: 38, p3: 42.2, p10: 43.9, p50: 46.4, p90: 49.0, p97: 50.5 },
+  { week: 40, p3: 44.0, p10: 45.7, p50: 48.2, p90: 50.9, p97: 52.5 },
+  { week: 42, p3: 45.5, p10: 47.2, p50: 49.8, p90: 52.5, p97: 54.1 },
+  { week: 44, p3: 46.8, p10: 48.5, p50: 51.2, p90: 53.9, p97: 55.6 },
+  { week: 46, p3: 48.0, p10: 49.8, p50: 52.5, p90: 55.3, p97: 57.0 },
+  { week: 48, p3: 49.2, p10: 51.0, p50: 53.7, p90: 56.7, p97: 58.4 },
+  { week: 50, p3: 50.3, p10: 52.1, p50: 54.9, p90: 57.9, p97: 59.7 },
+];
+
+export const FENTON_HC_BOYS: FentonPoint[] = [
+  { week: 22, p3: 18.3, p10: 19.0, p50: 20.5, p90: 22.0, p97: 22.8 },
+  { week: 24, p3: 20.5, p10: 21.3, p50: 22.7, p90: 24.2, p97: 25.0 },
+  { week: 26, p3: 22.4, p10: 23.2, p50: 24.7, p90: 26.2, p97: 27.0 },
+  { week: 28, p3: 24.1, p10: 25.0, p50: 26.5, p90: 28.1, p97: 29.0 },
+  { week: 30, p3: 25.9, p10: 26.8, p50: 28.4, p90: 30.0, p97: 31.0 },
+  { week: 32, p3: 27.6, p10: 28.5, p50: 30.2, p90: 31.9, p97: 32.9 },
+  { week: 34, p3: 29.2, p10: 30.2, p50: 31.9, p90: 33.7, p97: 34.7 },
+  { week: 36, p3: 30.8, p10: 31.8, p50: 33.6, p90: 35.4, p97: 36.5 },
+  { week: 38, p3: 32.1, p10: 33.2, p50: 35.1, p90: 37.0, p97: 38.1 },
+  { week: 40, p3: 33.5, p10: 34.5, p50: 36.5, p90: 38.5, p97: 39.6 },
+  { week: 42, p3: 34.4, p10: 35.5, p50: 37.5, p90: 39.6, p97: 40.7 },
+  { week: 44, p3: 35.2, p10: 36.3, p50: 38.4, p90: 40.5, p97: 41.7 },
+  { week: 46, p3: 35.9, p10: 37.1, p50: 39.2, p90: 41.4, p97: 42.6 },
+  { week: 48, p3: 36.6, p10: 37.7, p50: 39.9, p90: 42.2, p97: 43.4 },
+  { week: 50, p3: 37.3, p10: 38.5, p50: 40.7, p90: 43.1, p97: 44.3 },
+];
+
+export const FENTON_HC_GIRLS: FentonPoint[] = [
+  { week: 22, p3: 18.0, p10: 18.8, p50: 20.2, p90: 21.7, p97: 22.5 },
+  { week: 24, p3: 20.2, p10: 21.0, p50: 22.4, p90: 23.9, p97: 24.8 },
+  { week: 26, p3: 22.0, p10: 22.9, p50: 24.3, p90: 25.9, p97: 26.8 },
+  { week: 28, p3: 23.7, p10: 24.6, p50: 26.1, p90: 27.7, p97: 28.7 },
+  { week: 30, p3: 25.5, p10: 26.4, p50: 27.9, p90: 29.6, p97: 30.6 },
+  { week: 32, p3: 27.1, p10: 28.1, p50: 29.7, p90: 31.4, p97: 32.4 },
+  { week: 34, p3: 28.7, p10: 29.7, p50: 31.4, p90: 33.2, p97: 34.2 },
+  { week: 36, p3: 30.2, p10: 31.2, p50: 33.0, p90: 34.9, p97: 36.0 },
+  { week: 38, p3: 31.6, p10: 32.7, p50: 34.5, p90: 36.5, p97: 37.7 },
+  { week: 40, p3: 32.9, p10: 34.0, p50: 35.9, p90: 38.0, p97: 39.2 },
+  { week: 42, p3: 33.8, p10: 35.0, p50: 36.9, p90: 39.0, p97: 40.2 },
+  { week: 44, p3: 34.6, p10: 35.8, p50: 37.8, p90: 39.9, p97: 41.2 },
+  { week: 46, p3: 35.4, p10: 36.6, p50: 38.6, p90: 40.8, p97: 42.1 },
+  { week: 48, p3: 36.1, p10: 37.3, p50: 39.3, p90: 41.6, p97: 42.9 },
+  { week: 50, p3: 36.8, p10: 38.0, p50: 40.1, p90: 42.3, p97: 43.6 },
 ];

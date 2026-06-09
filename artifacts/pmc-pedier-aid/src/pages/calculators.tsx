@@ -25,59 +25,168 @@ interface CalcTool {
   id: string;
   name: string;
   description: string;
-  category: "Emergency" | "Fluids" | "Renal" | "Endocrine" | "Visual" | "Gastrointestinal" | "Neonatal" | "Growth";
+  category: "Emergency" | "Neonatal" | "Fluids" | "Endocrine" | "Growth" | "Pharmacology" | "Reference";
   icon: any;
   href?: string;
   tags: string[];
 }
 
 const CATEGORY_METADATA: Record<string, { label: string, icon: any, color: string }> = {
-  "Emergency": { label: "Emergency & Critical Care", icon: ShieldAlert, color: "red" },
-  "Neonatal": { label: "Neonatal Intensive Care", icon: Baby, color: "blue" },
-  "Fluids": { label: "Fluids & Electrolytes", icon: Droplets, color: "sky" },
-  "Endocrine": { label: "Endocrine & Diabetes", icon: Flame, color: "orange" },
-  "Growth": { label: "Growth & Nutrition", icon: Apple, color: "emerald" },
-  "Gastrointestinal": { label: "Gastrointestinal", icon: Activity, color: "amber" },
-  "Renal": { label: "Renal & Urology", icon: Activity, color: "indigo" },
-  "Visual": { label: "Visual & Radiology Aids", icon: Ruler, color: "slate" },
+  "Emergency":    { label: "Emergency & Critical Care",  icon: ShieldAlert,  color: "red" },
+  "Neonatal":     { label: "Neonatal & Perinatal",        icon: Baby,         color: "blue" },
+  "Fluids":       { label: "Fluids & Electrolytes",       icon: Droplets,     color: "sky" },
+  "Endocrine":    { label: "Endocrine & Metabolic",       icon: Flame,        color: "orange" },
+  "Growth":       { label: "Growth & Nutrition",          icon: Apple,        color: "emerald" },
+  "Pharmacology": { label: "Drug Dosing & Pharmacology",  icon: Pill,         color: "violet" },
+  "Reference":    { label: "Clinical Reference Tools",    icon: Ruler,        color: "slate" },
 };
 
 const CALCULATORS: CalcTool[] = [
+  // ── Emergency & Critical Care ──────────────────────────────────────────
   {
     id: "resus-dosing",
     name: "Resuscitation Dosing",
-    description: "High-precision emergency IV doses with mL volume calculation.",
+    description: "High-precision emergency IV doses with mL volume calculation. Covers arrest, RSI, anaphylaxis.",
     category: "Emergency",
     icon: ShieldAlert,
     href: "/calculators/resuscitation-doses",
-    tags: ["code", "arrest", "adrenaline", "pals"]
+    tags: ["code", "arrest", "adrenaline", "pals", "rsi"]
   },
   {
-    id: "suspension-dosing",
-    name: "Suspension Dosing",
-    description: "Calculate oral suspension volumes (mL) based on concentration and weight.",
+    id: "gcs",
+    name: "Glasgow Coma Scale",
+    description: "Pediatric-adjusted GCS with severity grading and clinical interpretation.",
     category: "Emergency",
-    icon: Pill,
-    href: "/calculators/suspension-dosing",
-    tags: ["dosing", "suspension", "liquid", "oral"]
+    icon: Brain,
+    href: "/calculators/gcs",
+    tags: ["neuro", "trauma", "consciousness", "gcs"]
   },
   {
-    id: "drug-tapering",
-    name: "Drug Tapering",
-    description: "Generate professional weaning schedules for steroids and chronic medications.",
+    id: "abg",
+    name: "ABG Interpreter",
+    description: "Blood gas analysis with primary disorder, compensation check, and mixed picture detection.",
     category: "Emergency",
-    icon: TrendingDown,
-    href: "/calculators/tapering-calculator",
-    tags: ["taper", "weaning", "steroid", "prednisolone"]
+    icon: Wind,
+    href: "/calculators/abg-interpreter",
+    tags: ["acid-base", "respiratory", "blood-gas", "abg"]
+  },
+  {
+    id: "parkland",
+    name: "Parkland (Burn Fluids)",
+    description: "Fluid resuscitation volumes for pediatric thermal burns with 8-hour phased plan.",
+    category: "Emergency",
+    icon: Flame,
+    href: "/calculators/parkland",
+    tags: ["burn", "resuscitation", "fluids"]
+  },
+  {
+    id: "kocher",
+    name: "Kocher Criteria",
+    description: "Differentiate septic arthritis from transient synovitis of the hip.",
+    category: "Emergency",
+    icon: Stethoscope,
+    href: "/calculators/kocher-criteria",
+    tags: ["ortho", "limping", "joint", "hip"]
+  },
+  // ── Neonatal & Perinatal ───────────────────────────────────────────────
+  {
+    id: "thompson-hie",
+    name: "Thompson HIE Score",
+    description: "Score neonatal encephalopathy severity across 9 criteria + integrated cooling eligibility checklist.",
+    category: "Neonatal",
+    icon: Brain,
+    href: "/calculators/thompson-hie",
+    tags: ["hie", "encephalopathy", "cooling", "hypothermia", "neonatal", "seizure"]
+  },
+  {
+    id: "nrp-timer",
+    name: "NRP Timer & Log",
+    description: "Interactive delivery-room resuscitation timer with APGAR prompts and event log.",
+    category: "Neonatal",
+    icon: Clock,
+    href: "/calculators/nrp-timer",
+    tags: ["neonatal", "resuscitation", "nrp", "delivery", "code"]
+  },
+  {
+    id: "apgar",
+    name: "APGAR Score",
+    description: "Standardized neonatal assessment at 1, 5 and 10 minutes with clinical guidance.",
+    category: "Neonatal",
+    icon: Baby,
+    href: "/calculators/apgar",
+    tags: ["neonate", "newborn", "delivery", "apgar"]
   },
   {
     id: "bili",
     name: "Hyperbilirubinemia",
-    description: "AAP 2022 Phototherapy & Exchange Transfusion thresholds with interactive chart.",
+    description: "AAP 2022 phototherapy & exchange transfusion thresholds with interactive risk chart.",
     category: "Neonatal",
     icon: Baby,
     href: "/calculators/hyperbilirubinemia",
-    tags: ["neonatal", "jaundice", "chart"]
+    tags: ["neonatal", "jaundice", "bilirubin", "phototherapy", "chart"]
+  },
+  {
+    id: "eos-risk",
+    name: "EOS Risk Calculator",
+    description: "Kaiser Permanente Early-Onset Sepsis risk calculator for ≥ 34-week neonates.",
+    category: "Neonatal",
+    icon: ShieldAlert,
+    href: "/calculators/eos-risk",
+    tags: ["neonatal", "sepsis", "infection", "gbs", "eos"]
+  },
+  {
+    id: "oi",
+    name: "Oxygenation Index (OI/OSI)",
+    description: "PARDS severity — OI and OSI with PALICC-2 thresholds for iNO/ECMO consideration.",
+    category: "Neonatal",
+    icon: Wind,
+    href: "/calculators/oxygenation-index",
+    tags: ["neonatal", "respiratory", "ventilation", "ino", "ecmo", "pards"]
+  },
+  {
+    id: "map-calc",
+    name: "Mean Airway Pressure",
+    description: "Calculate ventilator MAP from PIP, PEEP, Ti, and I:E ratio.",
+    category: "Neonatal",
+    icon: Activity,
+    href: "/calculators/map-calculator",
+    tags: ["neonatal", "ventilation", "respiratory", "map"]
+  },
+  {
+    id: "ett-depth",
+    name: "ETT Depth",
+    description: "Endotracheal tube insertion depth by weight (Tuen's rule) or gestational age.",
+    category: "Neonatal",
+    icon: Ruler,
+    href: "/calculators/ett-depth",
+    tags: ["neonatal", "intubation", "airway", "ett"]
+  },
+  {
+    id: "uac-uvc",
+    name: "UAC / UVC Length",
+    description: "Umbilical catheter insertion depth by body weight with shoulder-umbilicus method.",
+    category: "Neonatal",
+    icon: Scissors,
+    href: "/calculators/uac-uvc-length",
+    tags: ["neonatal", "procedure", "catheter", "umbilical"]
+  },
+  {
+    id: "tpn-calc",
+    name: "Neonatal TPN",
+    description: "Comprehensive parenteral nutrition with GIR, protein, lipid titration and osmolarity.",
+    category: "Neonatal",
+    icon: FlaskConical,
+    href: "/calculators/tpn-calculator",
+    tags: ["neonatal", "nutrition", "tpn", "fluids", "pn"]
+  },
+  {
+    id: "weight-loss",
+    name: "Birth Weight Loss %",
+    description: "Track postnatal weight change from birth weight to guide early nutritional support.",
+    category: "Neonatal",
+    icon: Scale,
+    href: "/calculators/weight-loss",
+    tags: ["neonatal", "nutrition", "weight", "birth"]
   },
   {
     id: "ballard",
@@ -86,251 +195,157 @@ const CALCULATORS: CalcTool[] = [
     category: "Neonatal",
     icon: Activity,
     href: "/calculators/ballard-score",
-    tags: ["neonatal", "maturity", "gestational-age"]
+    tags: ["neonatal", "maturity", "gestational-age", "ballard"]
   },
   {
     id: "ga-calc",
     name: "Gestational Age",
-    description: "Calculate current gestational and corrected age for premature infants.",
+    description: "Calculate PMA, corrected age and expected milestones for premature infants.",
     category: "Neonatal",
     icon: Calendar,
     href: "/calculators/gestational-age",
-    tags: ["neonatal", "pregnancy", "corrected-age"]
+    tags: ["neonatal", "pregnancy", "corrected-age", "pma"]
   },
-  {
-    id: "nrp-timer",
-    name: "NRP Timer & Log",
-    description: "Interactive resuscitation timer with APGAR prompts and event logging.",
-    category: "Neonatal",
-    icon: Clock,
-    href: "/calculators/nrp-timer",
-    tags: ["neonatal", "resuscitation", "nrp", "code"]
-  },
-  {
-    id: "oi",
-    name: "Oxygenation Index (OI)",
-    description: "Severity of hypoxemic respiratory failure for iNO/ECMO consideration.",
-    category: "Neonatal",
-    icon: Wind,
-    href: "/calculators/oxygenation-index",
-    tags: ["neonatal", "respiratory", "ventilation", "ino"]
-  },
-  {
-    id: "map-calc",
-    name: "Mean Airway Pressure",
-    description: "Calculate MAP from ventilation parameters (PIP, PEEP, Ti).",
-    category: "Neonatal",
-    icon: Activity,
-    href: "/calculators/map-calculator",
-    tags: ["neonatal", "ventilation", "respiratory"]
-  },
-  {
-    id: "ett-depth",
-    name: "ETT Depth",
-    description: "Estimated endotracheal tube insertion depth by weight or Tuen's rule.",
-    category: "Neonatal",
-    icon: Ruler,
-    href: "/calculators/ett-depth",
-    tags: ["neonatal", "intubation", "airway"]
-  },
-  {
-    id: "tpn-calc",
-    name: "Neonatal TPN",
-    description: "Comprehensive parenteral nutrition with GIR, protein, and lipid titration.",
-    category: "Neonatal",
-    icon: FlaskConical,
-    href: "/calculators/tpn-calculator",
-    tags: ["neonatal", "nutrition", "tpn", "fluids"]
-  },
-  {
-    id: "weight-loss",
-    name: "Birth Weight Loss %",
-    description: "Track percentage weight change from birth to guide nutritional support.",
-    category: "Neonatal",
-    icon: Scale,
-    href: "/calculators/weight-loss",
-    tags: ["neonatal", "nutrition", "weight"]
-  },
-  {
-    id: "fenton",
-    name: "Fenton Growth Charts",
-    description: "Growth monitoring for preterm infants (Weight, Length, HC).",
-    category: "Growth",
-    icon: TrendingUp,
-    href: "/calculators/fenton-charts",
-    tags: ["neonatal", "growth", "preterm"]
-  },
-  {
-    id: "uac-uvc",
-    name: "UAC/UVC Length",
-    description: "Umbilical catheter insertion depth based on body weight or length.",
-    category: "Neonatal",
-    icon: Scissors,
-    href: "/calculators/uac-uvc-length",
-    tags: ["neonatal", "procedure", "catheter"]
-  },
-  {
-    id: "eos-risk",
-    name: "EOS Risk Calculator",
-    description: "Kaiser Permanente Early-Onset Sepsis risk assessment.",
-    category: "Neonatal",
-    icon: ShieldAlert,
-    href: "/calculators/eos-risk",
-    tags: ["neonatal", "sepsis", "infection"]
-  },
-  {
-    id: "child-pugh",
-    name: "Child-Pugh Score",
-    description: "Assess the severity and prognosis of chronic liver disease.",
-    category: "Gastrointestinal",
-    icon: Stethoscope,
-    href: "/calculators/child-pugh",
-    tags: ["liver", "cirrhosis", "hepatic"]
-  },
-  {
-    id: "gfr",
-    name: "GFR (Bedside Schwartz)",
-    description: "Estimated GFR based on height and creatinine for children and adolescents.",
-    category: "Renal",
-    icon: Activity,
-    href: "/calculators/gfr",
-    tags: ["renal", "creatinine", "kidney"]
-  },
+  // ── Fluids & Electrolytes ──────────────────────────────────────────────
   {
     id: "fluids",
     name: "Advanced Dehydration Engine",
-    description: "Multi-phase management for iso/hypo/hypernatremic dehydration.",
+    description: "Multi-phase fluid management for iso / hypo / hypernatremic dehydration.",
     category: "Fluids",
     icon: Droplets,
     href: "/calculators/advanced-fluids",
-    tags: ["bolus", "iv", "dehydration", "sodium", "electrolyte"]
-  },
-  {
-    id: "parkland",
-    name: "Parkland (Burn Fluids)",
-    description: "Fluid resuscitation volumes for pediatric thermal burns.",
-    category: "Emergency",
-    icon: Flame,
-    href: "/calculators/parkland",
-    tags: ["burn", "resuscitation"]
-  },
-  {
-    id: "gcs",
-    name: "Glasgow Coma Scale",
-    description: "Pediatric-adjusted GCS score with clinical interpretation.",
-    category: "Emergency",
-    icon: Brain,
-    href: "/calculators/gcs",
-    tags: ["neuro", "trauma", "consciousness"]
-  },
-  {
-    id: "sod-corr",
-    name: "Sodium Correction",
-    description: "Correction of sodium levels for hyperglycemia in DKA.",
-    category: "Endocrine",
-    icon: Thermometer,
-    href: "/calculators/sodium-correction",
-    tags: ["dka", "diabetes", "sodium"]
-  },
-  {
-    id: "dka-transition",
-    name: "DKA Insulin Transition",
-    description: "Physiological Basal-Bolus transition roadmap from IV to Subcutaneous insulin.",
-    category: "Endocrine",
-    icon: Activity,
-    href: "/calculators/dka-transition",
-    tags: ["dka", "diabetes", "insulin", "transition"]
+    tags: ["bolus", "iv", "dehydration", "sodium", "electrolyte", "maintenance"]
   },
   {
     id: "anion-gap",
     name: "Anion Gap",
-    description: "Serum anion gap calculator with albumin adjustment.",
+    description: "Serum anion gap with albumin correction and delta-delta calculation.",
     category: "Fluids",
     icon: Activity,
     href: "/calculators/anion-gap",
-    tags: ["acid-base", "electrolytes", "gap"]
-  },
-  {
-    id: "abg",
-    name: "ABG Interpreter",
-    description: "Blood gas analysis with compensation check and primary findings.",
-    category: "Emergency",
-    icon: Wind,
-    href: "/calculators/abg-interpreter",
-    tags: ["acid-base", "respiratory", "blood-gas"]
-  },
-  {
-    id: "kocher",
-    name: "Kocher Criteria",
-    description: "Differentiate septic arthritis from transient synovitis.",
-    category: "Emergency",
-    icon: Stethoscope,
-    href: "/calculators/kocher-criteria",
-    tags: ["ortho", "limping", "joint"]
-  },
-  {
-    id: "apgar",
-    name: "APGAR Score",
-    description: "Standardized neonatal assessment tool for 1 & 5 minutes.",
-    category: "Neonatal",
-    icon: Baby,
-    href: "/calculators/apgar",
-    tags: ["neonate", "newborn", "delivery"]
-  },
-  {
-    id: "bsa",
-    name: "Body Surface Area",
-    description: "Mosteller formula for precise clinical calculations.",
-    category: "Visual",
-    icon: Ruler,
-    href: "/calculators/bsa",
-    tags: ["surface", "area", "drug-dose"]
-  },
-  {
-    id: "qtc",
-    name: "Corrected QT (QTc)",
-    description: "Bazett formula with visual ECG measurement guide.",
-    category: "Visual",
-    icon: Activity,
-    href: "/calculators/qtc",
-    tags: ["ecg", "cardiology", "torsades"]
+    tags: ["acid-base", "electrolytes", "gap", "metabolic"]
   },
   {
     id: "ca-corr",
     name: "Calcium Correction",
-    description: "Adjusted total calcium for hypoalbuminemia.",
+    description: "Adjusted total calcium for hypoalbuminaemia with ionised estimate.",
     category: "Fluids",
     icon: FlaskConical,
     href: "/calculators/calcium-correction",
-    tags: ["electrolytes", "albumin", "calcium"]
+    tags: ["electrolytes", "albumin", "calcium", "hypocalcaemia"]
+  },
+  // ── Endocrine & Metabolic ─────────────────────────────────────────────
+  {
+    id: "sod-corr",
+    name: "Sodium Correction",
+    description: "Corrected sodium for hyperglycaemia in DKA (Hillier 1999 factor).",
+    category: "Endocrine",
+    icon: Thermometer,
+    href: "/calculators/sodium-correction",
+    tags: ["dka", "diabetes", "sodium", "hyperglycaemia"]
+  },
+  {
+    id: "dka-transition",
+    name: "DKA Insulin Transition",
+    description: "Physiological basal-bolus roadmap for IV → subcutaneous insulin transition.",
+    category: "Endocrine",
+    icon: Activity,
+    href: "/calculators/dka-transition",
+    tags: ["dka", "diabetes", "insulin", "transition", "t1dm"]
+  },
+  // ── Growth & Nutrition ────────────────────────────────────────────────
+  {
+    id: "fenton",
+    name: "Fenton 2013 Growth Charts",
+    description: "Preterm growth monitoring (Weight, Length, HC) — 22–50w PMA with Z-scores.",
+    category: "Growth",
+    icon: TrendingUp,
+    href: "/calculators/fenton-charts",
+    tags: ["neonatal", "growth", "preterm", "fenton", "sga", "lga"]
   },
   {
     id: "growth",
     name: "WHO Growth Charts",
-    description: "Interactive Weight/Height charts for children 0-5 years.",
-    category: "Visual",
+    description: "Interactive WHO weight / height / HC percentile charts for 0–5 years.",
+    category: "Growth",
     icon: TrendingUp,
     href: "/calculators/growth-charts",
-    tags: ["growth", "who", "percentile"]
-  },
-  {
-    id: "bp",
-    name: "BP Percentiles",
-    description: "Screen for pediatric hypertension by age and sex.",
-    category: "Visual",
-    icon: TrendingUp,
-    href: "/calculators/bp-percentiles",
-    tags: ["cardiology", "hypertension", "bp"]
+    tags: ["growth", "who", "percentile", "weight", "height"]
   },
   {
     id: "nutritional-recovery",
     name: "Nutritional Recovery",
-    description: "Exhaustive catch-up growth roadmap with Waterlow calculations and food matrix.",
+    description: "Catch-up growth roadmap with Waterlow grading, calorie targets and food matrix.",
     category: "Growth",
     icon: Apple,
     href: "/calculators/nutritional-recovery",
-    tags: ["nutrition", "growth", "faltering", "calories"]
-  }
+    tags: ["nutrition", "growth", "faltering", "calories", "malnutrition"]
+  },
+  // ── Drug Dosing & Pharmacology ─────────────────────────────────────────
+  {
+    id: "suspension-dosing",
+    name: "Suspension Dosing",
+    description: "Oral suspension volume (mL) calculator by concentration and weight.",
+    category: "Pharmacology",
+    icon: Pill,
+    href: "/calculators/suspension-dosing",
+    tags: ["dosing", "suspension", "liquid", "oral", "syrup"]
+  },
+  {
+    id: "drug-tapering",
+    name: "Drug Tapering",
+    description: "Generate structured weaning schedules for steroids and chronic medications.",
+    category: "Pharmacology",
+    icon: TrendingDown,
+    href: "/calculators/tapering-calculator",
+    tags: ["taper", "weaning", "steroid", "prednisolone", "dexamethasone"]
+  },
+  // ── Clinical Reference Tools ───────────────────────────────────────────
+  {
+    id: "qtc",
+    name: "Corrected QT (QTc)",
+    description: "Bazett & Fridericia QTc with visual ECG measurement guide.",
+    category: "Reference",
+    icon: Activity,
+    href: "/calculators/qtc",
+    tags: ["ecg", "cardiology", "torsades", "qtc", "long-qt"]
+  },
+  {
+    id: "bp",
+    name: "BP Percentiles",
+    description: "Screen for paediatric hypertension by age, sex and height.",
+    category: "Reference",
+    icon: HeartPulse,
+    href: "/calculators/bp-percentiles",
+    tags: ["cardiology", "hypertension", "blood-pressure", "bp"]
+  },
+  {
+    id: "bsa",
+    name: "Body Surface Area",
+    description: "Mosteller BSA formula for chemotherapy, drug dosing and burn area.",
+    category: "Reference",
+    icon: Ruler,
+    href: "/calculators/bsa",
+    tags: ["surface", "area", "drug-dose", "bsa", "chemo"]
+  },
+  {
+    id: "gfr",
+    name: "GFR (Bedside Schwartz)",
+    description: "Estimated GFR by height and creatinine for children and adolescents.",
+    category: "Reference",
+    icon: Activity,
+    href: "/calculators/gfr",
+    tags: ["renal", "creatinine", "kidney", "gfr", "schwartz"]
+  },
+  {
+    id: "child-pugh",
+    name: "Child-Pugh Score",
+    description: "Severity and surgical risk stratification for chronic liver disease.",
+    category: "Reference",
+    icon: Stethoscope,
+    href: "/calculators/child-pugh",
+    tags: ["liver", "cirrhosis", "hepatic", "child-pugh"]
+  },
 ];
 
 export default function CalculatorsPage() {
@@ -387,7 +402,7 @@ export default function CalculatorsPage() {
 
   // Order categories for display
   const categoryOrder: CalcTool["category"][] = [
-    "Emergency", "Neonatal", "Fluids", "Endocrine", "Growth", "Gastrointestinal", "Renal", "Visual"
+    "Emergency", "Neonatal", "Fluids", "Endocrine", "Growth", "Pharmacology", "Reference"
   ];
 
   return (
@@ -456,6 +471,7 @@ export default function CalculatorsPage() {
                       meta.color === 'orange' ? "text-orange-500" :
                       meta.color === 'emerald' ? "text-emerald-500" :
                       meta.color === 'amber' ? "text-amber-500" :
+                      meta.color === 'violet' ? "text-violet-500" :
                       meta.color === 'indigo' ? "text-indigo-500" : "text-slate-500"
                     )} />
                     {cat}
@@ -486,6 +502,7 @@ export default function CalculatorsPage() {
                             meta.color === 'orange' ? "bg-orange-500 shadow-orange-200" :
                             meta.color === 'emerald' ? "bg-emerald-600 shadow-emerald-200" :
                             meta.color === 'amber' ? "bg-amber-500 shadow-amber-200" :
+                            meta.color === 'violet' ? "bg-violet-600 shadow-violet-200" :
                             meta.color === 'indigo' ? "bg-indigo-600 shadow-indigo-200" : "bg-slate-600 shadow-slate-200"
                           )}>
                             <Icon className="h-4 w-4" />
