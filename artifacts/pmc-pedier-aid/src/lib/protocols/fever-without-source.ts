@@ -1,11 +1,11 @@
-import type { DiseaseProtocol, ErData, FormData, Severity, SeverityLevel, DrugDose } from './types';
+import type { DiseaseProtocol, ErData, ErInvestigation, FormData, Severity, SeverityLevel, DrugDose } from './types';
 
 const erData: ErData = {
   historyChecklist: [
     { id: 'petechiae',      question: 'Petechiae or non-blanching rash present?', redFlag: true,  ifYes: 'MENINGOCOCCEMIA — give IV Ceftriaxone IMMEDIATELY. Do not wait for LP.' },
     { id: 'hsv_risk',       question: 'Any HSV risk? (maternal genital herpes, active lesions in contacts, vesicular rash on infant)', redFlag: true, ifYes: 'ADD IV Acyclovir 20 mg/kg/dose q8h. HSV encephalitis in neonates can present without skin lesions.' },
     { id: 'immunocompromised', question: 'Known immunocompromised state? (oncology, immunodeficiency, prolonged steroids)', redFlag: true, ifYes: 'Broaden workup: blood + urine + LP; use anti-Pseudomonal cover (Pip-Tazo or Cefepime). Do NOT discharge.' },
-    { id: 'no_vaccines',    question: 'Incompletely or unvaccinated for Hib and pneumococcal series?', redFlag: true, ifYes: 'Occult bacteremia risk is significantly higher — obtain blood culture and treat empirically if any concern.' },
+    { id: 'no_vaccines',    question: 'Incompletely or unvaccinated for Hib and pneumococcal series? (< 3 doses PCV13 OR < 2 doses Hib)', redFlag: true, ifYes: 'Occult bacteraemia risk is significantly elevated. COMPLETELY IMMUNISED requires ≥ 3 doses PCV13 + ≥ 2 doses Hib (or ≥ 2 PCV13 doses for infants 4–6 months). With fewer doses: bacteraemia risk historically 3–11%; herd immunity provides partial but NOT full protection. Obtain CBC + CRP + blood culture; give empiric IM ceftriaxone 50 mg/kg if WBC ≥ 15,000/mm³, ANC ≥ 10,000/mm³, or CRP > 20 mg/L.' },
     { id: 'prior_uti',      question: 'Previous UTI or urinary tract abnormality?', redFlag: false, ifYes: 'Higher UTI recurrence risk — urine culture mandatory even if UA appears borderline' },
     { id: 'premature',      question: 'Premature birth (< 37 weeks gestation)? (if still within corrected age ≤ 3 months)', redFlag: false, ifYes: 'Premature infants have immature immune systems — treat as younger chronological age for risk stratification' },
     { id: 'recent_abx',     question: 'Antibiotics given in the last 2 weeks?', redFlag: false, ifYes: 'Prior antibiotics may mask signs and culture results — lower threshold to treat and admit' },
@@ -104,7 +104,7 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
   id: 'fever-without-source',
   name: 'Fever Without Source',
   system: 'Infectious Diseases',
-  description: 'Age-stratified evaluation of fever without an identified source — neonate to 36 months. History red flags and Assess findings both feed a transparent risk score; inflammatory markers (CRP/ANC) drive decisions only in infants < 90 days, while 3–36 months is appearance- and UTI-driven (post-PCV13). Management cards adapt to the data entered. Procalcitonin-free pathway.',
+  description: 'Age-stratified pathway for fever without an identified source — neonates through 36 months — built on the AAP 2021 CPG (Pantell et al.) for young infants and the UpToDate / Baraff framework for the 3–36-month group.\n\nNeonates ≤ 28 days: mandatory full sepsis workup and admission; no exceptions.\n\nYoung infants 29–90 days: structured workup driven by CRP + ANC (AAP 2021 / PECARN thresholds: CRP ≥ 20 mg/L or ANC > 4,000/mm³ = elevated IBI risk); procalcitonin not required at this facility.\n\nChildren 3–36 months: fever of concern is ≥ 39°C rectal with no source identified on complete examination. Most have a self-limited viral illness. Occult bacterial infection is led by UTI (prevalence 8–10%); occult bacteraemia has fallen to < 1% in fully immunised children in the post-PCV13 + Hib conjugate vaccine era. Risk is stratified first by immunisation status: (1) Fully immunised — UA-led evaluation only (catheter UA + culture for females < 24 months, uncircumcised males < 12 months, prior UTI, or urinary symptoms); no CBC, no blood culture, no CRP. (2) Incompletely immunised or unknown — CBC + CRP indicated; blood culture and empiric IM ceftriaxone 50 mg/kg when WBC ≥ 15,000/mm³, ANC ≥ 10,000/mm³, or CRP > 20 mg/L; CXR if WBC ≥ 20,000/mm³.\n\nIll-appearing children of any age → immediate sepsis pathway regardless of immunisation status. Management cards and drug doses adapt to the data entered.',
   lastUpdated: '2026',
   image: {
     url: 'https://picsum.photos/seed/fever-without-source/600/400',
@@ -138,7 +138,7 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
     { id: 'vaccines',     questionText: 'Hib + Pneumococcal Vaccination Status', type: 'select', options: [
       { label: 'Complete / up-to-date',      value: 'complete',   score: 0 },
       { label: 'Incomplete or unknown',      value: 'incomplete', score: 1 },
-    ]},
+    ], info: 'Complete = ≥ 3 doses PCV13 + ≥ 2 doses Hib (or ≥ 2 PCV13 for infants 4–6 months). Incomplete = anything less, including 1-dose infants and all unimmunised children — herd immunity helps but does not remove bacteraemia risk.' },
     { id: 'sex',          questionText: 'Sex (for UTI risk)', type: 'select', options: [
       { label: 'Female',               value: 'female',  score: 0 },
       { label: 'Male — circumcised',   value: 'mcirc',   score: 0 },
@@ -292,6 +292,145 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
       },
       details,
     };
+  },
+
+  getInvestigations: (severity, data) => {
+    const ag     = deriveAgeGroup(data);
+    const sex    = data.sex as string;
+    const vax    = data.vaccines as string;
+    const ageM   = Number(data.ageMonths) || 0;
+    const noVac  = data.no_vaccines === true;
+    const hsvRisk     = data.hsv_risk === true;
+    const petechiae   = data.petechiae === true;
+    const priorUti    = data.prior_uti === true;
+    const urineSymp   = data.urine_symptoms === true;
+    const vaxIncomplete = vax === 'incomplete' || noVac;
+
+    const result: ErInvestigation[] = [];
+
+    // Always — bedside triage
+    result.push({
+      test: 'Temperature — rectal thermometer',
+      category: 'urgent',
+      indication: ag === 'neonate' || ag === 'inf1' || ag === 'inf2'
+        ? 'Rectal mandatory in all infants < 3 months. Fever = ≥ 38.0°C.'
+        : 'Fever of concern in 3–36 months = ≥ 39.0°C rectal. Axillary/tympanic underestimate.',
+    });
+    result.push({
+      test: 'SpO₂ + HR continuous monitoring',
+      category: 'urgent',
+      indication: 'Tachycardia disproportionate to fever = early sepsis. SpO₂ < 94% = respiratory source or sepsis.',
+    });
+    result.push({
+      test: 'Bedside blood glucose',
+      category: 'urgent',
+      indication: 'Young children are hypoglycaemia-prone during fever. Correct immediately if < 60 mg/dL.',
+    });
+
+    if (petechiae) {
+      result.unshift({
+        test: '🔴 CEFTRIAXONE IV — GIVE NOW before any other investigation',
+        category: 'urgent',
+        indication: 'Petechiae + fever = meningococcaemia until proven otherwise. Do NOT wait for LP, blood culture, or lab results.',
+        criticalValue: 'Call senior + PICU immediately',
+      });
+    }
+
+    // ── NEONATE (≤ 28 days) ──────────────────────────────────────────────────
+    if (ag === 'neonate') {
+      result.push({ test: 'Blood culture × 1 (before antibiotics)', category: 'blood', indication: 'Mandatory — ALL neonates with fever ≥ 38.0°C, regardless of appearance.', criticalValue: 'Do not delay first antibiotic dose > 15 min for culture draw' });
+      result.push({ test: 'CBC + differential', category: 'blood', indication: 'Baseline WBC and ANC. Neutropenia (ANC < 500) = febrile neutropenia emergency.' });
+      result.push({ test: 'CRP', category: 'blood', indication: 'Inflammatory baseline. Less reliable in first 6–12 h of illness.' });
+      result.push({ test: 'Venous blood gas + lactate', category: 'blood', indication: 'Mandatory in neonates. Metabolic acidosis = organ dysfunction.', criticalValue: 'Lactate ≥ 4 mmol/L → septic shock protocol + PICU notification' });
+      result.push({ test: 'Catheter urine: UA dipstick + culture', category: 'blood', indication: 'Mandatory — ALL neonates. Never use bag urine for culture.', criticalValue: 'Positive UA → start antibiotics immediately; culture guides switch' });
+      result.push({ test: 'LP — CSF: analysis, culture, glucose, protein', category: 'blood', indication: 'Mandatory in ALL neonates if haemodynamically stable. Give antibiotics first if unstable; LP can follow.', criticalValue: 'Never delay antibiotics for LP if infant is haemodynamically unstable' });
+      if (hsvRisk) result.push({ test: 'CSF HSV PCR (add to standard CSF tube)', category: 'blood', indication: '⚠ HSV risk flagged — send simultaneously with standard CSF. Start IV Acyclovir 20 mg/kg q8h immediately; do not wait for PCR result.', criticalValue: 'HSV encephalitis can present without skin lesions — treat empirically' });
+    }
+
+    // ── YOUNG INFANT 29–60 days ──────────────────────────────────────────────
+    else if (ag === 'inf1') {
+      result.push({ test: 'Blood culture × 1 (before antibiotics)', category: 'blood', indication: 'Mandatory — all 29–60 day infants with fever.', criticalValue: 'Do not delay first antibiotic dose > 15 min for culture draw' });
+      result.push({ test: 'CBC + differential + ANC', category: 'blood', indication: 'ANC > 4,000/mm³ = elevated IBI risk (AAP 2021 / PECARN threshold for 29–60 day infants).', criticalValue: 'ANC > 4,000/mm³ → parenteral antibiotics + admission' });
+      result.push({ test: 'CRP', category: 'blood', indication: 'CRP ≥ 20 mg/L = elevated IBI risk. Repeat at 6–12 h if < 20 and infant is in a borderline range — early CRP can be falsely reassuring.', criticalValue: 'CRP ≥ 20 mg/L → parenteral antibiotics + admission' });
+      result.push({ test: 'Catheter urine: UA dipstick + culture', category: 'blood', indication: 'Mandatory — ALL 29–60 day infants regardless of sex or symptoms. Never bag urine for culture.', criticalValue: 'Positive UA → parenteral antibiotics (not oral) + admit in this age group' });
+      result.push({ test: 'LP — CSF: analysis + culture', category: 'blood', indication: 'Perform if: CRP ≥ 20 mg/L, ANC > 4,000/mm³, positive UA, or any concern about appearance. If deferred, reassess decision at 4–6 h; do not discharge without LP or inpatient observation.', criticalValue: 'If LP deferred, admit for observation; do not discharge' });
+      if (hsvRisk) result.push({ test: 'CSF HSV PCR + IV Acyclovir 20 mg/kg q8h', category: 'blood', indication: '⚠ HSV risk flagged — add PCR to CSF tube. Start Acyclovir immediately; do not wait for result.' });
+    }
+
+    // ── YOUNG INFANT 61–90 days ──────────────────────────────────────────────
+    else if (ag === 'inf2') {
+      result.push({ test: 'Catheter urine: UA dipstick + culture', category: 'blood', indication: 'Mandatory — ALL 61–90 day infants. Never bag urine for culture.', criticalValue: 'Positive UA in this age → admit for parenteral antibiotics' });
+      result.push({ test: 'CRP + blood culture', category: 'blood', indication: 'Indicated if: fever ≥ 39°C, incomplete vaccines, or any clinical concern. CRP ≥ 20 mg/L = elevated risk. Draw blood culture simultaneously to avoid repeat venepuncture.', criticalValue: 'CRP ≥ 20 → parenteral antibiotics + admission' });
+      result.push({ test: 'CBC + ANC', category: 'blood', indication: 'ANC > 4,000/mm³ = elevated IBI risk. Draw with blood culture.' });
+      result.push({ test: 'LP — CSF: analysis + culture', category: 'blood', indication: 'Indicated if: appears unwell, CRP ≥ 20 mg/L, fever ≥ 40°C, or caregivers cannot reliably report change in appearance. NOT mandatory if all markers reassuring and infant is well-appearing.' });
+    }
+
+    // ── TODDLER 3–36 months ──────────────────────────────────────────────────
+    else if (ag === 'tod') {
+      const femaleLt24m  = sex === 'female' && ageM < 24;
+      const uncircLt12m  = sex === 'munC'   && ageM < 12;
+      const utiIndicated = femaleLt24m || uncircLt12m || urineSymp || priorUti;
+
+      if (utiIndicated) {
+        result.push({
+          test: 'Catheter urine: UA dipstick + culture',
+          category: 'blood',
+          indication: femaleLt24m
+            ? 'MANDATORY — females < 24 months have ≥ 5% UTI probability at fever ≥ 39°C (UTICalc). Never bag urine for culture.'
+            : uncircLt12m
+              ? 'MANDATORY — uncircumcised males < 12 months have UTI risk equivalent to febrile females. Never bag urine for culture.'
+              : 'Indicated: urinary symptoms or prior UTI history present. Never bag urine for culture.',
+          criticalValue: 'Positive UA → oral antibiotics (Cephalexin or Amox-Clav); admit if not tolerating orally or dehydrated',
+        });
+      } else {
+        result.push({
+          test: 'Catheter urine: UA — low priority in this profile',
+          category: 'blood',
+          indication: 'Not mandatory (circumcised male or female ≥ 24 months, no urinary symptoms, no prior UTI). Obtain if fever persists > 48 h or urinary symptoms develop.',
+        });
+      }
+
+      if (vaxIncomplete) {
+        result.push({
+          test: 'CBC + differential + ANC',
+          category: 'blood',
+          indication: 'Incompletely immunised: WBC ≥ 15,000/mm³ = bacteraemia risk > 5%. ANC ≥ 10,000/mm³ is a better predictor of occult bacteraemia than WBC alone in the post-conjugate vaccine era.',
+          criticalValue: 'WBC ≥ 15,000 or ANC ≥ 10,000 → blood culture + empiric IM ceftriaxone 50 mg/kg',
+        });
+        result.push({
+          test: 'CRP',
+          category: 'blood',
+          indication: 'CRP > 20 mg/L in incompletely immunised child → empiric antibiotics. Used as procalcitonin surrogate (PCT not available at this facility). Sensitivity 74%, specificity 73% at 40 mg/L threshold.',
+          criticalValue: 'CRP > 20 mg/L → IM ceftriaxone 50 mg/kg + discharge with 24 h follow-up',
+        });
+        result.push({
+          test: 'Blood culture × 1 (draw with initial bloods)',
+          category: 'blood',
+          indication: 'Obtain when: WBC ≥ 15,000, ANC ≥ 10,000, or CRP > 20 mg/L. Draw simultaneously with CBC to avoid repeat venepuncture.',
+          criticalValue: 'Most pathogens positive within 24–36 h on modern continuous monitoring systems',
+        });
+        result.push({
+          test: 'CXR — ONLY if WBC ≥ 20,000/mm³',
+          category: 'radiology',
+          indication: 'Occult pneumonia found in 20–30% of febrile children with WBC ≥ 20,000/mm³ even without respiratory signs (Bachur et al.). NOT routine — only indicated with leukocytosis.',
+          criticalValue: 'Infiltrate + WBC ≥ 20,000 → treat as bacterial pneumonia: oral amoxicillin 90 mg/kg/day (high-dose)',
+        });
+      } else {
+        result.push({
+          test: 'Blood tests (CBC / CRP / blood culture) — NOT indicated',
+          category: 'other',
+          indication: 'Fully immunised children 3–36 months have < 1% occult bacteraemia risk in the post-PCV13/Hib conjugate vaccine era. Blood studies are not recommended and would not change management.',
+        });
+      }
+
+      result.push({
+        test: 'CXR — only if respiratory symptoms present',
+        category: 'radiology',
+        indication: 'Not routine. Order if: SpO₂ < 95%, tachypnoea for age, retractions, grunting, or focal chest signs. Vaccinated well-appearing child without respiratory signs does not need CXR.',
+      });
+    }
+
+    return result;
   },
 
   getManagement: (severity, data) => {
@@ -590,7 +729,11 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
 
   getReferences: () => [
     { title: 'Pantell RH et al. AAP Clinical Practice Guideline: Febrile Infants 8–60 Days Old. Pediatrics 2021', url: 'https://publications.aap.org/pediatrics/article/148/2/e2021052228/180785' },
+    { title: 'Baraff LJ et al. Practice guideline for the management of infants and children 0–36 months with fever without source. Ann Emerg Med 1993;22:1198', url: 'https://pubmed.ncbi.nlm.nih.gov/8517544/' },
+    { title: 'Baraff LJ. Management of fever without source in infants and children. Ann Emerg Med 2000;36:602', url: 'https://pubmed.ncbi.nlm.nih.gov/11097703/' },
+    { title: 'Greenhow TL et al. Bacteremia in Children 3 to 36 Months Old After Introduction of Conjugated Pneumococcal Vaccines. Pediatrics 2017;139', url: 'https://pubmed.ncbi.nlm.nih.gov/27940782/' },
     { title: 'Gomez B et al. PECARN/MVCRC/PRIS — Validation of the Step-by-Step Approach for febrile infants. Pediatrics 2016', url: 'https://pubmed.ncbi.nlm.nih.gov/27244862/' },
+    { title: 'Yo CH et al. Procalcitonin vs CRP vs leukocytosis for serious bacterial infections in children with FWS: systematic review. Ann Emerg Med 2012;60:591', url: 'https://pubmed.ncbi.nlm.nih.gov/22578484/' },
     { title: 'NICE Guideline NG143 — Fever in under 5s: assessment and initial management (2021)', url: 'https://www.nice.org.uk/guidance/ng143' },
     { title: 'Roberts KB. AAP Subcommittee — Urinary Tract Infection: Clinical Practice Guideline. Pediatrics 2011 (reaffirmed 2016)', url: 'https://publications.aap.org/pediatrics/article/128/3/595/30724' },
     { title: 'Nigrovic LE et al. — Risk factors for bacterial meningitis in children with CSF pleocytosis. Pediatrics 2008', url: 'https://pubmed.ncbi.nlm.nih.gov/18381510/' },

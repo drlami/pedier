@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useProtocolById, useProtocolsContext } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
@@ -5,7 +6,7 @@ import { AssessmentForm } from "@/app/diseases/[diseaseId]/assessment-form";
 import { WardMMPView } from "@/app/diseases/[diseaseId]/ward-mmp-view";
 import { ErProtocolView } from "@/app/diseases/[diseaseId]/er-protocol-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Stethoscope, Loader2, BookOpen, Activity, Star } from "lucide-react";
+import { Stethoscope, Loader2, BookOpen, Activity, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,8 @@ export default function DiseasePage() {
     );
   }
 
+  const [descOpen, setDescOpen] = useState(false);
+
   const isWard = protocol.unit === 'ward';
   const useErView = !!protocol.erData;
   // Any protocol carrying a Master Management Pathway renders the rich staged view,
@@ -72,9 +75,18 @@ export default function DiseasePage() {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground font-semibold max-w-3xl leading-relaxed">
-            {protocol.description}
-          </p>
+          <button
+            onClick={() => setDescOpen(o => !o)}
+            className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {descOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {descOpen ? 'Hide overview' : 'Show overview'}
+          </button>
+          {descOpen && (
+            <p className="text-sm text-muted-foreground font-semibold max-w-3xl leading-relaxed">
+              {protocol.description}
+            </p>
+          )}
         </div>
 
         <div className="ml-auto flex items-center gap-2">

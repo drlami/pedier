@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { Link } from 'wouter';
 import { useProtocolById } from '@/contexts/protocols-context';
 
-import type { DiseaseProtocol, FormData, Question, Severity, SeverityLevel } from '@/lib/protocols/types';
+import type { DiseaseProtocol, ErInvestigation, FormData, Question, Severity, SeverityLevel } from '@/lib/protocols/types';
 import { classifyHyperkalemiaScenario, type HyperkalemiaScenario, type HyperkalemiaUrgency } from '@/lib/protocols/hyperkalemia';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -256,7 +256,7 @@ interface ResultsContentProps {
   severityLevel: SeverityLevel;
   severity: Severity;
   redFlags: string[];
-  investigations?: { title: string; list: string[] }[];
+  investigations?: ErInvestigation[];
   management: { title: string; recommendations: string[] }[];
   disposition: string[];
   dischargeCriteria?: string[];
@@ -425,19 +425,13 @@ function ResultsContent({
         <ResultCard title="Step 0: Investigations" icon={Activity} variant="info">
           <div className="space-y-6">
             {investigations.map((inv, idx) => (
-              <div key={idx} className="space-y-3">
-                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  {inv.title}
-                </h5>
-                <ul className="grid grid-cols-1 gap-2">
-                  {inv.list.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-sm font-bold text-slate-700">
-                      <CheckCircle2 className="h-4 w-4 text-primary/40 shrink-0 mt-0.5" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              <div key={idx} className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <CheckCircle2 className="h-4 w-4 text-primary/40 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-slate-700">{inv.test}</div>
+                  {inv.indication && <div className="text-xs text-slate-500 mt-0.5">{inv.indication}</div>}
+                  {inv.criticalValue && <div className="text-xs font-bold text-red-600 mt-0.5">⚠ {inv.criticalValue}</div>}
+                </div>
               </div>
             ))}
           </div>

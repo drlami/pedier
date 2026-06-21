@@ -173,7 +173,7 @@ export interface DiseaseProtocol {
   mmpData?: MasterManagementPathway; // Staged pathway (NICU/PICU)
   erData?: ErData; // Interactive ER mode
   calculateSeverity: (data: FormData) => Severity;
-  getInvestigations?: (severity: Severity, data: FormData) => { title: string; list: string[] }[];
+  getInvestigations?: (severity: Severity, data: FormData) => ErInvestigation[];
   getManagement: (severity: Severity, data: FormData) => { title: string; recommendations: string[] }[];
   getDisposition: (severity: Severity, data: FormData) => string[];
   getDischargeCriteria?: (severity: Severity, data: FormData) => string[];

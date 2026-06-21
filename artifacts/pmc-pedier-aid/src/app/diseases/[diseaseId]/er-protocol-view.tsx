@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { DiseaseProtocol, FormData, ErHistoryItem } from '@/lib/protocols/types';
+import { DiseaseProtocol, FormData, ErHistoryItem, Severity } from '@/lib/protocols/types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -15,14 +15,13 @@ import {
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
-type TabId = 'assess' | 'history' | 'manage' | 'labs' | 'dispose';
+type TabId = 'assess' | 'manage' | 'labs' | 'dispose';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'assess',  label: 'Assess',   icon: Activity },
-  { id: 'history', label: 'History',  icon: History },
-  { id: 'manage',  label: 'Manage',   icon: Stethoscope },
-  { id: 'labs',    label: 'Labs',     icon: FlaskConical },
-  { id: 'dispose', label: 'Dispose',  icon: LogOut },
+  { id: 'assess',  label: 'Assess',  icon: Activity },
+  { id: 'manage',  label: 'Manage',  icon: Stethoscope },
+  { id: 'labs',    label: 'Labs',    icon: FlaskConical },
+  { id: 'dispose', label: 'Dispose', icon: LogOut },
 ];
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -69,6 +68,7 @@ function QuestionCard({ q, val, onSelect }: {
     return (
       <div className="bg-card rounded-2xl border p-4 space-y-2.5">
         <div className="text-sm font-black text-foreground">{q.questionText}</div>
+        {q.info && <div className="text-xs text-muted-foreground leading-snug">{q.info}</div>}
         <div className="flex flex-wrap gap-2">
           {q.options.map(opt => {
             const selected = String(val) === String(opt.value);
@@ -236,55 +236,92 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
       )}
 
       {/* ── SEVERITY SCORE card ── */}
-      <div className={cn('rounded-2xl border-2 p-4', ss.bg)}>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              {severity.scoreDetails?.systemName ?? 'Severity'}
+      {(() => {
+        const actionHintMap: Record<string, string> = {
+          severe:   'ADMIT now — parenteral antibiotics + full workup',
+          critical: 'CRITICAL — PICU + immediate antibiotics',
+          moderate: 'Targeted workup — reassess before any discharge',
+          some:     'Targeted workup — reassess before any discharge',
+          mild:     'Discharge with safety-netting + 24–48 h follow-up',
+          low:      'Discharge with safety-netting + 24–48 h follow-up',
+          no:       'Low risk — reassurance + safety-netting',
+          unknown:  'Complete the questions above to generate a risk score',
+        };
+        const actionHint = actionHintMap[severity.level] ?? '';
+        const factors = severity.details; // show ALL details — details[0] may carry critical emergency-specific action text
+
+        return (
+          <div className={cn('rounded-2xl border-2 p-4 space-y-3', ss.bg)}>
+            {/* Row 1: label + answered count */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                {severity.scoreDetails?.systemName ?? 'Severity'}
+              </span>
+              <span className="text-[10px] text-muted-foreground font-medium">
+                {answered}/{scorable} scored
+              </span>
             </div>
-            <div className={cn('text-2xl font-black mt-0.5', ss.text)}>
-              {severity.scoreDetails
-                ? `${severity.scoreDetails.totalScore} / ${severity.scoreDetails.maxScore}`
-                : severity.level.toUpperCase()}
+
+            {/* Row 2: score number | divider | level + action */}
+            <div className="flex items-center gap-3">
+              <div className={cn('shrink-0 w-14 text-center leading-none', ss.text)}>
+                <div className="text-5xl font-black">
+                  {severity.scoreDetails?.totalScore ?? '—'}
+                </div>
+                {severity.scoreDetails && (
+                  <div className="text-xs font-bold opacity-50">/{severity.scoreDetails.maxScore}</div>
+                )}
+              </div>
+              <div className={cn('self-stretch w-px', ss.badge, 'opacity-30')} />
+              <div className="flex-1 min-w-0">
+                <div className={cn('text-sm font-black leading-tight', ss.text)}>
+                  {severity.scoreDetails?.interpretation ?? severity.level.toUpperCase()}
+                </div>
+                <div className={cn('text-xs font-medium mt-1 leading-snug opacity-80', ss.text)}>
+                  {actionHint}
+                </div>
+              </div>
             </div>
+
+            {/* Progress bar */}
             {severity.scoreDetails && (
-              <div className={cn('text-sm font-bold', ss.text)}>
-                {severity.scoreDetails.interpretation}
-              </div>
+              <>
+                <div className="h-1.5 bg-black/10 rounded-full overflow-hidden">
+                  <div
+                    className={cn('h-full rounded-full transition-all duration-500', ss.badge)}
+                    style={{ width: `${(severity.scoreDetails.totalScore / (severity.scoreDetails.maxScore ?? 14)) * 100}%` }}
+                  />
+                </div>
+                {severity.scoreDetails.referenceTable && (
+                  <div className="flex justify-between">
+                    {severity.scoreDetails.referenceTable.map(r => (
+                      <div key={r.range} className="text-center">
+                        <div className="text-[9px] font-bold text-muted-foreground">{r.range}</div>
+                        <div className="text-[9px] text-muted-foreground">{r.meaning.split(' ')[0]}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-muted-foreground font-medium">
-              {answered}/{scorable} criteria answered
-            </div>
-            {severity.details.map((d, i) => (
-              <div key={i} className={cn('text-xs font-bold mt-1 flex items-center gap-1 justify-end', ss.text)}>
-                <AlertTriangle className="h-3 w-3 shrink-0" /> {d}
-              </div>
-            ))}
-          </div>
-        </div>
-        {severity.scoreDetails && (
-          <div className="mt-3">
-            <div className="h-2 bg-white/50 rounded-full overflow-hidden">
-              <div
-                className={cn('h-full rounded-full transition-all duration-500', ss.badge)}
-                style={{ width: `${(severity.scoreDetails.totalScore / (severity.scoreDetails.maxScore ?? 12)) * 100}%` }}
-              />
-            </div>
-            {severity.scoreDetails.referenceTable && (
-              <div className="flex justify-between mt-1">
-                {severity.scoreDetails.referenceTable.map(r => (
-                  <div key={r.range} className="text-center">
-                    <div className="text-[9px] font-bold text-muted-foreground">{r.range}</div>
-                    <div className="text-[9px] text-muted-foreground">{r.meaning.split(' ')[0]}</div>
+
+            {/* Contributing factors — compact list, separated */}
+            {factors.length > 0 && (
+              <div className="border-t border-black/10 pt-2.5 space-y-1.5">
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 mb-1">
+                  Active findings
+                </div>
+                {factors.map((d, i) => (
+                  <div key={i} className={cn('text-[11px] leading-snug flex gap-1.5', ss.text)}>
+                    <span className="opacity-40 shrink-0 mt-0.5">•</span>
+                    <span className="opacity-80">{d}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        )}
-      </div>
+        );
+      })()}
 
       {/* ── SEVERITY questions ── */}
       <div className="space-y-3">
@@ -292,6 +329,116 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
           <QuestionCard key={q.id} q={q} val={formData[q.id]} onSelect={v => handleSet(q.id, v)} />
         ))}
       </div>
+
+      {/* ── CLINICAL FLAGS (merged from History) ── */}
+      {protocol.erData?.historyChecklist && protocol.erData.historyChecklist.length > 0 && (() => {
+        const checklist  = protocol.erData!.historyChecklist;
+        const redItems   = checklist.filter(i => i.redFlag);
+        const otherItems = checklist.filter(i => !i.redFlag);
+        const redCount   = redItems.filter(i => formData[i.id] === true).length;
+
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 pt-1">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+                Clinical Flags
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            {redCount > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-2xl">
+                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+                <span className="text-xs font-black text-red-700">
+                  {redCount} red-flag answer{redCount > 1 ? 's' : ''} — escalate management now
+                </span>
+              </div>
+            )}
+
+            {/* Red-flag items */}
+            {redItems.map(item => {
+              const ans = formData[item.id] as boolean | undefined;
+              return (
+                <div key={item.id} className={cn(
+                  'rounded-2xl border-2 p-3 transition-all',
+                  ans === true ? 'bg-red-50 border-red-300' : 'bg-card border-transparent',
+                )}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-black text-red-600 bg-red-100 px-1.5 py-0.5 rounded-md shrink-0">
+                          ⚠ RED FLAG
+                        </span>
+                        <span className="text-sm font-bold text-foreground">{item.question}</span>
+                      </div>
+                      {ans === true && item.ifYes && (
+                        <div className="mt-2 text-xs font-bold px-3 py-1.5 rounded-xl bg-red-100 text-red-800 leading-snug">
+                          → {item.ifYes}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 shrink-0">
+                      {(['Yes', 'No'] as const).map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => handleSet(item.id, opt === 'Yes')}
+                          className={cn(
+                            'px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all',
+                            ans !== undefined && String(ans) === String(opt === 'Yes')
+                              ? opt === 'Yes' ? 'bg-red-500 text-white border-red-500' : 'bg-emerald-500 text-white border-emerald-500'
+                              : 'bg-muted border-transparent text-muted-foreground',
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Context items */}
+            {otherItems.map(item => {
+              const ans = formData[item.id] as boolean | undefined;
+              return (
+                <div key={item.id} className={cn(
+                  'rounded-2xl border-2 p-3 transition-all',
+                  ans === true ? 'bg-amber-50 border-amber-200' : 'bg-card border-transparent',
+                )}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground">{item.question}</span>
+                      {ans === true && item.ifYes && (
+                        <div className="mt-2 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 leading-snug">
+                          → {item.ifYes}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 shrink-0">
+                      {(['Yes', 'No'] as const).map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => handleSet(item.id, opt === 'Yes')}
+                          className={cn(
+                            'px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all',
+                            ans !== undefined && String(ans) === String(opt === 'Yes')
+                              ? opt === 'Yes' ? 'bg-amber-500 text-white border-amber-500' : 'bg-emerald-500 text-white border-emerald-500'
+                              : 'bg-muted border-transparent text-muted-foreground',
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Reset */}
       {Object.keys(formData).filter(k => k !== 'weight').length > 0 && (
@@ -308,9 +455,12 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
 
 // ─── HISTORY TAB ─────────────────────────────────────────────────────────────
 
-function HistoryTab({ items }: { items: ErHistoryItem[] }) {
-  const [answers, setAnswers] = useState<Record<string, boolean | null>>({});
-  const redFlagCount = items.filter(i => i.redFlag && answers[i.id] === true).length;
+function HistoryTab({ items, formData, setFormData }: {
+  items: ErHistoryItem[];
+  formData: FormData;
+  setFormData: (d: FormData) => void;
+}) {
+  const redFlagCount = items.filter(i => i.redFlag && formData[i.id] === true).length;
 
   return (
     <div className="space-y-3">
@@ -323,7 +473,7 @@ function HistoryTab({ items }: { items: ErHistoryItem[] }) {
         </div>
       )}
       {items.map(item => {
-        const ans = answers[item.id];
+        const ans = formData[item.id] as boolean | undefined;
         return (
           <div
             key={item.id}
@@ -352,13 +502,13 @@ function HistoryTab({ items }: { items: ErHistoryItem[] }) {
                 )}
               </div>
               <div className="flex gap-1.5 shrink-0">
-                {['Yes', 'No'].map(opt => (
+                {(['Yes', 'No'] as const).map(opt => (
                   <button
                     key={opt}
-                    onClick={() => setAnswers(prev => ({ ...prev, [item.id]: opt === 'Yes' }))}
+                    onClick={() => setFormData({ ...formData, [item.id]: opt === 'Yes' })}
                     className={cn(
                       'px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all',
-                      ans !== null && String(ans) === String(opt === 'Yes')
+                      ans !== undefined && String(ans) === String(opt === 'Yes')
                         ? opt === 'Yes'
                           ? item.redFlag ? 'bg-red-500 text-white border-red-500' : 'bg-amber-500 text-white border-amber-500'
                           : 'bg-emerald-500 text-white border-emerald-500'
@@ -515,8 +665,17 @@ function ManageTab({ protocol, formData, weight }: {
 
 // ─── LABS TAB ────────────────────────────────────────────────────────────────
 
-function LabsTab({ protocol }: { protocol: DiseaseProtocol }) {
-  const inv = protocol.erData?.investigations ?? [];
+function LabsTab({ protocol, severity, formData }: {
+  protocol: DiseaseProtocol;
+  severity: Severity;
+  formData: FormData;
+}) {
+  const inv = useMemo(
+    () => protocol.getInvestigations
+      ? protocol.getInvestigations(severity, formData)
+      : (protocol.erData?.investigations ?? []),
+    [protocol, severity, formData],
+  );
   const [ordered, setOrdered] = useState<Record<string, boolean>>({});
 
   const categories: { key: string; label: string }[] = [
@@ -576,14 +735,23 @@ function LabsTab({ protocol }: { protocol: DiseaseProtocol }) {
 
 // ─── DISPOSE TAB ─────────────────────────────────────────────────────────────
 
-function DisposeTab({ protocol }: { protocol: DiseaseProtocol }) {
+function DisposeTab({ protocol, severity, formData }: {
+  protocol: DiseaseProtocol;
+  severity: Severity;
+  formData: FormData;
+}) {
   const erData = protocol.erData;
-  if (!erData) return null;
-
+  // All hooks must be declared before any conditional return
+  const disposition = useMemo(
+    () => protocol.getDisposition(severity, formData),
+    [protocol, severity, formData],
+  );
   const [admitChecked, setAdmitChecked] = useState<Record<string, boolean>>({});
   const [riskChecked, setRiskChecked] = useState<Record<string, boolean>>({});
   const [dischargeChecked, setDischargeChecked] = useState<Record<string, boolean>>({});
   const [safetyCopied, setSafetyCopied] = useState(false);
+
+  if (!erData) return null;
 
   const admitCount = Object.values(admitChecked).filter(Boolean).length;
   const riskCount = Object.values(riskChecked).filter(Boolean).length;
@@ -597,8 +765,33 @@ function DisposeTab({ protocol }: { protocol: DiseaseProtocol }) {
     });
   };
 
+  const severityIsHigh = severity.level === 'severe' || severity.level === 'critical';
+  const severityIsMod  = severity.level === 'moderate' || severity.level === 'some';
+  const disposeCardCls = severityIsHigh
+    ? 'bg-red-50 border-red-300'
+    : severityIsMod
+      ? 'bg-amber-50 border-amber-300'
+      : 'bg-emerald-50 border-emerald-200';
+  const disposeTextCls = severityIsHigh
+    ? 'text-red-800'
+    : severityIsMod
+      ? 'text-amber-800'
+      : 'text-emerald-800';
+
   return (
     <div className="space-y-5">
+      {/* Dynamic disposition recommendation */}
+      {disposition.length > 0 && (
+        <div className={cn('rounded-2xl border-2 p-4 space-y-1.5', disposeCardCls)}>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+            Recommended Action
+          </div>
+          {disposition.map((d, i) => (
+            <div key={i} className={cn('text-sm font-bold leading-snug', disposeTextCls)}>{d}</div>
+          ))}
+        </div>
+      )}
+
       {/* Absolute admission criteria */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -885,10 +1078,9 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
       {/* ── Tab Content ── */}
       <div className="px-2 sm:px-4 pt-4">
         {tab === 'assess'  && <AssessTab protocol={protocol} formData={formData} setFormData={setFormData} weight={weight} />}
-        {tab === 'history' && <HistoryTab items={protocol.erData?.historyChecklist ?? []} />}
         {tab === 'manage'  && <ManageTab protocol={protocol} formData={formData} weight={weight} />}
-        {tab === 'labs'    && <LabsTab protocol={protocol} />}
-        {tab === 'dispose' && <DisposeTab protocol={protocol} />}
+        {tab === 'labs'    && <LabsTab protocol={protocol} severity={severity} formData={formData} />}
+        {tab === 'dispose' && <DisposeTab protocol={protocol} severity={severity} formData={formData} />}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { FormData } from "@/lib/protocols/types";
+import type { ErInvestigation, FormData } from "@/lib/protocols/types";
 import { cn } from "@/lib/utils";
 
 const SEVERITY_BANNER: Record<string, { card: string; icon: string }> = {
@@ -178,19 +178,14 @@ export default function SummaryPage() {
         {investigations && investigations.length > 0 && (
           <ResultCard title="Recommended Investigations" icon={Activity}>
             <div className="space-y-4">
-              {investigations.map((inv, idx) => (
-                <div key={idx} className="space-y-2">
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    {inv.title}
-                  </h5>
-                  <ul className="space-y-1">
-                    {inv.list.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 ml-2">
-                        <span className="mt-1.5 h-1 w-1 rounded-full bg-muted-foreground shrink-0" />
-                        <span className="text-sm leading-snug">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {(investigations as ErInvestigation[]).map((inv, idx) => (
+                <div key={idx} className="flex items-start gap-2 ml-2">
+                  <span className="mt-1.5 h-1 w-1 rounded-full bg-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm leading-snug font-bold">{inv.test}</span>
+                    {inv.indication && <p className="text-xs text-muted-foreground mt-0.5">{inv.indication}</p>}
+                    {inv.criticalValue && <p className="text-xs font-bold text-red-600 mt-0.5">⚠ {inv.criticalValue}</p>}
+                  </div>
                 </div>
               ))}
             </div>

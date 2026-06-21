@@ -4,8 +4,7 @@ export const fever3To36MonthsProtocol: DiseaseProtocol = {
   id: 'Fever Without Source (3–36 months)',
   name: 'Fever Without Source (3–36 months)',
   system: 'Infectious Diseases',
-  description:
-    'Decision-support calculator for fever without a source in children 3 to 36 months, focusing on serious bacterial infection, UTI, bacteremia, admission, discharge, and antibiotic decisions.',
+  description: 'Fever without a source (FWS) in children 3 to 36 months of age is defined as temperature ≥ 39°C (102.2°F) rectal with no identifiable infection on thorough history and physical examination. Most children have a self-limited viral illness. Occult bacterial infections are led by UTI (prevalence 8–10%), followed by occult bacteraemia and clinically silent pneumonia.\n\nOccult bacteraemia risk is now < 1% in fully immunised children (post-PCV13 + Hib conjugate vaccine era), compared with 3–11% in the pre-vaccine era. This has fundamentally changed evaluation: immunisation status is the primary risk stratifier, not inflammatory markers or temperature height alone.\n\nFully immunised children: blood studies (CBC, CRP) are not recommended; evaluation is limited to urinalysis in at-risk patients. Incompletely immunised or unknown: CBC + CRP are indicated; blood culture and empiric IM ceftriaxone 50 mg/kg are given when WBC ≥ 15,000/mm³, ANC ≥ 10,000/mm³, or CRP > 20 mg/L; chest radiograph is warranted if WBC ≥ 20,000/mm³.\n\nIll-appearing children are managed as presumed sepsis immediately, before any laboratory results. [Source: UpToDate — Fever without a source in children 3–36 months; Baraff LJ et al., Ann Emerg Med 1993/2000]',
   image: {
     url: 'https://picsum.photos/seed/fever-3-36-months/600/400',
     hint: 'toddler temperature',
