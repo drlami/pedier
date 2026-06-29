@@ -14,10 +14,10 @@ const erData: ErData = {
 
   investigations: [
     { test: 'Continuous SpO₂ + cardiac monitoring', category: 'urgent', indication: 'Mandatory for all patients. Pulse oximetry may underestimate oxygenation in shock (poor peripheral perfusion).', criticalValue: 'SpO₂ < 94% = respiratory compromise — escalate airway management.' },
-    { test: 'ECG (12-lead)', category: 'urgent', indication: 'If chest pain, tachyarrhythmia, or haemodynamic instability. Epinephrine can cause transient ST changes and arrhythmias.', criticalValue: 'AF, VT, or ST elevation → cardiology input.' },
+    { test: 'ECG (12-lead)', category: 'urgent', indication: 'If chest pain, tachyarrhythmia, or haemodynamic instability. Epinephrine can cause transient ST changes and arrhythmias.', criticalValue: 'AF (atrial fibrillation), VT (ventricular tachycardia), or ST elevation → cardiology input.' },
     { test: 'Point-of-care glucose', category: 'urgent', indication: 'Any altered mental status or shock. Hypoglycaemia can mimic or complicate anaphylaxis.' },
     { test: 'Serum tryptase', category: 'blood', indication: 'NOT urgent for management. Draw at 1–2 h after onset if diagnosis uncertain (baseline + acute). Elevated tryptase confirms mast cell activation. Normal tryptase does NOT exclude anaphylaxis.', criticalValue: 'Peak at 1 h, returns to baseline by 6–8 h — sample timing is critical.' },
-    { test: 'CXR', category: 'radiology', indication: 'Only if: suspected aspiration, pneumothorax, foreign body. NOT routine for straightforward anaphylaxis.' },
+    { test: 'CXR (chest X-ray)', category: 'radiology', indication: 'Only if: suspected aspiration, pneumothorax, foreign body. NOT routine for straightforward anaphylaxis.' },
   ],
 
   admissionCriteria: [
@@ -39,6 +39,7 @@ const erData: ErData = {
 
   dischargeCriteria: [
     'Completely asymptomatic for ≥ 4 hours (≥ 8 hours if initially severe or shock)',
+    'Hydrocortisone IV given (if not contraindicated) — reduces biphasic reaction risk. This does NOT replace or shorten the minimum observation period.',
     'SpO₂ ≥ 95% on room air, HR and BP normal for age',
     'No stridor, no wheeze, no angioedema',
     'Tolerating oral fluids',
@@ -50,7 +51,7 @@ const erData: ErData = {
 
   safetyNetting: [
     'RETURN TO ER IMMEDIATELY if: breathing difficulty returns, skin swelling spreads, lips/tongue swell, child collapses or is difficult to rouse, symptoms return within 72 hours.',
-    'Biphasic reaction: symptoms can return 1–72 hours after complete initial recovery (occurs in 5–20% of cases). This is NOT a second allergy attack — it is the SAME reaction returning.',
+    'Biphasic reaction: symptoms can return 1–72 hours after complete initial recovery (occurs in up to 25–30% of children per PALS 2020 — higher than previously quoted 5–20%). This is NOT a second allergy attack — it is the SAME reaction returning.',
     'USE YOUR EPINEPHRINE AUTO-INJECTOR IMMEDIATELY if symptoms return — do not wait to see if they get better on their own. Call emergency services after using.',
     'Antihistamines (cetirizine, diphenhydramine) treat hives and itch ONLY. They do NOT treat airway swelling or shock. Do NOT rely on antihistamines as a substitute for epinephrine.',
     'Avoid the identified trigger completely. Read food labels carefully — cross-contamination can cause a reaction.',
@@ -123,27 +124,30 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
     const STEP3 = {
       title: 'STEP 3 — ESCALATION: Inadequate response to 2 IM epinephrine doses',
       recommendations: [
-        '1. Call PICU and senior immediately.',
+        '1. Call PICU (paediatric intensive care unit) and senior immediately.',
         '2. IV/IO access — give isotonic fluid bolus 20 mL/kg rapidly. Repeat as needed for shock.',
-        '3. Epinephrine IV infusion: start 0.1 mcg/kg/min, titrate up to 1 mcg/kg/min. See drug doses for preparation.',
+        '3. Epinephrine IV infusion: start LOW at 0.05 mcg/kg/min — PALS 2020 notes effective range is often < 0.05 mcg/kg/min. Titrate up to 1 mcg/kg/min as needed. See drug doses for preparation.',
+        data.beta_blocker === true ? '⚠ BETA-BLOCKER PATIENT — epinephrine response is blunted. Give IV Glucagon 20–30 mcg/kg (max 1 mg) over 5 min CONCURRENTLY with epinephrine steps above, do not wait for epinephrine failure. Follow immediately with glucagon infusion 5–15 mcg/kg/min. Higher epinephrine infusion doses (up to 1 mcg/kg/min) may still be required.' : '',
         '4. IV Hydrocortisone 4 mg/kg (max 200 mg) IV — prevention of prolonged/biphasic reaction (onset takes 4–6 h).',
-        '5. IV Diphenhydramine 1 mg/kg (max 50 mg) — for urticaria/pruritus; does NOT treat airway or shock.',
+        '5. IV Diphenhydramine 1 mg/kg (max 50 mg) — H1 antihistamine; treats urticaria/pruritus only; does NOT treat airway or shock.',
+        '5b. IV Famotidine 0.5 mg/kg (max 20 mg) over 15–30 min — H2 antihistamine adjunct alongside diphenhydramine (H1) for urticaria/GI symptoms. Not a substitute for epinephrine.',
         '6. Persistent bronchospasm after epi: nebulised salbutamol 0.15 mg/kg.',
         '7. Beta-blocker patient not responding to epi: IV Glucagon 20–30 mcg/kg (max 1 mg) over 5 min, then 5–15 mcg/kg/min infusion.',
         '8. Supine position with legs elevated (or sitting up if severe respiratory component).',
-      ],
+      ].filter(Boolean),
     };
 
     const STEP4 = {
       title: 'STEP 4 — LIFE-THREATENING: Refractory shock or complete airway obstruction',
       recommendations: [
+        '⚠ ECG (electrocardiogram) showing VT (ventricular tachycardia) with pulse during anaphylaxis: synchronised cardioversion 1–2 J/kg. VF (ventricular fibrillation) or pulseless VT: unsynchronised defibrillation 2 J/kg. Continue epinephrine infusion for the anaphylaxis simultaneously — do not stop it. Call cardiology.',
         'Refractory anaphylactic shock despite epinephrine infusion + fluid resuscitation:',
         '• Noradrenaline infusion 0.1–1 mcg/kg/min as additional vasopressor.',
         '• Vasopressin 0.0003–0.002 units/kg/min if noradrenaline insufficient.',
         '• Methylene blue 1–2 mg/kg IV over 20 min for vasodilatory shock refractory to all vasopressors.',
-        '• ECMO if available as bridge therapy.',
+        '• ECMO (extracorporeal membrane oxygenation) if available as bridge therapy.',
         'Upper airway obstruction (angioedema, stridor, muffled voice):',
-        '• RSI with ketamine 1–2 mg/kg + suxamethonium 1–2 mg/kg or rocuronium 1.2 mg/kg. Video laryngoscope. ENT standby.',
+        '• RSI (rapid sequence intubation) with ketamine 1–2 mg/kg + suxamethonium 1–2 mg/kg or rocuronium 1.2 mg/kg. Video laryngoscope. ENT (ear, nose and throat surgery) standby.',
         '• Needle cricothyroidotomy + jet ventilation if intubation fails.',
         '• Surgical airway as definitive rescue.',
         'CALL RESUSCITATION TEAM + ANAESTHESIA + ENT simultaneously.',
@@ -291,9 +295,11 @@ export const anaphylacticShockProtocol: DiseaseProtocol = {
     doses.push({ drugName: 'Epinephrine IM (1:1,000 — undiluted)', dose: `${epiIM} mg = ${epiIM} mL IM into mid-outer thigh`, notes: '0.01 mg/kg, max 0.5 mg. Repeat q5–15 min. First-line — do NOT delay for IV access.' });
     doses.push({ drugName: 'NS / LR fluid bolus (for shock)', dose: `${nsbolus} mL IV/IO rapid push`, notes: '20 mL/kg. Repeat as needed for haemodynamic response.' });
     doses.push({ drugName: 'Epinephrine IV push (rescue for shock only)', dose: `${epiIV} mg IV = ${(Number(epiIV) * 10).toFixed(1)} mL of 1:10,000 solution`, notes: 'Only if IM route failed and shock persists. Dilute 1:1,000 stock 1:10 (1 mL + 9 mL NS) to make 1:10,000. Give slowly over 5–10 min.' });
-    doses.push({ drugName: 'Epinephrine IV infusion (refractory shock)', dose: `Start 0.1 mcg/kg/min, titrate to 1 mcg/kg/min`, notes: `Preparation: add ${epiInfPrep} mg (1:1,000 stock) to 50 mL NS → 1 mL/hr = 0.1 mcg/kg/min.` });
+    doses.push({ drugName: 'Epinephrine IV infusion (refractory shock)', dose: `Start 0.05 mcg/kg/min (PALS 2020: effective range often < 0.05 mcg/kg/min); titrate up to 1 mcg/kg/min`, notes: `Preparation: add ${epiInfPrep} mg (1:1,000 stock) to 50 mL NS → 1 mL/hr = 0.1 mcg/kg/min. Start at 0.5 mL/hr (= 0.05 mcg/kg/min).` });
     doses.push({ drugName: 'Hydrocortisone IV (adjunct)', dose: `${hydrocort} mg IV (4 mg/kg, max 200 mg)`, notes: 'Second-line only. Biphasic reaction prevention — onset 4–6h. Does NOT treat acute anaphylaxis.' });
-    doses.push({ drugName: 'Diphenhydramine IV/IM (adjunct)', dose: `${diphenhyd} mg (1 mg/kg, max 50 mg)`, notes: 'Treats skin symptoms (urticaria/pruritus) only. Does NOT treat airway swelling or shock.' });
+    doses.push({ drugName: 'Diphenhydramine IV/IM — H1 antihistamine (adjunct)', dose: `${diphenhyd} mg (1 mg/kg, max 50 mg)`, notes: 'Treats skin symptoms (urticaria/pruritus) only. Does NOT treat airway swelling or shock. Give AFTER epinephrine.' });
+    const famotidine = Math.min(0.5 * wt, 20).toFixed(1);
+    doses.push({ drugName: 'Famotidine IV — H2 antihistamine (adjunct)', dose: `${famotidine} mg IV over 15–30 min (0.5 mg/kg, max 20 mg)`, notes: 'H2 blocker adjunct alongside diphenhydramine (H1). For urticaria/GI symptoms. Not a substitute for epinephrine.' });
     doses.push({ drugName: 'Salbutamol neb (bronchospasm)', dose: `${salb} mg (0.15 mg/kg, max 5 mg) via nebuliser`, notes: 'For persistent wheeze AFTER epinephrine. Not a substitute for epinephrine.' });
     doses.push({ drugName: 'Glucagon IV (beta-blocker patient only)', dose: `${glucagon} mg (0.02 mg/kg, max 1 mg) IV over 5 min`, notes: 'Only if on beta-blockers and inadequate response to epinephrine. Follow with infusion 5–15 mcg/kg/min.' });
 

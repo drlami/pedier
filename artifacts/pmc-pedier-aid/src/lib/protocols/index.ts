@@ -66,6 +66,10 @@ import { hypocalcemiaProtocol } from './hypocalcemia';
 import { acuteRenalFailureProtocol } from './acute-renal-failure';
 import { urinaryTractInfectionProtocol } from './urinary-tract-infection';
 import { metabolicCrisisProtocol } from './metabolic-crisis';
+import { otitisMediaProtocol } from './otitis-media';
+import { palsSystematicApproachProtocol } from './pals-systematic-approach';
+import { palsHypovolemicShockProtocol } from './pals-hypovolemic-shock';
+import { palsCardiogenicShockProtocol } from './pals-cardiogenic-shock';
 
 
 import { headTraumaProtocol } from './head-trauma';
@@ -273,6 +277,9 @@ export const allProtocols: DiseaseProtocol[] = [
   abdominalDistentionConstipationProtocol,
   giBleedingProtocol,
   intussusceptionProtocol,
+  palsSystematicApproachProtocol,
+  palsHypovolemicShockProtocol,
+  palsCardiogenicShockProtocol,
   shockManagementProtocol,
   septicShockProtocol,
   anaphylacticShockProtocol,
@@ -303,6 +310,7 @@ export const allProtocols: DiseaseProtocol[] = [
   acuteRenalFailureProtocol,
   urinaryTractInfectionProtocol,
   metabolicCrisisProtocol,
+  otitisMediaProtocol,
   wardPneumoniaCapProtocol,
   wardAsthmaProtocol,
   wardBronchiolitisProtocol,

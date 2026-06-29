@@ -4,7 +4,7 @@ const erData: ErData = {
   historyChecklist: [
     { id: 'hypoxia_event',    question: 'Preceding hypoxia, apnoea, or respiratory distress?', redFlag: true,  ifYes: 'Hypoxia is the most common cause of bradycardia in children — treat the airway FIRST. Epinephrine will not fix hypoxic bradycardia until oxygenation is restored.' },
     { id: 'cardiac_surgery',  question: 'History of cardiac surgery or known congenital heart disease?', redFlag: true, ifYes: 'Post-op bradycardia may indicate pacemaker failure, AV block, or surgical injury. Immediate cardiology contact. ECG + pacing equipment at bedside.' },
-    { id: 'medications',      question: 'Medications that slow heart rate (beta-blockers, CCBs, digoxin, clonidine, opioids)?', redFlag: true, ifYes: 'Toxin-mediated bradycardia: specific antidotes may apply. Digoxin → digoxin-specific antibody fragments. Beta-blocker → glucagon IV. CCB → calcium chloride + glucagon. Contact Toxicology.' },
+    { id: 'medications',      question: 'Medications that slow heart rate (beta-blockers, calcium channel blockers [CCBs], digoxin, clonidine, opioids)?', redFlag: true, ifYes: 'Toxin-mediated bradycardia: specific antidotes may apply. Digoxin → digoxin-specific antibody fragments. Beta-blocker → glucagon IV. CCB → calcium chloride + glucagon. Contact Toxicology.' },
     { id: 'hypothyroid',      question: 'Known hypothyroidism or history of thyroid surgery?', ifYes: 'Severe hypothyroidism (myxoedema) can cause profound bradycardia. Check TSH/T4 if suspected.' },
     { id: 'hypothermia',      question: 'Cold exposure, drowning, or body temperature < 35°C?', redFlag: true, ifYes: 'Hypothermia causes progressive bradycardia. DO NOT pronounce death until "warm and dead." Rewarm actively — defibrillation threshold increases with hypothermia.' },
     { id: 'sports',           question: 'Competitive athlete or highly trained sportsperson?', ifYes: 'Sinus bradycardia at rest is physiologically normal in athletes (HR 40–50 bpm). Confirm asymptomatic + no other abnormal features before reassuring.' },
@@ -20,7 +20,7 @@ const erData: ErData = {
     { test: 'Electrolytes (K⁺, Ca²⁺, Mg²⁺, Na⁺)', category: 'blood', indication: 'Hyperkalaemia, hypocalcaemia, hypomagnesaemia all cause bradycardia.' },
     { test: 'Digoxin level', category: 'blood', indication: 'Only if child is on digoxin or ingestion suspected.' },
     { test: 'Thyroid function (TSH, free T4)', category: 'blood', indication: 'Only if hypothyroidism clinically suspected (weight gain, cold intolerance, constipation, goitre).' },
-    { test: 'CXR', category: 'radiology', indication: 'If cardiac surgery history or suspected CHD. Assess heart size, pulmonary vascular markings.' },
+    { test: 'CXR (chest X-ray)', category: 'radiology', indication: 'If cardiac surgery history or suspected CHD (congenital heart disease). Assess heart size, pulmonary vascular markings.' },
   ],
 
   admissionCriteria: [
@@ -140,10 +140,10 @@ export const bradycardiaProtocol: DiseaseProtocol = {
     const STEP4 = {
       title: 'STEP 4 — LIFE-THREATENING: Persistent pulseless / refractory arrest',
       recommendations: [
-        'If no pulse develops → transition to full PALS cardiac arrest algorithm.',
-        'Intubate if not already done. IV/IO access mandatory.',
-        'Epinephrine 0.01 mg/kg (0.1 mL/kg of 1:10,000) IV/IO q3–5 min.',
-        'Continue CPR throughout — quality compressions are the priority.',
+        'If no pulse develops → transition to full PALS (Paediatric Advanced Life Support) cardiac arrest algorithm.',
+        'Intubate if not already done. IV/IO (intravenous/intraosseous) access mandatory.',
+        'Epinephrine 0.01 mg/kg (0.1 mL/kg of 1:10,000) IV/IO every 3–5 min.',
+        'Continue CPR (cardiopulmonary resuscitation) throughout — quality compressions are the priority.',
         'Search for reversible causes — H\'s and T\'s (see below).',
         'H\'s: Hypoxia (most common!), Hypovolaemia, Hypothermia, Hypoglycaemia, H⁺ (acidosis), Hyperkalaemia.',
         'T\'s: Tension pneumothorax (decompress), Tamponade (pericardiocentesis), Toxins (specific antidotes), Thrombosis (rare).',
@@ -162,7 +162,7 @@ export const bradycardiaProtocol: DiseaseProtocol = {
             'Attach cardiac monitor + SpO₂.',
             'IV/IO access — do NOT delay O₂ support for IV access.',
             hr < 60 ? `HR ${hr} bpm < 60 with poor perfusion → begin CPR if no improvement with O₂ within 30–60 s.` : 'Monitor HR continuously.',
-            'Call PICU + senior immediately. Transcutaneous pacemaker to bedside.',
+            'Call PICU (paediatric intensive care unit) + senior immediately. Transcutaneous pacemaker to bedside.',
           ],
         },
         {
@@ -177,12 +177,16 @@ export const bradycardiaProtocol: DiseaseProtocol = {
         {
           title: 'STEP 3 — ESCALATION: Persisting compromise despite O₂',
           recommendations: [
-            '1. Epinephrine IV/IO: 0.01 mg/kg (0.1 mL/kg of 1:10,000) q3–5 min — for bradycardia with poor perfusion.',
-            '2. Atropine IV/IO: 0.02 mg/kg (min 0.1 mg, max 0.5 mg) — for primary AV block or increased vagal tone. May repeat once.',
-            '3. Transcutaneous pacing: for AV block with compromise. Rate = 20 above patient\'s spontaneous rate initially.',
-            '4. PICU — do not manage severe bradycardia alone.',
-            data.cause === 'toxin' ? '5. TOXIN: Beta-blocker → glucagon IV; CCB → calcium chloride; digoxin → digoxin-specific Fab fragments. Contact Toxicology.' :
-            data.cause === 'electrolyte' ? '5. ELECTROLYTE: Hyperkalaemia → calcium chloride 10 mg/kg IV + sodium bicarbonate + insulin/dextrose. Call Nephrology.' : '',
+            data.rhythm === 'avb3' ? '⚠ COMPLETE (3rd DEGREE) AV BLOCK: medications are temporising measures only — transcutaneous pacing is the definitive immediate intervention. Activate transcutaneous pacing NOW while drugs are being drawn up. Contact cardiology immediately for transvenous pacing plan — permanent pacing will be required.' : '',
+            'DRUG CHOICE depends on cause (PALS 2020 Part 12):',
+            '• PRIMARY atrioventricular (AV) block, vagal-mediated, cholinergic toxicity → ATROPINE FIRST: 0.02 mg/kg IV/IO (intravenous/intraosseous) (min 0.1 mg, max 0.5 mg). May repeat once in 5 min. If no response, proceed to Epinephrine. Note: organophosphate poisoning requires much larger repeated atropine doses — contact Toxicology.',
+            '• SECONDARY bradycardia (persisting hypoxia, acidosis, or hypothermia after O₂ and airway support) → EPINEPHRINE: 0.01 mg/kg (0.1 mL/kg of 1:10,000) IV/IO q3–5 min.',
+            '• Epinephrine bolus effective but bradycardia recurs: start EPINEPHRINE INFUSION 0.1–0.3 mcg/kg/min, titrate to clinical response.',
+            'Heart transplant: atropine may be INEFFECTIVE (denervated heart) — prefer epinephrine and early transcutaneous pacing.',
+            'Transcutaneous pacing: for AV block with haemodynamic compromise not responding to drugs. Rate = 20 above patient\'s spontaneous rate initially.',
+            'PICU — do not manage severe bradycardia alone.',
+            data.cause === 'toxin' ? 'TOXIN: Beta-blocker → glucagon IV; CCB → calcium chloride; digoxin → digoxin-specific Fab fragments. Contact Toxicology.' :
+            data.cause === 'electrolyte' ? 'ELECTROLYTE: Hyperkalaemia → calcium chloride 10 mg/kg IV + sodium bicarbonate + insulin/dextrose. Call Nephrology.' : '',
           ].filter(Boolean),
         },
         STEP4,
@@ -224,8 +228,15 @@ export const bradycardiaProtocol: DiseaseProtocol = {
     ];
   },
 
-  getDisposition: (severity) => {
+  getDisposition: (severity, data) => {
     if (severity.level === 'severe') return ['PICU admission. Haemodynamic compromise — not safe to leave resuscitation area until stable.'];
+    if ((data?.rhythm as string) === 'avb3') {
+      return [
+        'Admit to continuous cardiac monitored ward or PICU — complete (3rd degree) AV block requires uninterrupted monitoring regardless of current symptoms.',
+        'Transcutaneous pacing equipment at bedside and immediately available until a transvenous or permanent pacemaker is placed. Do NOT allow the patient to leave the monitored area.',
+        'Urgent cardiology pacing consultation within hours of admission — not the following morning. A decision on transvenous or permanent pacing is required promptly.',
+      ];
+    }
     return ['Admit to monitored ward. Cardiology review before discharge. No discharge with unexplained complete AV block.'];
   },
 
@@ -254,8 +265,9 @@ export const bradycardiaProtocol: DiseaseProtocol = {
     const cacl  = Math.min(10 * wt, 500).toFixed(0);
     const glucag = Math.min(0.03 * wt, 1).toFixed(2);
 
-    doses.push({ drugName: 'Epinephrine IV/IO (1:10,000 diluted)', dose: `${epi} mL (0.1 mL/kg) IV/IO`, notes: 'Dilute 1:1,000 stock 1:10 first (1 mL + 9 mL NS). Repeat q3–5 min. For bradycardia with poor perfusion.' });
-    doses.push({ drugName: 'Atropine IV/IO', dose: `${atrp} mg IV/IO (0.02 mg/kg, min 0.1 mg, max 0.5 mg)`, notes: 'For vagal-mediated bradycardia or 1st/2nd degree AV block. May repeat once. Minimum dose 0.1 mg to avoid paradoxical bradycardia.' });
+    doses.push({ drugName: 'Atropine IV/IO — primary AV block / vagal bradycardia', dose: `${atrp} mg IV/IO (0.02 mg/kg, min 0.1 mg, max 0.5 mg)`, notes: 'FIRST drug of choice for vagal-mediated bradycardia or primary AV block (PALS 2020). May repeat once in 5 min. Minimum dose 0.1 mg (smaller doses can paradoxically worsen bradycardia). Endotracheal (ET) route: 0.04–0.06 mg/kg if IV/IO unavailable — absorption is unreliable. Organophosphate poisoning: much larger doses needed — repeat until secretions dry.' });
+    doses.push({ drugName: 'Epinephrine IV/IO (1:10,000 diluted) — bolus', dose: `${epi} mL (0.1 mL/kg) IV/IO`, notes: 'Dilute 1:1,000 stock 1:10 (1 mL + 9 mL NS). Repeat q3–5 min. First-line for secondary bradycardia (hypoxia, acidosis, hypothermia persisting after O₂). Also use if atropine fails for primary AV block.' });
+    doses.push({ drugName: 'Epinephrine IV infusion — persistent bradycardia', dose: `Start 0.1 mcg/kg/min (range 0.1–0.3 mcg/kg/min)`, notes: `For bradycardia that responds to epinephrine bolus but recurs. Rule of 6: add ${(0.3 * wt).toFixed(1)} mg (1:1,000 stock) to 50 mL NS → 1 mL/hr = 0.1 mcg/kg/min. Titrate to HR response.` });
     doses.push({ drugName: 'Dextrose IV/IO (hypoglycaemia)', dose: `${dex} mL of 10% dextrose (0.5 g/kg)`, notes: 'Give slowly over 5–10 min. Recheck glucose 15 min later.' });
     doses.push({ drugName: 'Calcium chloride 10% IV (hyperkalaemia/CCB)', dose: `${cacl} mg (10 mg/kg, max 500 mg) IV slowly`, notes: 'Give over 5–10 min. Flush line well. Extravasation causes severe tissue necrosis. Central access preferred.' });
     doses.push({ drugName: 'Glucagon IV (beta-blocker toxicity)', dose: `${glucag} mg IV (0.02–0.03 mg/kg, max 1 mg) over 5 min`, notes: 'Only for beta-blocker-mediated bradycardia. Follow with infusion 5–15 mcg/kg/min if response.' });

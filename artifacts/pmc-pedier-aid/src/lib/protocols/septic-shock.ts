@@ -22,13 +22,13 @@ const erData: ErData = {
     { test: '12-lead ECG', category: 'urgent', indication: 'Before starting vasopressors — detect arrhythmia, myocarditis (global ST changes), or prolonged QTc.' },
 
     { test: 'Blood cultures × 2 (peripheral; plus from each lumen if central line)', category: 'blood', indication: 'Obtain BEFORE antibiotics if feasible — but do NOT delay antibiotics > 10 min for cultures. Two sets maximise sensitivity.', criticalValue: 'Never delay antibiotics > 10 min for blood culture collection' },
-    { test: 'CBC with differential', category: 'blood', indication: 'WBC < 4 or > 12 × 10⁹/L, neutrophil bands > 10% supports sepsis. ANC < 500 = febrile neutropenia → consult oncology.', criticalValue: 'ANC < 500 = febrile neutropenia — anti-Pseudomonal cover mandatory; contact oncology' },
+    { test: 'CBC (complete blood count) with differential', category: 'blood', indication: 'WBC (white blood cell count) < 4 or > 12 × 10⁹/L, neutrophil bands > 10% supports sepsis. ANC (absolute neutrophil count) < 500 = febrile neutropenia → consult oncology.', criticalValue: 'ANC < 500 = febrile neutropenia — anti-Pseudomonal cover mandatory; contact oncology' },
     { test: 'CRP + Procalcitonin (PCT)', category: 'blood', indication: 'PCT > 2 ng/mL supports bacterial infection. Not diagnostic alone — use for trend (serial) and antibiotic de-escalation guidance.' },
     { test: 'Blood gas (venous or arterial) — serial', category: 'blood', indication: 'pH, PaCO₂, HCO₃⁻, base excess, lactate. Metabolic acidosis (pH < 7.3, BE < −5) + high lactate = severity marker for organ dysfunction.', criticalValue: 'pH < 7.25 + lactate > 4 mmol/L = critical — PICU immediately' },
     { test: 'Electrolytes (Na, K, Cl, HCO₃, Ca, Mg)', category: 'blood', indication: 'Electrolyte disturbances worsen haemodynamics. Ionised Ca²⁺ < 1.1 mmol/L → correct before or during resuscitation. Mg for vasopressor-refractory shock.', criticalValue: 'Ionised Ca²⁺ < 0.9 mmol/L or K⁺ > 6.0 mmol/L = urgent correction required' },
     { test: 'Urea + Creatinine (Renal function)', category: 'blood', indication: 'Baseline renal function. AKI (rising creatinine) = PELOD organ dysfunction. Adjust antibiotic doses (vancomycin, aminoglycosides) for renal impairment.' },
     { test: 'LFTs (ALT, AST, bilirubin, GGT)', category: 'blood', indication: 'Hepatic dysfunction (transaminitis, elevated bilirubin) = PELOD organ failure. Also relevant for medication clearance.' },
-    { test: 'Coagulation screen (PT, APTT, fibrinogen, D-dimer, platelets)', category: 'blood', indication: 'Screen for DIC — a major cause of sepsis mortality. Coagulopathy = PELOD domain.', criticalValue: 'PT/APTT > 2× normal + platelets < 50 × 10⁹/L + fibrinogen < 1.5 g/L = DIC — give FFP + cryoprecipitate' },
+    { test: 'Coagulation screen (PT [prothrombin time], APTT [activated partial thromboplastin time], fibrinogen, D-dimer, platelets)', category: 'blood', indication: 'Screen for DIC (disseminated intravascular coagulation) — a major cause of sepsis mortality. Coagulopathy = PELOD domain.', criticalValue: 'PT/APTT > 2× normal + platelets < 50 × 10⁹/L + fibrinogen < 1.5 g/L = DIC — give FFP (fresh frozen plasma) + cryoprecipitate' },
     { test: 'Group & Save (or crossmatch if expected to bleed)', category: 'blood', indication: 'In anticipation of blood product resuscitation. Hb < 70 g/L during active shock resuscitation → transfuse.' },
     { test: 'Urine M/C/S (catheter specimen in nappied children)', category: 'blood', indication: 'UTI is the most common identifiable bacterial source in infants. Catheter specimen mandatory for reliable culture result in pre-continent children.' },
     { test: 'LP (lumbar puncture) — if meningitis suspected', category: 'blood', indication: 'Only if clinically stable, no raised ICP signs, normal coagulation, platelets > 50. ALWAYS give antibiotics FIRST if patient is unstable — LP can be performed later.', criticalValue: 'NEVER delay antibiotics for LP. Give Ceftriaxone first if bacterial meningitis is possible' },
@@ -125,6 +125,7 @@ export const septicShockProtocol: DiseaseProtocol = {
       { label: '90–93%',                               value: 'low',       score: 1 },
       { label: '< 90%',                                value: 'critical',  score: 2 },
     ]},
+    { id: 'petechiae', questionText: 'Non-blanching rash (petechiae or purpura)?', type: 'boolean', info: 'Press a glass firmly against any spots — if they do NOT fade under pressure, this is meningococcaemia until proven otherwise. Give IV Ceftriaxone immediately regardless of other findings.' },
   ],
 
   calculateSeverity: (data: FormData): Severity => {
@@ -178,6 +179,17 @@ export const septicShockProtocol: DiseaseProtocol = {
       }
     }
 
+    // Petechiae override — meningococcaemia requires minimum severe classification
+    if (data.petechiae === true) {
+      if (level !== 'severe') {
+        level = 'severe';
+        interpretation = 'Meningococcaemia — Severe Septic Shock';
+        details.unshift('⚠ NON-BLANCHING RASH — severity upgraded to SEVERE. Meningococcaemia until proven otherwise. IV Ceftriaxone within 5 min. PICU immediately.');
+      } else {
+        details.unshift('⚠ NON-BLANCHING RASH — Meningococcaemia until proven otherwise. IV Ceftriaxone within 5 min. Risk of DIC (disseminated intravascular coagulation) and bilateral adrenal haemorrhage is high.');
+      }
+    }
+
     return {
       level,
       scoreDetails: {
@@ -207,6 +219,7 @@ export const septicShockProtocol: DiseaseProtocol = {
         'NO IMPROVEMENT after 20–40 mL/kg total → STOP GIVING MORE FLUID. Move to STEP 3A vasopressors NOW. Repeating boluses without starting vasopressors is the most common management error.',
         'OVERLOAD DEVELOPING (new rales, hepatomegaly, SpO₂ dropping) → STOP fluids immediately regardless of total volume given → STEP 3A vasopressors.',
         '⚠ REMEMBER: Normal BP does NOT mean no shock. A child in compensated shock can have a normal BP right up until sudden decompensation.',
+        '⚠ FEAST TRIAL (NEJM 2011): In resource-limited sub-Saharan African settings, large-volume bolus fluids increased 48-hour mortality in febrile children. PALS guidelines apply to resource-adequate settings — reassess after EVERY bolus and stop at the first sign of fluid overload (new rales, hepatomegaly, SpO₂ decline).',
       ],
     };
 
@@ -239,7 +252,7 @@ export const septicShockProtocol: DiseaseProtocol = {
             '   • Start: 0.05–0.1 mcg/kg/min. Titrate by 0.05 mcg/kg/min every 5–10 min.',
           ];
 
-    const GOALS_CHECK = 'RESPONSE TARGETS (check every 10–15 min): MAP ≥ 50th percentile for age + CRT ≤ 2 s + HR trending toward normal + improving mental status + urine output ≥ 1 mL/kg/h.';
+    const GOALS_CHECK = 'RESPONSE TARGETS (check every 10–15 min): MAP (mean arterial pressure) ≥ 50th percentile for age + CRT (capillary refill time) ≤ 2 s + HR (heart rate) trending toward normal + improving mental status + urine output ≥ 1 mL/kg/h.';
 
     const STEP3A = {
       title: 'STEP 3A — ESCALATION: Start First-Line Vasopressor',
@@ -289,10 +302,10 @@ export const septicShockProtocol: DiseaseProtocol = {
       recommendations: [
         'RECOGNISE: GCS ≤ 8 or apnoea, SpO₂ < 90% on high-flow O₂, unresponsive to fluids + vasopressors + second-line agents, pH < 7.15 with rising lactate.',
         'SENIOR + PICU + ANAESTHETICS at bedside NOW.',
-        'AIRWAY / RSI if: unable to protect airway, apnoea, respiratory failure, or GCS ≤ 8. Induction: KETAMINE 1–2 mg/kg IV. AVOID ETOMIDATE — causes adrenal suppression in sepsis.',
+        'AIRWAY / RSI (rapid sequence intubation) if: unable to protect airway, apnoea, respiratory failure, or GCS (Glasgow Coma Scale) ≤ 8. Induction: KETAMINE 1–2 mg/kg IV. AVOID ETOMIDATE — causes adrenal suppression in sepsis.',
         'Post-intubation: lung-protective ventilation — 6 mL/kg tidal volume, plateau < 28 cmH₂O, PEEP 5–8 cmH₂O. Avoid hypocapnia (worsens cerebral and coronary perfusion).',
         'ECMO: contact ECMO centre EARLY if vasopressor-refractory despite maximum therapy. Call before the child is too sick to qualify.',
-        'DIC: FFP 10–15 mL/kg (PT/APTT > 2× normal + bleeding). Cryoprecipitate 5 mL/kg (fibrinogen < 1.5 g/L). Platelets if < 50 × 10⁹/L with active haemorrhage.',
+        'DIC (disseminated intravascular coagulation): FFP (fresh frozen plasma) 10–15 mL/kg (PT [prothrombin time]/APTT [activated partial thromboplastin time] > 2× normal + bleeding). Cryoprecipitate 5 mL/kg (fibrinogen < 1.5 g/L). Platelets if < 50 × 10⁹/L with active haemorrhage.',
         'SOURCE CONTROL: urgent surgical/IR/ID review regardless of haemodynamic instability — antibiotics cannot sterilise an undrained abscess or infected device.',
       ],
     };
@@ -303,15 +316,16 @@ export const septicShockProtocol: DiseaseProtocol = {
           {
             title: 'STEP 1 — Immediate (0–15 min): Simultaneous Actions',
             recommendations: [
-              'CALL FOR HELP + PICU NOTIFICATION immediately — do not manage decompensated septic shock alone.',
+              'CALL FOR HELP + PICU (paediatric intensive care unit) NOTIFICATION immediately — do not manage decompensated septic shock alone.',
               'AIRWAY + OXYGEN: 100% O₂ via non-rebreather mask. Prepare for RSI if mental status declining.',
               'ACCESS: IV or IO within 5 min. Two large-bore IVs. Do NOT delay fluid or antibiotics waiting for central access.',
               'BEDSIDE GLUCOSE now.',
-              'FIRST FLUID BOLUS: 10–20 mL/kg isotonic crystalloid (0.9% NaCl or Lactated Ringer\'s) over 5–10 min.',
+              'FIRST FLUID BOLUS: 20 mL/kg isotonic crystalloid (0.9% NaCl or Ringer\'s lactate) over 5–10 min. EXCEPTION: neonates and children with known cardiac disease (congenital heart disease) → use 10 mL/kg and reassess carefully before repeating.',
               'BLOOD CULTURES × 2 — only if obtainable within 5 min. Never delay antibiotics for cultures.',
+              data.petechiae === true ? '⚠ MENINGOCOCCAEMIA (non-blanching rash): IV Ceftriaxone 100 mg/kg (max 2 g) within 5 min — this IS the priority antibiotic. Do NOT wait for cultures. If purpura fulminans (confluent ecchymotic patches present): start FFP (fresh frozen plasma) 10–15 mL/kg + hydrocortisone 2 mg/kg IV now for adrenal haemorrhage risk. Urgent coagulation screen — DIC (disseminated intravascular coagulation) risk is very high.' : '',
               'ANTIBIOTICS within 15 min — see Drugs tab. Every additional hour of delay significantly worsens outcome.',
               '12-lead ECG.',
-            ],
+            ].filter(Boolean),
           },
           STEP2_REASSESS,
           STEP3A,
@@ -328,11 +342,12 @@ export const septicShockProtocol: DiseaseProtocol = {
               'OXYGEN: low-flow initially; increase to non-rebreather if SpO₂ < 94%.',
               'IV ACCESS: two large-bore IVs or IO if IV fails after 2 attempts.',
               'BEDSIDE GLUCOSE immediately.',
-              'FIRST FLUID BOLUS: 10–20 mL/kg isotonic crystalloid over 5–10 min.',
+              'FIRST FLUID BOLUS: 20 mL/kg isotonic crystalloid over 5–10 min. EXCEPTION: neonates and children with known cardiac disease → use 10 mL/kg and reassess carefully.',
               'BLOOD CULTURES (do not delay antibiotics > 10 min).',
+              data.petechiae === true ? '⚠ MENINGOCOCCAEMIA (non-blanching rash): ANTIBIOTICS within 5 min (not 60 min) — IV Ceftriaxone 100 mg/kg (max 2 g) IMMEDIATELY. Call PICU now. Monitor for rapid decompensation and DIC (disseminated intravascular coagulation).' : '',
               'ANTIBIOTICS within 60 min (within 15 min if rapidly deteriorating or purpuric rash).',
               'Continuous cardiac/SpO₂ monitoring; BP every 5–10 min.',
-            ],
+            ].filter(Boolean),
           },
           STEP2_REASSESS,
           STEP3A,

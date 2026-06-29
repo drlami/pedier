@@ -5,7 +5,7 @@ const erData: ErData = {
     { id: 'chd',          question: 'Known congenital heart disease or prior cardiac surgery?', redFlag: true,  ifYes: 'Higher risk for re-entrant and structural arrhythmias. Cardiology must be informed immediately. Do NOT give Adenosine without cardiology guidance in complex CHD.' },
     { id: 'wpw_known',    question: 'Known Wolff-Parkinson-White (WPW) syndrome?', redFlag: true,  ifYes: 'Avoid Adenosine in pre-excited AF (irregular wide complex). Risk of ventricular fibrillation. Cardioversion is safest for unstable WPW.' },
     { id: 'syncope',      question: 'Did the episode start with syncope or preceded by chest pain?', redFlag: true,  ifYes: 'Sudden cardiac arrest risk. Treat as unstable regardless of current haemodynamics.' },
-    { id: 'prior_svt',    question: 'Previous documented SVT episodes? If yes, how were they terminated?', ifYes: 'Useful to know: vagal manoeuvres vs adenosine vs spontaneous. Helps set expectations.' },
+    { id: 'prior_svt',    question: 'Previous documented SVT (supraventricular tachycardia) episodes? If yes, how were they terminated?', ifYes: 'Useful to know: vagal manoeuvres vs adenosine vs spontaneous. Helps set expectations.' },
     { id: 'sudden_onset', question: 'Sudden onset / sudden offset pattern?', ifYes: 'Strongly supports SVT over sinus tachycardia. Variable or gradual onset = sinus tachycardia until proven otherwise.' },
     { id: 'medications',  question: 'Current medications that affect heart rate? (beta-blockers, digoxin, stimulants, decongestants)', ifYes: 'Drug-induced tachycardia — identify agent. Amphetamine / cold medications can cause sinus tachycardia or VT.' },
     { id: 'fever_dehy',   question: 'Fever, dehydration, pain, or anaemia present?', ifYes: 'Likely sinus tachycardia as a compensatory response. Treat the cause, NOT the rate.' },
@@ -13,18 +13,19 @@ const erData: ErData = {
   ],
 
   investigations: [
-    { test: '12-lead EKG — STAT, before any treatment', category: 'urgent', indication: 'Mandatory. Measure QRS width (narrow ≤ 0.09 s vs wide > 0.09 s), identify P-waves, rate. Snap-shot before vagal manoeuvres if possible.', criticalValue: 'Wide QRS (> 0.09 s) = treat as VT until proven otherwise. Irregular wide complex = suspect AF with WPW — do NOT give Adenosine.' },
+    { test: '12-lead EKG — STAT, before any treatment', category: 'urgent', indication: 'Mandatory. Measure QRS width (narrow ≤ 0.09 s vs wide > 0.09 s), identify P-waves, rate. Snap-shot before vagal manoeuvres if possible.', criticalValue: 'Wide QRS (> 0.09 s) = treat as VT (ventricular tachycardia) until proven otherwise. Irregular wide complex = suspect AF (atrial fibrillation) with WPW (Wolff-Parkinson-White syndrome) — do NOT give Adenosine.' },
     { test: 'Continuous cardiac monitoring + SpO₂', category: 'urgent', indication: 'Leave monitor running throughout. Print rhythm strip at time of conversion.' },
     { test: 'IV/IO access', category: 'urgent', indication: 'Establish immediately — required for Adenosine administration. Use right antecubital fossa for fastest drug transit to heart.' },
     { test: 'Blood glucose (bedside)', category: 'urgent', indication: 'Hypoglycaemia can cause tachycardia and arrhythmia, especially in infants.' },
 
     { test: 'Troponin I or T', category: 'blood', indication: 'Order if: wide complex, chest pain, known CHD, or suspected myocarditis/cardiomyopathy.', criticalValue: 'Elevated troponin = myocardial injury, broadens diagnosis. Add BNP.' },
-    { test: 'BNP or NT-proBNP', category: 'blood', indication: 'Elevated in SVT (due to stretch) but normalises on conversion. Very high persistent BNP = underlying cardiac dysfunction.' },
+    { test: 'BNP (B-type natriuretic peptide) or NT-proBNP (N-terminal pro-BNP)', category: 'blood', indication: 'Elevated in SVT (supraventricular tachycardia, due to atrial stretch) but normalises on conversion. Very high persistent BNP = underlying cardiac dysfunction.' },
     { test: 'Electrolytes (K⁺, Mg²⁺, Ca²⁺)', category: 'blood', indication: 'Hypokalaemia and hypomagnesaemia predispose to VT and reduce Adenosine efficacy. Correct before repeat doses.' },
     { test: 'Blood culture + CRP if febrile', category: 'blood', indication: 'Fever → sinus tachycardia pathway, but sepsis can also precipitate arrhythmia.' },
 
     { test: 'CXR', category: 'radiology', indication: 'Order if: suspected heart failure, respiratory distress, first episode of SVT, or wide complex tachycardia. Assess for cardiomegaly, pulmonary oedema.' },
     { test: 'Echocardiogram (urgent bedside)', category: 'radiology', indication: 'Order after conversion for all new first-episode SVT: assess for CHD, function, WPW substrate. Not needed before treatment unless haemodynamically stable with time.', criticalValue: 'Any structural abnormality → immediate Cardiology management before discharge.' },
+    { test: 'Holter monitor (24-h ambulatory ECG) + exercise stress test — arrange outpatient', category: 'blood', indication: 'Mandatory for SVT precipitated by exercise (CPVT [catecholaminergic polymorphic ventricular tachycardia] or AVRT [atrioventricular re-entrant tachycardia] risk), recurrent SVT, or family history of sudden cardiac death. Holter captures arrhythmia burden and SVT morphology. Exercise test provokes exercise-induced arrhythmia for diagnosis.', criticalValue: 'Exercise-induced polymorphic VT (ventricular tachycardia) = CPVT until proven otherwise — start beta-blocker urgently and refer to electrophysiology.' },
   ],
 
   admissionCriteria: [
@@ -42,7 +43,7 @@ const erData: ErData = {
   highRiskFactors: [
     'Family history of sudden cardiac death or channelopathy',
     'Recurrent SVT despite oral antiarrhythmic therapy — cardiology review',
-    'SVT precipitated by exercise (CPVT, AVRT risk)',
+    'SVT precipitated by exercise (CPVT [catecholaminergic polymorphic ventricular tachycardia], AVRT [atrioventricular re-entrant tachycardia] risk)',
     'Infant < 1 year — narrow therapeutic window and limited vagal manoeuvre options',
   ],
 
@@ -169,8 +170,10 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
         {
           title: `STEP 1 — Immediate: ${isUnstable ? 'Unstable Tachycardia' : 'Wide Complex / VT'} — Cardioversion`,
           recommendations: [
-            'CALL RESUSCITATION TEAM + CARDIOLOGY + PICU now.',
-            isWide && !isUnstable
+            'CALL RESUSCITATION TEAM + CARDIOLOGY + PICU (paediatric intensive care unit) now.',
+            rhythm === 'irregular'
+              ? '⚠ IRREGULAR WIDE COMPLEX — suspect AF (atrial fibrillation) with WPW (Wolff-Parkinson-White syndrome). DO NOT give Adenosine under any circumstances — it can precipitate ventricular fibrillation. SYNCHRONISED CARDIOVERSION is the only safe treatment: 0.5 J/kg initial → 1 J/kg → 2 J/kg.'
+              : isWide && !isUnstable
               ? 'WIDE COMPLEX IN STABLE PATIENT: DO NOT give Adenosine for irregular wide complex (AF+WPW risk). Consult Cardiology before any drug.'
               : 'SYNCHRONISED CARDIOVERSION: 0.5 J/kg initial. If ineffective → 1 J/kg → 2 J/kg.',
             'CONFIRM "SYNC" mode selected on defibrillator before every shock.',
@@ -198,10 +201,10 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
           ],
         },
         {
-          title: 'STEP 4 — Life-threatening: Pulseless VT / VF',
+          title: 'STEP 4 — Life-threatening: Pulseless VT (ventricular tachycardia) / VF (ventricular fibrillation)',
           recommendations: [
             'PULSELESS → switch to DEFIBRILLATION (2 J/kg → 4 J/kg), UNSYNCHRONISED mode.',
-            'CPR between all shocks as per PALS algorithm.',
+            'CPR (cardiopulmonary resuscitation) between all shocks as per PALS (Paediatric Advanced Life Support) algorithm.',
             'Adrenaline (epinephrine) 0.01 mg/kg IV/IO every 3–5 min.',
             'Amiodarone 5 mg/kg IV/IO bolus for shock-refractory VF/VT.',
             'Identify reversible causes: hypoxia, hypovolaemia, hyperkalaemia, hypothermia, tension pneumothorax, tamponade, toxins.',
@@ -230,7 +233,8 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
           'CONVERTED → sinus rhythm on monitor. Print rhythm strip. Post-conversion 12-lead EKG immediately.',
           'NOT CONVERTED after 1st dose → give 2nd dose (0.2 mg/kg, max 12 mg). Same rapid push technique.',
           'NOT CONVERTED after 2nd dose → DO NOT give a 3rd Adenosine. Escalate to STEP 3.',
-          '⚠ If rhythm is now irregular or wide complex after Adenosine → STOP. Suspect AF+WPW. Cardioversion only.',
+          '⚠ If rhythm is now irregular or wide complex after Adenosine → STOP. Suspect AF (atrial fibrillation) with WPW (Wolff-Parkinson-White syndrome). Cardioversion only — adenosine can provoke ventricular fibrillation in AF+WPW.',
+          'If BNP (B-type natriuretic peptide) or NT-proBNP (N-terminal pro-BNP) was elevated and remains markedly high 1–2 h after sustained sinus rhythm restoration: suspect underlying cardiomyopathy or chronic heart failure — echo and cardiology review before discharge.',
         ],
       },
       {
@@ -239,7 +243,7 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
           '1. RE-CONSULT CARDIOLOGY — mandatory before any further antiarrhythmic.',
           '2. SYNCHRONISED CARDIOVERSION: 0.5 J/kg initial. Sedation if conscious.',
           '3. IV AMIODARONE only if cardioversion not available or fails — 5 mg/kg over 20–60 min. Do NOT bolus.',
-          '4. Confirm SYNC mode before every cardioversion attempt.',
+          '4. SYNC mode: confirm before EVERY cardioversion attempt — most defibrillators automatically reset to UNSYNCHRONISED after each shock delivery. Failure to re-activate SYNC risks accidental unsynchronised defibrillation.',
           '5. Recheck IV position — failed Adenosine is often due to slow push or distal IV site.',
         ],
       },
@@ -293,7 +297,7 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
     doses.push({
       drugName: 'Adenosine — 1st dose (stable SVT)',
       dose: `${adeno1} mg RAPID IV push (0.1 mg/kg, max 6 mg)`,
-      notes: 'Two-syringe technique: drug then immediate 10–20 mL saline flush. Right antecubital IV preferred.',
+      notes: 'Two-syringe technique: drug then immediate 10–20 mL saline flush. Right antecubital IV preferred. DOSE REDUCTION (reduce by ~75%) for patients on carbamazepine or dipyridamole, or with a transplanted heart — risk of prolonged AV block.',
     });
     doses.push({
       drugName: 'Adenosine — 2nd dose (if 1st fails, wait 2 min)',
@@ -303,7 +307,7 @@ export const tachycardiaSvtProtocol: DiseaseProtocol = {
     doses.push({
       drugName: 'Synchronised Cardioversion (SVT / stable VT)',
       dose: `${cardio1} J (0.5 J/kg) → ${cardio2} J (1 J/kg) → ${cardio3} J (2 J/kg) if needed`,
-      notes: 'CONFIRM "SYNC" mode before each shock. Sedate if conscious.',
+      notes: 'CONFIRM "SYNC" mode before EVERY shock — defibrillators automatically reset to UNSYNCHRONISED after each shock delivery. Must re-activate SYNC before each attempt. Sedate if conscious.',
     });
     doses.push({
       drugName: 'Amiodarone IV (refractory VT / refractory SVT)',

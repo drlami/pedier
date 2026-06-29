@@ -10,17 +10,22 @@ import {
   Search,
   BookOpen,
   LayoutGrid,
-  Stethoscope,
   X,
   Wind,
   Thermometer,
-  Brain,
   FlaskConical,
   Skull,
   Shield,
   Droplets,
   Activity,
   Zap,
+  Baby,
+  Bone,
+  Ear,
+  Brain,
+  Scissors,
+  Fingerprint,
+  Users,
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
@@ -30,134 +35,206 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-// ─── Category mapping ────────────────────────────────────────────────────────
-// Maps protocol ID → ER presentation category.
-// Protocols not listed here fall back to "Other".
+// ─── PALS Algorithms (hardcoded — pre-diagnosis resuscitation frameworks) ──────
+const PALS_ACTIVE: Array<{ label: string; desc: string; href: string }> = [
+  { label: 'Systematic Approach',  desc: 'PAT · ABCDE · Evaluate-Identify-Intervene',             href: '/diseases/pals-systematic-approach'  },
+  { label: 'Hypovolemic Shock',    desc: 'Most common · fluid resuscitation · 20 mL/kg bolus',     href: '/diseases/pals-hypovolemic-shock'    },
+  { label: 'Cardiogenic Shock',    desc: 'Pulmonary oedema · milrinone · cautious 5–10 mL/kg',     href: '/diseases/pals-cardiogenic-shock'    },
+  { label: 'Shock Framework',      desc: 'Recognition & first-hour management',                    href: '/diseases/shock-management'          },
+  { label: 'Septic Shock',         desc: 'First-hour bundle · ACCM guidelines',                    href: '/diseases/septic-shock'              },
+  { label: 'Anaphylaxis',          desc: 'Epinephrine · airway · fluid resuscitation',             href: '/diseases/anaphylactic-shock'        },
+  { label: 'Bradycardia',          desc: 'HR <60 with cardiopulmonary compromise',                 href: '/diseases/bradycardia'               },
+  { label: 'Tachycardia / SVT',    desc: 'Adenosine · cardioversion · VT approach',               href: '/diseases/tachycardia-svt'           },
+];
+
+const PALS_SOON = [
+  'Respiratory Failure',
+] as const;
+
+// ─── PALS protocol IDs — shown in strip above, excluded from category browser ─
+const PALS_STRIP_IDS = new Set([
+  'pals-systematic-approach',
+  'pals-hypovolemic-shock',
+  'pals-cardiogenic-shock',
+  'shock-management',
+  'septic-shock',
+  'anaphylactic-shock',
+  'bradycardia',
+  'tachycardia-svt',
+]);
+
+// ─── Category mapping (one home per topic — entry point = chief complaint) ────
 const ER_CATEGORY_MAP: Record<string, string> = {
   // Breathing Difficulty
-  asthma:                        'Breathing Difficulty',
-  bronchiolitis:                 'Breathing Difficulty',
-  croup:                         'Breathing Difficulty',
-  pneumonia:                     'Breathing Difficulty',
-  epiglottitis:                  'Breathing Difficulty',
-  fba:                           'Breathing Difficulty',
-  tracheitis:                    'Breathing Difficulty',
+  asthma:                                   'Breathing Difficulty',
+  bronchiolitis:                            'Breathing Difficulty',
+  croup:                                    'Breathing Difficulty',
+  pneumonia:                                'Breathing Difficulty',
+  epiglottitis:                             'Breathing Difficulty',
+  fba:                                      'Breathing Difficulty',
+  tracheitis:                               'Breathing Difficulty',
+  cyanosis:                                 'Breathing Difficulty',
+  apnea:                                    'Breathing Difficulty',
 
-  // Fever & Infections
-  'fever-without-source':        'Fever & Infections',
-  'fever-neutropenia':           'Fever & Infections',
-  'fever-rash':                  'Fever & Infections',
-  'meningitis-encephalitis':     'Fever & Infections',
-  'septic-shock':                'Fever & Infections',
-  ssti:                          'Fever & Infections',
-  mastoiditis:                   'Fever & Infections',
-  'orbital-cellulitis':          'Fever & Infections',
-  'periorbital-cellulitis':      'Fever & Infections',
-  'cervical-lymphadenitis':      'Fever & Infections',
+  // The Febrile Child
+  'fever-neonate':                          'The Febrile Child',
+  'fever-1-2-months':                       'The Febrile Child',
+  'fever-2-3-months':                       'The Febrile Child',
+  'Fever Without Source (3–36 months)': 'The Febrile Child',
+  'fever-without-source':                   'The Febrile Child',
+  'fever-neutropenia':                      'The Febrile Child',
+  'fever-rash':                             'The Febrile Child',
+  'meningitis-encephalitis':                'The Febrile Child',
+  'cervical-lymphadenitis':                 'The Febrile Child',
+  'viral-vs-bacterial':                     'The Febrile Child',
 
-  // Shock & Cardiovascular
-  'shock-management':            'Shock & Cardiovascular',
-  'anaphylactic-shock':          'Shock & Cardiovascular',
-  'tachycardia-svt':             'Shock & Cardiovascular',
-  bradycardia:                   'Shock & Cardiovascular',
-  'heart-failure-myocarditis':   'Shock & Cardiovascular',
-  'chest-pain-in-children':      'Shock & Cardiovascular',
-  syncope:                       'Shock & Cardiovascular',
-  palpitations:                  'Shock & Cardiovascular',
-  'murmur-with-symptoms':        'Shock & Cardiovascular',
+  // Crying and the Unwell Infant
+  'neonatal-jaundice':                      'Crying and the Unwell Infant',
+  'neonatal-sepsis':                        'Crying and the Unwell Infant',
 
-  // Seizures & Neurology
-  'status-epilepticus':          'Seizures & Neurology',
-  'febrile-seizure':             'Seizures & Neurology',
-  'first-afebrile-seizure':      'Seizures & Neurology',
-  'altered-mental-status':       'Seizures & Neurology',
-  'headache-red-flags':          'Seizures & Neurology',
-  'raised-icp-suspicion':        'Seizures & Neurology',
-  'peds-stroke':                 'Seizures & Neurology',
-  'acute-flaccid-weakness':      'Seizures & Neurology',
-  'acute-ataxia':                'Seizures & Neurology',
-  'vp-shunt-malfunction':        'Seizures & Neurology',
+  // Seizure and Altered Consciousness
+  'acute-seizure':                          'Seizure and Altered Consciousness',
+  'febrile-seizure':                        'Seizure and Altered Consciousness',
+  'first-afebrile-seizure':                 'Seizure and Altered Consciousness',
+  'altered-mental-status':                  'Seizure and Altered Consciousness',
 
-  // Abdominal
-  'abdominal-pain':              'Abdominal',
-  'bilious-vomiting':            'Abdominal',
-  'abdominal-distention-constipation': 'Abdominal',
-  intussusception:               'Abdominal',
-  'gi-bleeding':                 'Abdominal',
-  'persistent-vomiting':         'Abdominal',
-  'dehydration-gastroenteritis': 'Abdominal',
+  // Headache and Neurology
+  'headache-red-flags':                     'Headache and Neurology',
+  'raised-icp-suspicion':                   'Headache and Neurology',
+  'peds-stroke':                            'Headache and Neurology',
+  'acute-flaccid-weakness':                 'Headache and Neurology',
+  'acute-ataxia':                           'Headache and Neurology',
+  'vp-shunt-malfunction':                   'Headache and Neurology',
 
-  // Metabolic & Endocrine
-  dka:                           'Metabolic & Endocrine',
-  hypoglycemia:                  'Metabolic & Endocrine',
-  'adrenal-crisis':              'Metabolic & Endocrine',
-  hyperkalemia:                  'Metabolic & Endocrine',
-  hypokalemia:                   'Metabolic & Endocrine',
-  hypomagnesemia:                'Metabolic & Endocrine',
-  hypernatremia:                 'Metabolic & Endocrine',
-  hyponatremia:                  'Metabolic & Endocrine',
-  hypercalcemia:                 'Metabolic & Endocrine',
-  hypocalcemia:                  'Metabolic & Endocrine',
-  'metabolic-crisis':            'Metabolic & Endocrine',
+  // Gastrointestinal and Surgical Emergencies
+  'abdominal-pain':                         'Gastrointestinal and Surgical Emergencies',
+  'bilious-vomiting':                       'Gastrointestinal and Surgical Emergencies',
+  'abdominal-distention-constipation':      'Gastrointestinal and Surgical Emergencies',
+  'gi-bleeding':                            'Gastrointestinal and Surgical Emergencies',
+  'persistent-vomiting':                    'Gastrointestinal and Surgical Emergencies',
+  'dehydration-gastroenteritis':            'Gastrointestinal and Surgical Emergencies',
+  'constipation-vs-obstruction':            'Gastrointestinal and Surgical Emergencies',
+  intussusception:                          'Gastrointestinal and Surgical Emergencies',
 
-  // Toxicology & Envenomation
-  'paracetamol-toxicity':        'Toxicology & Envenomation',
-  'iron-toxicity':               'Toxicology & Envenomation',
-  'organophosphorus-ingestion':  'Toxicology & Envenomation',
-  'co-poisoning':                'Toxicology & Envenomation',
-  'chlorine-inhalation':         'Toxicology & Envenomation',
-  'snake-bite':                  'Toxicology & Envenomation',
-  'scorpion-sting':              'Toxicology & Envenomation',
+  // Rash and Skin
+  ssti:                                     'Rash and Skin',
 
-  // Trauma & Airway
-  'head-trauma':                 'Trauma & Airway',
-  'smoke-inhalation-burns':      'Trauma & Airway',
-  cyanosis:                      'Trauma & Airway',
-  apnea:                         'Trauma & Airway',
+  // ENT and Eye
+  mastoiditis:                              'ENT and Eye',
+  'orbital-cellulitis':                     'ENT and Eye',
+  'periorbital-cellulitis':                 'ENT and Eye',
+  'otitis-media':                           'ENT and Eye',
 
-  // Renal & Urinary
-  'urinary-tract-infection':     'Renal & Urinary',
-  'acute-renal-failure':         'Renal & Urinary',
+  // Urinary and Renal
+  'urinary-tract-infection':                'Urinary and Renal',
+  'acute-renal-failure':                    'Urinary and Renal',
+  'nephrotic-syndrome':                     'Urinary and Renal',
+  'nephritic-syndrome':                     'Urinary and Renal',
+
+  // Cardiac Presentations
+  'heart-failure-myocarditis':              'Cardiac Presentations',
+  'chest-pain-in-children':                 'Cardiac Presentations',
+  syncope:                                  'Cardiac Presentations',
+  palpitations:                             'Cardiac Presentations',
+  'murmur-with-symptoms':                   'Cardiac Presentations',
+
+  // Metabolic, Endocrine and Electrolyte
+  'metabolic-crisis':                       'Metabolic, Endocrine and Electrolyte',
+  dka:                                      'Metabolic, Endocrine and Electrolyte',
+  hypoglycemia:                             'Metabolic, Endocrine and Electrolyte',
+  'adrenal-crisis':                         'Metabolic, Endocrine and Electrolyte',
+  hyperkalemia:                             'Metabolic, Endocrine and Electrolyte',
+  hypokalemia:                              'Metabolic, Endocrine and Electrolyte',
+  hypomagnesemia:                           'Metabolic, Endocrine and Electrolyte',
+  hypernatremia:                            'Metabolic, Endocrine and Electrolyte',
+  hyponatremia:                             'Metabolic, Endocrine and Electrolyte',
+  hypercalcemia:                            'Metabolic, Endocrine and Electrolyte',
+  hypocalcemia:                             'Metabolic, Endocrine and Electrolyte',
+
+  // Poisoning and Envenomation
+  'paracetamol-toxicity':                   'Poisoning and Envenomation',
+  'iron-toxicity':                          'Poisoning and Envenomation',
+  'organophosphorus-ingestion':             'Poisoning and Envenomation',
+  'co-poisoning':                           'Poisoning and Envenomation',
+  'chlorine-inhalation':                    'Poisoning and Envenomation',
+  'snake-bite':                             'Poisoning and Envenomation',
+  'scorpion-sting':                         'Poisoning and Envenomation',
+  'toxic-assessment':                       'Poisoning and Envenomation',
+
+  // Trauma
+  'head-trauma':                            'Trauma',
+  'smoke-inhalation-burns':                 'Trauma',
 };
 
-// ─── Category config: display order, icon, accent colour ────────────────────
+// ─── Coming soon per category ─────────────────────────────────────────────────
+const ER_COMING_SOON_MAP: Record<string, string[]> = {
+  'Breathing Difficulty':               ['Stridor — Approach', 'Pneumothorax'],
+  'The Febrile Child':                  [],
+  'Crying and the Unwell Infant':       ['Inconsolable Crying — Approach', 'Neonatal Seizure', 'Bilious Vomiting in the Newborn', 'Poor Feeding / Failure to Thrive'],
+  'Seizure and Altered Consciousness':  ['Breath-Holding Spells'],
+  'Headache and Neurology':             ['Neck Stiffness — Approach'],
+  'Gastrointestinal and Surgical Emergencies': ['Appendicitis', 'Ovarian Torsion', 'Incarcerated Hernia', 'Malrotation / Volvulus', 'Pancreatitis', 'Mesenteric Lymphadenitis', 'Bloody Vomitus / Haematemesis'],
+  'Rash and Skin':                      ['Rash Without Fever — Approach', 'Stevens-Johnson Syndrome / TEN', 'Urticaria / Angioedema', 'Purpura / Petechiae — Approach'],
+  'Musculoskeletal':                    ['Limp — Approach', 'Acute Joint Pain / Septic Arthritis', 'Back Pain — Approach', 'Osteomyelitis', 'Transient Synovitis vs Septic Arthritis'],
+  'ENT and Eye':                        ['Peritonsillar Abscess', 'Foreign Body — Ear / Nose', 'Acute Sinusitis', 'Sore Throat / Tonsillitis', 'Epistaxis', 'Red Eye — Approach'],
+  'Urinary and Renal':                  ['Testicular Torsion / Acute Scrotum', 'Haematuria — Approach', 'Proteinuria — Approach'],
+  'Cardiac Presentations':              ['Pericarditis / Pericardial Effusion', 'Hypertensive Emergency'],
+  'Metabolic, Endocrine and Electrolyte': ['Thyroid Storm / Thyrotoxicosis', 'Congenital Adrenal Hyperplasia — Salt-Wasting', 'Hyperglycaemic Hyperosmolar State', 'Diabetes Insipidus'],
+  'Poisoning and Envenomation':         ['General Approach to Poisoning', 'Button Battery Ingestion', 'Caustic Ingestion', 'Salicylate Toxicity'],
+  'Trauma':                             ['Major Trauma Approach', 'Abdominal Trauma', 'Drowning / Near-Drowning', 'Chest Trauma'],
+  'Behavioral Health and Safeguarding': ['Deliberate Self-Harm', 'Deliberate Ingestion / Overdose', 'Acute Anxiety / Panic Attack', 'Acute Psychiatric Emergency', 'Non-Accidental Injury', 'Child Neglect Recognition'],
+};
+
+// ─── Category display config ──────────────────────────────────────────────────
 type CategoryConfig = {
   icon: React.ElementType;
-  color: string;       // Tailwind bg class for icon container
-  textColor: string;   // Tailwind text class for icon
+  color: string;
+  textColor: string;
 };
 
 const CATEGORY_ORDER = [
-  'Shock & Cardiovascular',
   'Breathing Difficulty',
-  'Fever & Infections',
-  'Seizures & Neurology',
-  'Abdominal',
-  'Metabolic & Endocrine',
-  'Trauma & Airway',
-  'Toxicology & Envenomation',
-  'Renal & Urinary',
+  'The Febrile Child',
+  'Crying and the Unwell Infant',
+  'Seizure and Altered Consciousness',
+  'Headache and Neurology',
+  'Gastrointestinal and Surgical Emergencies',
+  'Rash and Skin',
+  'Musculoskeletal',
+  'ENT and Eye',
+  'Urinary and Renal',
+  'Cardiac Presentations',
+  'Metabolic, Endocrine and Electrolyte',
+  'Poisoning and Envenomation',
+  'Trauma',
+  'Behavioral Health and Safeguarding',
   'Other',
 ];
 
 const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
-  'Shock & Cardiovascular':   { icon: HeartPulse,   color: 'bg-red-50',    textColor: 'text-red-600'    },
-  'Breathing Difficulty':     { icon: Wind,          color: 'bg-sky-50',    textColor: 'text-sky-600'    },
-  'Fever & Infections':       { icon: Thermometer,   color: 'bg-orange-50', textColor: 'text-orange-600' },
-  'Seizures & Neurology':     { icon: Zap,           color: 'bg-violet-50', textColor: 'text-violet-600' },
-  'Abdominal':                { icon: Activity,      color: 'bg-emerald-50',textColor: 'text-emerald-600'},
-  'Metabolic & Endocrine':    { icon: FlaskConical,  color: 'bg-teal-50',   textColor: 'text-teal-600'   },
-  'Trauma & Airway':          { icon: Shield,        color: 'bg-slate-100', textColor: 'text-slate-600'  },
-  'Toxicology & Envenomation':{ icon: Skull,         color: 'bg-yellow-50', textColor: 'text-yellow-700' },
-  'Renal & Urinary':          { icon: Droplets,      color: 'bg-blue-50',   textColor: 'text-blue-600'   },
-  'Other':                    { icon: BookOpen,      color: 'bg-muted',     textColor: 'text-muted-foreground' },
+  'Breathing Difficulty':                { icon: Wind,        color: 'bg-sky-50',     textColor: 'text-sky-600'      },
+  'The Febrile Child':                   { icon: Thermometer, color: 'bg-orange-50',  textColor: 'text-orange-600'   },
+  'Crying and the Unwell Infant':        { icon: Baby,        color: 'bg-blue-50',    textColor: 'text-blue-600'     },
+  'Seizure and Altered Consciousness':   { icon: Zap,         color: 'bg-violet-50',  textColor: 'text-violet-600'   },
+  'Headache and Neurology':              { icon: Brain,       color: 'bg-purple-50',  textColor: 'text-purple-600'   },
+  'Gastrointestinal and Surgical Emergencies': { icon: Scissors, color: 'bg-emerald-50', textColor: 'text-emerald-600' },
+  'Rash and Skin':                       { icon: Fingerprint, color: 'bg-pink-50',    textColor: 'text-pink-600'     },
+  'Musculoskeletal':                     { icon: Bone,        color: 'bg-amber-50',   textColor: 'text-amber-700'    },
+  'ENT and Eye':                         { icon: Ear,         color: 'bg-indigo-50',  textColor: 'text-indigo-600'   },
+  'Urinary and Renal':                   { icon: Droplets,    color: 'bg-cyan-50',    textColor: 'text-cyan-600'     },
+  'Cardiac Presentations':               { icon: HeartPulse,  color: 'bg-rose-50',    textColor: 'text-rose-600'     },
+  'Metabolic, Endocrine and Electrolyte':{ icon: FlaskConical,color: 'bg-teal-50',    textColor: 'text-teal-600'     },
+  'Poisoning and Envenomation':          { icon: Skull,       color: 'bg-yellow-50',  textColor: 'text-yellow-700'   },
+  'Trauma':                              { icon: Shield,      color: 'bg-slate-100',  textColor: 'text-slate-600'    },
+  'Behavioral Health and Safeguarding':  { icon: Users,       color: 'bg-fuchsia-50', textColor: 'text-fuchsia-600'  },
+  'Other':                               { icon: BookOpen,    color: 'bg-muted',      textColor: 'text-muted-foreground' },
 };
 
 function getCategory(p: DiseaseProtocol): string {
   return ER_CATEGORY_MAP[p.id] ?? 'Other';
 }
 
-function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: any; description?: string }) {
+function SectionHeader({ title, icon: Icon, description }: { title: string; icon?: React.ElementType; description?: string }) {
   return (
     <div className="px-2 mb-4">
       <div className="flex items-center gap-2 mb-0.5">
@@ -176,9 +253,13 @@ export default function ERDashboard() {
   const { togglePin, isPinned } = usePinnedItems();
   const allProtocols = useAllProtocols();
 
-  const erProtocols = useMemo(() => {
-    return allProtocols.filter(p => (p.unit || "er") === "er");
-  }, [allProtocols]);
+  const erProtocols = useMemo(
+    () => allProtocols.filter(p =>
+      !PALS_STRIP_IDS.has(p.id) &&
+      (p.unit === 'er' || (p.unit == null && ER_CATEGORY_MAP[p.id] !== undefined))
+    ),
+    [allProtocols]
+  );
 
   const selectedCategory = useMemo(() => {
     const params = new URLSearchParams(routeSearch);
@@ -189,18 +270,19 @@ export default function ERDashboard() {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return { protocols: [], calculators: [] };
     return {
-      protocols: erProtocols.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.system.toLowerCase().includes(q) ||
-        (ER_CATEGORY_MAP[p.id] ?? '').toLowerCase().includes(q)
-      ).sort((a, b) => a.name.localeCompare(b.name)),
+      protocols: erProtocols
+        .filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.system.toLowerCase().includes(q) ||
+          (ER_CATEGORY_MAP[p.id] ?? '').toLowerCase().includes(q)
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
       calculators: CALCULATOR_SHORTCUTS.filter(c =>
         c.label.toLowerCase().includes(q)
       ),
     };
   }, [searchTerm, erProtocols]);
 
-  // Build ordered category list with counts
   const categories = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const p of erProtocols) {
@@ -208,8 +290,13 @@ export default function ERDashboard() {
       counts[cat] = (counts[cat] ?? 0) + 1;
     }
     return CATEGORY_ORDER
-      .filter(cat => (counts[cat] ?? 0) > 0)
-      .map(cat => ({ name: cat, count: counts[cat] ?? 0, ...CATEGORY_CONFIG[cat] }));
+      .filter(cat => (counts[cat] ?? 0) > 0 || (ER_COMING_SOON_MAP[cat]?.length ?? 0) > 0)
+      .map(cat => ({
+        name: cat,
+        count: counts[cat] ?? 0,
+        comingSoon: ER_COMING_SOON_MAP[cat]?.length ?? 0,
+        ...CATEGORY_CONFIG[cat],
+      }));
   }, [erProtocols]);
 
   const categoryProtocols = useMemo(() => {
@@ -219,13 +306,23 @@ export default function ERDashboard() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedCategory, erProtocols]);
 
-  const selectedConfig = selectedCategory ? (CATEGORY_CONFIG[selectedCategory] ?? CATEGORY_CONFIG['Other']) : null;
+  const selectedConfig = selectedCategory
+    ? (CATEGORY_CONFIG[selectedCategory] ?? CATEGORY_CONFIG['Other'])
+    : null;
+
+  const categoryComingSoon = selectedCategory
+    ? (ER_COMING_SOON_MAP[selectedCategory] ?? [])
+    : [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 pb-32 px-2 sm:px-4">
-      {/* EMERGENCY HERO */}
+
+      {/* ── HERO ── */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <Link href="/cardiac-arrest" className="md:col-span-5 group relative overflow-hidden rounded-[32px] bg-red-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
+        <Link
+          href="/cardiac-arrest"
+          className="md:col-span-5 group relative overflow-hidden rounded-[32px] bg-red-600 p-6 text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
           <div className="relative z-10 h-full flex flex-col justify-between min-h-[140px]">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-white/20 backdrop-blur-md">
@@ -253,18 +350,20 @@ export default function ERDashboard() {
               placeholder="Search e.g. DKA, Seizure, Fever..."
               className="w-full pl-12 pr-4 h-14 text-base rounded-[20px] bg-muted/40 border-transparent focus:bg-background focus:border-primary/20 shadow-none transition-all"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
       </section>
 
       {searchTerm.trim() ? (
-        /* SEARCH RESULTS */
+        /* ── SEARCH RESULTS ── */
         <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60">Search Results</h3>
-            <Button variant="ghost" size="sm" onClick={() => setSearchTerm("")} className="text-xs font-bold underline">Clear Search</Button>
+            <Button variant="ghost" size="sm" onClick={() => setSearchTerm("")} className="text-xs font-bold underline">
+              Clear Search
+            </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {searchResults.calculators.map(calc => (
@@ -313,7 +412,7 @@ export default function ERDashboard() {
         </section>
 
       ) : selectedCategory ? (
-        /* CATEGORY DRILL-DOWN */
+        /* ── CATEGORY DRILL-DOWN ── */
         <section className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3">
@@ -329,39 +428,131 @@ export default function ERDashboard() {
               <X className="mr-2 h-3.5 w-3.5" /> Back
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {categoryProtocols.map(p => (
-              <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
-                <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
-                  <div className={cn(
-                    "p-2 rounded-full opacity-40 group-hover:opacity-100 transition-opacity",
-                    selectedConfig ? cn(selectedConfig.color, selectedConfig.textColor) : "bg-primary/5 text-primary"
-                  )}>
-                    <ChevronRight className="h-4 w-4" />
+
+          {/* Active protocols */}
+          {categoryProtocols.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {categoryProtocols.map(p => (
+                <div key={p.id} className="group flex items-center justify-between p-4 rounded-2xl border bg-card hover:border-primary/20 transition-all">
+                  <Link href={`/diseases/${p.id}`} className="flex items-center gap-4 flex-1">
+                    <div className={cn(
+                      "p-2 rounded-full opacity-40 group-hover:opacity-100 transition-opacity",
+                      selectedConfig ? cn(selectedConfig.color, selectedConfig.textColor) : "bg-primary/5 text-primary"
+                    )}>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-sm block">{p.name}</span>
+                      {p.erData && (
+                        <span className="text-[10px] font-black tracking-widest text-emerald-600 uppercase">Interactive</span>
+                      )}
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => togglePin({ type: "protocol", id: p.id })}
+                    className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}
+                  >
+                    <Pin className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Coming soon tiles */}
+          {categoryComingSoon.length > 0 && (
+            <div className="space-y-2">
+              {categoryProtocols.length > 0 && (
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-1">Coming Soon</p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {categoryComingSoon.map(label => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 p-3 rounded-xl border border-dashed border-slate-200 cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="font-semibold text-[11px] text-slate-400 block truncate">{label}</span>
+                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-wide">Coming Soon</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-bold text-sm block">{p.name}</span>
-                    {p.erData && (
-                      <span className="text-[10px] font-black tracking-widest text-emerald-600 uppercase">Interactive</span>
-                    )}
-                  </div>
-                </Link>
-                <button
-                  onClick={() => togglePin({ type: "protocol", id: p.id })}
-                  className={cn("p-2 rounded-lg transition-colors", isPinned({ type: "protocol", id: p.id }) ? "text-amber-500 bg-amber-50" : "text-muted-foreground/30 hover:bg-muted")}
-                >
-                  <Pin className="h-4 w-4" />
-                </button>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </section>
 
       ) : (
         <>
+          {/* ── PALS ALGORITHMS ── */}
+          <section className="space-y-4">
+            <SectionHeader
+              title="PALS Algorithms"
+              icon={Zap}
+              description="Pre-diagnosis resuscitation frameworks for the critically ill child"
+            />
+            <div className="rounded-3xl border border-red-100 bg-red-50/20 p-4 space-y-3">
+
+              {/* Cardiac Arrest — featured full-width card */}
+              <Link
+                href="/cardiac-arrest"
+                className="flex items-center justify-between w-full p-4 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-white/20">
+                    <HeartPulse className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-black text-sm block">Cardiac Arrest</span>
+                    <span className="text-[11px] text-red-200 font-medium">VF/pVT · PEA · Asystole algorithms</span>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-red-300 group-hover:text-white transition-colors" />
+              </Link>
+
+              {/* Active algorithms grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {PALS_ACTIVE.map(item => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-red-100 hover:border-red-300 hover:shadow-sm transition-all group"
+                  >
+                    <div className="p-2 rounded-xl bg-red-100 text-red-700 shrink-0 group-hover:bg-red-200 transition-colors">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-bold text-sm block text-slate-900 truncate">{item.label}</span>
+                      <span className="text-[10px] text-slate-500 font-medium line-clamp-1">{item.desc}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-red-300 shrink-0 group-hover:text-red-600 transition-colors" />
+                  </Link>
+                ))}
+              </div>
+
+              {/* Coming soon — compact muted row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                {PALS_SOON.map(label => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 p-2.5 rounded-xl border border-dashed border-slate-200 cursor-not-allowed"
+                  >
+                    <Zap className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="font-semibold text-[11px] text-slate-400 block truncate">{label}</span>
+                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-wide">Coming Soon</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </section>
+
           <PinnedWorkspace />
 
-          {/* CATEGORY BROWSER */}
+          {/* ── CATEGORY BROWSER ── */}
           <section className="space-y-6">
             <SectionHeader title="Browse by Presentation" icon={LayoutGrid} description="Tap a category to see all protocols" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -377,7 +568,12 @@ export default function ERDashboard() {
                     </div>
                     <div className="text-left">
                       <span className="font-bold text-sm block">{cat.name}</span>
-                      <span className="text-[10px] text-muted-foreground font-medium">{cat.count} protocols</span>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        {cat.count > 0 ? `${cat.count} protocol${cat.count !== 1 ? 's' : ''}` : ''}
+                        {cat.count > 0 && cat.comingSoon > 0 ? ' · ' : ''}
+                        {cat.comingSoon > 0 ? `${cat.comingSoon} coming soon` : ''}
+                        {cat.count === 0 && cat.comingSoon === 0 ? 'Coming soon' : ''}
+                      </span>
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-all" />
