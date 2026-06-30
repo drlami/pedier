@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { 
-  ArrowLeft, Info, HeartPulse, Activity, Scale, ShieldAlert, AlertCircle 
+import {
+  ArrowLeft, Info, HeartPulse, Activity, Scale, ShieldAlert
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,19 @@ export default function BpPercentilePage() {
   const sNum = parseFloat(systolic);
   const dNum = parseFloat(diastolic);
 
-  const isValid = !isNaN(ageNum) && ageNum >= 1 && ageNum <= 18 && !isNaN(sNum) && !isNaN(dNum);
+  const isAgeValid = !isNaN(ageNum) && ageNum >= 1 && ageNum <= 18;
+  const isValid = isAgeValid && !isNaN(sNum) && !isNaN(dNum);
+
+  const reference = useMemo(() => {
+    if (!isAgeValid) return null;
+    return calculateSimplifiedBPPercentile(ageNum, sex);
+  }, [ageNum, sex, isAgeValid]);
 
   const result = useMemo(() => {
-    if (!isValid) return null;
+    if (!isValid || !reference) return null;
 
-    const { systolic95, diastolic95 } = calculateSimplifiedBPPercentile(ageNum, sex);
-    
+    const { systolic90, systolic95, diastolic90, diastolic95 } = reference;
+
     let status = "Normal";
     let color = "text-green-600";
     let bg = "bg-green-50";
@@ -42,7 +48,7 @@ export default function BpPercentilePage() {
         color = "text-red-700";
         bg = "bg-red-50";
         severity = "stage2";
-    } 
+    }
     // Stage 1: > 95th
     else if (sNum >= systolic95 || dNum >= diastolic95) {
         status = "Stage 1 Hypertension";
@@ -50,8 +56,8 @@ export default function BpPercentilePage() {
         bg = "bg-orange-50";
         severity = "stage1";
     }
-    // Elevated: > 90th (approx 95th - 5)
-    else if (sNum >= systolic95 - 5 || dNum >= diastolic95 - 5) {
+    // Elevated: > 90th
+    else if (sNum >= systolic90 || dNum >= diastolic90) {
         status = "Elevated Blood Pressure";
         color = "text-yellow-600";
         bg = "bg-yellow-50";
@@ -59,7 +65,7 @@ export default function BpPercentilePage() {
     }
 
     return { status, color, bg, severity, systolic95, diastolic95 };
-  }, [ageNum, sex, sNum, dNum, isValid]);
+  }, [ageNum, sex, sNum, dNum, isValid, reference]);
 
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
@@ -125,7 +131,8 @@ export default function BpPercentilePage() {
 
         {/* RESULTS */}
         <div className="space-y-6">
-            {isValid && result ? (
+            {/* Classification result — only when BP values are entered */}
+            {isValid && result && (
                 <>
                     <Card className={cn("border-2 shadow-md transition-colors", result.bg, "border-rose-200")}>
                         <CardHeader className="pb-2 text-center">
@@ -138,11 +145,11 @@ export default function BpPercentilePage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-xl bg-background/60 border border-rose-100 text-center">
                                     <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">95th Systolic</p>
-                                    <p className="text-lg font-black text-rose-700">{result.systolic95.toFixed(0)}</p>
+                                    <p className="text-lg font-black text-rose-700">{result.systolic95}</p>
                                 </div>
                                 <div className="p-3 rounded-xl bg-background/60 border border-rose-100 text-center">
                                     <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">95th Diastolic</p>
-                                    <p className="text-lg font-black text-rose-700">{result.diastolic95.toFixed(0)}</p>
+                                    <p className="text-lg font-black text-rose-700">{result.diastolic95}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -153,35 +160,114 @@ export default function BpPercentilePage() {
                             <ShieldAlert className="h-5 w-5" />
                             <AlertTitle className="font-black uppercase tracking-widest text-xs">Clinical Action Required</AlertTitle>
                             <AlertDescription className="text-xs font-medium opacity-90 leading-relaxed">
-                                {result.severity === "stage2" 
-                                    ? "Urgent evaluation and initiation of therapy required. Assess for target organ damage." 
-                                    : "Lifestyle modifications recommended. Repeat BP measurement in 1-2 weeks."}
+                                {result.severity === "stage2"
+                                    ? "Urgent evaluation and initiation of therapy required. Assess for target organ damage."
+                                    : result.severity === "stage1"
+                                    ? "Lifestyle modifications recommended. Repeat BP measurement in 1-2 weeks."
+                                    : "Repeat measurement in 6 months. Counsel on diet and physical activity."}
                             </AlertDescription>
                         </Alert>
                     )}
-
-                    <Card className="bg-muted/30 border-dashed">
-                        <CardContent className="pt-6">
-                            <div className="flex items-center gap-2 mb-3 text-rose-700 font-black text-[10px] uppercase tracking-widest">
-                                <Info className="h-3.5 w-3.5" /> Classification Guide
-                            </div>
-                            <div className="space-y-2 text-[11px] leading-relaxed">
-                                <p>• <strong>Normal:</strong> &lt; 90th percentile.</p>
-                                <p>• <strong>Elevated:</strong> 90th to &lt; 95th percentile.</p>
-                                <p>• <strong>Stage 1 HTN:</strong> 95th to &lt; 95th + 12 mmHg.</p>
-                                <p>• <strong>Stage 2 HTN:</strong> ≥ 95th + 12 mmHg OR ≥ 140/90.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </>
-            ) : (
+            )}
+
+            {/* Normal BP Reference — shown whenever a valid age is entered */}
+            {isAgeValid && reference ? (
+                <Card className="border-2 border-rose-100 shadow-sm">
+                    <CardHeader className="bg-rose-50/50 pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2 text-rose-800">
+                            <Activity className="h-4 w-4 text-rose-600" />
+                            Normal BP for {Math.round(ageNum)} y/o {sex === "male" ? "Male" : "Female"}
+                        </CardTitle>
+                        <CardDescription className="text-[11px]">AAP 2017 approximation — ER screening only</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-4 pb-4">
+                        <table className="w-full text-[11px]">
+                            <thead>
+                                <tr className="border-b border-rose-100">
+                                    <th className="text-left pb-2 font-black text-muted-foreground uppercase tracking-wide pr-3">Category</th>
+                                    <th className="text-center pb-2 font-black text-muted-foreground uppercase tracking-wide pr-2">Systolic</th>
+                                    <th className="text-center pb-2 font-black text-muted-foreground uppercase tracking-wide">Diastolic</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-rose-50">
+                                <tr>
+                                    <td className="py-2 pr-3">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                                            <span className="font-semibold text-green-700">Normal</span>
+                                            <span className="text-muted-foreground">(&lt;90th)</span>
+                                        </span>
+                                    </td>
+                                    <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;{reference.systolic90}</td>
+                                    <td className="py-2 text-center font-mono font-bold text-green-700">&lt;{reference.diastolic90}</td>
+                                </tr>
+                                <tr>
+                                    <td className="py-2 pr-3">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+                                            <span className="font-semibold text-yellow-700">Elevated</span>
+                                            <span className="text-muted-foreground">(90–95th)</span>
+                                        </span>
+                                    </td>
+                                    <td className="py-2 text-center font-mono font-bold text-yellow-700 pr-2">{reference.systolic90}–{reference.systolic95 - 1}</td>
+                                    <td className="py-2 text-center font-mono font-bold text-yellow-700">{reference.diastolic90}–{reference.diastolic95 - 1}</td>
+                                </tr>
+                                <tr>
+                                    <td className="py-2 pr-3">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
+                                            <span className="font-semibold text-orange-700">Stage 1 HTN</span>
+                                            <span className="text-muted-foreground">(≥95th)</span>
+                                        </span>
+                                    </td>
+                                    <td className="py-2 text-center font-mono font-bold text-orange-700 pr-2">{reference.systolic95}–{reference.systolic95 + 11}</td>
+                                    <td className="py-2 text-center font-mono font-bold text-orange-700">{reference.diastolic95}–{reference.diastolic95 + 11}</td>
+                                </tr>
+                                <tr>
+                                    <td className="py-2 pr-3">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0" />
+                                            <span className="font-semibold text-red-700">Stage 2 HTN</span>
+                                            <span className="text-muted-foreground">(≥95th+12)</span>
+                                        </span>
+                                    </td>
+                                    <td className="py-2 text-center font-mono font-bold text-red-700 pr-2">≥{reference.systolic95 + 12}</td>
+                                    <td className="py-2 text-center font-mono font-bold text-red-700">≥{reference.diastolic95 + 12}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div className="mt-4 pt-3 border-t border-rose-100 flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <Info className="h-3 w-3 flex-shrink-0" />
+                            Median normal (50th): <span className="font-mono font-bold ml-1">{reference.systolic50}/{reference.diastolic50} mmHg</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : !isAgeValid && (
                 <div className="h-full min-h-[350px] flex flex-col items-center justify-center border-4 border-dashed rounded-[40px] p-12 text-center bg-muted/20 border-muted/30">
                     <HeartPulse className="h-16 w-16 text-rose-200 mb-6" />
                     <h3 className="text-xl font-black text-muted-foreground/80 tracking-tight">BP Percentile Engine</h3>
                     <p className="text-muted-foreground font-medium text-sm mt-3 leading-relaxed max-w-[280px]">
-                        Enter patient age and measured blood pressure to see the percentile classification.
+                        Enter patient age to see normal BP ranges, then add measured BP for full classification.
                     </p>
                 </div>
+            )}
+
+            {/* Classification guide — always visible once age is entered */}
+            {isAgeValid && (
+                <Card className="bg-muted/30 border-dashed">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-3 text-rose-700 font-black text-[10px] uppercase tracking-widest">
+                            <Info className="h-3.5 w-3.5" /> Classification Guide
+                        </div>
+                        <div className="space-y-2 text-[11px] leading-relaxed">
+                            <p>• <strong>Normal:</strong> &lt; 90th percentile.</p>
+                            <p>• <strong>Elevated:</strong> 90th to &lt; 95th percentile.</p>
+                            <p>• <strong>Stage 1 HTN:</strong> 95th to &lt; 95th + 12 mmHg.</p>
+                            <p>• <strong>Stage 2 HTN:</strong> ≥ 95th + 12 mmHg OR ≥ 140/90.</p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
       </div>

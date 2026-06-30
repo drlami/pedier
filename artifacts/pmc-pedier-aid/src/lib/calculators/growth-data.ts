@@ -98,8 +98,20 @@ export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 
     diastolic95 = sex === 'male' ? 82 + (ageYears - 13) * 0.3 : 80 + (ageYears - 13) * 0.2;
   }
 
+  // 90th percentile (elevated threshold) ≈ 95th − 5 mmHg
+  const systolic90 = systolic95 - 5;
+  const diastolic90 = diastolic95 - 5;
+
+  // 50th percentile (median normal) — band-adjusted offsets from AAP 2017 tables
+  const s50offset = ageYears < 6 ? 15 : ageYears < 13 ? 18 : 20;
+  const d50offset = ageYears < 6 ? 12 : ageYears < 13 ? 14 : 15;
+
   return {
+    systolic50: Math.round(systolic95 - s50offset),
+    systolic90: Math.round(systolic90),
     systolic95: Math.round(systolic95),
+    diastolic50: Math.round(diastolic95 - d50offset),
+    diastolic90: Math.round(diastolic90),
     diastolic95: Math.round(diastolic95),
   };
 };
