@@ -42,12 +42,24 @@ function TermSection() {
     let bg     = "bg-green-50";
     let severity: "normal" | "elevated" | "stage1" | "stage2" = "normal";
 
-    if (sNum >= systolic95 + 12 || dNum >= diastolic95 + 12 || sNum >= 140 || dNum >= 90) {
-      status = "Stage 2 Hypertension"; color = "text-red-700"; bg = "bg-red-50"; severity = "stage2";
-    } else if (sNum >= systolic95 || dNum >= diastolic95) {
-      status = "Stage 1 Hypertension"; color = "text-orange-600"; bg = "bg-orange-50"; severity = "stage1";
-    } else if (sNum >= systolic90 || dNum >= diastolic90) {
-      status = "Elevated Blood Pressure"; color = "text-yellow-600"; bg = "bg-yellow-50"; severity = "elevated";
+    if (ageNum >= 13) {
+      // AAP 2017: adult ACC/AHA thresholds for adolescents ≥ 13
+      if (sNum >= 140 || dNum >= 90) {
+        status = "Stage 2 Hypertension"; color = "text-red-700"; bg = "bg-red-50"; severity = "stage2";
+      } else if (sNum >= 130 || dNum >= 80) {
+        status = "Stage 1 Hypertension"; color = "text-orange-600"; bg = "bg-orange-50"; severity = "stage1";
+      } else if (sNum >= 120 && dNum < 80) {
+        status = "Elevated Blood Pressure"; color = "text-yellow-600"; bg = "bg-yellow-50"; severity = "elevated";
+      }
+    } else {
+      // Ages 1–12: percentile-based classification
+      if (sNum >= systolic95 + 12 || dNum >= diastolic95 + 12 || sNum >= 140 || dNum >= 90) {
+        status = "Stage 2 Hypertension"; color = "text-red-700"; bg = "bg-red-50"; severity = "stage2";
+      } else if (sNum >= systolic95 || dNum >= diastolic95) {
+        status = "Stage 1 Hypertension"; color = "text-orange-600"; bg = "bg-orange-50"; severity = "stage1";
+      } else if (sNum >= systolic90 || dNum >= diastolic90) {
+        status = "Elevated Blood Pressure"; color = "text-yellow-600"; bg = "bg-yellow-50"; severity = "elevated";
+      }
     }
     return { status, color, bg, severity, systolic95, diastolic95 };
   }, [ageNum, sex, sNum, dNum, isValid, reference]);
@@ -106,11 +118,15 @@ function TermSection() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-background/60 border border-rose-100 text-center">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">95th Systolic</p>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">
+                      {ageNum >= 13 ? "Stage 1 Systolic" : "95th Systolic"}
+                    </p>
                     <p className="text-lg font-black text-rose-700">{result.systolic95}</p>
                   </div>
                   <div className="p-3 rounded-xl bg-background/60 border border-rose-100 text-center">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">95th Diastolic</p>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">
+                      {ageNum >= 13 ? "Stage 1 Diastolic" : "95th Diastolic"}
+                    </p>
                     <p className="text-lg font-black text-rose-700">{result.diastolic95}</p>
                   </div>
                 </div>
@@ -137,9 +153,15 @@ function TermSection() {
             <CardHeader className="bg-rose-50/50 pb-3">
               <CardTitle className="text-sm flex items-center gap-2 text-rose-800">
                 <Activity className="h-4 w-4 text-rose-600" />
-                Normal BP for {Math.round(ageNum)} y/o {sex === "male" ? "Male" : "Female"}
+                {ageNum >= 13
+                  ? `Adolescent BP — ${Math.round(ageNum)} y/o`
+                  : `Normal BP — ${Math.round(ageNum)} y/o ${sex === "male" ? "Male" : "Female"}`}
               </CardTitle>
-              <CardDescription className="text-[11px]">AAP 2017 approximation — ER screening only</CardDescription>
+              <CardDescription className="text-[11px]">
+                {ageNum >= 13
+                  ? "ACC/AHA 2017 adult thresholds — per AAP 2017 for adolescents ≥ 13"
+                  : "AAP 2017 CPG, 95th %ile at 50th height %ile — ER screening only"}
+              </CardDescription>
             </CardHeader>
             <CardContent className="pt-4 pb-4">
               <table className="w-full text-[11px]">
@@ -150,28 +172,55 @@ function TermSection() {
                     <th className="text-center pb-2 font-black text-muted-foreground uppercase tracking-wide">Diastolic</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-rose-50">
-                  <tr>
-                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span><span className="text-muted-foreground">(&lt;90th)</span></span></td>
-                    <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;{reference.systolic90}</td>
-                    <td className="py-2 text-center font-mono font-bold text-green-700">&lt;{reference.diastolic90}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" /><span className="font-semibold text-yellow-700">Elevated</span><span className="text-muted-foreground">(90–95th)</span></span></td>
-                    <td className="py-2 text-center font-mono font-bold text-yellow-700 pr-2">{reference.systolic90}–{reference.systolic95 - 1}</td>
-                    <td className="py-2 text-center font-mono font-bold text-yellow-700">{reference.diastolic90}–{reference.diastolic95 - 1}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" /><span className="font-semibold text-orange-700">Stage 1 HTN</span><span className="text-muted-foreground">(≥95th)</span></span></td>
-                    <td className="py-2 text-center font-mono font-bold text-orange-700 pr-2">{reference.systolic95}–{reference.systolic95 + 11}</td>
-                    <td className="py-2 text-center font-mono font-bold text-orange-700">{reference.diastolic95}–{reference.diastolic95 + 11}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0" /><span className="font-semibold text-red-700">Stage 2 HTN</span><span className="text-muted-foreground">(≥95th+12)</span></span></td>
-                    <td className="py-2 text-center font-mono font-bold text-red-700 pr-2">≥{reference.systolic95 + 12}</td>
-                    <td className="py-2 text-center font-mono font-bold text-red-700">≥{reference.diastolic95 + 12}</td>
-                  </tr>
-                </tbody>
+                {ageNum >= 13 ? (
+                  // Adult/adolescent fixed thresholds (AAP 2017 + ACC/AHA 2017)
+                  <tbody className="divide-y divide-rose-50">
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;120</td>
+                      <td className="py-2 text-center font-mono font-bold text-green-700">&lt;80</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" /><span className="font-semibold text-yellow-700">Elevated</span><span className="text-muted-foreground ml-1">(SBP only)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-yellow-700 pr-2">120–129</td>
+                      <td className="py-2 text-center font-mono font-bold text-yellow-700">&lt;80</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" /><span className="font-semibold text-orange-700">Stage 1 HTN</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-orange-700 pr-2">130–139</td>
+                      <td className="py-2 text-center font-mono font-bold text-orange-700">80–89</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0" /><span className="font-semibold text-red-700">Stage 2 HTN</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-red-700 pr-2">≥140</td>
+                      <td className="py-2 text-center font-mono font-bold text-red-700">≥90</td>
+                    </tr>
+                  </tbody>
+                ) : (
+                  // Ages 1–12: percentile-based categories
+                  <tbody className="divide-y divide-rose-50">
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span><span className="text-muted-foreground">(&lt;90th)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;{reference.systolic90}</td>
+                      <td className="py-2 text-center font-mono font-bold text-green-700">&lt;{reference.diastolic90}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" /><span className="font-semibold text-yellow-700">Elevated</span><span className="text-muted-foreground">(90–95th)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-yellow-700 pr-2">{reference.systolic90}–{reference.systolic95 - 1}</td>
+                      <td className="py-2 text-center font-mono font-bold text-yellow-700">{reference.diastolic90}–{reference.diastolic95 - 1}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" /><span className="font-semibold text-orange-700">Stage 1 HTN</span><span className="text-muted-foreground">(≥95th)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-orange-700 pr-2">{reference.systolic95}–{reference.systolic95 + 11}</td>
+                      <td className="py-2 text-center font-mono font-bold text-orange-700">{reference.diastolic95}–{reference.diastolic95 + 11}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0" /><span className="font-semibold text-red-700">Stage 2 HTN</span><span className="text-muted-foreground">(≥95th+12)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-red-700 pr-2">≥{reference.systolic95 + 12}</td>
+                      <td className="py-2 text-center font-mono font-bold text-red-700">≥{reference.diastolic95 + 12}</td>
+                    </tr>
+                  </tbody>
+                )}
               </table>
               <div className="mt-4 pt-3 border-t border-rose-100 flex items-center gap-2 text-[10px] text-muted-foreground">
                 <Info className="h-3 w-3 flex-shrink-0" />
@@ -195,12 +244,22 @@ function TermSection() {
               <div className="flex items-center gap-2 mb-3 text-rose-700 font-black text-[10px] uppercase tracking-widest">
                 <Info className="h-3.5 w-3.5" /> Classification Guide
               </div>
-              <div className="space-y-2 text-[11px] leading-relaxed">
-                <p>• <strong>Normal:</strong> &lt; 90th percentile.</p>
-                <p>• <strong>Elevated:</strong> 90th to &lt; 95th percentile.</p>
-                <p>• <strong>Stage 1 HTN:</strong> 95th to &lt; 95th + 12 mmHg.</p>
-                <p>• <strong>Stage 2 HTN:</strong> ≥ 95th + 12 mmHg OR ≥ 140/90.</p>
-              </div>
+              {ageNum >= 13 ? (
+                <div className="space-y-2 text-[11px] leading-relaxed">
+                  <p>• <strong>Normal:</strong> SBP &lt; 120 AND DBP &lt; 80.</p>
+                  <p>• <strong>Elevated:</strong> SBP 120–129 AND DBP &lt; 80.</p>
+                  <p>• <strong>Stage 1 HTN:</strong> SBP ≥ 130 OR DBP ≥ 80.</p>
+                  <p>• <strong>Stage 2 HTN:</strong> SBP ≥ 140 OR DBP ≥ 90.</p>
+                  <p className="text-muted-foreground mt-1">Per AAP 2017 — adolescents ≥ 13 use adult ACC/AHA criteria.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-[11px] leading-relaxed">
+                  <p>• <strong>Normal:</strong> &lt; 90th percentile.</p>
+                  <p>• <strong>Elevated:</strong> 90th to &lt; 95th percentile.</p>
+                  <p>• <strong>Stage 1 HTN:</strong> 95th to &lt; 95th + 12 mmHg.</p>
+                  <p>• <strong>Stage 2 HTN:</strong> ≥ 95th + 12 mmHg OR ≥ 140/90.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
@@ -437,11 +496,12 @@ function PretermSection() {
                 <Info className="h-3.5 w-3.5" /> Preterm BP Guide
               </div>
               <div className="space-y-1.5 text-[11px] leading-relaxed">
-                <p>• <strong>GA Rule:</strong> MAP (mmHg) should be ≥ GA (weeks).</p>
-                <p>• <strong>Severe hypotension:</strong> MAP &lt; GA − 5. Treat immediately.</p>
+                <p>• <strong>GA Rule:</strong> MAP (mmHg) should be ≥ GA (weeks). (Miall-Allen 1987)</p>
                 <p>• <strong>Hypotension:</strong> MAP &lt; GA. Volume ± vasopressors.</p>
-                <p>• <strong>Borderline:</strong> MAP within 5 mmHg above threshold. Watch closely.</p>
-                <p>• <strong>Hypertension:</strong> &gt; 95th percentile. Investigate cause.</p>
+                <p>• <strong>Severe hypotension:</strong> MAP &lt; GA − 5. Treat immediately.</p>
+                <p>• <strong>Borderline:</strong> MAP ≥ GA to GA+4. Watch closely.</p>
+                <p>• <strong>Hypertension:</strong> SBP or DBP &gt; 95th percentile. Investigate cause.</p>
+                <p className="text-muted-foreground mt-1">Severe threshold (GA−5) is a practical approximation — no single validated cutoff exists in the literature.</p>
               </div>
             </CardContent>
           </Card>

@@ -74,59 +74,67 @@ export const WHO_HC_GIRLS: GrowthPoint[] = [
 ];
 
 /**
- * Approximate 95th-percentile BP by age and sex (AAP 2017-aligned approximation).
- * Stratified by age band to better reflect the non-linear normative curves.
- * IMPORTANT: Precise values require height-adjusted AAP 2017 tables; these are
- * ER screening estimates only — confirmed hypertension workup needs full nomogram.
- * Fenton 2013 preterm chart used for neonatal growth data above.
+ * BP reference by age and sex — AAP 2017 Clinical Practice Guideline.
+ * Ages 1–12: 95th percentile at 50th height percentile (linear regression).
+ * Ages 13+:  fixed adult ACC/AHA thresholds per AAP 2017 adolescent alignment.
+ * IMPORTANT: ER screening estimates only — confirmed HTN workup needs full nomogram.
  */
 export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 'female') => {
   let systolic95: number;
   let diastolic95: number;
+  const isAdult = ageYears >= 13;
 
-  if (ageYears < 1) {
-    systolic95 = sex === 'male' ? 100 : 100;
-    diastolic95 = sex === 'male' ? 74 : 74;
-  } else if (ageYears < 6) {
-    systolic95 = sex === 'male' ? 98 + ageYears * 2.5 : 96 + ageYears * 2.5;
-    diastolic95 = sex === 'male' ? 58 + ageYears * 1.5 : 57 + ageYears * 1.5;
-  } else if (ageYears < 13) {
-    systolic95 = sex === 'male' ? 105 + ageYears * 1.8 : 103 + ageYears * 1.8;
-    diastolic95 = sex === 'male' ? 63 + ageYears * 1.2 : 62 + ageYears * 1.2;
+  if (isAdult) {
+    // AAP 2017: adolescents ≥13 → adult ACC/AHA Stage 1 threshold
+    systolic95  = 130;
+    diastolic95 = 80;
+  } else if (ageYears <= 5) {
+    // Ages 1–5: fitted to AAP 2017 Table 3/4 (50th height %ile)
+    systolic95  = sex === 'male' ? 96 + ageYears * 2.0 : 98 + ageYears * 1.8;
+    diastolic95 = sex === 'male' ? 49 + ageYears * 2.8 : 50 + ageYears * 2.5;
   } else {
-    systolic95 = sex === 'male' ? 130 + (ageYears - 13) * 0.8 : 126 + (ageYears - 13) * 0.5;
-    diastolic95 = sex === 'male' ? 82 + (ageYears - 13) * 0.3 : 80 + (ageYears - 13) * 0.2;
+    // Ages 6–12: fitted to AAP 2017 Table 3/4 (50th height %ile)
+    systolic95  = sex === 'male' ? 96 + ageYears * 2.0 : 98 + ageYears * 1.8;
+    diastolic95 = 54 + ageYears * 1.8; // male ≈ female for ages 6–12 per AAP 2017
   }
 
-  // 90th percentile (elevated threshold) ≈ 95th − 5 mmHg
-  const systolic90 = systolic95 - 5;
-  const diastolic90 = diastolic95 - 5;
+  // 90th %ile (elevated threshold): adults use fixed SBP 120; children use 95th − 5
+  const systolic90  = isAdult ? 120 : systolic95 - 5;
+  const diastolic90 = isAdult ? 80  : diastolic95 - 5;
 
-  // 50th percentile (median normal) — band-adjusted offsets from AAP 2017 tables
-  const s50offset = ageYears < 6 ? 15 : ageYears < 13 ? 18 : 20;
-  const d50offset = ageYears < 6 ? 12 : ageYears < 13 ? 14 : 15;
+  // 50th %ile (median normal) — display reference only, does not affect classification
+  const systolic50  = isAdult ? 112 : Math.round(systolic95  - (ageYears <= 5 ? 15 : 17));
+  const diastolic50 = isAdult ? 72  : Math.round(diastolic95 - (ageYears <= 5 ? 11 : 13));
 
   return {
-    systolic50: Math.round(systolic95 - s50offset),
-    systolic90: Math.round(systolic90),
-    systolic95: Math.round(systolic95),
-    diastolic50: Math.round(diastolic95 - d50offset),
+    systolic50,
+    systolic90:  Math.round(systolic90),
+    systolic95:  Math.round(systolic95),
+    diastolic50,
     diastolic90: Math.round(diastolic90),
     diastolic95: Math.round(diastolic95),
+    isAdultCriteria: isAdult,
   };
 };
 
 /**
- * Preterm neonatal BP reference — Zubrow 1995 regression + Nuntnarumit 1999 normative data.
- * MAP 50th ≈ GA + 4 + (postnatalDay − 1) × 1.5; pulse pressure ≈ 20 mmHg.
- * IMPORTANT: ER/NICU screening estimates only. Confirm with full bedside assessment.
+ * Preterm neonatal BP reference — Zubrow 1995 / Nuntnarumit 1999.
+ * Corrected vs prior version: MAP formula better fits GA 28–32 anchor values;
+ * pulse pressure is now GA-dependent (widens with maturity/PDA dynamics);
+ * spread widened to ±12 mmHg to match published ~±13 mmHg 5th–95th range.
+ * IMPORTANT: NICU/ER screening estimates only. Confirm with full bedside assessment.
  */
 export const calculatePretermBPReference = (gaWeeks: number, postnatalDay: number) => {
-  const map50 = gaWeeks + 4 + (postnatalDay - 1) * 1.5;
-  const pp = 20; // approximate pulse pressure for preterm
+  // Improved MAP fit vs Zubrow 1995 / Nuntnarumit 1999 anchor values
+  const map50 = gaWeeks + 5 + (postnatalDay - 1) * 2;
+
+  // GA-dependent pulse pressure: widens with maturity and PDA dynamics
+  // GA 24 → ~18 mmHg; GA 28 → ~25 mmHg; GA 32 → ~30 mmHg
+  const pp = (gaWeeks - 23) * 1.5 + 17;
+
   const sbp50 = map50 + Math.round((2 / 3) * pp);
   const dbp50 = map50 - Math.round((1 / 3) * pp);
-  const spread = 9; // ≈ 1.5 SD, covers 5th–95th range
+  const spread = 12; // ≈ 2 SD, matches published 5th–95th range (~±13 mmHg)
 
   return {
     sbp5:  Math.round(sbp50 - spread),
@@ -138,7 +146,8 @@ export const calculatePretermBPReference = (gaWeeks: number, postnatalDay: numbe
     map5:  Math.round(map50 - spread),
     map50: Math.round(map50),
     map95: Math.round(map50 + spread),
-    // Clinical decision thresholds (GA rule — MAP ≥ GA in weeks)
+    // GA rule: MAP ≥ GA weeks. mapSevere (GA−5) is a practical approximation;
+    // no single validated threshold exists in the literature.
     mapHypotension: gaWeeks,
     mapSevere:      gaWeeks - 5,
   };
