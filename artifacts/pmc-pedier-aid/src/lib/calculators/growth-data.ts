@@ -117,6 +117,34 @@ export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 
 };
 
 /**
+ * Preterm neonatal BP reference — Zubrow 1995 regression + Nuntnarumit 1999 normative data.
+ * MAP 50th ≈ GA + 4 + (postnatalDay − 1) × 1.5; pulse pressure ≈ 20 mmHg.
+ * IMPORTANT: ER/NICU screening estimates only. Confirm with full bedside assessment.
+ */
+export const calculatePretermBPReference = (gaWeeks: number, postnatalDay: number) => {
+  const map50 = gaWeeks + 4 + (postnatalDay - 1) * 1.5;
+  const pp = 20; // approximate pulse pressure for preterm
+  const sbp50 = map50 + Math.round((2 / 3) * pp);
+  const dbp50 = map50 - Math.round((1 / 3) * pp);
+  const spread = 9; // ≈ 1.5 SD, covers 5th–95th range
+
+  return {
+    sbp5:  Math.round(sbp50 - spread),
+    sbp50: Math.round(sbp50),
+    sbp95: Math.round(sbp50 + spread),
+    dbp5:  Math.round(dbp50 - spread),
+    dbp50: Math.round(dbp50),
+    dbp95: Math.round(dbp50 + spread),
+    map5:  Math.round(map50 - spread),
+    map50: Math.round(map50),
+    map95: Math.round(map50 + spread),
+    // Clinical decision thresholds (GA rule — MAP ≥ GA in weeks)
+    mapHypotension: gaWeeks,
+    mapSevere:      gaWeeks - 5,
+  };
+};
+
+/**
  * Fenton 2013 Preterm Growth Chart Reference Data
  * Source: Fenton TR, Kim JH. BMC Pediatrics. 2013;13:59.
  * Biweekly reference points (22–50 weeks PMA); intermediate weeks are
