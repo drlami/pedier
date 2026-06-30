@@ -118,6 +118,46 @@ export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 
 };
 
 /**
+ * Term infant BP reference (birth–12 months) — NHBPEP Fourth Report 2004 / Dionne 2012.
+ * Piecewise linear interpolation between published anchor points (95th %ile at 50th height %ile).
+ * Also returns MAP-based hypotension thresholds (clinical consensus for term infants).
+ * IMPORTANT: ER screening estimates. Use right arm, appropriately-sized cuff, infant at rest.
+ */
+export const calculateTermInfantBPReference = (ageMonths: number, sex: 'male' | 'female') => {
+  // Anchor points [ageMonths, mmHg] — 95th percentile, term infants
+  const sbp95Anchors: [number, number][] = sex === 'male'
+    ? [[0, 87], [1, 98], [3, 101], [6, 104], [9, 106], [12, 107]]
+    : [[0, 85], [1, 96], [3,  99], [6, 102], [9, 104], [12, 105]];
+  const dbp95Anchors: [number, number][] = sex === 'male'
+    ? [[0, 55], [1, 65], [3, 65], [6, 66], [9, 67], [12, 68]]
+    : [[0, 54], [1, 64], [3, 64], [6, 65], [9, 66], [12, 67]];
+
+  const interp = (anchors: [number, number][], x: number): number => {
+    const clamped = Math.max(0, Math.min(12, x));
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const [x0, y0] = anchors[i];
+      const [x1, y1] = anchors[i + 1];
+      if (clamped <= x1) return y0 + (y1 - y0) * (clamped - x0) / (x1 - x0);
+    }
+    return anchors[anchors.length - 1][1];
+  };
+
+  const sbp95 = Math.round(interp(sbp95Anchors, ageMonths));
+  const dbp95 = Math.round(interp(dbp95Anchors, ageMonths));
+
+  return {
+    sbp50:  Math.round(sbp95 - 16),  // ~50th %ile (display reference only)
+    sbp90:  sbp95 - 4,                // ~90th %ile
+    sbp95,
+    dbp50:  Math.round(dbp95 - 13),  // ~50th %ile (display reference only)
+    dbp90:  dbp95 - 4,                // ~90th %ile
+    dbp95,
+    // MAP-based hypotension thresholds (clinical consensus for term infants)
+    mapHypotension: ageMonths < 1 ? 40 : ageMonths < 3 ? 45 : 50,
+  };
+};
+
+/**
  * Preterm neonatal BP reference — Zubrow 1995 / Nuntnarumit 1999.
  * Corrected vs prior version: MAP formula better fits GA 28–32 anchor values;
  * pulse pressure is now GA-dependent (widens with maturity/PDA dynamics);

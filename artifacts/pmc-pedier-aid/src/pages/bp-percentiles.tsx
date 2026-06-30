@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
-import { calculateSimplifiedBPPercentile, calculatePretermBPReference } from "@/lib/calculators/growth-data";
+import { calculateSimplifiedBPPercentile, calculateTermInfantBPReference, calculatePretermBPReference } from "@/lib/calculators/growth-data";
 import { cn } from "@/lib/utils";
 
 // ─── Term child (1–18 yrs) ────────────────────────────────────────────────────
@@ -268,6 +268,241 @@ function TermSection() {
   );
 }
 
+// ─── Term infant (0–12 months) ───────────────────────────────────────────────
+
+type InfantSeverity = "hypotensive" | "normal" | "elevated" | "hypertensive";
+
+const INFANT_CONFIG: Record<InfantSeverity, { label: string; color: string; bg: string; border: string }> = {
+  "hypotensive":  { label: "Hypotension",  color: "text-red-700",    bg: "bg-red-50",    border: "border-red-300" },
+  "normal":       { label: "Normal",        color: "text-green-700",  bg: "bg-green-50",  border: "border-green-200" },
+  "elevated":     { label: "Elevated BP",   color: "text-yellow-700", bg: "bg-yellow-50", border: "border-yellow-300" },
+  "hypertensive": { label: "Hypertension",  color: "text-orange-700", bg: "bg-orange-50", border: "border-orange-300" },
+};
+
+const INFANT_ACTIONS: Record<InfantSeverity, string> = {
+  "hypotensive":  "Assess shock signs (cap refill, HR, perfusion, UO). IV access. Consider 10 mL/kg NS bolus. Urgent senior/neonatology review. Investigate: sepsis, cardiac, adrenal insufficiency.",
+  "normal":       "BP within normal range for age. Continue routine monitoring.",
+  "elevated":     "Repeat after 5 min rest (right arm, correct cuff size). If persistent, repeat at next visit. Exclude pain, anxiety, or equipment error.",
+  "hypertensive": "Confirm on repeat measurement. Investigate: renal (US), cardiac (echo, CXR), endocrine, medications. Nephrology or neonatology review.",
+};
+
+function InfantSection() {
+  const [sex, setSex]               = useState<"male" | "female">("male");
+  const [ageMonths, setAgeMonths]   = useState<string>("");
+  const [systolic, setSystolic]     = useState<string>("");
+  const [diastolic, setDiastolic]   = useState<string>("");
+
+  const mNum = parseFloat(ageMonths);
+  const sNum = parseFloat(systolic);
+  const dNum = parseFloat(diastolic);
+
+  const isAgeValid = !isNaN(mNum) && mNum >= 0 && mNum <= 12;
+  const isBpValid  = isAgeValid && !isNaN(sNum) && sNum > 0 && !isNaN(dNum) && dNum > 0 && sNum > dNum;
+
+  const mapCalc = isBpValid ? Math.round(dNum + (sNum - dNum) / 3) : null;
+
+  const reference = useMemo(() => {
+    if (!isAgeValid) return null;
+    return calculateTermInfantBPReference(mNum, sex);
+  }, [mNum, sex, isAgeValid]);
+
+  const classification = useMemo<InfantSeverity | null>(() => {
+    if (!isBpValid || !reference || mapCalc === null) return null;
+    if (mapCalc < reference.mapHypotension)          return "hypotensive";
+    if (sNum >= reference.sbp95 || dNum >= reference.dbp95) return "hypertensive";
+    if (sNum >= reference.sbp90 || dNum >= reference.dbp90) return "elevated";
+    return "normal";
+  }, [isBpValid, reference, mapCalc, sNum, dNum]);
+
+  const cfg = classification ? INFANT_CONFIG[classification] : null;
+
+  const ageLabel = isAgeValid
+    ? mNum < 1
+      ? `${Math.round(mNum * 4.33)} wk${Math.round(mNum * 4.33) !== 1 ? "s" : ""}`
+      : `${mNum % 1 === 0 ? mNum : mNum.toFixed(1)} mo`
+    : "?";
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* INPUTS */}
+      <Card className="border-2 border-rose-100 shadow-sm h-fit">
+        <CardHeader className="bg-rose-50/50 pb-4">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Baby className="h-4 w-4 text-rose-600" /> Infant Profile
+          </CardTitle>
+          <CardDescription className="text-[11px]">Term babies — birth to 12 months (≥ 37 wks GA)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground">Biological Sex</Label>
+              <Select value={sex} onValueChange={(v: any) => setSex(v)}>
+                <SelectTrigger className="active:scale-95"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground">Age (Months)</Label>
+              <Input
+                type="number" inputMode="decimal" placeholder="0–12"
+                value={ageMonths} onChange={e => setAgeMonths(e.target.value)}
+                className={cn(!isAgeValid && ageMonths ? "border-red-300" : "")}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-rose-700">Systolic (mmHg)</Label>
+              <Input type="number" inputMode="decimal" placeholder="e.g. 80" className="h-12 font-mono text-xl border-rose-200" value={systolic} onChange={e => setSystolic(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-rose-700">Diastolic (mmHg)</Label>
+              <Input type="number" inputMode="decimal" placeholder="e.g. 50" className="h-12 font-mono text-xl border-rose-200" value={diastolic} onChange={e => setDiastolic(e.target.value)} />
+            </div>
+          </div>
+
+          {/* Auto MAP */}
+          {isBpValid && mapCalc !== null && (
+            <div className={cn("rounded-xl p-4 border-2 text-center transition-colors", cfg ? cfg.bg : "bg-muted/30", cfg ? cfg.border : "border-muted")}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Mean Arterial Pressure</p>
+              <p className={cn("text-4xl font-black font-mono", cfg ? cfg.color : "text-foreground")}>{mapCalc}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">mmHg · DBP + ⅓(SBP−DBP)</p>
+              {reference && (
+                <p className="text-[10px] font-bold mt-2 text-muted-foreground">
+                  Hypotension threshold: <span className="font-mono">&lt;{reference.mapHypotension} mmHg MAP</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="rounded-lg bg-muted/40 p-3 text-[10px] text-muted-foreground leading-relaxed">
+            <span className="font-black">Measurement:</span> Right upper arm, oscillometric. Cuff width = 40% arm circumference. Infant at rest ≥ 5 min.
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* RESULTS */}
+      <div className="space-y-5">
+        {isBpValid && classification && cfg && mapCalc !== null && (
+          <>
+            <Card className={cn("border-2 shadow-md", cfg.bg, cfg.border)}>
+              <CardHeader className="pb-2 text-center">
+                <Badge className="w-fit mx-auto mb-2 bg-rose-600 uppercase font-black">BP Status</Badge>
+                <CardTitle className={cn("text-2xl font-black font-headline tracking-tight", cfg.color)}>
+                  {cfg.label}
+                </CardTitle>
+                {reference && (
+                  <p className={cn("text-xs font-medium mt-1", cfg.color)}>
+                    {sNum}/{dNum} mmHg · MAP {mapCalc} mmHg
+                    {classification === "hypotensive" && ` · Threshold <${reference.mapHypotension}`}
+                    {(classification === "hypertensive" || classification === "elevated") && ` · 95th ${reference.sbp95}/${reference.dbp95}`}
+                  </p>
+                )}
+              </CardHeader>
+            </Card>
+
+            {classification !== "normal" && (
+              <Alert className={cn("border-2 shadow-sm", cfg.border, cfg.bg)}>
+                <ShieldAlert className={cn("h-5 w-5", cfg.color)} />
+                <AlertTitle className={cn("font-black uppercase tracking-widest text-xs", cfg.color)}>Clinical Action</AlertTitle>
+                <AlertDescription className="text-xs font-medium leading-relaxed text-foreground/80 mt-1">
+                  {INFANT_ACTIONS[classification]}
+                </AlertDescription>
+              </Alert>
+            )}
+          </>
+        )}
+
+        {/* Reference table */}
+        {isAgeValid && reference ? (
+          <Card className="border-2 border-rose-100 shadow-sm">
+            <CardHeader className="bg-rose-50/50 pb-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-rose-800">
+                <Activity className="h-4 w-4 text-rose-600" />
+                Normal BP — {ageLabel} {sex === "male" ? "Male" : "Female"}
+              </CardTitle>
+              <CardDescription className="text-[11px]">NHBPEP 2004 / Dionne 2012 — term infant reference</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4 pb-4">
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="border-b border-rose-100">
+                    <th className="text-left pb-2 font-black text-muted-foreground uppercase tracking-wide pr-3">Category</th>
+                    <th className="text-center pb-2 font-black text-muted-foreground uppercase tracking-wide pr-2">Systolic</th>
+                    <th className="text-center pb-2 font-black text-muted-foreground uppercase tracking-wide">Diastolic</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rose-50">
+                  <tr className="bg-red-50/40">
+                    <td className="py-2 pr-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                        <span className="font-semibold text-red-700">Hypotension</span>
+                        <span className="text-muted-foreground">(MAP)</span>
+                      </span>
+                    </td>
+                    <td className="py-2 text-center font-mono font-bold text-red-700 pr-2 col-span-2" colSpan={2}>MAP &lt; {reference.mapHypotension} mmHg</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span><span className="text-muted-foreground">(&lt;90th)</span></span></td>
+                    <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;{reference.sbp90}</td>
+                    <td className="py-2 text-center font-mono font-bold text-green-700">&lt;{reference.dbp90}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" /><span className="font-semibold text-yellow-700">Elevated</span><span className="text-muted-foreground">(90–95th)</span></span></td>
+                    <td className="py-2 text-center font-mono font-bold text-yellow-700 pr-2">{reference.sbp90}–{reference.sbp95 - 1}</td>
+                    <td className="py-2 text-center font-mono font-bold text-yellow-700">{reference.dbp90}–{reference.dbp95 - 1}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" /><span className="font-semibold text-orange-700">Hypertension</span><span className="text-muted-foreground">(≥95th)</span></span></td>
+                    <td className="py-2 text-center font-mono font-bold text-orange-700 pr-2">≥{reference.sbp95}</td>
+                    <td className="py-2 text-center font-mono font-bold text-orange-700">≥{reference.dbp95}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="mt-4 pt-3 border-t border-rose-100 flex items-center gap-2 text-[10px] text-muted-foreground">
+                <Info className="h-3 w-3 flex-shrink-0" />
+                Median normal (50th): <span className="font-mono font-bold ml-1">{reference.sbp50}/{reference.dbp50} mmHg</span>
+              </div>
+            </CardContent>
+          </Card>
+        ) : !isAgeValid && (
+          <div className="min-h-[300px] flex flex-col items-center justify-center border-4 border-dashed rounded-[40px] p-12 text-center bg-muted/20 border-muted/30">
+            <HeartPulse className="h-14 w-14 text-rose-200 mb-5" />
+            <h3 className="text-lg font-black text-muted-foreground/80 tracking-tight">Term Infant BP</h3>
+            <p className="text-muted-foreground font-medium text-sm mt-3 leading-relaxed max-w-[260px]">
+              Enter age in months (0–12) to see normal BP ranges. Add BP values to classify.
+            </p>
+          </div>
+        )}
+
+        {isAgeValid && reference && (
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="pt-5 pb-5">
+              <div className="flex items-center gap-2 mb-3 text-rose-700 font-black text-[10px] uppercase tracking-widest">
+                <Info className="h-3.5 w-3.5" /> Infant BP Guide
+              </div>
+              <div className="space-y-1.5 text-[11px] leading-relaxed">
+                <p>• <strong>Hypotension:</strong> MAP &lt; {reference.mapHypotension} mmHg — urgent evaluation.</p>
+                <p>• <strong>Normal:</strong> SBP &lt; {reference.sbp90} AND DBP &lt; {reference.dbp90} mmHg.</p>
+                <p>• <strong>Elevated:</strong> SBP/DBP ≥ 90th — repeat after 5 min rest.</p>
+                <p>• <strong>Hypertension:</strong> SBP ≥ {reference.sbp95} OR DBP ≥ {reference.dbp95} — investigate.</p>
+                <p className="text-muted-foreground mt-1">Source: NHBPEP 2004 / Dionne 2012 (Pediatr Nephrol). Term infants (≥ 37 wks GA) only.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Preterm neonate ─────────────────────────────────────────────────────────
 
 type PretermSeverity = "severe-hypotension" | "hypotension" | "borderline" | "normal" | "hypertension";
@@ -514,7 +749,7 @@ function PretermSection() {
 // ─── Page shell ───────────────────────────────────────────────────────────────
 
 export default function BpPercentilePage() {
-  const [mode, setMode] = useState<"term" | "preterm">("term");
+  const [mode, setMode] = useState<"term" | "infant" | "preterm">("term");
 
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
@@ -548,6 +783,17 @@ export default function BpPercentilePage() {
           Child (1–18 yrs)
         </button>
         <button
+          onClick={() => setMode("infant")}
+          className={cn(
+            "px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5",
+            mode === "infant"
+              ? "bg-white shadow text-rose-700 shadow-rose-100"
+              : "text-muted-foreground hover:text-rose-600"
+          )}
+        >
+          <Baby className="h-3.5 w-3.5" /> Infant (0–12 mo)
+        </button>
+        <button
           onClick={() => setMode("preterm")}
           className={cn(
             "px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5",
@@ -560,7 +806,7 @@ export default function BpPercentilePage() {
         </button>
       </div>
 
-      {mode === "term" ? <TermSection /> : <PretermSection />}
+      {mode === "term" ? <TermSection /> : mode === "infant" ? <InfantSection /> : <PretermSection />}
     </div>
   );
 }
