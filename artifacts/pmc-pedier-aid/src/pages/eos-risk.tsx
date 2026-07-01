@@ -23,20 +23,32 @@ export default function EosRiskCalc() {
   const [antibiotics, setAntibiotics] = useState<string>("");
   const [clinicalStatus, setClinicalStatus] = useState<string>("");
 
-  const riskResult = useMemo(() => {
+  const gaExact = useMemo(() => {
     const w = parseFloat(gaWeeks);
     const d = parseFloat(gaDays);
+    if (isNaN(w)) return NaN;
+    return w + (isNaN(d) ? 0 : d) / 7;
+  }, [gaWeeks, gaDays]);
+
+  const isGaBelowValidatedRange = !isNaN(gaExact) && gaExact < 34;
+
+  const riskResult = useMemo(() => {
     const temp = parseFloat(maternalTemp);
     const rom = parseFloat(romDuration);
-    
-    if (isNaN(w) || isNaN(temp) || isNaN(rom) || !maternalGbs || !clinicalStatus || !antibiotics) return null;
 
-    // BASELINE INCIDENCE (standard is 0.5 per 1000)
+    if (
+      isNaN(gaExact) || gaExact < 34 || gaExact > 45 ||
+      isNaN(temp) || temp < 30 || temp > 43 ||
+      isNaN(rom) || rom < 0 || rom > 500 ||
+      !maternalGbs || !clinicalStatus || !antibiotics
+    ) return null;
+
+    // BASELINE INCIDENCE (standard is ~0.5 per 1000 live births at ≥34 wks GA)
     let priorRisk = 0.5;
 
-    // GA ADJUSTMENT (Risk increases as GA decreases)
-    if (w < 37) priorRisk *= 2.5;
-    if (w < 35) priorRisk *= 2.0;
+    // GA ADJUSTMENT (risk increases as GA decreases) — uses exact GA (weeks + days)
+    if (gaExact < 37) priorRisk *= 2.5;
+    if (gaExact < 35) priorRisk *= 2.0;
 
     // MATERNAL TEMP ADJUSTMENT
     if (temp >= 38.0 && temp < 38.5) priorRisk *= 2.5;
@@ -48,12 +60,16 @@ export default function EosRiskCalc() {
     if (rom >= 24) priorRisk *= 2.2;
 
     // GBS ADJUSTMENT
+    // "Unknown" is treated conservatively (no negative culture for reassurance),
+    // consistent with the CDC risk-factor-based approach when status can't be confirmed.
     if (maternalGbs === "positive") priorRisk *= 1.2;
+    if (maternalGbs === "unknown") priorRisk *= 1.3;
     if (maternalGbs === "negative" && antibiotics === "none") priorRisk *= 0.8;
 
     // ANTIBIOTIC ADJUSTMENT (IAP)
     if (antibiotics === "broad") priorRisk *= 0.3;
     if (antibiotics === "gbs") priorRisk *= 0.5;
+    if (antibiotics === "inadequate") priorRisk *= 0.75;
 
     // POSTERIOR RISK (Based on Neonatal Status)
     let posteriorRisk = priorRisk;
@@ -65,7 +81,7 @@ export default function EosRiskCalc() {
       prior: priorRisk,
       posterior: posteriorRisk
     };
-  }, [gaWeeks, gaDays, maternalTemp, romDuration, maternalGbs, antibiotics, clinicalStatus]);
+  }, [gaExact, maternalTemp, romDuration, maternalGbs, antibiotics, clinicalStatus]);
 
   const management = useMemo(() => {
     if (!riskResult) return null;
@@ -150,7 +166,7 @@ export default function EosRiskCalc() {
         </div>
         <div>
           <h1 className="text-4xl font-black font-headline tracking-tight">EOS Risk Calculator</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest mt-1">Early-Onset Sepsis (KP Model $\ge$34 Weeks)</p>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest mt-1">Early-Onset Sepsis (Kaiser-Informed Approximation · $\ge$34 Weeks)</p>
         </div>
       </div>
 
@@ -170,6 +186,9 @@ export default function EosRiskCalc() {
                     <Input type="number" inputMode="decimal" placeholder="Wks" value={gaWeeks} onChange={(e) => setGaWeeks(e.target.value)} className="h-11 font-mono" />
                     <Input type="number" inputMode="decimal" placeholder="Days" value={gaDays} onChange={(e) => setGaDays(e.target.value)} className="h-11 font-mono" />
                   </div>
+                  {isGaBelowValidatedRange && (
+                    <p className="text-[9px] text-red-600 font-bold">⚠ Model validated only for ≥34 0/7 weeks GA — not applicable below this.</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
@@ -199,6 +218,7 @@ export default function EosRiskCalc() {
                     <SelectItem value="unknown" className="font-bold">GBS Unknown</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[9px] text-muted-foreground italic">Unknown status is treated conservatively (no negative culture for reassurance).</p>
               </div>
 
               <div className="space-y-2">
@@ -209,10 +229,12 @@ export default function EosRiskCalc() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None / No IAP</SelectItem>
-                    <SelectItem value="gbs">GBS-Specific (Pen/Amp {'>'} 2h before)</SelectItem>
-                    <SelectItem value="broad">Broad Spectrum ({'>'} 4h before)</SelectItem>
+                    <SelectItem value="inadequate">Any IAP {'<'} 4h before delivery (inadequate)</SelectItem>
+                    <SelectItem value="gbs">GBS-Specific (Pen/Amp/Cefazolin {'≥'} 4h before)</SelectItem>
+                    <SelectItem value="broad">Broad Spectrum ({'≥'} 4h before)</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[9px] text-muted-foreground italic">Adequate IAP = penicillin, ampicillin, or cefazolin ≥4 h before delivery (CDC/AAP).</p>
               </div>
 
               <div className="space-y-2 pt-4 border-t">
@@ -258,8 +280,8 @@ export default function EosRiskCalc() {
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Card className={cn("border-2 shadow-md transition-colors", 
-                              riskResult.posterior >= 3.0 ? "border-red-500 bg-red-50" : 
+                          <Card className={cn("border-2 shadow-md transition-colors",
+                              clinicalStatus === "ill" || riskResult.posterior >= 3.0 ? "border-red-500 bg-red-50" :
                               riskResult.posterior >= 1.0 ? "border-amber-500 bg-amber-50" : "border-emerald-500 bg-emerald-50")}>
                               <CardContent className="pt-4 pb-4 text-center">
                                   <span className="text-[10px] font-black uppercase tracking-widest block mb-1">Posterior Risk</span>
@@ -339,10 +361,11 @@ export default function EosRiskCalc() {
                         <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-2">
                             <p className="text-[11px] font-bold text-slate-800 uppercase">The 18-Hour ROM Shift</p>
                             <p className="text-[10px] text-muted-foreground leading-relaxed">
-                                Traditionally (per CDC 2010), <strong>ROM {'>'} 18 hours</strong> was a hard categorical threshold for evaluation. 
-                                However, the <strong>AAP 2018 Clinical Report</strong> endorsed the Kaiser Multivariate Model, which treats ROM as a 
-                                <strong> continuous variable</strong>. A well-appearing baby with 20h ROM may now have a very low risk score, 
-                                preventing unnecessary blood cultures and antibiotics.
+                                Traditionally (per CDC 2010), <strong>ROM {'>'} 18 hours</strong> was a hard categorical threshold for evaluation.
+                                The <strong>AAP 2018 Clinical Report</strong> instead endorsed the Kaiser Multivariate Model, whose actual regression
+                                equation treats ROM, GA, and maternal temperature as <strong>continuous variables</strong>. This calculator approximates
+                                that relationship using literature-informed risk bands rather than the exact published regression coefficients — for the
+                                fully validated calculation, use Kaiser Permanente's official Neonatal Early-Onset Sepsis Calculator.
                             </p>
                         </div>
                         
@@ -366,6 +389,14 @@ export default function EosRiskCalc() {
                       </CardContent>
                   </Card>
                 </>
+            ) : isGaBelowValidatedRange ? (
+                <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-4 border-dashed rounded-[40px] p-12 text-center bg-red-50 border-red-200">
+                    <ShieldAlert className="h-20 w-20 text-red-300 mb-8" />
+                    <h3 className="text-2xl font-black text-red-700 tracking-tight">Outside Validated Range</h3>
+                    <p className="text-red-700/80 font-medium text-base mt-4 leading-relaxed max-w-[380px]">
+                      This model is validated only for infants born ≥34 0/7 weeks gestation. For more premature infants, use local NICU sepsis protocols instead.
+                    </p>
+                </div>
             ) : (
                 <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-4 border-dashed rounded-[40px] p-12 text-center bg-muted/20 border-muted/30">
                     <Activity className="h-20 w-20 text-muted-foreground/20 mb-8" />

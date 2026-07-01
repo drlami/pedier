@@ -116,7 +116,8 @@ export default function HyperbilirubinemiaCal() {
 
   // Inputs
   const [gaWeeks, setGaWeeks] = useState<string>('');
-  const [ageHours, setAgeHours] = useState<string>('');
+  const [ageUnit, setAgeUnit] = useState<'hours' | 'days'>('hours');
+  const [ageValue, setAgeValue] = useState<string>('');
   const [bilirubinValue, setBilirubinValue] = useState<string>('');
   const [bilirubinUnit, setBilirubinUnit] = useState<BilirubinUnit>('mg/dL');
   const [bilirubinType, setBilirubinType] = useState<BilirubinType>('TSB');
@@ -138,7 +139,8 @@ export default function HyperbilirubinemiaCal() {
   // ── Derived ──────────────────────────────────────────────────────────────
 
   const ga = parseInt(gaWeeks, 10);
-  const hours = parseFloat(ageHours);
+  const ageValueNum = parseFloat(ageValue);
+  const hours = ageUnit === 'days' ? ageValueNum * 24 : ageValueNum;
   const rawBili = parseFloat(bilirubinValue);
   const bilirubinMgdL = isNaN(rawBili) ? 0 : convertToMgdL(rawBili, bilirubinUnit);
 
@@ -147,9 +149,19 @@ export default function HyperbilirubinemiaCal() {
     [ntxRisks],
   );
 
+  const isAgeValid = ageUnit === 'days'
+    ? !isNaN(ageValueNum) && ageValueNum >= 0 && ageValueNum <= 14
+    : !isNaN(ageValueNum) && ageValueNum >= 0 && ageValueNum <= 336;
+
+  const ageLabel = !isNaN(ageValueNum)
+    ? ageUnit === 'days'
+      ? `${ageValueNum} day${ageValueNum !== 1 ? 's' : ''}`
+      : `${ageValueNum} hour${ageValueNum !== 1 ? 's' : ''}`
+    : '';
+
   const isValid =
     !isNaN(ga) && ga >= 35 && ga <= 41 &&
-    !isNaN(hours) && hours >= 0 && hours <= 336 &&
+    isAgeValid &&
     !isNaN(rawBili) && rawBili > 0;
 
   const result: BilirubinResult | null = useMemo(() => {
@@ -194,7 +206,7 @@ export default function HyperbilirubinemiaCal() {
       ``,
       `PATIENT DETAILS`,
       `Gestational Age: ${gaWeeks} weeks`,
-      `Age: ${ageHours} hours`,
+      `Age: ${ageLabel} (${hours} hours)`,
       `Bilirubin (${bilirubinType}): ${bili}`,
       `Neurotoxicity Risk Factors: ${hasNeurotoxicityRisk ? 'YES' : 'None'}`,
       ``,
@@ -313,16 +325,40 @@ export default function HyperbilirubinemiaCal() {
                 <p className="text-[10px] text-muted-foreground">GA at birth (not corrected)</p>
               </div>
 
-              {/* Age in hours */}
+              {/* Age */}
               <div className="space-y-1.5">
-                <UILabel className="text-xs font-medium">Age in Hours <span className="text-destructive">*</span></UILabel>
+                <div className="flex items-center justify-between gap-2">
+                  <UILabel className="text-xs font-medium">Age <span className="text-destructive">*</span></UILabel>
+                  <div className="flex rounded-md border border-input overflow-hidden flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => { setAgeUnit('hours'); setAgeValue(''); }}
+                      className={cn(
+                        "px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+                        ageUnit === 'hours' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Hours
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAgeUnit('days'); setAgeValue(''); }}
+                      className={cn(
+                        "px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors",
+                        ageUnit === 'days' ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Days
+                    </button>
+                  </div>
+                </div>
                 <Input
-                  type="number" min={0} max={336} step={1}
-                  placeholder="e.g. 48"
-                  value={ageHours}
-                  onChange={(e) => setAgeHours(e.target.value)}
+                  type="number" min={0} max={ageUnit === 'days' ? 14 : 336} step={ageUnit === 'days' ? 0.5 : 1}
+                  placeholder={ageUnit === 'days' ? 'e.g. 5' : 'e.g. 48'}
+                  value={ageValue}
+                  onChange={(e) => setAgeValue(e.target.value)}
                 />
-                {ageHours && hours < 24 && (
+                {ageValue && hours < 24 && (
                   <p className="text-[10px] text-amber-700 font-medium">
                     ⚠ Jaundice &lt; 24 h — requires urgent TSB
                   </p>
@@ -628,7 +664,7 @@ export default function HyperbilirubinemiaCal() {
               )}
               <div className="flex flex-wrap gap-2 pt-1">
                 <Badge variant="outline" className="text-[10px]">
-                  GA {gaWeeks} weeks · {ageHours} hours
+                  GA {gaWeeks} weeks · {ageLabel}
                 </Badge>
                 <Badge variant="outline" className="text-[10px]">
                   {hasNeurotoxicityRisk ? '⚠ Additional NTX risk factors present' : 'No additional NTX risk factors'}
@@ -771,7 +807,7 @@ export default function HyperbilirubinemiaCal() {
         <Card className="border-dashed border-2">
           <CardContent className="py-12 text-center">
             <Baby className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
-            <p className="text-muted-foreground font-medium">Enter gestational age, age in hours, and bilirubin value to calculate thresholds.</p>
+            <p className="text-muted-foreground font-medium">Enter gestational age, age (hours or days), and bilirubin value to calculate thresholds.</p>
             <p className="text-xs text-muted-foreground mt-1">Results, chart, and management recommendations will appear here.</p>
           </CardContent>
         </Card>

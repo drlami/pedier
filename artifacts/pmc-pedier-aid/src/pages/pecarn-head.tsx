@@ -16,19 +16,19 @@ const UNDER2_HIGH_RISK = [
 const UNDER2_INTERMEDIATE = [
   { id: "u2_occipital", label: "Occipital, parietal, or temporal scalp haematoma (not frontal)", risk: "intermediate" },
   { id: "u2_loc", label: "Loss of consciousness ≥ 5 seconds", risk: "intermediate" },
-  { id: "u2_severity", label: "Severe mechanism (MVC without restraint, pedestrian/cyclist vs vehicle, fall > 3 ft, head struck by high-impact object)", risk: "intermediate" },
+  { id: "u2_severity", label: "Severe mechanism (MVC with patient ejection, death of another passenger, or rollover; pedestrian/cyclist without helmet struck by vehicle; fall > 3 ft; head struck by high-impact object)", risk: "intermediate" },
   { id: "u2_behaviour", label: "Not acting normally per parents", risk: "intermediate" },
 ];
 
 const OVER2_HIGH_RISK = [
-  { id: "o2_alt_ms", label: "Altered mental status (GCS < 15, agitation, somnolence, repetitive questions)", risk: "high" },
+  { id: "o2_alt_ms", label: "Altered mental status (GCS < 15, agitation, somnolence, repetitive questions, slow response)", risk: "high" },
   { id: "o2_skull_signs", label: "Signs of basilar skull fracture (haemotympanum, Battle sign, raccoon eyes, CSF rhinorrhoea/otorrhoea)", risk: "high" },
 ];
 
 const OVER2_INTERMEDIATE = [
   { id: "o2_loc", label: "Loss of consciousness", risk: "intermediate" },
   { id: "o2_vomiting", label: "History of vomiting", risk: "intermediate" },
-  { id: "o2_severe_mech", label: "Severe mechanism (as above)", risk: "intermediate" },
+  { id: "o2_severe_mech", label: "Severe mechanism (MVC with patient ejection, death of another passenger, or rollover; pedestrian/cyclist without helmet struck by vehicle; fall > 5 ft; head struck by high-impact object)", risk: "intermediate" },
   { id: "o2_headache", label: "Severe headache", risk: "intermediate" },
 ];
 
@@ -71,22 +71,15 @@ export default function PecarnHeadPage() {
       recommendation = {
         label: "CT Not Indicated",
         color: "emerald",
-        ctIndication: "Very-low risk (< 0.02% ciTBI)",
+        ctIndication: `Very-low risk (< ${ageGroup === "under2" ? "0.02" : "0.05"}% ciTBI)`,
         text: "No high or intermediate risk features. Very-low risk of ciTBI. CT head not recommended. Discharge with head injury instructions and parent education.",
-      };
-    } else if (intermCount === 1) {
-      recommendation = {
-        label: "Observation / Shared Decision",
-        color: "amber",
-        ctIndication: "1 intermediate-risk feature",
-        text: "One intermediate-risk feature present. Options: (1) CT head, or (2) observation for ≥ 4–6 hours — CT if clinical deterioration. Shared decision-making with parents. Consider patient age and physician experience.",
       };
     } else {
       recommendation = {
-        label: "CT Recommended",
-        color: "orange",
-        ctIndication: "≥ 2 intermediate-risk features",
-        text: "Two or more intermediate-risk features. CT head recommended. Risk of ciTBI is non-negligible.",
+        label: "Observation / Shared Decision",
+        color: "amber",
+        ctIndication: `${intermCount} intermediate-risk feature${intermCount > 1 ? "s" : ""} present`,
+        text: "PECARN does not mandate CT for intermediate-risk features, regardless of how many are present — options are (1) CT head, or (2) observation for 4–6 hours with CT if clinical deterioration. Base the choice on shared decision-making with the family and: physician experience, multiple vs. isolated findings (more findings favour CT), worsening signs/symptoms during observation, age < 3 months, and parental preference.",
       };
     }
   }
@@ -186,7 +179,7 @@ export default function PecarnHeadPage() {
               <CardTitle className="text-base font-black text-amber-700">
                 Intermediate-Risk Features
               </CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">0 = very low risk | 1 = observation vs CT | ≥ 2 = CT recommended</p>
+              <p className="text-xs text-muted-foreground mt-1">0 = very low risk (no CT) | ≥ 1 = shared decision (observation vs CT) — more findings favour CT</p>
             </CardHeader>
             <CardContent className="space-y-2">
               {intermItems.map(f => (
@@ -246,9 +239,10 @@ export default function PecarnHeadPage() {
               </thead>
               <tbody className="divide-y text-muted-foreground">
                 {[
-                  ["Very Low (no features)", "< 0.02%", "No CT — discharge with instructions"],
-                  ["Intermediate (1 feature)", "~0.9–1%", "Observation 4–6h or CT (shared decision)"],
-                  ["High (≥2 interm. OR any high-risk)", "> 4%", "CT head recommended"],
+                  ["Very Low (no features) — < 2 yr", "< 0.02%", "No CT — discharge with instructions"],
+                  ["Very Low (no features) — ≥ 2 yr", "< 0.05%", "No CT — discharge with instructions"],
+                  ["Intermediate (≥ 1 feature)", "~0.9–1%", "Observation 4–6h or CT (shared decision)"],
+                  ["High (any high-risk feature)", "~4.3–4.4%", "CT head recommended"],
                 ].map(([risk, rate, action]) => (
                   <tr key={risk}>
                     <td className="py-2 font-semibold text-foreground">{risk}</td>
