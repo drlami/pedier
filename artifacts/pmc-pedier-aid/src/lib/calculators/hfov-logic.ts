@@ -283,6 +283,16 @@ function validateGlobal(inputs: HFOVInputs, ageMonths: number): HFOVWarning[] {
     });
   }
 
+  if (inputs.pco2 !== null && inputs.pco2 < 30 && inputs.pathway === "pediatric") {
+    w.push({
+      code: "hypocarbia-pediatric",
+      severity: "warning",
+      title: "Hypocarbia — PaCO₂ < 30 mmHg",
+      message: "PaCO₂ < 30 mmHg causes cerebral vasoconstriction and reduced cerebral oxygen delivery. Avoid unless deliberate therapeutic hyperventilation is being used (e.g. acute ICP crisis). Reduce amplitude to allow PaCO₂ to rise.",
+      action: "Reduce amplitude — target PaCO₂ ≥ 35 mmHg",
+    });
+  }
+
   if (inputs.spo2 !== null && inputs.spo2 < 80) {
     w.push({
       code: "critical-hypoxemia",
@@ -520,7 +530,7 @@ export function getSetupGuide(inputs: HFOVInputs, ageMonths: number): HFOVSetupG
         diagnosisLabel: diagLabel,
         mapConcept: "Open-lung MAP strategy. Set MAP 2–5 cmH₂O above conventional MAP to recruit collapsed alveoli. Reassess oxygenation and haemodynamics after each change.",
         suggestedMapRange: mapRange(2, 5, cmap),
-        amplitudeConcept: "Titrate amplitude to achieve visible chest wiggle from clavicles to mid-thigh. Higher amplitude improves CO₂ clearance. Reassess ABG 30–60 min after initiation.",
+        amplitudeConcept: "Titrate amplitude to achieve visible chest wiggle from clavicles to mid-thigh. Higher amplitude improves CO₂ clearance. Reassess ABG 30–60 min after initiation. Safety ceiling: maximum amplitude ~90 cmH₂O in small patients (< 10 kg); very high amplitudes risk pneumothorax and haemodynamic compromise.",
         suggestedAmplitudeRange: ampRange(),
         suggestedFreqHz: freqBySize(),
         fio2Start: "Start FiO₂ 1.0 (100%). Wean rapidly once oxygenation responds. Target SpO₂ 88–92% (PARDS) per PALICC-2.",
@@ -748,7 +758,7 @@ export function getSetupGuide(inputs: HFOVInputs, ageMonths: number): HFOVSetupG
         diagnosisLabel: "Other / Unspecified",
         mapConcept: "Set MAP based on conventional ventilation failure and oxygenation index. Start 2–4 cmH₂O above conventional MAP.",
         suggestedMapRange: mapRange(2, 4, cmap),
-        amplitudeConcept: "Titrate amplitude to chest wiggle. Start at 2–3× MAP or PIP + 10–20 cmH₂O.",
+        amplitudeConcept: "Titrate amplitude to chest wiggle. Start at 2–3× MAP or convPIP + 10–20 cmH₂O. Safety ceiling: do not exceed 90 cmH₂O in small patients (< 10 kg); risk of pneumothorax and haemodynamic compromise at very high amplitudes.",
         suggestedAmplitudeRange: ampRange(),
         suggestedFreqHz: freqBySize(),
         fio2Start: "Start FiO₂ 1.0. Wean as oxygenation stabilises.",

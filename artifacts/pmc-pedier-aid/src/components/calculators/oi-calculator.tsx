@@ -30,14 +30,24 @@ export function OICalculator() {
     return (f * m) / s;
   }, [map, fio2, spo2]);
 
-  const band = (v: number | null) => {
-    if (v === null) return null;
-    if (v < 4) return { t: 'Sub-threshold', c: 'text-slate-300' };
-    if (v < 8) return { t: 'Mild', c: 'text-emerald-300' };
-    if (v < 16) return { t: 'Moderate', c: 'text-amber-300' };
-    return { t: 'Severe', c: 'text-red-300' };
-  };
-  const oiBand = band(oi);
+  const osiBand = useMemo(() => {
+    if (osi === null) return null;
+    if (osi < 5)    return { t: 'Sub-threshold', c: 'text-slate-300' };
+    if (osi < 7.5)  return { t: 'Mild', c: 'text-emerald-300' };
+    if (osi < 12.3) return { t: 'Moderate', c: 'text-amber-300' };
+    return           { t: 'Severe', c: 'text-red-300' };
+  }, [osi]);
+
+  const spo2Num = parseNum(spo2);
+  const spo2Unreliable = spo2Num !== null && spo2Num > 97;
+
+  const oiBand = useMemo(() => {
+    if (oi === null) return null;
+    if (oi < 4)  return { t: 'Sub-threshold', c: 'text-slate-300' };
+    if (oi < 8)  return { t: 'Mild', c: 'text-emerald-300' };
+    if (oi < 16) return { t: 'Moderate', c: 'text-amber-300' };
+    return        { t: 'Severe', c: 'text-red-300' };
+  }, [oi]);
 
   const F = ({ label, v, set, unit, ph }: { label: string; v: string; set: (s: string) => void; unit: string; ph: string }) => (
     <div className="space-y-1">
@@ -68,13 +78,20 @@ export function OICalculator() {
           <p className={cn('text-2xl font-black tracking-tighter', oiBand?.c ?? 'text-slate-600')}>{oi !== null ? oi.toFixed(1) : '—'}</p>
           {oiBand && <span className={cn('text-[9px] font-black uppercase', oiBand.c)}>{oiBand.t} PARDS</span>}
         </div>
-        <div className="p-3 bg-slate-900 rounded-2xl border border-slate-800 text-center">
+        <div className={cn('p-3 bg-slate-900 rounded-2xl border text-center', spo2Unreliable ? 'border-amber-700' : 'border-slate-800')}>
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">OSI</span>
-          <p className="text-2xl font-black tracking-tighter text-blue-300">{osi !== null ? osi.toFixed(1) : '—'}</p>
-          <span className="text-[9px] font-bold text-slate-600">non-invasive surrogate</span>
+          <p className={cn('text-2xl font-black tracking-tighter', spo2Unreliable ? 'text-amber-400' : osiBand?.c ?? 'text-slate-600')}>{osi !== null && !spo2Unreliable ? osi.toFixed(1) : '—'}</p>
+          {spo2Unreliable
+            ? <span className="text-[9px] font-bold text-amber-400">SpO₂ &gt; 97% — OSI invalid</span>
+            : osiBand
+            ? <span className={cn('text-[9px] font-black uppercase', osiBand.c)}>{osiBand.t} PARDS (OSI)</span>
+            : <span className="text-[9px] font-bold text-slate-600">non-invasive surrogate</span>}
         </div>
       </div>
-      <p className="text-[9px] font-bold text-slate-500 italic">OI = (FiO₂% × mean airway pressure) ÷ PaO₂. PARDS (PALICC-2): mild 4–8, moderate 8–16, severe ≥ 16. OI ≥ 16–25 despite optimisation → consider HFOV/ECMO.</p>
+      {spo2Unreliable && (
+        <p className="text-[9px] font-bold text-amber-400/80 italic">SpO₂ &gt; 97% is on the flat part of the oxyhemoglobin curve — OSI underestimates severity. Use OI (PaO₂) instead.</p>
+      )}
+      <p className="text-[9px] font-bold text-slate-500 italic">OI = (FiO₂% × MAP) ÷ PaO₂. OSI = (FiO₂% × MAP) ÷ SpO₂ (valid only when SpO₂ ≤ 97%). PARDS OI thresholds (PALICC-2): mild 4–8, mod 8–16, severe ≥ 16. OSI thresholds: mild 5–7.5, mod 7.5–12.3, severe ≥ 12.3.</p>
     </div>
   );
 }

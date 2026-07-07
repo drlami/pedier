@@ -11,10 +11,19 @@ function parseNum(s: string): number | null {
  * Small embeddable arterial MAP and CPP calculator.
  * MAP ≈ DBP + ⅓(SBP − DBP);  CPP = MAP − ICP.
  */
+type AgeGroup = 'infant' | 'child' | 'adolescent';
+
+const CPP_TARGETS: Record<AgeGroup, { min: number; label: string; ref: string }> = {
+  infant:     { min: 40, label: '≥ 40 mmHg (infant < 2 yr)',      ref: 'Pediatric TBI Foundation 2019' },
+  child:      { min: 50, label: '≥ 50 mmHg (child 2–12 yr)',      ref: 'Pediatric TBI Foundation 2019' },
+  adolescent: { min: 60, label: '≥ 60 mmHg (adolescent ≥ 12 yr)', ref: 'Pediatric TBI Foundation 2019' },
+};
+
 export function MapCppCalculator() {
   const [sbp, setSbp] = useState('');
   const [dbp, setDbp] = useState('');
   const [icp, setIcp] = useState('');
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>('child');
 
   const map = useMemo(() => {
     const s = parseNum(sbp), d = parseNum(dbp);
@@ -27,6 +36,9 @@ export function MapCppCalculator() {
     if (map === null || i === null) return null;
     return map - i;
   }, [map, icp]);
+
+  const target = CPP_TARGETS[ageGroup];
+  const cppLow = cpp !== null && cpp < target.min;
 
   const F = ({ label, v, set, ph }: { label: string; v: string; set: (s: string) => void; ph: string }) => (
     <div className="space-y-1">
@@ -45,6 +57,21 @@ export function MapCppCalculator() {
         <div className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400"><Calculator className="h-4 w-4" /></div>
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-400/80">MAP &amp; CPP Calculator</span>
       </div>
+
+      {/* Age group selector */}
+      <div className="space-y-1">
+        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Age group (sets CPP target)</label>
+        <div className="grid grid-cols-3 gap-1.5">
+          {(['infant', 'child', 'adolescent'] as AgeGroup[]).map((g) => (
+            <button key={g} onClick={() => setAgeGroup(g)}
+              className={cn('py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border-2 transition-all',
+                ageGroup === g ? 'bg-violet-500/20 border-violet-500 text-violet-200' : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700')}>
+              {g === 'infant' ? '< 2 yr' : g === 'child' ? '2–12 yr' : '≥ 12 yr'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-3">
         <F label="Systolic (SBP)" v={sbp} set={setSbp} ph="100" />
         <F label="Diastolic (DBP)" v={dbp} set={setDbp} ph="60" />
@@ -55,12 +82,13 @@ export function MapCppCalculator() {
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Mean arterial pressure</span>
           <p className="text-2xl font-black tracking-tighter text-violet-300">{map !== null ? map.toFixed(0) : '—'} <span className="text-xs text-slate-600">mmHg</span></p>
         </div>
-        <div className={cn('p-3 bg-slate-900 rounded-2xl border text-center', cpp !== null && cpp < 40 ? 'border-red-700' : 'border-slate-800')}>
+        <div className={cn('p-3 bg-slate-900 rounded-2xl border text-center', cppLow ? 'border-red-700' : 'border-slate-800')}>
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">CPP = MAP − ICP</span>
-          <p className={cn('text-2xl font-black tracking-tighter', cpp !== null && cpp < 40 ? 'text-red-300' : 'text-emerald-300')}>{cpp !== null ? cpp.toFixed(0) : '—'} <span className="text-xs text-slate-600">mmHg</span></p>
+          <p className={cn('text-2xl font-black tracking-tighter', cppLow ? 'text-red-300' : cpp !== null ? 'text-emerald-300' : 'text-slate-600')}>{cpp !== null ? cpp.toFixed(0) : '—'} <span className="text-xs text-slate-600">mmHg</span></p>
+          {cpp !== null && <span className={cn('text-[9px] font-bold', cppLow ? 'text-red-400' : 'text-emerald-400')}>{cppLow ? `BELOW target (${target.min})` : `≥ target (${target.min})`}</span>}
         </div>
       </div>
-      <p className="text-[9px] font-bold text-slate-500 italic">MAP ≈ DBP + ⅓(SBP − DBP). CPP = MAP − ICP; target CPP ≥ 40–50 mmHg (age-dependent). Enter ICP to compute CPP.</p>
+      <p className="text-[9px] font-bold text-slate-500 italic">MAP ≈ DBP + ⅓(SBP − DBP). CPP target: {target.label}. {target.ref}. Enter ICP to compute CPP.</p>
     </div>
   );
 }

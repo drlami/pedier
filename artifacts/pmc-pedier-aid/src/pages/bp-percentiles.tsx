@@ -288,15 +288,22 @@ const INFANT_ACTIONS: Record<InfantSeverity, string> = {
 
 function InfantSection() {
   const [sex, setSex]               = useState<"male" | "female">("male");
-  const [ageMonths, setAgeMonths]   = useState<string>("");
+  const [ageUnit, setAgeUnit]       = useState<"days" | "months">("months");
+  const [ageInput, setAgeInput]     = useState<string>("");
   const [systolic, setSystolic]     = useState<string>("");
   const [diastolic, setDiastolic]   = useState<string>("");
 
-  const mNum = parseFloat(ageMonths);
+  const ageNum = parseFloat(ageInput);
   const sNum = parseFloat(systolic);
   const dNum = parseFloat(diastolic);
 
-  const isAgeValid = !isNaN(mNum) && mNum >= 0 && mNum <= 12;
+  const isAgeValid = ageUnit === "days"
+    ? !isNaN(ageNum) && ageNum >= 0 && ageNum <= 30
+    : !isNaN(ageNum) && ageNum >= 0 && ageNum <= 12;
+
+  // Internal reference lookup always uses fractional months (day of life ÷ 30.4375)
+  const mNum = ageUnit === "days" ? ageNum / 30.4375 : ageNum;
+
   const isBpValid  = isAgeValid && !isNaN(sNum) && sNum > 0 && !isNaN(dNum) && dNum > 0 && sNum > dNum;
 
   const mapCalc = isBpValid ? Math.round(dNum + (sNum - dNum) / 3) : null;
@@ -317,9 +324,11 @@ function InfantSection() {
   const cfg = classification ? INFANT_CONFIG[classification] : null;
 
   const ageLabel = isAgeValid
-    ? mNum < 1
-      ? `${Math.round(mNum * 4.33)} wk${Math.round(mNum * 4.33) !== 1 ? "s" : ""}`
-      : `${mNum % 1 === 0 ? mNum : mNum.toFixed(1)} mo`
+    ? ageUnit === "days"
+      ? `${ageNum} day${ageNum !== 1 ? "s" : ""} old`
+      : mNum < 1
+        ? `${Math.round(mNum * 4.33)} wk${Math.round(mNum * 4.33) !== 1 ? "s" : ""}`
+        : `${mNum % 1 === 0 ? mNum : mNum.toFixed(1)} mo`
     : "?";
 
   return (
@@ -345,12 +354,39 @@ function InfantSection() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground">Age (Months)</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Age</Label>
+                <div className="flex rounded-md border border-rose-200 overflow-hidden flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => { setAgeUnit("days"); setAgeInput(""); }}
+                    className={cn(
+                      "px-2 py-0.5 text-[9px] font-black uppercase tracking-wide transition-colors",
+                      ageUnit === "days" ? "bg-rose-600 text-white" : "bg-white text-muted-foreground hover:text-rose-600"
+                    )}
+                  >
+                    Days
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAgeUnit("months"); setAgeInput(""); }}
+                    className={cn(
+                      "px-2 py-0.5 text-[9px] font-black uppercase tracking-wide transition-colors",
+                      ageUnit === "months" ? "bg-rose-600 text-white" : "bg-white text-muted-foreground hover:text-rose-600"
+                    )}
+                  >
+                    Months
+                  </button>
+                </div>
+              </div>
               <Input
-                type="number" inputMode="decimal" placeholder="0–12"
-                value={ageMonths} onChange={e => setAgeMonths(e.target.value)}
-                className={cn(!isAgeValid && ageMonths ? "border-red-300" : "")}
+                type="number" inputMode="decimal" placeholder={ageUnit === "days" ? "0–30" : "0–12"}
+                value={ageInput} onChange={e => setAgeInput(e.target.value)}
+                className={cn(!isAgeValid && ageInput ? "border-red-300" : "")}
               />
+              {ageUnit === "days" && (
+                <p className="text-[9px] text-muted-foreground leading-tight">Day of life 0–30 — for neonates in the first month.</p>
+              )}
             </div>
           </div>
 
@@ -477,7 +513,7 @@ function InfantSection() {
             <HeartPulse className="h-14 w-14 text-rose-200 mb-5" />
             <h3 className="text-lg font-black text-muted-foreground/80 tracking-tight">Term Infant BP</h3>
             <p className="text-muted-foreground font-medium text-sm mt-3 leading-relaxed max-w-[260px]">
-              Enter age in months (0–12) to see normal BP ranges. Add BP values to classify.
+              Enter age in months (0–12), or switch to days for the first month of life, to see normal BP ranges. Add BP values to classify.
             </p>
           </div>
         )}

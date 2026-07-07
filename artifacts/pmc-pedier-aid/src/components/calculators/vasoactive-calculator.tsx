@@ -17,10 +17,10 @@ interface Agent {
 const AGENTS: Agent[] = [
   { name: 'Epinephrine (adrenaline)', min: 0.05, max: 1, unit: 'mcg/kg/min', tags: ['cold'], note: 'First-line cold shock; inotrope + vasoconstrictor as dose rises.' },
   { name: 'Norepinephrine', min: 0.05, max: 1, unit: 'mcg/kg/min', tags: ['warm'], note: 'First-line warm/vasodilated shock — restores SVR.' },
-  { name: 'Dopamine', min: 5, max: 20, unit: 'mcg/kg/min', tags: ['cold', 'warm'], note: 'Alternative when epi/norepi unavailable; less preferred.' },
-  { name: 'Dobutamine', min: 5, max: 20, unit: 'mcg/kg/min', tags: ['cardiogenic', 'cold'], note: 'Inotrope for poor contractility with adequate BP.' },
-  { name: 'Milrinone', min: 0.25, max: 0.75, unit: 'mcg/kg/min', tags: ['cardiogenic'], note: 'Inodilator — improves CO; can drop SVR/BP. Caution in renal impairment.' },
-  { name: 'Vasopressin', min: 0.17, max: 0.83, unit: 'mU/kg/min', tags: ['warm'], note: 'Catecholamine-resistant vasodilatory shock (adjunct).' },
+  { name: 'Dopamine', min: 5, max: 20, unit: 'mcg/kg/min', tags: ['cold', 'warm'], note: 'Dose-dependent: 2–5 dopaminergic (renal) · 5–10 β-adrenergic (inotrope) · > 10 α-adrenergic (vasoconstriction). Alternative when epi/norepi unavailable; less preferred (SSC 2020).' },
+  { name: 'Dobutamine', min: 5, max: 20, unit: 'mcg/kg/min', tags: ['cardiogenic', 'cold'], note: 'Inotrope for poor contractility with adequate BP. May cause tachycardia and vasodilation at higher doses.' },
+  { name: 'Milrinone', min: 0.25, max: 0.75, unit: 'mcg/kg/min', tags: ['cardiogenic'], note: 'Inodilator — improves CO and reduces SVR/PVR. Optional loading dose: 50 mcg/kg IV over 60 min (omit if hypotensive). Caution in renal impairment (renally excreted — reduce infusion rate).' },
+  { name: 'Vasopressin', min: 0.17, max: 0.83, unit: 'mU/kg/min ⚠ MILLIUNITS', tags: ['warm'], note: 'Catecholamine-resistant vasodilatory shock (adjunct). UNITS: mU/kg/min (milliunits) — NOT mcg/kg/min. Confirm unit with pharmacy before preparing.' },
 ];
 
 /**
@@ -59,12 +59,15 @@ export function VasoactiveCalculator({ weight }: { weight?: number }) {
       </div>
 
       {/* FLUID BOLUS */}
-      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Droplet className="h-4 w-4 text-cyan-400" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluid bolus (reassess after each)</span>
+      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Droplet className="h-4 w-4 text-cyan-400" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fluid bolus — reassess after each 10 mL/kg</span>
+          </div>
+          <span className="text-xl font-black text-cyan-300">10 mL/kg → {(10 * w).toFixed(0)} mL</span>
         </div>
-        <span className="text-xl font-black text-cyan-300">{(10 * w).toFixed(0)}–{(20 * w).toFixed(0)} mL <span className="text-[10px] text-slate-500">(10–20 mL/kg)</span></span>
+        <p className="text-[9px] font-bold text-amber-400/80 italic">SSC Pediatric 2020 / FEAST trial: reassess after every 10 mL/kg (signs of fluid overload, hepatomegaly, crepitations). Avoid cumulative bolus &gt; 40–60 mL/kg ({(40 * w).toFixed(0)}–{(60 * w).toFixed(0)} mL) without vasopressor support. Start vasoactives early — do not rely on fluids alone.</p>
       </div>
 
       {/* SHOCK TYPE */}
@@ -114,11 +117,11 @@ export function VasoactiveCalculator({ weight }: { weight?: number }) {
         })}
       </div>
 
-      {/* RULE OF 6 PREP HELPER */}
+      {/* INFUSION PREP */}
       <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-3">
         <div className="flex items-center gap-2">
           <Info className="h-4 w-4 text-violet-400" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Infusion prep — "rule of 6" (weight-based bag)</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Infusion prep — weight-based reference (verify vs local policy)</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 bg-slate-950/60 rounded-xl space-y-1">
@@ -132,8 +135,8 @@ export function VasoactiveCalculator({ weight }: { weight?: number }) {
             <p className="text-[10px] font-bold text-slate-500">→ 1 mL/hr = 1 mcg/kg/min</p>
           </div>
         </div>
-        <p className="text-[10px] font-bold text-amber-400/80 italic">
-          Weight-based concentrations are one option; many units use ISMP standard concentrations. Always verify against local policy and double-check with a second nurse.
+        <p className="text-[10px] font-bold text-red-400/80 italic">
+          ⚠ ISMP advises against weight-based "Rule of 6" concentrations — standardised concentrations (e.g. adrenaline 0.1 mg/mL or local formulary standard) reduce dosing errors. Always verify against local pharmacy/formulary policy and double-check with a second nurse.
         </p>
       </div>
     </div>

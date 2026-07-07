@@ -52,21 +52,24 @@ export const calculateParklandResuscitation = (weightKg: number, bsaBurned: numb
 
 /**
  * Corrected Sodium for Hyperglycemia
+ * Uses 2.4 mEq/L correction factor per Hillier et al. 1999 (more accurate than the
+ * historical 1.6 factor, especially at glucose > 400 mg/dL).
  * @param measuredSodium in mEq/L
  * @param glucose in mg/dL
  * @returns Corrected Sodium
  */
 export const calculateCorrectedSodium = (measuredSodium: number, glucose: number): number => {
   if (glucose < 100) return measuredSodium;
-  return measuredSodium + 1.6 * ((glucose - 100) / 100);
+  return measuredSodium + 2.4 * ((glucose - 100) / 100);
 };
 
 /**
  * Estimated Blood Volume (EBV) by age
+ * @param isPreterm true for preterm neonates (< 37 weeks GA) — EBV is higher (~100–110 mL/kg)
  */
-export const calculateEBV = (weightKg: number, ageMonths: number): number => {
+export const calculateEBV = (weightKg: number, ageMonths: number, isPreterm = false): number => {
   let multiplier = 75; // Child/Adult default
-  if (ageMonths <= 1) multiplier = 90; // Neonate
+  if (ageMonths <= 1) multiplier = isPreterm ? 100 : 90; // Preterm neonate vs term neonate
   else if (ageMonths <= 12) multiplier = 80; // Infant
   return weightKg * multiplier;
 };
@@ -95,13 +98,32 @@ export const calculateSodiumDeficit = (weightKg: number, measuredNa: number, tar
 
 /**
  * Free Water Deficit (for Hypernatremia)
+ * TBW fraction is age- and sex-dependent:
+ *   Infants (< 12 months): 0.75–0.80 (high body water)
+ *   Children (1–12 yr): 0.65 male / 0.60 female
+ *   Adolescents / adults: 0.60 male / 0.50 female
  * @param weightKg Patient weight
  * @param measuredNa Current serum sodium
+ * @param ageMonths Patient age in months (default assumes child ~0.60)
+ * @param sex 'male' | 'female' (default 'male')
  * @returns mL of free water needed
  */
-export const calculateFreeWaterDeficit = (weightKg: number, measuredNa: number): number => {
+export const calculateFreeWaterDeficit = (
+  weightKg: number,
+  measuredNa: number,
+  ageMonths = 60,
+  sex: 'male' | 'female' = 'male'
+): number => {
   if (measuredNa <= 145) return 0;
-  return weightKg * 0.6 * (1 - (145 / measuredNa)) * 1000;
+  let tbwFraction: number;
+  if (ageMonths < 12) {
+    tbwFraction = 0.75;
+  } else if (ageMonths < 144) {
+    tbwFraction = sex === 'male' ? 0.65 : 0.60;
+  } else {
+    tbwFraction = sex === 'male' ? 0.60 : 0.50;
+  }
+  return weightKg * tbwFraction * (1 - (145 / measuredNa)) * 1000;
 };
 
 /**
@@ -115,15 +137,24 @@ export const calculateBSA = (weightKg: number, heightCm: number): number => {
 };
 
 /**
- * Corrected QT Interval (Bazett Formula)
- * @param qtMs QT interval in milliseconds
- * @param rrMs RR interval in milliseconds
- * @returns QTc in milliseconds
+ * Corrected QT Interval — Bazett Formula
+ * QTc = QT / √RR (RR in seconds). Overcorrects at fast HR; use Fridericia for tachycardia.
  */
 export const calculateQTc = (qtMs: number, rrMs: number): number => {
   if (rrMs <= 0) return 0;
   const rrSec = rrMs / 1000;
   return qtMs / Math.sqrt(rrSec);
+};
+
+/**
+ * Corrected QT Interval — Fridericia Formula
+ * QTc = QT / RR^(1/3). More accurate at extremes of heart rate; preferred in tachycardic
+ * or bradycardic patients (HR < 60 or > 100 bpm).
+ */
+export const calculateQTcFridericia = (qtMs: number, rrMs: number): number => {
+  if (rrMs <= 0) return 0;
+  const rrSec = rrMs / 1000;
+  return qtMs / Math.cbrt(rrSec);
 };
 
 /**

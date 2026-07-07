@@ -376,7 +376,7 @@ export function assessOxygenation(inputs: MVInputs): MVOxygenationResult {
   if (inputs.pip !== null && inputs.peep !== null) {
     dp = parseFloat((inputs.pip - inputs.peep).toFixed(1));
     if (dp < 15)      { dpSeverity = "ok";      dpMessage = "Acceptable (< 15 cmH₂O)"; }
-    else if (dp <= 20) { dpSeverity = "concern"; dpMessage = "INCREASED CONCERN — consider reducing PEEP or Pplat"; }
+    else if (dp <= 20) { dpSeverity = "concern"; dpMessage = "ELEVATED — target ΔP < 15 cmH₂O; titrate PEEP or reduce Pplat to lower driving pressure"; }
     else              { dpSeverity = "danger";   dpMessage = "HIGH VILI RISK — Reduce PEEP or Pplat. Senior review."; }
 
     if (dpSeverity === "danger") {

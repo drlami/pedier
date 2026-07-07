@@ -83,20 +83,20 @@ function getInterpretation(total: number): {
       label: 'Mild Distress',
       color: 'text-yellow-400',
       bar: 'bg-yellow-400',
-      action: 'Supplemental O₂. Consider nasal CPAP. Reassess every 30–60 min.',
+      action: 'Supplemental O₂ (target SpO₂ 91–95% if preterm, 94–98% if term). Consider nasal CPAP 5–8 cmH₂O. Reassess every 30–60 min.',
     };
   if (total <= 6)
     return {
       label: 'Moderate Distress',
       color: 'text-orange-400',
       bar: 'bg-orange-400',
-      action: 'CPAP / HFNC. FiO₂ titration. Obtain blood gas. Senior review.',
+      action: 'CPAP 5–8 cmH₂O or HFNC. Titrate FiO₂ to SpO₂ target. Obtain blood gas. Reassess every 15–30 min. Senior review.',
     };
   return {
     label: 'Severe Distress',
     color: 'text-red-400',
     bar: 'bg-red-500',
-    action: 'High risk of respiratory failure. Escalate support: CPAP → intubation. Consider surfactant. Immediate consultant review.',
+    action: 'High risk of respiratory failure. Escalate: CPAP → intubation. Consider surfactant (if < 32 weeks GA and FiO₂ ≥ 0.30, or any GA with FiO₂ ≥ 0.40 on CPAP). Reassess every 10–15 min. Immediate consultant review.',
   };
 }
 
@@ -186,6 +186,13 @@ export function SilvermanAndersenCalculator() {
           {answeredCount} / {CRITERIA.length} criteria selected
         </p>
       )}
+
+      {/* Clinical key */}
+      <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800 text-[9px] font-bold text-slate-400 space-y-1">
+        <p>SpO₂ targets: preterm (&lt; 37 wk) 91–95% · term 94–98%</p>
+        <p>CPAP starting pressure: 5–8 cmH₂O (increase by 1–2 cmH₂O if persisting distress)</p>
+        <p>Surfactant: strongly consider if &lt; 32 wk and FiO₂ ≥ 0.30 within 2 h of birth, or any GA on CPAP with FiO₂ ≥ 0.40 (ILCOR / Vermont Oxford Network)</p>
+      </div>
 
       {/* Legend */}
       <div className="grid grid-cols-4 gap-2 pt-1 border-t border-slate-800">

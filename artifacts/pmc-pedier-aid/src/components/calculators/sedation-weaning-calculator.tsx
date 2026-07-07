@@ -25,17 +25,20 @@ const AGENTS: AgentDose[] = [
   { name: "Clonidine", cls: "Alpha-2 agonist (adjunct)", bolus: (w) => `${(1 * w).toFixed(0)}–${(5 * w).toFixed(0)} mcg/dose q6–8h (1–5 mcg/kg)`, use: "Opioid-sparing adjunct; helps withdrawal. Monitor HR/BP; wean slowly to avoid rebound hypertension." },
 ];
 
-const BANDS: Record<Band, { label: string; risk: string; perDay: number; days: string; tone: string }> = {
-  lt5: { label: "< 5 days", risk: "Low risk", perDay: 50, days: "stop or wean over 24–48 h", tone: "text-emerald-300 border-emerald-600 bg-emerald-500/10" },
-  "5to7": { label: "5–7 days", risk: "Moderate risk", perDay: 15, days: "~5–7 days", tone: "text-amber-300 border-amber-600 bg-amber-500/10" },
-  "7to14": { label: "7–14 days", risk: "High risk", perDay: 10, days: "~10 days", tone: "text-orange-300 border-orange-600 bg-orange-500/10" },
-  gt14: { label: "> 14 days", risk: "Very high risk", perDay: 7, days: "2+ weeks, slow", tone: "text-red-300 border-red-600 bg-red-500/10" },
+// Front-loaded taper: larger reductions early, slower at the end (last 20–30% of dose).
+// earlyPct = reduction per day for the first ~70% of dose
+// latePct  = reduction per day for the final 30% (slower to prevent rebound)
+const BANDS: Record<Band, { label: string; risk: string; perDay: number; earlyPct: number; latePct: number; days: string; tone: string }> = {
+  lt5:   { label: "< 5 days",  risk: "Low risk",       perDay: 50, earlyPct: 50, latePct: 50, days: "stop or wean over 24–48 h",         tone: "text-emerald-300 border-emerald-600 bg-emerald-500/10" },
+  "5to7":{ label: "5–7 days",  risk: "Moderate risk",  perDay: 15, earlyPct: 20, latePct: 10, days: "~7–10 days (front-loaded)",          tone: "text-amber-300 border-amber-600 bg-amber-500/10" },
+  "7to14":{ label: "7–14 days",risk: "High risk",       perDay: 10, earlyPct: 15, latePct: 7,  days: "~12–14 days (front-loaded)",         tone: "text-orange-300 border-orange-600 bg-orange-500/10" },
+  gt14:  { label: "> 14 days", risk: "Very high risk",  perDay: 7,  earlyPct: 10, latePct: 5,  days: "3+ weeks, front-loaded",             tone: "text-red-300 border-red-600 bg-red-500/10" },
 };
 
 const CONVERSION: Record<DrugClass, string> = {
-  opioid: "Convert to enteral methadone (≈0.1 mg/kg/dose q6–12h, then wean) or oral morphine for long exposures; clonidine/dexmedetomidine as adjuncts.",
-  benzo: "Convert to enteral lorazepam or diazepam to facilitate weaning; add clonidine/dexmedetomidine; minimise as deliriogenic.",
-  alpha2: "Wean clonidine/dexmedetomidine slowly — abrupt stop causes rebound hypertension and tachycardia.",
+  opioid: "IV fentanyl → oral morphine: IV fentanyl 1 mcg/hr ≈ oral morphine 0.3 mg/hr (approx). IV morphine → oral morphine: multiply by 3 (oral bioavailability ~33%). For enteral methadone conversion: use total MME to calculate starting dose (~0.1 mg/kg/dose q6–12h for moderate exposure); methadone has very long half-life — wean cautiously over weeks. Add clonidine as opioid-sparing adjunct.",
+  benzo: "Convert to enteral lorazepam (oral bioavailability ~85–90%; 1:1 IV:PO dose generally appropriate) or diazepam for very long exposures. Add clonidine or dexmedetomidine as adjuncts. Minimise duration of benzodiazepines — major driver of PICU delirium.",
+  alpha2: "Clonidine oral bioavailability ~85% (IV dose ≈ PO dose). Wean slowly — abrupt stop causes rebound hypertension and tachycardia. Dexmedetomidine: transition to PO clonidine before discontinuing, then wean clonidine. Monitor HR/BP for 24–48 h after each dose reduction.",
 };
 
 /**
@@ -59,8 +62,23 @@ export function SedationWeaningCalculator({ weight }: { weight?: number }) {
   const b = BANDS[band];
   const cur = parseFloat(current);
   const hasCur = !isNaN(cur) && cur > 0;
-  const dailyStep = hasCur ? (cur * b.perDay) / 100 : null;
-  const numSteps = Math.ceil(100 / b.perDay);
+
+  // Front-loaded taper: higher reduction steps early, smaller steps for last 30% of dose
+  const taperSchedule = hasCur
+    ? (() => {
+        const threshold = cur * 0.30; // bottom 30% gets the slower late rate
+        const days: number[] = [];
+        let dose = cur;
+        for (let i = 0; i < 14 && dose > 0.01; i++) {
+          const pct = dose > threshold ? b.earlyPct : b.latePct;
+          const step = (dose * pct) / 100;
+          dose = Math.max(dose - step, 0);
+          days.push(dose);
+        }
+        return days.slice(0, 10);
+      })()
+    : null;
+
   const unitLabel = cls === "opioid" ? "mcg/kg/h (or mg/h)" : cls === "benzo" ? "mg/h (or mcg/kg/min)" : "mcg/kg/h";
 
   return (
@@ -144,8 +162,8 @@ export function SedationWeaningCalculator({ weight }: { weight?: number }) {
           {/* WEAN RATE RESULT */}
           <div className={cn("p-5 rounded-[24px] border-2 text-center space-y-1", b.tone)}>
             <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{b.risk} · recommended wean</span>
-            <p className="text-3xl font-black tracking-tighter">{b.perDay === 50 ? "Stop / 24–48 h" : `~${b.perDay}% / day`}</p>
-            <p className="text-[10px] font-bold opacity-70">Approx. {b.days} · monitor WAT-1 (withdrawal) {cls !== "opioid" && cls !== "benzo" ? "& BP/HR" : ""}</p>
+            <p className="text-3xl font-black tracking-tighter">{b.perDay === 50 ? "Stop / 24–48 h" : `~${b.earlyPct}%→${b.latePct}% / day`}</p>
+            <p className="text-[10px] font-bold opacity-70">Approx. {b.days} · front-loaded (faster at start, slower at end)</p>
           </div>
 
           {/* CURRENT DOSE → SCHEDULE */}
@@ -153,23 +171,20 @@ export function SedationWeaningCalculator({ weight }: { weight?: number }) {
             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Current dose/rate ({unitLabel}) — optional</label>
             <Input type="number" inputMode="decimal" placeholder="e.g. 40" value={current} onChange={(e) => setCurrent(e.target.value)}
               className="bg-slate-900 border-slate-800 text-white rounded-xl font-black h-11" />
-            {hasCur && dailyStep !== null && (
+            {hasCur && taperSchedule !== null && (
               <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-violet-300">
-                  <TrendingDown className="h-3.5 w-3.5" /> Reduce by ~{dailyStep.toFixed(1)} per day ({b.perDay}% of starting dose)
+                  <TrendingDown className="h-3.5 w-3.5" /> Front-loaded taper ({b.earlyPct}% → {b.latePct}% per day in final 30%)
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                  {Array.from({ length: Math.min(numSteps, 8) }).map((_, i) => {
-                    const val = Math.max(cur - dailyStep * (i + 1), 0);
-                    return (
-                      <div key={i} className="p-2 bg-slate-950/60 rounded-lg text-center">
-                        <span className="text-[8px] font-black text-slate-500 uppercase">Day {i + 1}</span>
-                        <p className="text-xs font-black text-white">{val.toFixed(1)}</p>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                  {taperSchedule.map((val, i) => (
+                    <div key={i} className="p-2 bg-slate-950/60 rounded-lg text-center">
+                      <span className="text-[8px] font-black text-slate-500 uppercase">Day {i + 1}</span>
+                      <p className="text-xs font-black text-white">{val.toFixed(1)}</p>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-[9px] font-bold text-slate-500 italic">Linear taper of the starting dose; slow down or pause if WAT-1 rises. Round to practical increments.</p>
+                <p className="text-[9px] font-bold text-amber-300/80 italic">WAT-1 ≥ 3 on 2 consecutive shifts → pause or step back one level. WAT-1 ≥ 5 → step back and reassess. Round to practical increments.</p>
               </div>
             )}
           </div>
@@ -182,7 +197,7 @@ export function SedationWeaningCalculator({ weight }: { weight?: number }) {
           <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 space-y-2">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-300"><Clock className="h-3.5 w-3.5" /> Monitoring</div>
             <p className="text-sm font-bold text-slate-300 leading-snug">
-              Score WAT-1 each shift (withdrawal) and CAPD (delirium). If WAT-1 rises during the wean, slow the taper or step back one level; treat delirium non-pharmacologically and minimise benzodiazepines. {cls === "alpha2" && "Monitor HR/BP for rebound hypertension."}
+              Score WAT-1 each shift (withdrawal) and CAPD (delirium). WAT-1 ≥ 3 on 2 consecutive shifts → pause or slow taper. WAT-1 ≥ 5 → step back one level and reassess. Treat delirium non-pharmacologically first; minimise benzodiazepines. {cls === "alpha2" && "Monitor HR/BP every 4–6 h after dose reductions — rebound hypertension can occur within hours of alpha-2 reduction."}
             </p>
           </div>
         </div>

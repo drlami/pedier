@@ -5,11 +5,13 @@ import { Badge } from '@/components/ui/badge';
 
 type KLevel = 'low' | 'normal' | 'high';
 type Deficit = 5 | 7 | 10;
+type HaemoStatus = 'stable' | 'mild-shock' | 'severe-shock';
 
 function dailyMaintenance(w: number): number {
   if (w <= 10) return 100 * w;
   if (w <= 20) return 1000 + 50 * (w - 10);
-  return Math.min(1500 + 20 * (w - 20), 2400); // cap ~2.4 L/day
+  // Cap at 3 L/day for larger adolescents per ISPAD 2022 (previously 2.4 L)
+  return Math.min(1500 + 20 * (w - 20), 3000);
 }
 
 function TitrationRow({ label, b1, b2, total }: { label: string; b1: number; b2: number; total: number }) {
@@ -30,6 +32,7 @@ function TitrationRow({ label, b1, b2, total }: { label: string; b1: number; b2:
 export function PicuDkaCalculator({ weight }: { weight?: number }) {
   const [kLevel, setKLevel] = useState<KLevel>('normal');
   const [deficit, setDeficit] = useState<Deficit>(7);
+  const [haemo, setHaemo] = useState<HaemoStatus>('stable');
 
   if (!weight) {
     return (
@@ -40,7 +43,11 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
   }
 
   const w = weight;
-  const bolus = 10 * w; // 10 mL/kg 0.9% saline
+  // ISPAD 2022: routine fluid boluses are NOT recommended in haemodynamically stable DKA
+  // (prior concern that large early boluses increase cerebral oedema risk).
+  // Give only if shocked: 5–10 mL/kg (mild) or 10–20 mL/kg (severe/circulatory failure).
+  const bolusMin = haemo === 'stable' ? 0 : haemo === 'mild-shock' ? 5 * w : 10 * w;
+  const bolusMax = haemo === 'stable' ? 0 : haemo === 'mild-shock' ? 10 * w : 20 * w;
   const deficitVol = deficit * w * 10; // % × 10 mL/kg
   const maint = dailyMaintenance(w);
   // ISPAD: deficit + maintenance evenly over 48 h (boluses generally not subtracted if ≤ 20 mL/kg)
@@ -85,6 +92,26 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
       {/* INPUTS */}
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
+          <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Haemodynamic status (ISPAD 2022 bolus guide)</label>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { v: 'stable',      label: 'Stable',       sub: 'no bolus' },
+              { v: 'mild-shock',  label: 'Mild shock',   sub: '5–10 mL/kg' },
+              { v: 'severe-shock',label: 'Severe shock', sub: '10–20 mL/kg' },
+            ] as { v: HaemoStatus; label: string; sub: string }[]).map(({ v, label, sub }) => (
+              <button key={v} onClick={() => setHaemo(v)}
+                className={cn('py-2.5 rounded-xl text-[10px] font-black transition-all border-2 flex flex-col items-center gap-0.5',
+                  haemo === v
+                    ? (v === 'severe-shock' ? 'bg-red-500/20 border-red-500 text-red-300' : v === 'mild-shock' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-emerald-500/20 border-emerald-500 text-emerald-300')
+                    : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700')}>
+                {label}
+                <span className="text-[8px] opacity-70">{sub}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-[9px] font-bold text-slate-500 italic px-1">ISPAD 2022: no routine bolus in stable DKA. Give 0.9% saline only if haemodynamically compromised.</p>
+        </div>
+        <div className="space-y-2">
           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Estimated dehydration (deficit)</label>
           <div className="grid grid-cols-3 gap-2">
             {([5, 7, 10] as Deficit[]).map((d) => (
@@ -113,12 +140,17 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
       </div>
 
       {/* STEP 1: RESUS BOLUS */}
-      <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-between">
+      <div className={cn('p-4 rounded-2xl border flex items-center justify-between', haemo === 'stable' ? 'bg-slate-900/60 border-slate-700' : 'bg-slate-900 border-cyan-800')}>
         <div className="flex items-center gap-2">
-          <Droplet className="h-4 w-4 text-cyan-400" />
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">1 · Initial bolus (0.9% saline)</span>
+          <Droplet className={cn('h-4 w-4', haemo === 'stable' ? 'text-slate-500' : 'text-cyan-400')} />
+          <div>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">1 · Initial bolus (0.9% saline)</span>
+            {haemo === 'stable' && <span className="text-[9px] font-bold text-slate-500 italic">ISPAD 2022: omit bolus if haemodynamically stable</span>}
+          </div>
         </div>
-        <span className="text-xl font-black text-cyan-300">{bolus.toFixed(0)} mL <span className="text-[10px] text-slate-500">(10 mL/kg)</span></span>
+        {haemo === 'stable'
+          ? <span className="text-lg font-black text-slate-500">No bolus</span>
+          : <span className="text-xl font-black text-cyan-300">{bolusMin.toFixed(0)}–{bolusMax.toFixed(0)} mL <span className="text-[10px] text-slate-500">({haemo === 'mild-shock' ? '5–10' : '10–20'} mL/kg)</span></span>}
       </div>
 
       {/* STEP 2: TOTAL RATE */}
@@ -166,6 +198,7 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
         <TitrationRow label="Glucose 150–200 mg/dL" b1={25} b2={75} total={totalRate} />
         <TitrationRow label="Glucose < 150 mg/dL" b1={0} b2={100} total={totalRate} />
         <p className="text-[10px] font-bold text-amber-400/80 italic pt-1">If glucose still &lt; 150 on 100% Bag 2, increase dextrose to 12.5% — DO NOT stop insulin.</p>
+        <p className="text-[10px] font-bold text-blue-300/80 italic pt-1">Target glucose fall rate: 2–3 mmol/L/hr (36–54 mg/dL/hr). Faster fall may increase cerebral oedema risk — do not chase rapid normalisation.</p>
       </div>
 
       {/* STEP 5: INSULIN */}
@@ -178,6 +211,7 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
           <p className="text-[10px] font-black text-violet-300 uppercase tracking-widest">Prepare</p>
           <p className="text-sm font-bold text-white">50 units regular (soluble) insulin in 50 mL 0.9% NaCl → <span className="text-violet-300">1 unit/mL</span> (so mL/hr = units/hr).</p>
           <p className="text-[10px] font-bold text-slate-400 italic">No insulin bolus. Continue until ketoacidosis resolves (pH &gt; 7.3, HCO₃ &gt; 15, ketones &lt; 0.6), not just normal glucose.</p>
+          <p className="text-[10px] font-bold text-amber-300/80 italic mt-1">Check phosphate at 4–6 h: severe hypophosphataemia can develop during insulin infusion (ISPAD 2022). Replace if symptomatic or &lt; 0.5 mmol/L.</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center space-y-1">
@@ -200,16 +234,18 @@ export function PicuDkaCalculator({ weight }: { weight?: number }) {
           <span className="text-[10px] font-black text-red-300 uppercase tracking-widest">Cerebral edema — rescue doses</span>
         </div>
         <div className="grid grid-cols-2 gap-3 text-center">
-          <div className="p-3 bg-slate-900 rounded-xl border border-red-900/40">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">3% saline (2.5–5 mL/kg)</span>
+          <div className="p-3 bg-red-950/60 rounded-xl border-2 border-red-600">
+            <span className="text-[9px] font-black text-red-400 uppercase tracking-widest">FIRST-LINE · 3% saline (2.5–5 mL/kg)</span>
             <p className="text-lg font-black text-red-300">{(2.5 * w).toFixed(0)}–{(5 * w).toFixed(0)} mL</p>
+            <span className="text-[8px] text-red-400/70">IV over 10–15 min · ISPAD 2022</span>
           </div>
           <div className="p-3 bg-slate-900 rounded-xl border border-red-900/40">
-            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Mannitol (0.5–1 g/kg)</span>
-            <p className="text-lg font-black text-red-300">{(0.5 * w).toFixed(1)}–{(1 * w).toFixed(1)} g</p>
+            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Alternative · Mannitol (0.5–1 g/kg)</span>
+            <p className="text-lg font-black text-slate-300">{(0.5 * w).toFixed(1)}–{(1 * w).toFixed(1)} g</p>
+            <span className="text-[8px] text-slate-500">if 3% saline unavailable</span>
           </div>
         </div>
-        <p className="text-[10px] font-bold text-red-300/80 italic">Headache, ↓GCS, bradycardia/↑BP, irritability → reduce fluid rate, give hyperosmolar therapy, head up 30°, urgent CT after stabilising.</p>
+        <p className="text-[10px] font-bold text-red-300/80 italic">Headache, ↓GCS, bradycardia/↑BP, irritability → reduce fluid rate, give 3% saline (first-line), head up 30°, urgent CT after stabilising. Do not delay treatment for imaging.</p>
       </div>
     </div>
   );

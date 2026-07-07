@@ -19,7 +19,7 @@ interface Scale {
 const FLACC: Scale = {
   key: "flacc",
   name: "FLACC",
-  subtitle: "Pain — Face, Legs, Activity, Cry, Consolability",
+  subtitle: "Pain — Face, Legs, Activity, Cry, Consolability (validated 2 months – 7 years)",
   max: 10,
   items: [
     { label: "Face", options: [{ label: "No particular expression / smile", value: 0 }, { label: "Occasional grimace/frown, withdrawn", value: 1 }, { label: "Frequent/constant frown, clenched jaw", value: 2 }] },
@@ -29,7 +29,7 @@ const FLACC: Scale = {
     { label: "Consolability", options: [{ label: "Content, relaxed", value: 0 }, { label: "Reassured by touch/voice, distractible", value: 1 }, { label: "Difficult to console", value: 2 }] },
   ],
   interpret: (t) => (t === 0 ? { label: "Relaxed / comfortable", tone: "text-emerald-300" } : t <= 3 ? { label: "Mild discomfort", tone: "text-emerald-300" } : t <= 6 ? { label: "Moderate pain", tone: "text-amber-300" } : { label: "Severe pain", tone: "text-red-300" }),
-  note: "0 relaxed · 1–3 mild · 4–6 moderate · 7–10 severe. Treat pain before deepening sedation.",
+  note: "0 relaxed · 1–3 mild · 4–6 moderate · 7–10 severe. Treat pain before deepening sedation. For children > 7 yr or verbal patients, use a numeric rating scale instead.",
 };
 
 const COMFORT_B: Scale = {
@@ -45,8 +45,8 @@ const COMFORT_B: Scale = {
     { label: "Muscle tone", options: [{ label: "Fully relaxed", value: 1 }, { label: "Reduced", value: 2 }, { label: "Normal", value: 3 }, { label: "Increased / flexion", value: 4 }, { label: "Extreme rigidity", value: 5 }] },
     { label: "Facial tension", options: [{ label: "Fully relaxed", value: 1 }, { label: "Normal tone", value: 2 }, { label: "Some tension", value: 3 }, { label: "Full tension throughout", value: 4 }, { label: "Grimacing", value: 5 }] },
   ],
-  interpret: (t) => (t < 11 ? { label: "Over-sedated", tone: "text-blue-300" } : t <= 23 ? { label: "Adequate sedation", tone: "text-emerald-300" } : { label: "Under-sedated / distress", tone: "text-red-300" }),
-  note: "Range 6–30. < 11 over-sedated · 11–23 adequate · > 23 under-sedated/distress.",
+  interpret: (t) => (t < 11 ? { label: "Over-sedated", tone: "text-blue-300" } : t <= 23 ? { label: "Adequate sedation (11–23)", tone: "text-emerald-300" } : { label: "Distress or pain (≥ 24) — treat pain first", tone: "text-red-300" }),
+  note: "Range 6–30. < 11 over-sedated · 11–23 adequate · ≥ 24 distress or undertreated pain. Score ≥ 24 does NOT automatically mean 'sedate more' — assess and treat pain before deepening sedation.",
 };
 
 const SBS: Scale = {
@@ -78,8 +78,13 @@ const WAT1: Scale = {
     { label: "Muscle tone (stimulus)", options: [{ label: "Normal", value: 0 }, { label: "Increased", value: 1 }] },
     { label: "Time to regain calm state (post-stimulus)", options: [{ label: "< 2 min", value: 0 }, { label: "2–5 min", value: 1 }, { label: "> 5 min", value: 2 }] },
   ],
-  interpret: (t) => (t < 3 ? { label: "No significant withdrawal", tone: "text-emerald-300" } : { label: "Withdrawal likely (≥ 3) — slow the wean", tone: "text-red-300" }),
-  note: "Range 0–12. ≥ 3 indicates clinically significant iatrogenic withdrawal.",
+  interpret: (t) => (
+    t < 3  ? { label: "Withdrawal unlikely (< 3)", tone: "text-emerald-300" } :
+    t < 5  ? { label: "Possible withdrawal (3–4) — slow the wean", tone: "text-amber-300" } :
+    t < 8  ? { label: "Probable withdrawal (5–7) — hold wean, reassess", tone: "text-orange-300" } :
+             { label: "Severe withdrawal (≥ 8) — step back one taper level", tone: "text-red-300" }
+  ),
+  note: "Range 0–12. Sensitivity of ≥ 3 is ~50% — treat as a gradient, not a binary. Score ≥ 3 on two consecutive shifts → pause or slow taper. Higher scores (≥ 5–8) are more specific for true withdrawal.",
 };
 
 const CAPD: Scale = {
@@ -98,7 +103,7 @@ const CAPD: Scale = {
     { label: "Takes a long time to respond to interactions", options: [{ label: "Never", value: 0 }, { label: "Rarely", value: 1 }, { label: "Sometimes", value: 2 }, { label: "Often", value: 3 }, { label: "Always", value: 4 }] },
   ],
   interpret: (t) => (t < 9 ? { label: "Delirium unlikely", tone: "text-emerald-300" } : { label: "Delirium likely (≥ 9)", tone: "text-red-300" }),
-  note: "Range 0–32. Score ≥ 9 indicates delirium. Assess in context of an adequate sedation state (RASS/SBS ≥ −2).",
+  note: "Range 0–32. Score ≥ 9 indicates delirium. PREREQUISITE: only valid when patient is at adequate sedation (SBS ≥ −2 / RASS ≥ −2). Do not score a deeply sedated patient — result is not interpretable.",
 };
 
 const SCALES: Scale[] = [FLACC, COMFORT_B, SBS, WAT1, CAPD];

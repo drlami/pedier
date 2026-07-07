@@ -173,7 +173,7 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
 
     // Auto-derived age group label
     const agGroupLabel: Record<string, string> = {
-      neonate: 'Neonate (≤ 1 month)',
+      neonate: 'Neonate (< 1 month / ≤ 28 days)',
       inf1: 'Young infant (1–2 months / ~29–60 days)',
       inf2: 'Young infant (2–3 months / ~61–90 days)',
       tod:  'Infant/toddler (3–36 months)',
@@ -665,14 +665,15 @@ export const feverWithoutSourceProtocol: DiseaseProtocol = {
 
     // ── Antibiotics — age-specific ───────────────────────────────────────────
     if (ag === 'neonate') {
-      const ampMg  = Math.min(100 * wt, 2000).toFixed(0);
+      const ampMg  = Math.min(50 * wt, 2000).toFixed(0);
+      const ampMgMening = Math.min(100 * wt, 2000).toFixed(0);
       const gentMg = (4 * wt).toFixed(1);
       const cefotMg= Math.min(50 * wt, 2000).toFixed(0);
       const acycMg = (20 * wt).toFixed(0);
       doses.push({
         drugName: 'Ampicillin (IV) — Neonatal first-line',
-        dose: `${ampMg} mg IV (100 mg/kg) every 12 h (0–7 days) or every 8 h (> 7 days)`,
-        notes: 'Covers Group B Strep + Listeria. Mandatory component of neonatal empiric regimen. Meningitic dosing is HIGHER — up to 300–400 mg/kg/day divided — if CSF suggests meningitis.',
+        dose: `${ampMg} mg IV (50 mg/kg) every 12 h (age 0–7 days) or every 8 h (age > 7 days)`,
+        notes: `Covers Group B Strep + Listeria. Mandatory component of neonatal empiric regimen. If meningitis confirmed on CSF: escalate to ${ampMgMening} mg (100 mg/kg) every 8 h (0–7 days) or every 6 h (> 7 days).`,
       });
       doses.push({
         drugName: 'Gentamicin (IV) — Neonatal partner',
