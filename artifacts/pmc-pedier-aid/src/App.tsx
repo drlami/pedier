@@ -93,6 +93,7 @@ import DiabetesInsulinPage from "@/pages/diabetes-insulin";
 import StressHydrocortisonePage from "@/pages/stress-hydrocortisone";
 import VaccinationSchedulerPage from "@/pages/vaccination-scheduler";
 import AntibioticStewardshipPage from "@/pages/antibiotic-stewardship";
+import GeneticDiseaseScreenerPage from "@/pages/genetic-disease-screener";
 import NotFound from "@/pages/not-found";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -268,6 +269,7 @@ function Router() {
       <Route path="/calculators/stress-hydrocortisone" component={() => <ProtectedRoute component={StressHydrocortisonePage} />} />
       <Route path="/calculators/vaccination-scheduler" component={() => <ProtectedRoute component={VaccinationSchedulerPage} />} />
       <Route path="/calculators/antibiotic-stewardship" component={() => <ProtectedRoute component={AntibioticStewardshipPage} />} />
+      <Route path="/calculators/genetic-disease-screener" component={() => <ProtectedRoute component={GeneticDiseaseScreenerPage} />} />
       <Route path="/calculators" component={() => <ProtectedRoute component={CalculatorsPage} />} />
 
       <Route path="/neonatology/hyperbilirubinemia" component={() => <ProtectedRoute component={HyperbilirubinemiaCal} />} />

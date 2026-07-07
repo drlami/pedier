@@ -4,7 +4,7 @@ import {
   Baby, Thermometer, FlaskConical, Flame, ArrowRight,
   Info, Wind, Stethoscope, TrendingUp, HeartPulse, ShieldAlert, Ruler,
   Clock, Scissors, Scale, Calendar, Pin, PinOff, Pill, Apple, TrendingDown,
-  Heart, Zap, Syringe, X
+  Heart, Zap, Syringe, X, Dna
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -589,6 +589,15 @@ const CALCULATORS: CalcTool[] = [
     category: "Reference", icon: Stethoscope,
     href: "/calculators/vesikari",
     tags: ["gastroenteritis", "diarrhoea", "vomiting", "severity", "vesikari", "dehydration"],
+    isNew: true
+  },
+  {
+    id: "genetic-disease-screener",
+    name: "Genetic Disease Suspicion Score",
+    description: "Major/minor anomaly counting tool with referral and first-tier testing guidance (CMA, karyotype).",
+    category: "Reference", icon: Dna,
+    href: "/calculators/genetic-disease-screener",
+    tags: ["genetics", "dysmorphology", "anomaly", "syndrome", "microarray", "referral"],
     isNew: true
   },
 ];
