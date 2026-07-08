@@ -504,47 +504,60 @@ export const pediatricDrugs: PediatricDrug[] = [
     id: 'vancomycin-child',
     name: 'Vancomycin',
     category: 'Antibiotic',
-    indications: ['Suspected/confirmed MRSA or resistant Gram-positive infection', 'CNS infection, endocarditis, osteomyelitis, septic arthritis (higher target)'],
-    administration: 'IV, infuse over at least 60 minutes to reduce infusion reaction ("red man syndrome") risk.',
-    monitoring: ['Trough level 30 min before the 4th dose (or ~3rd dose in infants with faster elimination)', 'Renal function', 'Hearing with prolonged high-dose therapy'],
-    cautions: [
-      'This entry is for general paediatric (1mo–12y) dosing — see NeoDose for neonatal PMA/PNA-based Vancomycin dosing and its KEMH nomogram',
-      'Infuse over at least 60 minutes — rapid infusion causes "red man syndrome"',
-      'Adjust dose/interval in renal impairment',
+    indications: ['Empiric or directed treatment of MRSA / methicillin-resistant coagulase-negative staphylococci', 'High-risk beta-lactam allergy (alternative agent)', 'Surgical prophylaxis (single dose)'],
+    administration: 'IV. Infuse over at least 60 min for doses <600 mg (10 mg/min for larger doses) to reduce Vancomycin Flushing Syndrome risk. Loading doses are not routinely used in paediatric patients. Surgical prophylaxis: single 15 mg/kg dose (max 750 mg), started within 120 min before incision (ideally ≥15 min before). Alternative regimen if IV access is contested (normal renal function only): 30 mg/kg/dose (max 1.5 g) BID.',
+    monitoring: [
+      'Trough level immediately before the 4th dose (normal renal function) or before the 2nd dose (renal impairment/risk factors) — always with a concurrent serum creatinine',
+      'Repeat trough + creatinine every 2–3 days once stable (normal renal function) or daily if renal impairment/risk factors persist',
+      'FBC at least weekly (more often with renal impairment) — reversible neutropenia reported after >1 week of therapy',
+      'Audiology monitoring if therapy ≥2 weeks, levels >25 mg/L, concurrent ototoxic drugs, or pre-existing hearing loss',
     ],
-    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
-    adultDose: 'General: 15 mg/kg/dose Q8–12h. Severe: 20 mg/kg/dose (max 2g) Q8–12h.',
+    cautions: [
+      'This entry is for age ≥4 weeks — see NeoDose for neonatal PMA/PNA-based Vancomycin dosing',
+      'Never give IM/SC — causes ulceration and necrosis',
+      'Renal impairment risk factors: pre-existing renal impairment, sepsis, vomiting, fasting, dehydration, haemodynamic instability, or concurrent nephrotoxic drugs (piperacillin-tazobactam, furosemide, aciclovir, aminoglycosides, amphotericin, ciclosporin, IV contrast)',
+      'Vancomycin Flushing Syndrome (histamine-mediated, not a true allergy) — slow the infusion (minimum 2h) for future doses; antihistamine pre-treatment may help',
+      'Confirmed invasive MRSA infection: discuss with Infectious Diseases — consider a continuous infusion with AUC-based monitoring instead of standard intermittent dosing',
+      'A formal incident report is required for any level >40 mg/L, or >25 mg/L with renal impairment',
+    ],
+    references: ['Perth Children\'s Hospital ChAMP Vancomycin (IV) Monograph, Dec 2024', 'Rybak et al. 2020 ASHP/IDSA/PIDS/SIDP consensus guideline'],
+    adultDose: 'Similar weight-based dosing, individualised with AUC/trough monitoring.',
     levelGuidance: {
       targetTable: {
-        title: 'Goal trough by indication (assumes MIC ≤ 1 mg/L)',
-        columns: ['Indication', 'Target trough'],
+        title: 'Goal trough level',
+        columns: ['Regimen', 'Target trough'],
         rows: [
-          ['Uncomplicated skin/soft tissue, bacteraemia, febrile neutropenia, sepsis', '10–14 mg/L'],
-          ['CNS infection, endocarditis, pneumonia, osteomyelitis, septic arthritis', '14–17 mg/L'],
+          ['Intermittent infusion (standard)', '5–15 mg/L'],
+          ['Continuous infusion (severe/invasive MRSA) — measured at 24h and 48h after starting', '17–25 mg/L'],
         ],
       },
-      tables: [
+      tables: [],
+      doseAdjustmentTables: [
         {
-          title: 'Peak level targets (selected indications)',
-          columns: ['Indication', 'Target peak'],
+          title: 'Dose adjustment based on trough level (intermittent dosing)',
+          targetRange: 'Target 5–15 mg/L',
           rows: [
-            ['Burns, non-responsive after 72h, persistent positive cultures', '20–50 mg/L'],
-            ['CNS infection', 'Up to 30 mg/L'],
+            { range: '< 5 mg/L', action: 'Increase to 20 mg/kg/dose Q6h (max 80 mg/kg/day or 3 g/day)' },
+            { range: '5 to < 15 mg/L', action: 'No adjustment required' },
+            { range: '15 to < 20 mg/L (normal renal function)', action: 'No adjustment required — repeat trough and creatinine the next day' },
+            { range: '15 to < 20 mg/L (renal impairment)', action: 'WITHHOLD dose. Repeat trough ~8h after the last level. Recommence at a 10–20% dose reduction once trough <15 mg/L.' },
+            { range: '20 to < 25 mg/L', action: 'WITHHOLD dose until level <15 mg/L (unless on a continuous infusion). Repeat trough ~8h after the last level. Recommence at a 20–30% dose reduction.' },
+            { range: '≥ 25 mg/L', action: 'WITHHOLD dose until level <15 mg/L. Investigate the cause and reassess the need for ongoing therapy. Repeat trough 8–16h after the last level. Recommence (if needed) at a 30–50% dose reduction. Submit an incident report for levels >40 mg/L, or >25 mg/L with renal impairment.' },
           ],
         },
       ],
     },
     calculate: (weight) => {
-      const general = weight * 15;
-      const severe = weight * 20;
+      const dose = Math.min(weight * 15, 750);
       return {
-        dosePerKg: 'General infection: 15 mg/kg/dose Q6h | CNS infection/endocarditis/osteomyelitis/pneumonia/septic arthritis: 20 mg/kg/dose Q6h',
-        totalDose: `General: ${general.toFixed(0)} mg/dose | Severe: ${severe.toFixed(0)} mg/dose`,
-        interval: 'Q6h (Q6–8h in adolescents >12y)',
-        route: 'IV (infuse over ≥60 min)',
-        concentration: '0.5–10 g vials for reconstitution',
-        basisNote: 'Age 1 month–12 years',
-        warningNote: 'Modern (2020 IDSA/PIDS/SIDP/ASHP) guidance favours an AUC24/MIC target of 400–600 mg·h/L over trough-only monitoring where available.',
+        dosePerKg: '15 mg/kg/dose (max 750 mg) Q6h — no loading dose routinely used',
+        totalDose: `${dose.toFixed(0)} mg/dose`,
+        interval: 'Q6h',
+        route: 'IV (infuse over ≥60 min; ≥600 mg doses at 10 mg/min)',
+        concentration: '500 mg or 1000 mg vials, reconstituted then diluted to a final concentration of 5 mg/mL (10 mg/mL only if fluid-restricted with a central line in situ)',
+        basisNote: 'Age ≥4 weeks (see NeoDose for neonatal dosing)',
+        maxDose: '750 mg/dose',
+        warningNote: 'Loading doses are not routinely used in paediatric patients. TDM is required before the 2nd dose in patients with renal impairment/risk factors, vs before the 4th dose with normal renal function.',
       };
     },
   },
@@ -1069,6 +1082,86 @@ export const pediatricDrugs: PediatricDrug[] = [
     },
   },
 
+  {
+    id: 'amikacin',
+    name: 'Amikacin',
+    category: 'Antibiotic',
+    indications: ['Gram-negative sepsis (aminoglycoside)', 'Cystic fibrosis pulmonary exacerbation', 'Nontuberculous mycobacterial infection (combination therapy)'],
+    administration: 'IV/IM.',
+    monitoring: ['Peak/trough levels per dosing regimen (see level guidance)', 'Renal function (BUN/creatinine)', 'Hearing/vestibular function with prolonged therapy'],
+    cautions: [
+      'Nephrotoxic and ototoxic — caution with concomitant nephrotoxic/ototoxic drugs',
+      'Adjust dose in renal impairment',
+      'Longer intervals needed with concurrent indomethacin or poor cardiac output',
+      'CNS penetration is poor beyond early infancy',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: '15mg/kg/24h÷Q8-12h; initial max 1.5g/24h, then monitor levels.',
+    levelGuidance: {
+      tables: [
+        {
+          title: 'Therapeutic level targets — conventional (Q8h) dosing',
+          columns: ['Sampling point', 'Target'],
+          rows: [
+            ['Peak (30–60 min after 3rd dose)', '20–30 mg/L (25–30 mg/L for CNS/pulmonary/bone/life-threatening infection, Pseudomonas, febrile neutropenia)'],
+            ['Trough (within 30 min before 3rd dose)', '5–10 mg/L'],
+          ],
+        },
+        {
+          title: 'Therapeutic level targets — extended-interval (Q24h) dosing, e.g. cystic fibrosis',
+          columns: ['Sampling point', 'Target'],
+          rows: [
+            ['Peak', '80–120 mg/L'],
+            ['Trough', '< 10 mg/L'],
+          ],
+        },
+      ],
+    },
+    calculate: (weight) => {
+      const low = weight * 15;
+      const high = weight * 22.5;
+      return {
+        dosePerKg: '15–22.5 mg/kg/24h ÷ Q8h',
+        totalDose: `${(low / 3).toFixed(1)}–${(high / 3).toFixed(1)} mg/dose (${low.toFixed(0)}–${high.toFixed(0)} mg/24h)`,
+        interval: 'Q8h',
+        route: 'IV/IM',
+        concentration: '250 mg/mL injection (may contain sodium bisulfite)',
+        basisNote: 'Standard infant/child dosing',
+        warningNote: 'Cystic fibrosis dosing is higher: 30 mg/kg/24h ÷ Q8h (conventional) or 30–35 mg/kg/24h once daily (extended-interval).',
+      };
+    },
+  },
+  {
+    id: 'cefepime',
+    name: 'Cefepime',
+    category: 'Antibiotic',
+    indications: ['Febrile neutropenia (empiric)', 'Pseudomonas / resistant gram-negative infection', 'Meningitis (susceptible organisms)', 'Cystic fibrosis pulmonary exacerbation'],
+    administration: 'IV/IM.',
+    monitoring: ['Renal function (critical — neurotoxicity risk if underdosed for renal impairment)', 'LFTs', 'Clinical/microbiological response'],
+    cautions: [
+      'Neurotoxicity risk (encephalopathy, myoclonus, seizures) with inadequate renal dose adjustment',
+      'Caution in penicillin allergy',
+      'Cystic fibrosis dosing: 150 mg/kg/24h ÷ Q8h (max 6g/24h), up to 200 mg/kg/24h ÷ Q6h (max 8g/24h) for resistant Pseudomonas',
+      'False-positive urine glucose with Clinitest/Benedict\'s/Fehling\'s — use Clinistix/Tes-Tape instead',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: '1-4g/24h÷Q12h; severe 6g/24h÷Q8h; max 6g/24h.',
+    calculate: (weight) => {
+      const stdDaily = Math.min(weight * 100, 4000);
+      const sevDaily = Math.min(weight * 150, 6000);
+      return {
+        dosePerKg: 'Standard: 100 mg/kg/24h ÷ Q12h | Meningitis/febrile neutropenia/serious infection: 150 mg/kg/24h ÷ Q8h',
+        totalDose: `Standard: ${stdDaily.toFixed(0)} mg/24h | Serious: ${sevDaily.toFixed(0)} mg/24h`,
+        interval: 'Q12h (Q8h for serious infection)',
+        route: 'IV/IM',
+        concentration: '0.5/1/2 g vials; premixed 1g/50mL, 2g/100mL',
+        basisNote: 'Age ≥2 months',
+        maxDose: 'Standard 4 g/24h; serious infection 2 g/single dose, 6 g/24h',
+        warningNote: 'Neurotoxicity (encephalopathy, myoclonus, seizures including nonconvulsive status epilepticus) reported, especially with inadequate dose reduction in renal impairment — adjust dose carefully.',
+      };
+    },
+  },
+
   // ─── Antifungal ─────────────────────────────────────────────────────────
   {
     id: 'fluconazole',
@@ -1264,6 +1357,37 @@ export const pediatricDrugs: PediatricDrug[] = [
     },
   },
 
+  {
+    id: 'amphotericin-b',
+    name: 'Amphotericin B',
+    category: 'Antifungal',
+    indications: ['Systemic/invasive fungal infection', 'Empiric antifungal therapy in febrile neutropenia', 'Cryptococcal meningitis', 'Visceral leishmaniasis'],
+    administration: 'Three formulations exist and are NOT interchangeable mg-for-mg: liposomal (AmBisome), lipid complex (Abelcet), and conventional deoxycholate (Fungizone). This entry defaults to the liposomal formulation, now generally preferred (less nephrotoxic). Confirm which formulation is stocked locally before dosing.',
+    monitoring: ['Renal function, electrolytes (K, Mg), and LFTs closely throughout therapy', 'FBC (cytopenias)', 'Infusion reactions (fever, chills, hypotension) — especially with conventional formulation'],
+    cautions: [
+      'The three formulations (conventional/deoxycholate, lipid complex, liposomal) have very different mg/kg doses and are NOT interchangeable',
+      'Conventional formulation causes significant nephrotoxicity, hypokalaemia, and infusion reactions — premedicate and consider salt-loading (10–15 mL/kg NS pre-dose)',
+      'Synergistic toxicity with aminoglycosides, chemotherapy, and ciclosporin',
+      'Liposomal formulation not established safe/effective in neonates',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Liposomal: 3-6mg/kg/24h depending on indication.',
+    calculate: (weight) => {
+      const low = weight * 3;
+      const high = weight * 5;
+      return {
+        dosePerKg: 'Liposomal (AmBisome): 3–5 mg/kg/24h once daily IV',
+        totalDose: `${low.toFixed(0)}–${high.toFixed(0)} mg/24h`,
+        interval: 'Once daily, infused over 2h (may reduce to 1h if tolerated)',
+        route: 'IV',
+        concentration: 'Liposomal: 50 mg vials (contains soy) | Lipid complex: 5 mg/mL | Conventional (deoxycholate): 50 mg vials',
+        basisNote: 'Liposomal formulation — systemic fungal infection dosing',
+        maxDose: 'Up to 10 mg/kg/24h used for Aspergillus; ceilings vary by indication and formulation',
+        warningNote: 'The three amphotericin B formulations are NOT interchangeable mg-for-mg. Conventional (deoxycholate) dosing is much lower: 0.5–1.5 mg/kg/24h, with a test dose recommended and infusion-reaction premedication (paracetamol + diphenhydramine). Liposomal is not established as safe/effective in neonates.',
+      };
+    },
+  },
+
   // ─── Antiviral ──────────────────────────────────────────────────────────
   {
     id: 'aciclovir',
@@ -1356,6 +1480,94 @@ export const pediatricDrugs: PediatricDrug[] = [
         concentration: '6 mg/mL oral suspension (may be compounded from capsules); 30/45/75 mg capsules',
         basisNote: `Treatment dosing for weight ${weight} kg`,
         warningNote: 'Prophylaxis dosing uses the same weight bands but ONCE daily, for a minimum of 7 days up to 6 weeks after exposure. Infants <1 year use age-banded dosing (e.g. 3 mg/kg/dose) — see cautions.',
+      };
+    },
+  },
+
+  {
+    id: 'diazepam',
+    name: 'Diazepam',
+    category: 'Seizure',
+    indications: ['Status epilepticus / acute seizure termination', 'Seizure clusters (rectal gel / intranasal, home rescue)'],
+    administration: 'IV for status epilepticus. Rectal gel (Diastat) or intranasal spray (Valtoco) for seizure clusters/no IV access.',
+    monitoring: ['Respiratory rate and oxygen saturation', 'Level of consciousness', 'Blood pressure'],
+    cautions: [
+      'Contraindicated in myasthenia gravis, severe respiratory insufficiency, severe hepatic failure, sleep apnoea syndrome',
+      'Do not combine with protease inhibitors',
+      'CNS depressants/cimetidine/erythromycin/itraconazole/valproic acid enhance effect',
+      'Concurrent opioids risk profound sedation/respiratory depression',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Similar dosing, max total 10mg IV for status epilepticus.',
+    calculate: (weight, age) => {
+      if (age < (1 / 12)) {
+        return {
+          dosePerKg: '0.1–0.3 mg/kg/dose IV Q15–30min ×2–3 doses PRN (max total 2 mg)',
+          totalDose: `${(weight * 0.1).toFixed(2)}–${(weight * 0.3).toFixed(2)} mg/dose`,
+          interval: 'Q15–30min PRN',
+          route: 'IV',
+          concentration: '5 mg/mL injection',
+          basisNote: 'Neonatal status epilepticus dosing',
+          maxDose: '2 mg total',
+          warningNote: 'Respiratory depression risk — have resuscitation equipment available.',
+        };
+      }
+      if (age < 5) {
+        return {
+          dosePerKg: '0.2–0.5 mg/dose IV Q2–5min (fixed dosing, max total 5 mg), may repeat in 2–4h',
+          totalDose: '0.2–0.5 mg/dose',
+          interval: 'Q2–5min PRN up to max total dose',
+          route: 'IV',
+          concentration: '5 mg/mL injection',
+          basisNote: 'Age 1 month–<5 years, status epilepticus',
+          maxDose: '5 mg total',
+          warningNote: 'Rectal gel (Diastat) alternative for seizure clusters/no IV access: 0.5 mg/kg/dose (age 2–5y), rounded to the nearest 2.5 mg, max 20 mg/dose.',
+        };
+      }
+      return {
+        dosePerKg: '1 mg/dose IV Q2–5min (fixed dosing, max total 10 mg), may repeat in 2–4h',
+        totalDose: '1 mg/dose',
+        interval: 'Q2–5min PRN up to max total dose',
+        route: 'IV',
+        concentration: '5 mg/mL injection',
+        basisNote: 'Age ≥5 years, status epilepticus',
+        maxDose: '10 mg total',
+        warningNote: 'Rectal gel (Diastat) alternative for seizure clusters/no IV access: 6–11y 0.3 mg/kg/dose, ≥12y 0.2 mg/kg/dose (rounded to nearest 2.5mg, max 20mg/dose); intranasal spray (Valtoco, ≥6y) is weight-banded 5–20mg. Repeat rescue dosing no more than once per 5 days or 5×/month.',
+      };
+    },
+  },
+  {
+    id: 'fosphenytoin',
+    name: 'Fosphenytoin',
+    category: 'Seizure',
+    indications: ['Status epilepticus (loading + maintenance) — preferred over phenytoin for peripheral IV access'],
+    administration: 'IV (preferred over phenytoin for peripheral access) or IM (not recommended in status epilepticus).',
+    monitoring: ['Continuous ECG and blood pressure during IV loading', 'Serum phenytoin level (therapeutic 10–20 mg/L total, 1–2 mg/L free) — trough within 30 min pre-dose', 'Free levels in renal impairment/hypoalbuminaemia'],
+    cautions: [
+      'Contraindicated in phenytoin/hydantoin hypersensitivity',
+      'HLA-B*1502 allele carriers at increased SJS/TEN risk',
+      'Caution in renal/hepatic impairment and porphyria',
+      'Dosed and prescribed in phenytoin-equivalents (PE) — always specify PE to avoid confusion with phenytoin mg',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Load 20mg PE/kg (max 1500mg); maintenance 4-7mg PE/kg/24h.',
+    calculate: (weight, age) => {
+      const load = Math.min(weight * 20, 1500);
+      let lowMaint = 6, highMaint = 7;
+      if (age < 4) { lowMaint = 8; highMaint = 10; }
+      else if (age < 7) { lowMaint = 7.5; highMaint = 9; }
+      else if (age < 10) { lowMaint = 7; highMaint = 8; }
+      const lowDaily = weight * lowMaint;
+      const highDaily = weight * highMaint;
+      return {
+        dosePerKg: `Load: 20 mg PE/kg IV ×1. Maintenance: ${lowMaint}–${highMaint} mg PE/kg/24h ÷ BID–TID`,
+        totalDose: `Load: ${load.toFixed(0)} mg PE | Maintenance: ${lowDaily.toFixed(0)}–${highDaily.toFixed(0)} mg PE/24h`,
+        interval: 'Load once (start maintenance 12h later); maintenance Q8–12h',
+        route: 'IV (preferred over phenytoin for peripheral access) or IM (1–2 sites; not recommended in status epilepticus)',
+        concentration: '50 mg PE/mL injection (75 mg fosphenytoin/mL)',
+        basisNote: 'Dosing is numerically identical to phenytoin, expressed in phenytoin-equivalents (PE) — 1 mg phenytoin ≈ 1 mg PE',
+        maxDose: 'Loading dose capped at 1500 mg PE/dose',
+        warningNote: 'Always prescribe/dispense in PE (phenytoin-equivalents) to avoid dosing errors. Max IV infusion rate 2 mg PE/kg/min, up to 150 mg PE/min — faster and safer via peripheral IV than phenytoin itself.',
       };
     },
   },
@@ -1784,6 +1996,105 @@ export const pediatricDrugs: PediatricDrug[] = [
     },
   },
 
+  {
+    id: 'theophylline',
+    name: 'Theophylline',
+    category: 'Respiratory',
+    indications: ['Chronic asthma / bronchospasm (oral, second-line/adjunct)'],
+    administration: 'PO. Considered second-line/adjunct — inhaled therapies are preferred first-line.',
+    monitoring: ['Theophylline level (therapeutic 10–20 mg/L for bronchospasm)', 'Heart rate, signs of toxicity (nausea, tremor, tachyarrhythmia, seizures)'],
+    cautions: [
+      'Narrow therapeutic index — half-life varies markedly with age and clinical state',
+      'Increased clearance with smoking, cystic fibrosis, hyperthyroidism, high-protein diet; decreased clearance with CHF, fever, viral illness, sepsis, high-carbohydrate diet',
+      'Use ideal body weight in obese patients',
+      'Considered second-line/adjunct — inhaled therapies are preferred first-line',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Similar mg/kg-based titration, adjusted for clearance risk factors.',
+    calculate: (weight) => {
+      const startLow = weight * 12;
+      const startHigh = Math.min(weight * 14, 300);
+      const maxDaily = Math.min(weight * 20, 600);
+      return {
+        dosePerKg: '12–14 mg/kg/24h ÷ Q4–6h (start, max 300 mg/24h), may increase to 16–20 mg/kg/24h (max 600 mg/24h)',
+        totalDose: `${startLow.toFixed(0)}–${startHigh.toFixed(0)} mg/24h (start)`,
+        interval: 'Q4–6h (immediate-release) or Q12–24h (sustained-release forms)',
+        route: 'PO',
+        concentration: '80 mg/15 mL immediate-release elixir/solution; sustained-release tablets (300/450 mg Q12h dosing, 400/600 mg Q24h dosing) and capsules (100/200/300/400 mg Q24h)',
+        basisNote: 'Age >1 year, without altered-clearance risk factors',
+        maxDose: `${maxDaily.toFixed(0)} mg/24h (max 20 mg/kg/24h, up to 600 mg/24h)`,
+        warningNote: 'Narrow therapeutic index — many drug interactions alter clearance (e.g. erythromycin/ciprofloxacin/cimetidine increase levels; carbamazepine/phenobarbital/rifampin decrease levels). Smoking, fever, and CHF also significantly change clearance.',
+      };
+    },
+  },
+  {
+    id: 'fluticasone',
+    name: 'Fluticasone',
+    category: 'Respiratory',
+    indications: ['Asthma maintenance (inhaled)', 'Allergic rhinitis (intranasal)'],
+    administration: 'Intranasal spray or oral inhalation (MDI/DPI). Propionate and furoate salt forms are NOT interchangeable.',
+    monitoring: ['Growth (long-term inhaled/intranasal corticosteroid use)', 'Oral thrush with inhaled use', 'Epistaxis/nasal irritation with intranasal use'],
+    cautions: [
+      'Propionate and furoate formulations are NOT interchangeable',
+      'CYP3A4 inhibitors (e.g. ritonavir) increase levels — Cushing syndrome/adrenal suppression risk reported',
+      'Rare nasal septal perforation with prolonged intranasal use',
+      'Mild-exacerbation dose-quadrupling strategy is for age >12 years only (growth risk in younger children)',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Rhinitis: 2 sprays/nostril once daily. Asthma: dose depends on severity/prior therapy.',
+    calculate: (weight, age) => {
+      if (age < 12) {
+        return {
+          dosePerKg: 'Fixed dosing (not weight-based) — allergic rhinitis: 1 spray (50 mcg) per nostril once daily (propionate)',
+          totalDose: 'Rhinitis: 50–100 mcg/24h | Asthma (MDI/DPI): dose depends on prior therapy, up to 176–200 mcg/24h ÷ BID',
+          interval: 'Once daily (rhinitis) or BID (asthma)',
+          route: 'Intranasal spray or oral inhalation (MDI/DPI)',
+          concentration: 'Propionate: nasal spray 50 mcg/actuation; MDI 44/110/220 mcg/actuation; DPI 50/100/250 mcg/dose',
+          basisNote: 'Age 4–11 years',
+          maxDose: 'Rhinitis: 2 sprays/nostril/24h',
+          warningNote: 'Fluticasone propionate and furoate are NOT interchangeable — confirm which salt form is stocked. Rinse mouth after oral inhalation (thrush risk). Do not use a spacer with breath-activated devices.',
+        };
+      }
+      return {
+        dosePerKg: 'Fixed dosing (not weight-based) — allergic rhinitis: 2 sprays (100 mcg) per nostril once daily initially (propionate), reduce to 1 spray/nostril when controlled',
+        totalDose: 'Rhinitis: 200 mcg/24h (start) | Asthma (MDI/DPI): up to 880–2000 mcg/24h ÷ BID depending on prior steroid use',
+        interval: 'Once daily (rhinitis) or BID (asthma)',
+        route: 'Intranasal spray or oral inhalation (MDI/DPI)',
+        concentration: 'Propionate: nasal spray 50 mcg/actuation; MDI 44/110/220 mcg/actuation; DPI 50/100/250 mcg/dose',
+        basisNote: 'Age ≥12 years',
+        maxDose: 'Rhinitis: 2 sprays/nostril/24h',
+        warningNote: 'Fluticasone propionate and furoate are NOT interchangeable. Asthma maintenance dose depends heavily on prior therapy (bronchodilator-only vs prior inhaled/oral steroid) — confirm the correct starting tier before prescribing.',
+      };
+    },
+  },
+  {
+    id: 'budesonide',
+    name: 'Budesonide',
+    category: 'Respiratory',
+    indications: ['Asthma maintenance (inhaled)', 'Croup (nebulized)', 'Allergic rhinitis (intranasal)'],
+    administration: 'Nebulized for croup (single dose) or asthma maintenance; oral inhalation (Flexhaler) or intranasal spray also available.',
+    monitoring: ['Clinical response — stridor/work of breathing (croup)', 'Growth with long-term maintenance use', 'HPA-axis suppression risk with high-dose/prolonged use'],
+    cautions: [
+      'Reduce maintenance dosing to the lowest effective dose',
+      'Rinse mouth after oral inhalation',
+      'Rare hypersensitivity/anaphylaxis reported with inhaled route',
+      'Mild-exacerbation dose-quadrupling strategy is for adults/adolescents only, not <12 years (growth risk)',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Asthma: 180-360mcg BID (Flexhaler), max 1440mcg/24h.',
+    calculate: () => {
+      return {
+        dosePerKg: '2 mg nebulized ×1 (fixed dose, not weight-based) — mild-moderate croup',
+        totalDose: '2 mg',
+        interval: 'Single dose',
+        route: 'Nebulized',
+        concentration: '0.25/0.5/1 mg per 2 mL nebulizer suspension',
+        basisNote: 'Croup dosing',
+        warningNote: 'Asthma maintenance dosing (nebulized, age 1–8y): no prior steroid 0.5 mg/24h (max 0.5 mg/24h); prior inhaled steroid 0.5 mg/24h (max 1 mg/24h); prior oral steroid 1 mg/24h (max 1 mg/24h), ÷ once daily–BID. Oral inhalation (Flexhaler, age 6–17y): start 180 mcg BID, max 720 mcg/24h.',
+      };
+    },
+  },
+
   // ─── Analgesia & Sedation ───────────────────────────────────────────────
   {
     id: 'paracetamol',
@@ -1970,6 +2281,49 @@ export const pediatricDrugs: PediatricDrug[] = [
         basisNote: `Age-banded procedural sedation dosing (${age} years)`,
         maxDose: `Max total dose per procedure: ${maxDose} mg`,
         warningNote: 'Respiratory depression and hypotension — requires continuous monitoring during procedure. Reversed by flumazenil.',
+      };
+    },
+  },
+
+  {
+    id: 'ketorolac',
+    name: 'Ketorolac',
+    category: 'Analgesia & Sedation',
+    indications: ['Moderate-severe acute pain (short-course IV/IM/PO NSAID)'],
+    administration: 'IM/IV (PO alternative available). Short course only.',
+    monitoring: ['Renal function', 'Signs of GI bleeding', 'Platelet function / bleeding risk with surgical patients'],
+    cautions: [
+      'Systemic use must not exceed 3–5 days total, across all routes combined',
+      'Do not use in hepatic or renal failure',
+      'Not recommended with increased bleeding risk — decreases platelet function',
+      'Caution in heart disease — prolonged use carries MI/stroke risk',
+      'False-positive urine cannabinoid screen possible',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: '30mg IM/IV Q6h, or 10mg PO Q4-6h PRN; max 40mg/24h PO, 120mg/24h IM/IV.',
+    calculate: (weight, age) => {
+      if (age <= 16) {
+        const dose = Math.min(weight * 0.5, 30);
+        return {
+          dosePerKg: '0.5 mg/kg/dose IM/IV Q6–8h (max 30 mg/dose)',
+          totalDose: `${dose.toFixed(1)} mg/dose`,
+          interval: 'Q6–8h',
+          route: 'IM/IV (PO alternative: 1 mg/kg/dose Q4–6h, max 10 mg/dose and 40 mg/24h)',
+          concentration: '15 mg/mL or 30 mg/mL injection (contains alcohol); 10 mg tablets',
+          basisNote: 'Age ≤16 years',
+          maxDose: '30 mg/dose, 120 mg/24h (IM/IV)',
+          warningNote: 'CRITICAL: total systemic use (IM/IV/PO combined) must NOT exceed 3–5 days, regardless of route.',
+        };
+      }
+      return {
+        dosePerKg: 'Fixed dosing (not weight-based) — 30 mg IM/IV Q6h',
+        totalDose: '30 mg/dose',
+        interval: 'Q6h',
+        route: 'IM/IV (PO alternative: 10 mg Q4–6h PRN, max 40 mg/24h)',
+        concentration: '15 mg/mL or 30 mg/mL injection; 10 mg tablets',
+        basisNote: 'Age >16 years',
+        maxDose: '120 mg/24h',
+        warningNote: 'CRITICAL: total systemic use (IM/IV/PO combined) must NOT exceed 3–5 days, regardless of route.',
       };
     },
   },
@@ -2619,6 +2973,137 @@ export const pediatricDrugs: PediatricDrug[] = [
     },
   },
 
+  {
+    id: 'aspirin',
+    name: 'Aspirin',
+    category: 'Cardiovascular',
+    indications: ['Kawasaki disease (anti-inflammatory acute phase, then antiplatelet phase)', 'Analgesia/antipyresis (limited use given Reye syndrome risk)'],
+    administration: 'PO. QID during the acute febrile phase, then once daily for the antiplatelet maintenance phase.',
+    monitoring: ['Platelet count and ESR (guide duration of antiplatelet phase)', 'Signs of bleeding or GI upset', 'Salicylate level if toxicity suspected'],
+    cautions: [
+      'Do NOT use in children <16 years with varicella or flu-like illness (Reye syndrome risk)',
+      'Avoid combination with other NSAIDs',
+      'Contraindicated in severe renal failure; caution in bleeding disorders, gastritis, gout',
+      'Increases methotrexate, valproic acid, and warfarin effect/toxicity',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Analgesic/antipyretic 325-650mg Q4h PRN; antiplatelet 75-325mg once daily.',
+    calculate: (weight) => {
+      const acuteLow = weight * 80;
+      const acuteHigh = weight * 100;
+      const maintLow = weight * 3;
+      const maintHigh = weight * 5;
+      return {
+        dosePerKg: 'Acute febrile phase: 80–100 mg/kg/24h ÷ QID | After defervescence (48–72h afebrile): 3–5 mg/kg/24h once daily',
+        totalDose: `Acute: ${acuteLow.toFixed(0)}–${acuteHigh.toFixed(0)} mg/24h | Maintenance: ${maintLow.toFixed(0)}–${maintHigh.toFixed(0)} mg/24h`,
+        interval: 'QID (acute phase) then once daily (maintenance/antiplatelet phase)',
+        route: 'PO',
+        concentration: '81 mg chewable tablets; 325/500 mg tablets/caplets; enteric-coated 81/325/650 mg; 300 mg suppositories',
+        basisNote: 'Kawasaki disease dosing',
+        warningNote: 'Continue low-dose maintenance for at least 8 weeks or until platelet count and ESR normalise. Do NOT use in children <16 years for varicella or flu-like symptoms (Reye syndrome risk).',
+      };
+    },
+  },
+  {
+    id: 'norepinephrine',
+    name: 'Norepinephrine',
+    category: 'Cardiovascular',
+    indications: ['Septic/vasodilatory shock (vasopressor)'],
+    administration: 'Continuous IV infusion via a secure central line, titrated to effect.',
+    monitoring: ['Continuous blood pressure and ECG monitoring', 'IV site (extravasation risk)', 'Urine output / perfusion markers'],
+    cautions: [
+      'Give via a secure central line — extravasation causes severe tissue necrosis, treat locally with phentolamine',
+      'May cause arrhythmias, hypertension, and decreased renal blood flow',
+      'Correct hypovolaemia concurrently',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Start 8-12 mcg/min, titrate; usual maintenance 2-4 mcg/min (note: adult dosing is mcg/min, not mcg/kg/min).',
+    calculate: (weight) => {
+      const low = weight * 0.05;
+      return {
+        dosePerKg: '0.05–0.1 mcg/kg/min (start), titrate to effect',
+        totalDose: `${low.toFixed(2)} mcg/min (starting dose)`,
+        interval: 'Continuous infusion, titrate to effect',
+        route: 'IV (central line strongly preferred — extravasation causes severe tissue necrosis)',
+        concentration: '1 mg/mL injection (as base); prediluted 16/32/64 mcg/mL in D5W',
+        basisNote: 'Dosed as norepinephrine base — note paediatric units are mcg/kg/min, unlike adult mcg/min dosing',
+        maxDose: '2 mcg/kg/min',
+        warningNote: 'Extravasation causes severe tissue necrosis — treat locally with phentolamine if it occurs. May cause arrhythmias, hypertension, and reduced renal blood flow.',
+      };
+    },
+  },
+  {
+    id: 'atropine',
+    name: 'Atropine',
+    category: 'Cardiovascular',
+    indications: ['Preintubation (antisialagogue/vagolytic premedication)', 'Symptomatic bradycardia', 'Bronchospasm (nebulized)', 'Organophosphate/carbamate poisoning'],
+    administration: 'IV/IM/IO, or nebulized for bronchospasm. This app\'s Resuscitation section covers cardiac arrest algorithms.',
+    monitoring: ['Heart rate and rhythm', 'Signs of anticholinergic toxicity (dry mouth, urinary retention, tachycardia) with repeated dosing'],
+    cautions: [
+      'Contraindicated in glaucoma, obstructive uropathy, tachycardia, thyrotoxicosis (except life-threatening muscarinic symptoms)',
+      'Organophosphate/carbamate poisoning: 0.05–0.1 mg/kg IV/IO/IM/ET Q5–10min until secretions terminate — a much higher and more frequent regimen than the preintubation/bradycardia dose',
+      'Caution with sulfite sensitivity (some formulations)',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Preintubation 0.5mg/dose. Organophosphate poisoning 2-5mg/dose Q3-5min.',
+    calculate: (weight, age) => {
+      if (age < (1 / 12)) {
+        const low = weight * 0.01;
+        const high = weight * 0.02;
+        return {
+          dosePerKg: '0.01–0.02 mg/kg/dose IV (over 1 min)/IM, prior to other premedications',
+          totalDose: `${low.toFixed(3)}–${high.toFixed(3)} mg/dose`,
+          interval: 'Single dose pre-procedure',
+          route: 'IV/IM',
+          concentration: '0.4 mg/mL or 1 mg/mL injection',
+          basisNote: 'Neonatal preintubation dosing',
+          warningNote: 'Use in neonatal bradycardia is no longer recommended. For symptomatic bradycardia/arrest dosing, see the Resuscitation section.',
+        };
+      }
+      const dose = Math.min(weight * 0.02, 0.5);
+      return {
+        dosePerKg: '0.02 mg/kg/dose IV/IO/IM (max 0.5 mg/dose), prior to intubation or other premedications',
+        totalDose: `${dose.toFixed(2)} mg/dose`,
+        interval: 'Single dose pre-procedure',
+        route: 'IV/IO/IM',
+        concentration: '0.4 mg/mL or 1 mg/mL injection; AtroPen autoinjector 0.25/0.5/1/2 mg',
+        basisNote: 'Child/adolescent preintubation dosing',
+        maxDose: '0.5 mg/dose (child); 1 mg/dose (adolescent)',
+        warningNote: 'This same weight-based dose (0.02 mg/kg/dose) is also used for symptomatic bradycardia — Harriet Lane does not separate a distinct "non-arrest" bradycardia dose from the arrest/CPR dose. For cardiac arrest algorithms, see the Resuscitation section. Bronchospasm: 0.025–0.05 mg/kg/dose (max 2.5 mg) nebulized Q6–8h. Organophosphate poisoning uses a much higher repeated dose (0.05–0.1 mg/kg Q5–10min until secretions clear).',
+      };
+    },
+  },
+  {
+    id: 'nicardipine',
+    name: 'Nicardipine',
+    category: 'Cardiovascular',
+    indications: ['Severe/emergent hypertension (continuous IV infusion)'],
+    administration: 'Continuous IV infusion, titrated to blood pressure response.',
+    monitoring: ['Continuous blood pressure monitoring', 'Heart rate'],
+    cautions: [
+      'Contraindicated in advanced aortic stenosis',
+      'Avoid causing systemic hypotension after cerebral infarct/haemorrhage',
+      'Caution in hepatic/renal dysfunction (significant first-pass hepatic metabolism, ~60% renal excretion)',
+      'CYP3A substrate — cimetidine increases effect/toxicity; increases ciclosporin/tacrolimus levels',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'IV: start 5mg/hr, increase by 2.5mg/hr Q5-15min to max 15mg/hr.',
+    calculate: (weight) => {
+      const low = weight * 0.5;
+      const high = weight * 1;
+      return {
+        dosePerKg: '0.5–1 mcg/kg/min (start), may increase every 15–30 min — max 4–5 mcg/kg/min',
+        totalDose: `${low.toFixed(1)}–${high.toFixed(1)} mcg/min (starting range)`,
+        interval: 'Continuous infusion, titrate to blood pressure response',
+        route: 'IV',
+        concentration: '0.1 mg/mL or 0.2 mg/mL premixed injection; 2.5 mg/mL injection (may contain sorbitol/benzoic acid)',
+        basisNote: 'Paediatric experience is limited (mainly reported in preterm infants, infants, and children)',
+        maxDose: '4–5 mcg/kg/min',
+        warningNote: 'Contraindicated in advanced aortic stenosis. Avoid causing systemic hypotension after cerebral infarct/haemorrhage. Different nicardipine dosage forms are NOT interchangeable mg-for-mg.',
+      };
+    },
+  },
+
   // ─── Haematology & Anticoagulation ──────────────────────────────────────
   {
     id: 'enoxaparin',
@@ -2688,6 +3173,76 @@ export const pediatricDrugs: PediatricDrug[] = [
         basisNote: isChild ? 'Age 1–18 years' : 'Age <1 year',
         infusionNote: `Titrate the infusion rate to target anti-Xa 0.3–0.7 units/mL or aPTT 50–80 sec, rechecked 4–6h after each rate change`,
         warningNote: 'Do NOT give the loading dose in stroke or significant bleeding risk — obtain aPTT 4–6h after starting/changing the rate regardless, drawn from a different extremity than the infusion.',
+      };
+    },
+  },
+
+  {
+    id: 'vitamin-k1',
+    name: 'Vitamin K1',
+    brandName: 'Phytonadione',
+    category: 'Haematology & Anticoagulation',
+    indications: ['Warfarin/anticoagulant reversal', 'Vitamin K deficiency (e.g. liver disease, cholestasis)'],
+    administration: 'PO preferred when not actively bleeding. IV only when other routes are not feasible — infuse slowly (≤1 mg/min or 3 mg/m²/min).',
+    monitoring: ['INR/PT, per the specific reversal tier (Q4–6h for major bleeding, Q24h for minor elevation)', 'Signs of anaphylaxis/hypotension if given IV'],
+    cautions: [
+      'IV/IM administration carries a rare but serious risk of flushing, hypotension, and cardiorespiratory arrest/anaphylaxis — use only when other routes are not feasible',
+      'Higher reversal doses may cause warfarin resistance for up to a week afterward',
+      'Protect the injection from light',
+      'This entry is for older-child/adolescent bleeding-reversal indications — see NeoDose for neonatal vitamin K prophylaxis',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Similar INR-tiered dosing.',
+    calculate: (weight) => {
+      if (weight < 40) {
+        const low = weight * 0.03;
+        return {
+          dosePerKg: '0.03 mg/kg ×1 PO (INR 4.5–<10, no significant bleeding)',
+          totalDose: `${low.toFixed(2)} mg`,
+          interval: 'Single dose, monitor INR Q24h',
+          route: 'PO (preferred route when not actively bleeding)',
+          concentration: '5 mg tablets; 1 mg/mL oral suspension; 2 mg/mL or 10 mg/mL injection',
+          basisNote: 'Warfarin reversal, weight <40 kg',
+          warningNote: 'Dosing depends heavily on INR level and bleeding severity — this is one representative tier. INR ≥10: 0.06 mg/kg PO. Significant/life-threatening bleeding: 5–10 mg IV ×1 plus FFP or prothrombin complex concentrate.',
+        };
+      }
+      return {
+        dosePerKg: '1–2.5 mg PO ×1 (INR 4.5–<10, no significant bleeding)',
+        totalDose: '1–2.5 mg',
+        interval: 'Single dose, monitor INR Q24h',
+        route: 'PO (preferred route when not actively bleeding)',
+        concentration: '5 mg tablets; 1 mg/mL oral suspension; 2 mg/mL or 10 mg/mL injection',
+        basisNote: 'Warfarin reversal, weight ≥40 kg',
+        warningNote: 'Dosing depends heavily on INR level and bleeding severity — this is one representative tier. INR ≥10: 5–10 mg PO. Significant/life-threatening bleeding: 5–10 mg IV ×1 plus FFP or prothrombin complex concentrate — use IV only when other routes are not feasible.',
+      };
+    },
+  },
+  {
+    id: 'warfarin',
+    name: 'Warfarin',
+    category: 'Haematology & Anticoagulation',
+    indications: ['Oral anticoagulation (target INR 2–3.5 depending on indication)'],
+    administration: 'PO, once daily.',
+    monitoring: ['INR — frequently during initiation, then regularly at steady state, per target range for the specific indication', 'Signs of bleeding'],
+    cautions: [
+      'Contraindicated in severe liver/kidney disease, uncontrolled bleeding, GI ulcers, malignant hypertension',
+      'Extensive drug interaction list — amiodarone, azole antifungals, many antibiotics, NSAIDs, and SSRIs increase effect; barbiturates, carbamazepine, rifampin, and vitamin K decrease effect',
+      'Younger children generally need higher per-kg doses; Fontan physiology patients need smaller doses',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: '2.5-10mg once daily titrated to INR, maintenance 2-10mg/24h.',
+    calculate: (weight) => {
+      const loadNormal = Math.min(weight * 0.2, 7.5);
+      const loadHighRisk = Math.min(weight * 0.075, 5);
+      return {
+        dosePerKg: 'Day 1 load: 0.2 mg/kg (max 7.5 mg) if baseline INR ≤1.3 and no risk factors | 0.05–0.1 mg/kg (max 5 mg) if liver dysfunction, elevated baseline INR, recent bypass, or interacting drugs',
+        totalDose: `Standard load: ${loadNormal.toFixed(2)} mg | Reduced load: ${loadHighRisk.toFixed(2)} mg`,
+        interval: 'Once daily',
+        route: 'PO',
+        concentration: '1/2/2.5/3/4/5/6/7.5/10 mg tablets',
+        basisNote: 'Day 1 loading dose — days 2–4 are titrated by daily INR per a nomogram (verify the exact table locally — see warning)',
+        maxDose: 'Maintenance averages ~0.1 mg/kg/24h (range 0.05–0.34 mg/kg/24h); younger children typically need higher per-kg doses',
+        warningNote: 'The days 2–4 INR-based titration nomogram had an ambiguous row/column mapping in source text extraction — verify the exact INR-to-dose-adjustment table against BNFc or local protocol rather than estimating. Post-Fontan patients need a smaller load: 0.05 mg/kg (max 2.5 mg).',
       };
     },
   },
@@ -3520,6 +4075,133 @@ export const pediatricDrugs: PediatricDrug[] = [
     },
   },
 
+  {
+    id: 'glucagon',
+    name: 'Glucagon',
+    category: 'Endocrine',
+    indications: ['Hypoglycaemia (rescue)', 'Beta-blocker / calcium channel blocker overdose (refractory hypotension)'],
+    administration: 'IM/IV/SC, or intranasal for hypoglycaemia. Ensure a source of carbohydrate is given once the patient can safely swallow.',
+    monitoring: ['Blood glucose response', 'Blood pressure and heart rate if used for beta-blocker/CCB overdose', 'Nausea/vomiting (common side effect)'],
+    cautions: [
+      'Contraindicated in insulinoma, phaeochromocytoma, glucagonoma',
+      'High doses have a cardiac stimulatory effect — may increase myocardial oxygen demand, blood pressure, and pulse',
+      'Ensure a source of carbohydrate is given once the patient can safely swallow, to prevent rebound hypoglycaemia',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Hypoglycaemia: 1mg/dose. Beta-blocker overdose: load 5-10mg then 1-5mg/hr infusion.',
+    calculate: (weight) => {
+      if (weight < 20) {
+        const dose = Math.min(weight * 0.025, 0.5);
+        return {
+          dosePerKg: '0.02–0.03 mg/kg/dose (or fixed 0.5 mg/dose) IM/IV/SC',
+          totalDose: `${dose.toFixed(2)} mg/dose`,
+          interval: 'May repeat Q15–20min PRN',
+          route: 'IM/IV/SC, or intranasal (≥4y: 3mg/1 actuation into one nostril, may repeat once after 15min)',
+          concentration: '1 mg injection vial (reconstituted); prefilled syringe/autoinjector 0.5mg/0.1mL or 1mg/0.2mL (SC); 3mg intranasal powder',
+          basisNote: 'Neonate/infant/child <20kg — hypoglycaemia rescue',
+          maxDose: '0.5 mg/dose',
+          warningNote: 'For beta-blocker/calcium channel blocker overdose with refractory hypotension, a much higher dose is used: load 0.05 mg/kg IV, then consider continuous infusion 0.05–0.1 mg/kg/hr.',
+        };
+      }
+      return {
+        dosePerKg: '1 mg/dose (fixed dosing, not weight-based) IM/IV/SC',
+        totalDose: '1 mg/dose',
+        interval: 'May repeat Q15–20min PRN',
+        route: 'IM/IV/SC, or intranasal (3mg/1 actuation into one nostril, may repeat once after 15min)',
+        concentration: '1 mg injection vial (reconstituted); prefilled syringe/autoinjector 1mg/0.2mL (SC); 3mg intranasal powder',
+        basisNote: 'Child ≥20kg/adult — hypoglycaemia rescue',
+        warningNote: 'For beta-blocker/calcium channel blocker overdose with refractory hypotension, a much higher dose is used: load 5–10mg IV (adolescent), then infusion 1–5mg/hr.',
+      };
+    },
+  },
+  {
+    id: 'cholecalciferol',
+    name: 'Cholecalciferol',
+    brandName: 'Vitamin D3',
+    category: 'Endocrine',
+    indications: ['Vitamin D deficiency / insufficiency treatment', 'Dietary supplementation / prophylaxis', 'Rickets (with calcium)'],
+    administration: 'PO, once daily.',
+    monitoring: ['Serum 25-OH vitamin D level — recheck 3 months after a dose change (goal 20–35 ng/mL, varies by population)', 'Serum calcium with high-dose/deficiency-treatment regimens'],
+    cautions: [
+      'Toxic level >100 ng/mL — nausea, vomiting, constipation, polyuria, muscle weakness, renal damage',
+      'Deficiency/insufficiency treatment dosing (by 25-OH level) had an ambiguous table in source extraction — verify the exact age/level/dose mapping against BNFc or endocrine society guidance before using for active deficiency treatment',
+      'CKD patients require a separate dosing table',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Similar supplementation/deficiency dosing, adjusted for level and indication.',
+    calculate: (weight, age) => {
+      if (age < (1 / 12)) {
+        return {
+          dosePerKg: '200–400 IU/24h PO (dietary supplementation)',
+          totalDose: '200–400 IU/24h',
+          interval: 'Once daily',
+          route: 'PO',
+          concentration: '400–6000 IU/drop oral drops; 400/5000 IU/mL oral liquid; 400–50,000 IU tablets/capsules',
+          basisNote: 'Preterm infant — supplementation dosing',
+          warningNote: 'This calculator shows supplementation/prophylaxis dosing only. Deficiency-treatment dosing (based on 25-OH vitamin D level) requires a level-specific table — verify against BNFc/endocrine guidance rather than estimating from a per-kg figure.',
+        };
+      }
+      if (age < 1) {
+        return {
+          dosePerKg: '400 IU/24h PO (dietary supplementation)',
+          totalDose: '400 IU/24h',
+          interval: 'Once daily',
+          route: 'PO',
+          concentration: '400–6000 IU/drop oral drops; 400/5000 IU/mL oral liquid; 400–50,000 IU tablets/capsules',
+          basisNote: 'Infant <1 year — supplementation dosing',
+          warningNote: 'Rickets treatment (with calcium): 2000 IU once daily ×3 months then 400 IU maintenance. Deficiency-treatment dosing (based on 25-OH vitamin D level) requires a level-specific table — verify against BNFc/endocrine guidance.',
+        };
+      }
+      return {
+        dosePerKg: '400–600 IU/24h PO (dietary supplementation)',
+        totalDose: '400–600 IU/24h',
+        interval: 'Once daily',
+        route: 'PO',
+        concentration: '400–6000 IU/drop oral drops; 400/5000 IU/mL oral liquid; 400–50,000 IU tablets/capsules',
+        basisNote: 'Child/adolescent ≥1 year — supplementation dosing',
+        warningNote: 'Rickets treatment (with calcium): child 3000–6000 IU once daily ×3 months then 600 IU maintenance; adolescent 6000 IU once daily ×3 months then 600 IU maintenance. Deficiency-treatment dosing (based on 25-OH vitamin D level) requires a level-specific table — verify against BNFc/endocrine guidance.',
+      };
+    },
+  },
+  {
+    id: 'desmopressin',
+    name: 'Desmopressin',
+    category: 'Endocrine',
+    indications: ['Central diabetes insipidus', 'Nocturnal enuresis (oral only — intranasal no longer recommended for this indication)', 'Haemophilia A / von Willebrand disease (pre-procedure, specific formulation)'],
+    administration: 'PO or intranasal for diabetes insipidus/enuresis. IV or a specific 150mcg/spray intranasal product for haemophilia A/vWD pre-procedure use — a very different, much lower dose.',
+    monitoring: ['Serum sodium (hyponatraemia risk, especially with fluid intake not restricted)', 'Fluid balance / urine output', 'Blood pressure'],
+    cautions: [
+      'Caution in hypertension and coronary artery disease',
+      'Water-intoxication/hyponatraemia risk — restrict fluids around dosing, especially for enuresis',
+      'Some consider this drug contraindicated if GFR <50',
+      'FDA no longer supports intranasal formulations for primary nocturnal enuresis (severe hyponatraemia/seizure risk) — oral is preferred for this indication',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'DI: start 0.05mg BID, usual 0.1-1.2mg/24h.',
+    calculate: (weight, age) => {
+      if (age >= 6) {
+        return {
+          dosePerKg: 'Nocturnal enuresis (≥6y): 0.2 mg PO at bedtime, titrate by 0.2 mg Q3 days to max 0.6 mg/24h | Diabetes insipidus (≤12y): start 0.05 mg PO BID, titrate to usual 0.1–0.8 mg/24h',
+          totalDose: 'Enuresis: 0.2–0.6 mg | DI: 0.05–0.8 mg/24h (age-dependent — see basis)',
+          interval: 'Once daily at bedtime (enuresis) or BID (DI)',
+          route: 'PO',
+          concentration: '0.1/0.2 mg tablets; 10 mcg/spray (100 mcg/mL) or Stimate 150 mcg/spray nasal spray; 4 mcg/mL injection',
+          basisNote: `Age ${age >= 12 ? '>12 years' : '6–12 years'}`,
+          warningNote: 'Haemophilia A/von Willebrand disease pre-procedure dosing is very different and much lower: IV 0.3 mcg/kg over 15–30 min, or intranasal (150 mcg/spray product) 150–300 mcg 2h pre-procedure, depending on weight. Do NOT confuse these very different dose scales. Limit fluids from 1h before an enuresis dose until the next morning (hyponatraemia/seizure risk).',
+        };
+      }
+      return {
+        dosePerKg: 'Diabetes insipidus: start 0.05 mg PO BID, titrate to usual 0.1–0.8 mg/24h | Nasal spray (4–18y): start 10 mcg once daily, titrate to max 30 mcg/24h',
+        totalDose: 'PO: 0.05 mg/dose (start) | Nasal: 10 mcg/24h (start)',
+        interval: 'BID (oral) or once daily–BID (nasal)',
+        route: 'PO or intranasal',
+        concentration: '0.1/0.2 mg tablets; 10 mcg/spray (100 mcg/mL) nasal spray; 4 mcg/mL injection',
+        basisNote: 'Diabetes insipidus dosing',
+        warningNote: 'Haemophilia A/von Willebrand disease pre-procedure dosing is very different and much lower: IV 0.3 mcg/kg over 15–30 min (age ≥3mo), or intranasal (150 mcg/spray product, age ≥11mo) 150–300 mcg 2h pre-procedure. Do NOT confuse these very different dose scales.',
+      };
+    },
+  },
+
   // ─── Allergy & Anaphylaxis ──────────────────────────────────────────────
   {
     id: 'chlorpheniramine',
@@ -3716,6 +4398,41 @@ export const pediatricDrugs: PediatricDrug[] = [
         basisNote: 'Age 3 months–12 years, general/peptic ulcer dosing',
         maxDose: '40 mg/24h',
         warningNote: 'This drug\'s primary sourced indication is GERD/peptic ulcer, not anaphylaxis — its use as an anaphylaxis adjunct alongside an antihistamine is a clinical-practice convention, not something Harriet Lane itself documents. GERD dosing can go up to 2 mg/kg/24h PO (max 80 mg/24h).',
+      };
+    },
+  },
+  {
+    id: 'epinephrine-anaphylaxis',
+    name: 'Epinephrine',
+    brandName: 'EpiPen / Auvi-Q / Adrenalin',
+    category: 'Allergy & Anaphylaxis',
+    indications: ['Anaphylaxis (first-line, IM anterolateral thigh)'],
+    administration: 'IM, anterolateral thigh, through clothing if necessary — do not delay for IV access. Uses the 1:1000 concentration.',
+    monitoring: ['Heart rate, blood pressure', 'Respiratory status and airway', 'Response to treatment — may need repeat dosing every 5–15 min'],
+    cautions: [
+      'This is the anaphylaxis-specific IM dose (1:1000 concentration) — clearly distinct from the cardiac arrest IV/IO dose (1:10,000, see the Resuscitation section) and from nebulized/racemic epinephrine used for croup (see Respiratory category)',
+      'Give in the anterolateral thigh, through clothing if necessary — do not delay for IV access',
+      'May repeat every 5–15 minutes if symptoms persist or recur',
+    ],
+    references: ['Harriet Lane Handbook, 22nd/23rd ed.'],
+    adultDose: 'Start 0.2-0.5mg IM Q5-15min PRN; autoinjector 0.3mg.',
+    calculate: (weight) => {
+      const dose = Math.min(weight * 0.01, weight < 30 ? 0.3 : 0.5);
+      let autoDose = '';
+      if (weight < 7.5) autoDose = 'weight below standard autoinjector range — use manual IM dosing';
+      else if (weight < 15) autoDose = '0.1 mg (Auvi-Q)';
+      else if (weight < 30) autoDose = '0.15 mg (EpiPen Jr / Auvi-Q)';
+      else autoDose = '0.3 mg (EpiPen / Auvi-Q)';
+      return {
+        dosePerKg: '0.01 mg/kg/dose IM (max 0.3 mg prepubertal, 0.5 mg adolescent)',
+        totalDose: `${dose.toFixed(2)} mg/dose (1:1000 solution)`,
+        interval: 'May repeat Q5–15min PRN',
+        route: 'IM, anterolateral thigh (through clothing if necessary)',
+        concentration: '1 mg/mL (1:1000) injection for manual dosing; autoinjectors: EpiPen Jr 0.15mg, EpiPen 0.3mg, Auvi-Q 0.1/0.15/0.3mg',
+        basisNote: 'Anaphylaxis dosing — distinct from the 1:10,000 concentration and IV/IO route used in cardiac arrest',
+        maxDose: '0.3 mg (prepubertal); 0.5 mg (adolescent)',
+        infusionNote: `Autoinjector weight tier: ${autoDose}`,
+        warningNote: 'This is the 1:1000 concentration IM anaphylaxis dose — do not confuse with the 1:10,000 IV/IO cardiac arrest dose (see the Resuscitation section) or nebulized/racemic epinephrine used for croup (see Respiratory category).',
       };
     },
   },

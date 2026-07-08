@@ -494,23 +494,6 @@ export default function ERDashboard() {
             />
             <div className="rounded-3xl border border-red-100 bg-red-50/20 p-4 space-y-3">
 
-              {/* Cardiac Arrest — featured full-width card */}
-              <Link
-                href="/cardiac-arrest"
-                className="flex items-center justify-between w-full p-4 rounded-2xl bg-red-600 text-white hover:bg-red-700 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-white/20">
-                    <HeartPulse className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <span className="font-black text-sm block">Cardiac Arrest</span>
-                    <span className="text-[11px] text-red-200 font-medium">VF/pVT · PEA · Asystole algorithms</span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-red-300 group-hover:text-white transition-colors" />
-              </Link>
-
               {/* Active algorithms grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {PALS_ACTIVE.map(item => (
