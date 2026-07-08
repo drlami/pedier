@@ -18,6 +18,7 @@ import {
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
 import { PinnedWorkspace } from "@/components/pinned-workspace";
+import { MAIN_SECTIONS } from "@/components/sidebar-nav";
 import {
   CALCULATOR_SHORTCUTS,
 } from "@/lib/clinical-dashboard";
@@ -185,10 +186,29 @@ export default function HomePage() {
         </section>
       ) : (
         <>
-          {/* 2. PINNED FAVORITES */}
+          {/* 2. MAIN SECTIONS */}
+          <section className="space-y-4">
+            <SectionHeader title="Main Sections" icon={LayoutGrid} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {MAIN_SECTIONS.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="group flex flex-col items-start gap-3 p-4 rounded-2xl border bg-card hover:border-primary/20 hover:bg-primary/[0.02] transition-all"
+                >
+                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="font-bold text-sm">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* 3. PINNED FAVORITES */}
           <PinnedWorkspace />
 
-          {/* 3. SYSTEMS BROWSER */}
+          {/* 4. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

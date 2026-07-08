@@ -24,6 +24,7 @@ import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
 import PediaDosePage from "@/pages/pediadose";
+import PediaLabPage from "@/pages/pedialab";
 import ResuscitationDosesPage from "@/pages/resuscitation-doses";
 import CalculatorsPage from "@/pages/calculators";
 import AdminPage from "@/pages/admin";
@@ -208,6 +209,7 @@ function Router() {
       {/* Specific Routes first */}
       <Route path="/cardiac-arrest" component={() => <ProtectedRoute component={CardiacArrestPage} />} />
       <Route path="/drug-doses" component={() => <ProtectedRoute component={PediaDosePage} />} />
+      <Route path="/pedialab" component={() => <ProtectedRoute component={PediaLabPage} />} />
       
       <Route path="/calculators/resuscitation-doses" component={() => <ProtectedRoute component={ResuscitationDosesPage} />} />
       <Route path="/calculators/advanced-fluids" component={() => <ProtectedRoute component={AdvancedFluidsPage} />} />
