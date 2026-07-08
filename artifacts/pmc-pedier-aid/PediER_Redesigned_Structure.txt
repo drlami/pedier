@@ -1,0 +1,282 @@
+PediER Aid — Redesigned ER Structure
+Based on: Fleisher & Ludwig (8th Ed.), APLS (7th Ed.), Nelson Symptom-Based Diagnosis (2nd Ed.)
+Last updated: 2026-06-30
+
+PRINCIPLE
+---------
+All categories are organized by what the doctor SEES at the door (chief complaint),
+not by the diagnosis. A doctor in a busy ER should open one category and find the protocol
+in under 10 seconds.
+
+Legend
+  [EXISTS]   = already built or registered in the app
+  [NEW]      = not yet in the app, needs to be added
+  [MOVE]     = exists but is in the wrong category currently
+
+
+===========================================================================
+PALS ALGORITHMS  (keep as separate strip — pre-diagnosis resuscitation)
+===========================================================================
+
+  Cardiac Arrest                          [EXISTS]
+  Systematic Approach                     [EXISTS]
+  Hypovolemic Shock                       [EXISTS]
+  Cardiogenic Shock                       [EXISTS]
+  Shock Framework                         [EXISTS]
+  Septic Shock                            [EXISTS]
+  Anaphylaxis                             [EXISTS]
+  Bradycardia                             [EXISTS]
+  Tachycardia / SVT                       [EXISTS]
+  Respiratory Failure                     [NEW]
+
+
+===========================================================================
+1.  BREATHING DIFFICULTY
+===========================================================================
+
+  Asthma                                  [EXISTS]
+  Bronchiolitis                           [EXISTS]
+  Croup                                   [EXISTS]
+  Pneumonia                               [EXISTS]
+  Epiglottitis                            [EXISTS]
+  Foreign Body Aspiration                 [EXISTS]
+  Bacterial Tracheitis                    [EXISTS]
+  Cyanosis                                [EXISTS]
+  Apnea                                   [EXISTS]
+  Stridor — Approach                      [NEW]
+
+
+===========================================================================
+2.  THE FEBRILE CHILD
+    (All fever presentations in one place — by age and pattern)
+===========================================================================
+
+  Fever Without Source                    [EXISTS]
+  Fever with Rash                         [EXISTS — MOVE from Focal Infections]
+  Fever in the Neutropenic Child          [EXISTS]
+  Meningitis / Encephalitis               [EXISTS — MOVE from Fever & Systemic]
+  Fever in Neonate (0–28 days)            [NEW]
+  Fever Age 1–3 Months                    [NEW]
+  Occult Bacteremia — Age 3–36 Months     [NEW]
+
+
+===========================================================================
+3.  CRYING AND THE UNWELL INFANT
+    (Entirely missing — one of the most dangerous ER presentations)
+===========================================================================
+
+  Inconsolable Crying — Approach          [NEW]
+  Neonatal Sepsis                         [NEW]
+  Neonatal Jaundice                       [NEW]
+  Bilious Vomiting in the Newborn         [NEW]
+  Poor Feeding / Failure to Thrive        [NEW]
+
+
+===========================================================================
+4.  SEIZURE AND ALTERED CONSCIOUSNESS
+===========================================================================
+
+  Status Epilepticus                      [EXISTS]
+  Febrile Seizure                         [EXISTS]
+  First Afebrile Seizure                  [EXISTS]
+  Altered Mental Status                   [EXISTS]
+
+
+===========================================================================
+5.  HEADACHE AND NEUROLOGY
+===========================================================================
+
+  Headache — Red Flags Approach           [EXISTS]
+  Raised Intracranial Pressure            [EXISTS]
+  Pediatric Stroke                        [EXISTS]
+  Acute Flaccid Weakness                  [EXISTS]
+  Acute Ataxia                            [EXISTS]
+  VP Shunt Malfunction                    [EXISTS]
+  Neck Stiffness — Approach               [NEW]
+
+
+===========================================================================
+6.  ABDOMINAL COMPLAINTS
+===========================================================================
+
+  Abdominal Pain — Approach               [EXISTS]
+  Bilious Vomiting                        [EXISTS]
+  Persistent Vomiting                     [EXISTS]
+  Dehydration / Gastroenteritis           [EXISTS]
+  GI Bleeding                             [EXISTS]
+  Abdominal Distention / Constipation     [EXISTS]
+  Intussusception                         [EXISTS]
+
+
+===========================================================================
+7.  SURGICAL EMERGENCIES
+    (Needs its own track — currently buried inside Abdominal)
+===========================================================================
+
+  Appendicitis                            [NEW]
+  Testicular Torsion                      [NEW]
+  Incarcerated Hernia                     [NEW]
+  Intussusception                         [EXISTS — also in Abdominal]
+  Malrotation / Volvulus                  [NEW]
+
+
+===========================================================================
+8.  RASH AND SKIN
+    (Currently split and hidden — rash is one of the top ER presentations)
+===========================================================================
+
+  Fever with Rash                         [EXISTS — shared with Febrile Child]
+  Rash Without Fever — Approach           [NEW]
+  Urticaria / Angioedema                  [NEW]
+  Skin and Soft Tissue Infection (SSTI)   [EXISTS — MOVE from Focal Infections]
+  Purpura / Petechiae — Approach          [NEW]
+
+
+===========================================================================
+9.  MUSCULOSKELETAL
+    (Entirely missing — limp and joint pain are extremely common ER visits)
+===========================================================================
+
+  Limp — Approach                         [NEW]
+  Acute Joint Pain / Septic Arthritis     [NEW]
+  Back Pain — Approach                    [NEW]
+  Osteomyelitis                           [NEW]
+  Transient Synovitis vs Septic Arthritis [NEW]
+
+
+===========================================================================
+10. ENT AND EYE
+    (Entirely missing as a category — most frequent ER visits in children)
+===========================================================================
+
+  Earache / Acute Otitis Media            [EXISTS — MOVE from Focal Infections]
+  Sore Throat / Tonsillitis               [NEW]
+  Epistaxis                               [NEW]
+  Mastoiditis                             [EXISTS — MOVE from Focal Infections]
+  Periorbital Cellulitis                  [EXISTS — MOVE from Focal Infections]
+  Orbital Cellulitis                      [EXISTS — MOVE from Focal Infections]
+  Red Eye — Approach                      [NEW]
+  Sudden Vision Loss                      [NEW]
+  Cervical Lymphadenitis                  [EXISTS — MOVE from Focal Infections]
+
+
+===========================================================================
+11. URINARY AND RENAL
+    (Currently split between two different categories — merge here)
+===========================================================================
+
+  Urinary Tract Infection (UTI)           [EXISTS — MOVE from Focal Infections]
+  Acute Renal Failure                     [EXISTS — MOVE from Renal & Urinary]
+  Haematuria — Approach                   [NEW]
+  Scrotal Pain / Torsion                  [NEW — also in Surgical]
+
+
+===========================================================================
+12. CARDIAC PRESENTATIONS
+===========================================================================
+
+  Heart Failure / Myocarditis             [EXISTS]
+  Chest Pain in Children                  [EXISTS]
+  Syncope                                 [EXISTS]
+  Palpitations                            [EXISTS]
+  Murmur with Symptoms                    [EXISTS]
+  Hypertensive Emergency                  [NEW]
+
+
+===========================================================================
+13. METABOLIC AND ELECTROLYTE EMERGENCIES
+    (Merge the two currently confusing categories into one)
+===========================================================================
+
+  Diabetic Ketoacidosis (DKA)             [EXISTS]
+  Hypoglycemia                            [EXISTS]
+  Adrenal Crisis                          [EXISTS]
+  Metabolic Crisis (Inborn Errors)        [EXISTS]
+  Hyperkalemia                            [EXISTS]
+  Hypokalemia                             [EXISTS]
+  Hypernatremia                           [EXISTS]
+  Hyponatremia                            [EXISTS]
+  Hypercalcemia                           [EXISTS]
+  Hypocalcemia                            [EXISTS]
+  Hypomagnesemia                          [EXISTS]
+
+
+===========================================================================
+14. POISONING AND ENVENOMATION
+===========================================================================
+
+  Paracetamol Toxicity                    [EXISTS]
+  Iron Toxicity                           [EXISTS]
+  Organophosphorus Ingestion              [EXISTS]
+  Carbon Monoxide Poisoning               [EXISTS]
+  Chlorine Inhalation                     [EXISTS]
+  Snake Bite                              [EXISTS]
+  Scorpion Sting                          [EXISTS]
+  General Approach to Poisoning           [NEW]
+
+
+===========================================================================
+15. TRAUMA
+===========================================================================
+
+  Head Trauma                             [EXISTS]
+  Smoke Inhalation / Burns                [EXISTS]
+  Drowning / Near-Drowning                [NEW]
+  Chest Trauma                            [NEW]
+
+
+===========================================================================
+16. BEHAVIORAL HEALTH AND SAFEGUARDING
+    (Entirely missing — required by every international PEM reference)
+===========================================================================
+
+  Deliberate Self-Harm                    [NEW]
+  Acute Psychiatric Emergency             [NEW]
+  Deliberate Ingestion / Overdose         [NEW]
+  Non-Accidental Injury (Child Abuse)     [NEW]
+  Child Neglect — Recognition             [NEW]
+
+
+===========================================================================
+SUMMARY OF GAPS
+===========================================================================
+
+Categories that are NEW (not in app at all):
+  Crying and the Unwell Infant            5 topics
+  Musculoskeletal                         5 topics
+  ENT and Eye (partial)                   4 new topics
+  Surgical Emergencies (partial)          4 new topics
+  Behavioral Health and Safeguarding      5 topics
+  Rash and Skin (partial)                 3 new topics
+  Other scattered new topics              ~8 topics
+
+Total new topics to build:               ~34
+Total existing topics to move/reclassify: ~12
+Total topics when complete:              ~95+
+
+
+===========================================================================
+TOPICS TO MOVE (no rebuild needed, just reclassify)
+===========================================================================
+
+  FROM Focal Infections  →  ENT and Eye:
+    Mastoiditis, Periorbital Cellulitis, Orbital Cellulitis,
+    Cervical Lymphadenitis, Acute Otitis Media
+
+  FROM Focal Infections  →  Urinary and Renal:
+    Urinary Tract Infection
+
+  FROM Focal Infections  →  Rash and Skin:
+    Skin and Soft Tissue Infection
+
+  FROM Fever & Systemic  →  The Febrile Child:
+    Meningitis / Encephalitis, Fever with Rash
+
+  FROM Renal & Urinary   →  Urinary and Renal:
+    Acute Renal Failure
+
+  FROM Electrolyte Disorders + Metabolic  →  Metabolic and Electrolyte:
+    All 11 topics merged into one category
+
+After these moves, "Focal Infections" and "Electrolyte Disorders"
+as standalone categories can be retired entirely.

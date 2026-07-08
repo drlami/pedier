@@ -38,6 +38,37 @@ export interface DoseResult {
   warningNote?: string;
 }
 
+export interface LevelTable {
+  title: string;
+  columns: [string, string];
+  rows: [string, string][];
+}
+
+export interface DoseAdjustmentRow {
+  range: string;
+  /** One action regardless of the current dosing frequency. */
+  action?: string;
+  /** Action if the current dosing frequency is q12h — use instead of `action` when the response genuinely depends on current frequency. */
+  ifQ12h?: string;
+  /** Action if the current dosing frequency is q8h. */
+  ifQ8h?: string;
+}
+
+export interface DoseAdjustmentTable {
+  title: string;
+  targetRange: string;
+  rows: DoseAdjustmentRow[];
+}
+
+export interface LevelGuidance {
+  /** Rendered above the "Level Interpretation & Dose Adjustment" heading — e.g. a target/goal reference table. */
+  targetTable?: LevelTable;
+  formula?: string;
+  formulaNote?: string;
+  tables: LevelTable[];
+  doseAdjustmentTables?: DoseAdjustmentTable[];
+}
+
 export interface NeonateDrug {
   id: string;
   name: string;
@@ -48,6 +79,7 @@ export interface NeonateDrug {
   monitoring: string[];
   cautions: string[];
   references: string[];
+  levelGuidance?: LevelGuidance;
   calculate: (weightKg: number, pmaWeeks: number, pnaDays: number) => DoseResult;
 }
 
@@ -88,21 +120,21 @@ export const neonateDrugs: NeonateDrug[] = [
       'Adjust interval for significant renal impairment',
       'Do not mix in same line as aminoglycosides',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight, pma, pna) => {
       const dose = 50;
       const total = weight * dose;
       let interval: string;
       let basisNote: string;
-      if (pma < 29) {
+      if (pma <= 29) {
         interval = pna <= 28 ? 'q12h' : 'q8h';
-        basisNote = `PMA < 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
-      } else if (pma < 37) {
-        interval = pna <= 7 ? 'q12h' : 'q8h';
-        basisNote = `PMA 29–36 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
-      } else if (pma < 45) {
-        interval = 'q8h';
-        basisNote = 'PMA 37–44 wks';
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
+      } else if (pma <= 36) {
+        interval = pna <= 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA 30–36 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 44) {
+        interval = pna <= 7 ? 'q12h' : 'q6h';
+        basisNote = `PMA 37–44 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
       } else {
         interval = 'q6h';
         basisNote = 'PMA ≥ 45 wks';
@@ -138,19 +170,20 @@ export const neonateDrugs: NeonateDrug[] = [
       'Hold if oliguria (< 1 mL/kg/h) — discuss with consultant',
       'Ototoxic; cumulative toxicity with prolonged courses',
     ],
-    references: ['NNF 9th ed. (2024)', 'Neofax 2023', 'BNFc 2024'],
-    calculate: (weight, pma) => {
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
       let dose: number;
       let interval: string;
       let basisNote: string;
-      if (pma < 28) {
-        dose = 5; interval = 'q48h'; basisNote = 'PMA < 28 wks';
-      } else if (pma <= 32) {
-        dose = 4.5; interval = 'q36h'; basisNote = 'PMA 28–32 wks';
-      } else if (pma <= 36) {
-        dose = 4; interval = 'q24h'; basisNote = 'PMA 33–36 wks';
+      if (pma < 29) {
+        if (pna <= 7) { dose = 5; interval = 'q48h'; basisNote = 'PMA < 29 wks, PNA 0–7d'; }
+        else if (pna <= 28) { dose = 4; interval = 'q36h'; basisNote = 'PMA < 29 wks, PNA 8–28d'; }
+        else { dose = 4; interval = 'q24h'; basisNote = 'PMA < 29 wks, PNA ≥ 29d'; }
+      } else if (pma <= 34) {
+        if (pna <= 7) { dose = 4.5; interval = 'q36h'; basisNote = 'PMA 30–34 wks, PNA 0–7d'; }
+        else { dose = 4; interval = 'q24h'; basisNote = 'PMA 30–34 wks, PNA > 7d'; }
       } else {
-        dose = 4; interval = 'q24h'; basisNote = 'PMA ≥ 37 wks';
+        dose = 4; interval = 'q24h'; basisNote = 'PMA ≥ 35 wks';
       }
       const total = weight * dose;
       return {
@@ -173,30 +206,84 @@ export const neonateDrugs: NeonateDrug[] = [
     indications: ['Late-onset sepsis (MRSA / CoNS)', 'Gram-positive meningitis', 'NEC with Gram-positive bacteraemia'],
     administration: 'IV over 60 min (max rate 10 mg/kg/h). Slower infusion if red man syndrome.',
     monitoring: [
-      'AUC-guided dosing preferred: AUC/MIC target 400–600 (for MIC ≤ 1 mg/L)',
-      'Trough (pre-dose 4 if AUC not available): target 10–15 mg/L',
-      'Serum creatinine and urine output every 48–72 h',
+      'Trough: draw just before the 4th dose at steady state, then repeat as clinically indicated — trough (not peak) is the standard efficacy measure in neonates',
+      'If a peak is also needed: draw 60 min after the end of infusion',
+      'Serum creatinine and urine output regularly — nephrotoxicity risk in neonates correlates with trough level (see cautions)',
+      'FBC if course > 3 weeks (neutropenia risk with prolonged therapy)',
+      'Auditory function monitoring if on concurrent ototoxic drugs (e.g. aminoglycosides)',
     ],
     cautions: [
+      'See the trough target and action tables below — targets and adjustment steps differ for EMPIRICAL therapy vs CONFIRMED (blood-culture-positive) therapy. Take extra care not to mix the two tables up.',
+      'Two alternative institutional protocols use different initial intervals/doses at the extremes: UNC Children\'s (2023) uses flat q12h regardless of PNA for PMA ≤29 wks and q8h (not q6h) for PMA ≥45 wks; KEMH (WA, Australia) uses a lower 10 mg/kg/dose (not 15) for corrected GA <30 wks and flat q8h for the whole 37–44 wk band. If your unit follows either, expect a different starting regimen than the one calculated here.',
+      'Real neonatal nephrotoxicity signal: one prospective study (110 neonates) found acute kidney injury in 18.18% with trough > 15 mg/L, vs 0% at 10–15 mg/L, vs 1.38% at < 10 mg/L (p=0.04) — though other paediatric studies did not replicate this association, so treat "aim higher just in case" with real caution, not as automatically safe',
+      'MIC > 2 mg/L (VISA/VRSA): vancomycin will NOT work regardless of dose or trough achieved — this needs an ID consult for an alternative agent, not a higher dose',
+      'AUC-guided dosing (AUC/MIC target 400–600) is now the adult standard (ASHP/IDSA/PIDS/SIDP 2020), but that guideline explicitly excludes neonates due to insufficient data — trough remains the practical bedside mainstay at this age',
       'Red man syndrome (flushing, rash) — slow infusion, not a true allergy',
       'Nephrotoxic — avoid concurrent aminoglycosides if possible',
-      'Dose based on PMA; adjust after TDM results',
     ],
-    references: ['ASHP/IDSA/SIDP Vancomycin TDM guidelines 2020', 'Neofax 2023', 'NNF 9th ed.'],
-    calculate: (weight, pma) => {
-      let dose: number;
+    references: ['Neofax 2020', 'KEMH (WA) Neonatal Medication Protocol: Vancomycin', 'UNC Children\'s Hospital Vancomycin Dosing & Monitoring Guide (Sep 2023)', 'ASHP/IDSA/PIDS/SIDP Vancomycin TDM guideline 2020', 'NNF 9th ed.'],
+    levelGuidance: {
+      targetTable: {
+        title: 'Goal trough by therapy phase',
+        columns: ['Phase / indication', 'Target trough'],
+        rows: [
+          ['Empirical therapy (pre-culture result)', '5–15 mg/L'],
+          ['Confirmed CoNS / MRSA / staphylococcal / enterococcal / bacillus infection', '15–20 mg/L'],
+        ],
+      },
+      tables: [
+        {
+          title: 'Renal impairment — after a single 10 mg/kg test dose, level at 12–24h',
+          columns: ['Level result', 'Action'],
+          rows: [
+            ['Within goal', 'Consider re-dosing; repeat level in 12–24h'],
+            ['Below goal', 'Consider maintaining the current dose and checking a level sooner (e.g. 8h instead of 12h); alternatively the dose may be increased at the same interval'],
+            ['Above goal', 'Continue to hold; recheck level in a further 12–24h'],
+          ],
+        },
+      ],
+      doseAdjustmentTables: [
+        {
+          title: 'EMPIRICAL therapy — dose/frequency adjustment',
+          targetRange: 'Target 5–15 mg/L',
+          rows: [
+            { range: '< 5 mg/L', ifQ12h: 'Same dose, shorten interval to q8h', ifQ8h: 'Increase dose by 50% (×1.5), keep frequency at q8h' },
+            { range: '5–15 mg/L', action: 'No adjustment required' },
+            { range: '16–20 mg/L', action: 'Check renal function; reduce dose by 30% (×0.7), keep frequency the same; repeat level in 24h' },
+            { range: '> 20 mg/L', action: 'WITHHOLD further doses; consult microbiology/paediatric ID and pharmacy; repeat level 24h after the last dose' },
+          ],
+        },
+        {
+          title: 'CONFIRMED blood-culture-positive therapy — dose/frequency adjustment',
+          targetRange: 'Target 15–20 mg/L',
+          rows: [
+            { range: '< 7 mg/L', ifQ12h: 'Same dose, shorten interval to q8h', ifQ8h: 'Increase dose by 75% (×1.75), keep frequency at q8h' },
+            { range: '7–10 mg/L', ifQ12h: 'Same dose, shorten interval to q8h', ifQ8h: 'Increase dose by 60% (×1.6), keep frequency at q8h' },
+            { range: '11–12 mg/L', action: 'Keep frequency the same; increase dose by 40% (×1.4)' },
+            { range: '13–14 mg/L', action: 'Keep frequency the same; increase dose by 25% (×1.25)' },
+            { range: '15–20 mg/L', action: 'No adjustment required' },
+            { range: '21–22 mg/L', action: 'Continue current dose; check renal function; repeat level in 24h. Do NOT withhold unless renal function is worsening.' },
+            { range: '23–25 mg/L', action: 'Check renal function; do NOT withhold unless renal function is worsening; reduce dose by 20% (×0.8), keep frequency; repeat level in 24h' },
+            { range: '> 25 mg/L', action: 'WITHHOLD further doses; consult microbiology/paediatric ID; repeat level 24h after the last dose' },
+          ],
+        },
+      ],
+    },
+    calculate: (weight, pma, pna) => {
+      const dose = 15;
       let interval: string;
       let basisNote: string;
-      if (pma < 27) {
-        dose = 20; interval = 'q18h'; basisNote = 'PMA < 27 wks';
-      } else if (pma <= 29) {
-        dose = 20; interval = 'q18h'; basisNote = 'PMA 27–29 wks';
-      } else if (pma <= 34) {
-        dose = 20; interval = 'q12h'; basisNote = 'PMA 30–34 wks';
-      } else if (pma <= 42) {
-        dose = 20; interval = 'q8h'; basisNote = 'PMA 35–42 wks';
+      if (pma <= 29) {
+        interval = pna <= 14 ? 'q18h' : 'q12h';
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 36) {
+        interval = pna <= 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA 30–36 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 44) {
+        interval = pna <= 7 ? 'q12h' : 'q8h';
+        basisNote = `PMA 37–44 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
       } else {
-        dose = 15; interval = 'q6h'; basisNote = 'PMA ≥ 43 wks';
+        interval = 'q6h'; basisNote = 'PMA ≥ 45 wks';
       }
       const total = weight * dose;
       return {
@@ -207,7 +294,78 @@ export const neonateDrugs: NeonateDrug[] = [
         concentration: '5 mg/mL',
         volumePerDose: mL(total, 5),
         basisNote,
-        warningNote: 'Starting dose only — adjust after TDM (AUC-guided preferred).',
+        warningNote: 'Starting dose only — check a trough before the 4th dose. See the trough target and action tables below for the goal by indication and what to do if the level is off-target.',
+      };
+    },
+  },
+
+  {
+    id: 'teicoplanin',
+    name: 'Teicoplanin',
+    brandName: 'Targocid',
+    category: 'Antibiotic',
+    indications: ['Late-onset sepsis (MRSA / CoNS)', 'Gram-positive line infection', 'Alternative to vancomycin when renal-sparing / less frequent dosing preferred'],
+    administration: 'IV bolus over 3–5 min or IM (both acceptable — unlike vancomycin, does NOT require a slow infusion). Reconstitute gently, avoid shaking (foams).',
+    monitoring: ['Trough level before dose 4–5 (target > 10 mg/L uncomplicated; 15–20+ mg/L for endocarditis/deep-seated infection)', 'Renal function — dose-interval adjustment needed in impairment', 'FBC (rare neutropenia/thrombocytopenia with prolonged use)', 'Clinical response at 48–72 h'],
+    cautions: [
+      'NOT in the NeoFax (Micromedex) reference — teicoplanin is not FDA-approved/marketed in the US. Dosing below is per Targocid (Sanofi) official prescribing information, neonatal-specific line.',
+      'NEONATAL regimen (this entry): a SINGLE loading dose of 16 mg/kg, then 8 mg/kg once daily from day 2 — do NOT repeat the loading dose q12h for neonates, that repeated-loading structure belongs to a different (older-child, different mg/kg) regimen below',
+      'Children > 2 months (NOT this neonatal dose): moderate infection 10 mg/kg q12h ×3 doses then 6 mg/kg daily; severe infection/neutropenia 10 mg/kg q12h ×3 doses then 10 mg/kg daily',
+      'Renally cleared — in renal impairment, dose reduction is not required until day 4 of treatment; from day 4: CrCl 40–60 mL/min → halve the dose (or double the interval); CrCl < 40 mL/min or dialysis → one-third of the dose (or triple the interval)',
+      'Better tolerated than vancomycin: Red Man Syndrome is NOT a contraindication to teicoplanin even if it occurred with vancomycin — but caution with hypersensitivity to vancomycin, as cross-hypersensitivity can occur',
+      'Thrombocytopenia risk, especially at higher-than-recommended doses — monitor FBC',
+    ],
+    references: ['Targocid (teicoplanin) Sanofi Abridged Prescribing Information, CCDS v1.2 (2003), updated Jan 2014'],
+    calculate: (weight) => {
+      const loadDose = 16;
+      const maintDose = 8;
+      const loadTotal = weight * loadDose;
+      const maintTotal = weight * maintDose;
+      const concMgPerMl = 66.7;
+      return {
+        dosePerKg: `Neonatal: Load ${loadDose} mg/kg (single dose, day 1) → Maintenance ${maintDose} mg/kg once daily (from day 2)`,
+        totalDose: `Load: ${loadTotal.toFixed(1)} mg (single dose) | Maintenance: ${maintTotal.toFixed(1)} mg/dose`,
+        interval: 'Load: single dose on day 1 only | Maintenance: q24h from day 2 onward',
+        route: 'IV bolus over 3–5 min or IM',
+        concentration: `~${concMgPerMl} mg/mL (200 mg vial reconstituted with 3 mL WFI — confirm against the vial size in stock)`,
+        volumePerDose: `Load: ${mL(loadTotal, concMgPerMl)} | Maintenance: ${mL(maintTotal, concMgPerMl)}`,
+        basisNote: 'Official neonatal regimen: single 16 mg/kg load, then 8 mg/kg q24h maintenance. This is NOT the same regimen as the older-child (>2 months) dosing.',
+        warningNote: 'Do not repeat the 16 mg/kg load q12h for neonates — that applies to a different, older-child regimen at a different dose (10 mg/kg). Not cross-verified against NeoFax (not in that reference).',
+      };
+    },
+  },
+
+  {
+    id: 'colistin',
+    name: 'Colistin (Colistimethate Sodium)',
+    brandName: 'Colistin/Norma, Colomycin',
+    category: 'Antibiotic',
+    indications: ['Multi-drug-resistant Gram-negative sepsis (e.g. Klebsiella, Acinetobacter) — reserve/last-line agent', 'Used in combination with at least one other antibiotic, not as monotherapy for MDR organisms'],
+    administration: 'IV infusion over 30–60 min, or IM. Dosed in IU (International Units) of colistimethate sodium (CMS) — do NOT convert to mg for this entry; colistin mg-conversion factors (mg CMS vs mg colistin base activity) are inconsistent across references and are a recognised source of real dosing errors.',
+    monitoring: ['Renal function — nephrotoxicity is dose-limiting, monitor creatinine and urine output closely', 'Serum potassium and magnesium (both tend to run low and often need supplementation)', 'Neurotoxicity signs (rare in neonates but reported)', 'Clinical + microbiological response — used alongside at least one other agent, not alone'],
+    cautions: [
+      'RESERVE AGENT — for confirmed or strongly suspected multi-drug-resistant Gram-negative infection, always in combination with another antibiotic',
+      'Neonatal evidence base is limited: this dose (75,000 IU/kg/day) sits at the top of the range actually used in a neonatal outcomes study (50,000–75,000 IU/kg/day ÷ 3 doses, 18 neonates, 76% favourable outcome) and at the bottom of the general paediatric label range (75,000–150,000 IU/kg/day, NOT neonate-specific, from the manufacturer SmPC)',
+      'No established loading dose for critically ill neonates — start at the maintenance dose',
+      'No neonatal-specific renal-impairment dosing exists — if renal function is impaired, discuss with pharmacy/nephrology rather than extrapolating adult CrCl-based tables',
+      'Aerosolised/nebulised colistin is a separate, unapproved-route regimen with different dosing — do NOT use this IV/IM dose for a nebulised order',
+    ],
+    references: ['Neofax 2020 (neonatal MDR-organism study citation)', 'Colistin/Norma SmPC (Norma Hellas) — general paediatric label range'],
+    calculate: (weight) => {
+      const dailyDose = 75000;
+      const doseInterval = dailyDose / 3;
+      const dailyTotal = weight * dailyDose;
+      const doseTotal = weight * doseInterval;
+      return {
+        dosePerKg: `${doseInterval.toLocaleString()} IU/kg/dose q8h (= ${dailyDose.toLocaleString()} IU/kg/day)`,
+        totalDose: `${doseTotal.toLocaleString()} IU/dose (${dailyTotal.toLocaleString()} IU/day total)`,
+        interval: 'q8h (3 divided doses/day)',
+        route: 'IV infusion over 30–60 min, or IM',
+        concentration: 'Available as 1 million IU or 2 million IU vials — confirm vial strength before reconstituting',
+        volumePerDose: 'Depends on vial strength and reconstitution volume in use — verify against the actual vial/pharmacy preparation',
+        basisNote: '75,000 IU/kg/day ÷ 3 doses — chosen as the point where the neonatal-study range (50,000–75,000) and the general paediatric label range (75,000–150,000) meet.',
+        maxDose: 'No neonatal-specific max established beyond this working dose — do not exceed without ID/pharmacy input',
+        warningNote: 'Dosed in IU only — do not convert to mg for this entry, colistin unit conversions are a known source of real errors. Reserve for confirmed/suspected MDR Gram-negative infection, given with a second agent.',
       };
     },
   },
@@ -220,36 +378,39 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 15–30 min. IM acceptable for sepsis.',
     monitoring: ['Clinical response', 'Renal function for prolonged courses'],
     cautions: [
-      'Meningitis dose: 100,000 units/kg/dose q6h (all ages)',
-      'Syphilis: 50,000 units/kg/dose q12h (PMA < 29w) to q6h (term) × 10 days',
+      'GBS Meningitis: 150,000 units/kg/dose q8h (PNA ≤ 7d) or 125,000 units/kg/dose q6h (PNA ≥ 8d) — NOT the flat "100,000 units/kg q6h" figure',
+      'Congenital syphilis: 50,000 units/kg/dose q12h for the first 7 days of life, then q8h, for a total of 10 days — dosing is PNA-dependent only, NOT PMA-dependent',
       'High doses: monitor sodium (large sodium load)',
     ],
-    references: ['NNF 9th ed. (2024)', 'CDC Congenital Syphilis guidelines 2021'],
+    references: ['Neofax 2020', 'CDC Congenital Syphilis guidelines 2021'],
     calculate: (weight, pma, pna) => {
       const dose = 50000;
       const total = weight * dose;
       let interval: string;
       let basisNote: string;
-      if (pma < 29) {
+      if (pma <= 29) {
         interval = pna <= 28 ? 'q12h' : 'q8h';
-        basisNote = `PMA < 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
       } else if (pma <= 36) {
-        interval = pna <= 7 ? 'q12h' : 'q8h';
-        basisNote = `PMA 29–36 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
+        interval = pna <= 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA 30–36 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 44) {
+        interval = pna <= 7 ? 'q12h' : 'q6h';
+        basisNote = `PMA 37–44 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
       } else {
         interval = 'q6h';
-        basisNote = 'PMA ≥ 37 wks';
+        basisNote = 'PMA ≥ 45 wks';
       }
       const totalMg = total / 1000;
       return {
-        dosePerKg: '50,000 units/kg (= 30 mg/kg)',
+        dosePerKg: '50,000 units/kg (= 30 mg/kg) — sepsis/GBS dosing shown here',
         totalDose: `${total.toLocaleString()} units (${totalMg.toFixed(0)} mg)`,
         interval,
         route: 'IV / IM',
         concentration: '600,000 units/mL (= 360 mg/mL)',
         volumePerDose: mL(totalMg, 360),
         basisNote,
-        warningNote: 'Meningitis: 100,000 units/kg/dose q6h. Syphilis: see cautions.',
+        warningNote: 'Meningitis and syphilis use DIFFERENT dosing — see cautions, do not use the sepsis interval above for those indications.',
       };
     },
   },
@@ -267,12 +428,25 @@ export const neonateDrugs: NeonateDrug[] = [
       'Use with metronidazole for confirmed/suspected anaerobic coverage',
       'Reserve for resistant organisms — de-escalate when sensitivities known',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
-    calculate: (weight, pma) => {
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
       const dose = 100;
       const total = weight * dose;
-      const interval = pma < 36 ? 'q12h' : 'q8h';
-      const basisNote = pma < 36 ? 'PMA < 36 wks' : 'PMA ≥ 36 wks';
+      let interval: string;
+      let basisNote: string;
+      if (pma <= 29) {
+        interval = pna <= 28 ? 'q12h' : 'q8h';
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
+      } else if (pma <= 36) {
+        interval = pna <= 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA 30–36 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 44) {
+        interval = pna <= 7 ? 'q12h' : 'q8h';
+        basisNote = `PMA 37–44 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
+      } else {
+        interval = 'q8h';
+        basisNote = 'PMA ≥ 45 wks';
+      }
       return {
         dosePerKg: '100 mg/kg (pip component)',
         totalDose: `${total.toFixed(0)} mg pip / ${(total / 8).toFixed(0)} mg tazo`,
@@ -297,21 +471,29 @@ export const neonateDrugs: NeonateDrug[] = [
       'Reserve for resistant organisms (carbapenem stewardship)',
       'Seizure risk — avoid if CNS pathology where possible',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
-    calculate: (weight, pma) => {
-      const dose = 20;
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
+      let dose: number;
+      let interval: string;
+      let basisNote: string;
+      if (pma < 32) {
+        dose = 20;
+        interval = pna < 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA < 32 wks, PNA ${pna < 14 ? '< 14d' : '≥ 14d'}`;
+      } else {
+        if (pna < 14) { dose = 20; interval = 'q8h'; basisNote = 'PMA ≥ 32 wks, PNA < 14d'; }
+        else { dose = 30; interval = 'q8h'; basisNote = 'PMA ≥ 32 wks, PNA ≥ 14d'; }
+      }
       const total = weight * dose;
-      const interval = pma < 32 ? 'q12h' : 'q8h';
-      const basisNote = pma < 32 ? 'PMA < 32 wks' : 'PMA ≥ 32 wks';
       return {
-        dosePerKg: '20 mg/kg',
+        dosePerKg: `${dose} mg/kg`,
         totalDose: `${total.toFixed(0)} mg`,
         interval,
         route: 'IV over 30 min',
         concentration: '50 mg/mL (reconstituted)',
         volumePerDose: mL(total, 50),
         basisNote,
-        warningNote: 'Meningitis: 40 mg/kg/dose. Confirm carbapenem indication before use.',
+        warningNote: 'Meningitis: 40 mg/kg/dose at the same age-specific interval shown above. Confirm carbapenem indication before use.',
       };
     },
   },
@@ -327,18 +509,18 @@ export const neonateDrugs: NeonateDrug[] = [
       'Preferred 3rd-gen cephalosporin for neonatal meningitis over ceftriaxone (no bilirubin displacement)',
       'Do NOT use ceftriaxone in neonates < 28 days',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
-    calculate: (weight, pma) => {
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
       const dose = 50;
       const total = weight * dose;
       let interval: string;
       let basisNote: string;
-      if (pma < 29) {
-        interval = 'q12h'; basisNote = 'PMA < 29 wks';
-      } else if (pma <= 35) {
-        interval = 'q8h'; basisNote = 'PMA 29–35 wks';
+      if (pna < 7) {
+        interval = 'q12h'; basisNote = `PNA < 7d (all gestational ages), PMA ${pma} wks`;
+      } else if (pma < 32) {
+        interval = 'q8h'; basisNote = `PMA < 32 wks, PNA ≥ 7d`;
       } else {
-        interval = 'q6h'; basisNote = 'PMA ≥ 36 wks';
+        interval = 'q6h'; basisNote = `PMA ≥ 32 wks, PNA ≥ 7d`;
       }
       return {
         dosePerKg: '50 mg/kg',
@@ -364,28 +546,34 @@ export const neonateDrugs: NeonateDrug[] = [
       'Avoid prolonged courses > 7–10 days if possible',
       'Can cause peripheral neuropathy and seizures at high doses',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
-    calculate: (weight, pma, pna) => {
-      let dose: number;
+    references: ['NNF 9th ed. (2024)', 'Neofax 2020'],
+    calculate: (weight, pma) => {
+      const loadDose = 15;
+      let maintDose: number;
       let interval: string;
       let basisNote: string;
-      if (pma < 26) {
-        dose = 7.5; interval = 'q48h'; basisNote = 'PMA < 26 wks';
-      } else if (pma <= 29) {
-        if (pna < 7) { dose = 7.5; interval = 'q24h'; basisNote = 'PMA 26–29 wks, PNA < 7d'; }
-        else { dose = 7.5; interval = 'q12h'; basisNote = 'PMA 26–29 wks, PNA ≥ 7d'; }
+      if (pma <= 25) {
+        maintDose = 7.5; interval = 'q24h'; basisNote = 'PMA 24–25 wks';
+      } else if (pma <= 27) {
+        maintDose = 10; interval = 'q24h'; basisNote = 'PMA 26–27 wks';
+      } else if (pma <= 33) {
+        maintDose = 7.5; interval = 'q12h'; basisNote = 'PMA 28–33 wks';
+      } else if (pma <= 40) {
+        maintDose = 7.5; interval = 'q8h'; basisNote = 'PMA 34–40 wks';
       } else {
-        dose = 7.5; interval = 'q12h'; basisNote = 'PMA ≥ 30 wks';
+        maintDose = 7.5; interval = 'q6h'; basisNote = 'PMA > 40 wks';
       }
-      const total = weight * dose;
+      const loadTotal = weight * loadDose;
+      const maintTotal = weight * maintDose;
       return {
-        dosePerKg: `${dose} mg/kg`,
-        totalDose: `${total.toFixed(1)} mg`,
-        interval,
-        route: 'IV over 30 min',
+        dosePerKg: `Load: ${loadDose} mg/kg → Maintenance: ${maintDose} mg/kg`,
+        totalDose: `Load: ${loadTotal.toFixed(1)} mg → Maintenance: ${maintTotal.toFixed(1)} mg`,
+        interval: `Maintenance starts one full interval after load (${interval})`,
+        route: 'IV over 30 min (or PO/NGT once enteral)',
         concentration: '5 mg/mL',
-        volumePerDose: mL(total, 5),
+        volumePerDose: `Load: ${mL(loadTotal, 5)} → Maintenance: ${mL(maintTotal, 5)}`,
         basisNote,
+        warningNote: 'Always give the 15 mg/kg loading dose first — do not start at the maintenance dose.',
       };
     },
   },
@@ -402,27 +590,34 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 30 min or PO once daily.',
     monitoring: ['LFTs weekly during treatment', 'Clinical response and serial cultures at 48–72 h'],
     cautions: [
-      'Prophylaxis dose: 3–6 mg/kg q72h (PMA < 29w) or q48h (PMA 29–36w)',
-      'Treatment dose: 12 mg/kg loading, then 12 mg/kg q24h',
+      'Prophylaxis dose: 3–6 mg/kg TWICE WEEKLY for 6 weeks (NOT daily, NOT PMA-tiered)',
+      'Treatment dose: 12 mg/kg loading, then 12 mg/kg maintenance — interval is PMA/PNA-dependent (see below)',
       'Drug interactions: increases levels of many drugs via CYP2C9/3A4',
       'QT prolongation risk — check concurrent drugs',
     ],
-    references: ['ESPID neonatal candidiasis guidelines 2021', 'NNF 9th ed. (2024)'],
-    calculate: (weight, pma) => {
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
       const loadDose = 12;
       const maintDose = 12;
       const total = weight * loadDose;
-      const interval = pma < 29 ? 'q72h (prophylaxis) / q24h (treatment)' : pma <= 36 ? 'q48h (prophylaxis) / q24h (treatment)' : 'q24h';
-      const basisNote = pma < 29 ? 'PMA < 29 wks (treatment: q24h)' : pma <= 36 ? 'PMA 29–36 wks' : 'PMA > 36 wks';
+      let interval: string;
+      let basisNote: string;
+      if (pma <= 29) {
+        interval = pna <= 14 ? 'q48h' : 'q24h';
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else {
+        interval = pna <= 7 ? 'q48h' : 'q24h';
+        basisNote = `PMA ≥ 30 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
+      }
       return {
-        dosePerKg: `Loading: ${loadDose} mg/kg → Maintenance: ${maintDose} mg/kg`,
+        dosePerKg: `Treatment — Loading: ${loadDose} mg/kg → Maintenance: ${maintDose} mg/kg`,
         totalDose: `Loading: ${total.toFixed(0)} mg → Maintenance: ${(weight * maintDose).toFixed(0)} mg`,
         interval,
         route: 'IV / PO',
         concentration: '2 mg/mL (IV)',
         volumePerDose: `Loading: ${mL(total, 2)} | Maintenance: ${mL(weight * maintDose, 2)}`,
         basisNote,
-        warningNote: 'Prophylaxis dose lower (3–6 mg/kg). Treatment requires loading dose.',
+        warningNote: 'This is treatment dosing. Prophylaxis is a separate, lower regimen (3–6 mg/kg twice weekly) — see cautions.',
       };
     },
   },
@@ -470,24 +665,27 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 1 hour. Ensure adequate hydration (at least 2 mL/kg/h) to prevent crystalluria.',
     monitoring: ['Renal function — creatinine and urine output daily', 'Neutrophil count (can cause neutropaenia)', 'Ensure IV line not infiltrated (highly irritant)'],
     cautions: [
-      'Disseminated / CNS HSV: 20 mg/kg q8h × 21 days',
-      'SEM (skin/eye/mouth) HSV: 20 mg/kg q8h × 14 days',
-      'Renal failure: increase interval (q12h or q24h) — dose unchanged',
+      'Disseminated / CNS HSV: 20 mg/kg × 21 days',
+      'SEM (skin/eye/mouth) HSV: 20 mg/kg × 14 days',
+      'PMA < 30 wks: q12h (not q8h) — renal/CNS immaturity',
+      'Renal failure: increase interval further (q12h or q24h) — dose unchanged',
       'Crystalluria with rapid infusion or poor hydration',
     ],
-    references: ['AAP Red Book 2024', 'NNF 9th ed.'],
-    calculate: (weight) => {
+    references: ['Neofax 2020', 'AAP Red Book 2024'],
+    calculate: (weight, pma) => {
       const dose = 20;
       const total = weight * dose;
+      const interval = pma < 30 ? 'q12h' : 'q8h';
+      const basisNote = pma < 30 ? 'PMA < 30 wks' : 'PMA ≥ 30 wks';
       return {
         dosePerKg: '20 mg/kg',
         totalDose: `${total.toFixed(0)} mg`,
-        interval: 'q8h',
+        interval,
         route: 'IV over 1 hour',
         concentration: '5 mg/mL (standard dilution)',
         volumePerDose: mL(total, 5),
-        basisNote: 'Disseminated/CNS: × 21 days | SEM: × 14 days',
-        warningNote: 'Ensure hydration ≥ 2 mL/kg/h. Renally cleared — adjust interval if AKI.',
+        basisNote: `${basisNote}. Disseminated/CNS: × 21 days | SEM: × 14 days`,
+        warningNote: 'Ensure hydration ≥ 2 mL/kg/h. Renally cleared — adjust interval further if AKI.',
       };
     },
   },
@@ -535,24 +733,25 @@ export const neonateDrugs: NeonateDrug[] = [
     monitoring: ['Serum level 20–40 mg/L (therapeutic)', 'Respiratory depression — have resuscitation ready', 'Sedation level'],
     cautions: [
       'Loading dose 20 mg/kg IV; can repeat 10 mg/kg × 2 (max cumulative 40 mg/kg)',
-      'Maintenance: 3–4 mg/kg/day — start 24 h after loading',
+      'Maintenance: 3–5 mg/kg/day — start 12 h after loading (24 h if weight < 1500 g)',
       'Respiratory depression risk — have bag/mask ready for loading dose',
       'Half-life very long in neonates (60–100 h)',
     ],
-    references: ['NNF 9th ed. (2024)', 'ILAE neonatal seizure guidelines 2021'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const loadDose = 20;
-      const maintDose = 3.5;
+      const maintDose = 4;
       const loadTotal = weight * loadDose;
       const maintTotal = weight * maintDose;
+      const maintStart = weight < 1.5 ? '24 h' : '12 h';
       return {
-        dosePerKg: `Load: ${loadDose} mg/kg | Maintenance: 3–4 mg/kg/day`,
+        dosePerKg: `Load: ${loadDose} mg/kg | Maintenance: 3–5 mg/kg/day`,
         totalDose: `Load: ${loadTotal.toFixed(0)} mg | Maintenance: ${maintTotal.toFixed(1)} mg/day`,
-        interval: 'Load: single dose (repeat 10 mg/kg × 2 if needed) | Maintenance: q24h',
+        interval: `Load: single dose (repeat 10 mg/kg × 2 if needed) | Maintenance: q24h, starting ${maintStart} after load`,
         route: 'IV over 20–30 min',
         concentration: '15 mg/mL',
         volumePerDose: `Load: ${mL(loadTotal, 15)} | Maintenance: ${mL(maintTotal, 15)}`,
-        basisNote: 'Cumulative max load: 40 mg/kg. Maintenance starts 24 h after load.',
+        basisNote: `Cumulative max load: 40 mg/kg. Maintenance starts ${maintStart} after load (< 1500 g uses 24 h, ≥ 1500 g uses 12 h).`,
         warningNote: 'Respiratory depression risk with loading. Resuscitation ready.',
       };
     },
@@ -567,25 +766,28 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 15 min.',
     monitoring: ['Clinical seizure control + aEEG/EEG', 'Renal function (dose-adjust if impaired)'],
     cautions: [
-      'Loading dose 20–40 mg/kg; evidence base for neonates growing',
-      'Maintenance: 10 mg/kg q12h, titrating to 30 mg/kg q12h if needed',
+      'Evidence is retrospective/observational, not RCT-based — reported loading doses range 20–150 mg/kg/day (divided), typical single load ~40–50 mg/kg',
+      'Maintenance: typical effective range 41.7–65 mg/kg/day, upper range reports up to ~100–106 mg/kg/day — given q12h. Do NOT anchor below ~20 mg/kg/dose q12h; that is below the typical effective range.',
+      'Dilute to 5–15 mg/mL for IV infusion (NOT 100 mg/mL undiluted)',
       'Better tolerability than phenobarbital (less sedation/respiratory depression)',
       'Renally excreted — increase interval if oliguria or AKI',
     ],
-    references: ['NNF 9th ed. (2024)', 'NEOLEV2 trial (Sharpe et al. JAMA 2020)'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const loadDose = 30;
-      const maintDose = 10;
+      const loadDose = 40;
+      const maintLow = 20;
+      const maintHigh = 50;
       const loadTotal = weight * loadDose;
-      const maintTotal = weight * maintDose;
+      const maintLowTotal = weight * maintLow;
+      const maintHighTotal = weight * maintHigh;
       return {
-        dosePerKg: `Load: ${loadDose} mg/kg | Maintenance: 10–30 mg/kg/dose`,
-        totalDose: `Load: ${loadTotal.toFixed(0)} mg | Maintenance: ${maintTotal.toFixed(0)}–${(weight * 30).toFixed(0)} mg`,
+        dosePerKg: `Load: ${loadDose} mg/kg (range 20–50) | Maintenance: ${maintLow}–${maintHigh} mg/kg/dose q12h`,
+        totalDose: `Load: ${loadTotal.toFixed(0)} mg | Maintenance: ${maintLowTotal.toFixed(0)}–${maintHighTotal.toFixed(0)} mg/dose`,
         interval: 'Load: single dose | Maintenance: q12h',
-        route: 'IV over 15 min',
-        concentration: '100 mg/mL (undiluted; dilute 1:1 with NaCl 0.9% for small doses)',
-        volumePerDose: `Load: ${mL(loadTotal, 100)} | Maintenance: ${mL(maintTotal, 100)}`,
-        basisNote: 'Starting maintenance 10 mg/kg q12h — titrate up based on EEG response',
+        route: 'IV over 15 min, diluted to 5–15 mg/mL',
+        concentration: 'Dilute to 5–15 mg/mL (from 100 mg/mL stock) with NaCl 0.9% or D5W',
+        volumePerDose: `Load: ${mL(loadTotal, 10)} (at 10 mg/mL dilution) | Maintenance: ${mL(maintLowTotal, 10)}–${mL(maintHighTotal, 10)} (at 10 mg/mL)`,
+        basisNote: `Start maintenance at ${maintLow} mg/kg/dose q12h — titrate up to ${maintHigh} mg/kg/dose q12h based on EEG response`,
       };
     },
   },
@@ -600,25 +802,25 @@ export const neonateDrugs: NeonateDrug[] = [
     cautions: [
       'Respiratory depression — have resuscitation ready',
       'Hypotension — have volume and dopamine available',
-      'Infusion accumulates with prolonged use (fat-soluble)',
-      'Infusion dose: 0.01–0.06 mg/kg/h; titrate to seizure control',
+      'Infusion accumulates with prolonged use (fat-soluble); tolerance may develop, requiring dose increase after several days',
+      'Anticonvulsant loading dose: 0.15 mg/kg IV. Maintenance infusion: 0.06–0.4 mg/kg/h (1–7 mcg/kg/min) — do not cap below 0.4 mg/kg/h for refractory seizures',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const bolusDose = 0.1;
-      const infMinDose = 0.01;
-      const infMaxDose = 0.06;
+      const bolusDose = 0.15;
+      const infMinDose = 0.06;
+      const infMaxDose = 0.4;
       const bolusTotal = weight * bolusDose;
       const infConcMgPerMl = 1;
       const infMinRate = (infMinDose * weight) / infConcMgPerMl;
       const infMaxRate = (infMaxDose * weight) / infConcMgPerMl;
       return {
-        dosePerKg: `Bolus: 0.1 mg/kg | Infusion: 0.01–0.06 mg/kg/h`,
-        totalDose: `Bolus: ${bolusTotal.toFixed(2)} mg | Infusion: ${(weight * infMinDose).toFixed(3)}–${(weight * infMaxDose).toFixed(3)} mg/h`,
-        interval: 'Bolus PRN | Infusion continuous',
+        dosePerKg: `Loading: 0.15 mg/kg | Maintenance infusion: 0.06–0.4 mg/kg/h`,
+        totalDose: `Loading: ${bolusTotal.toFixed(2)} mg | Infusion: ${(weight * infMinDose).toFixed(3)}–${(weight * infMaxDose).toFixed(3)} mg/h`,
+        interval: 'Loading: single IV dose over 10 min | Infusion: continuous',
         route: 'IV',
-        concentration: '1 mg/mL (diluted)',
-        volumePerDose: `Bolus: ${mL(bolusTotal, 1)} | Infusion: ${infMinRate.toFixed(2)}–${infMaxRate.toFixed(2)} mL/h`,
+        concentration: '1 mg/mL standard (dilute to 0.5 mg/mL for continuous infusion)',
+        volumePerDose: `Loading: ${mL(bolusTotal, 1)} | Infusion: ${infMinRate.toFixed(2)}–${infMaxRate.toFixed(2)} mL/h`,
         basisNote: 'Third-line for refractory seizures after phenobarbital ± levetiracetam',
         warningNote: 'Respiratory depression and hypotension — close monitoring mandatory.',
       };
@@ -670,18 +872,18 @@ export const neonateDrugs: NeonateDrug[] = [
       'Tachycardia and arrhythmia at high doses',
       'Inotrope, not a vasopressor — combine with dopamine for hypotension',
     ],
-    references: ['NNF 9th ed. (2024)', 'Neofax 2023'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const concMcgPerMl = 800;
       return {
-        dosePerKg: '5–20 mcg/kg/min',
+        dosePerKg: '2–25 mcg/kg/min',
         totalDose: `Start: ${(5 * weight).toFixed(0)} mcg/min`,
         interval: 'Continuous infusion',
         route: 'IV (central or peripheral)',
         concentration: `${concMcgPerMl} mcg/mL (40 mg in 50 mL D5W)`,
         volumePerDose: '—',
         basisNote: 'Primarily inotropic — may drop BP via vasodilation',
-        infusionNote: infusionRate(5, 10, 20, weight, concMcgPerMl),
+        infusionNote: infusionRate(2, 10, 25, weight, concMcgPerMl),
         warningNote: 'May lower BP — combine with dopamine if hypotensive. Confirm on echo.',
       };
     },
@@ -696,24 +898,26 @@ export const neonateDrugs: NeonateDrug[] = [
     monitoring: ['Continuous ECG', 'Arterial line for BP during infusion', 'Lactate (tissue perfusion)'],
     cautions: [
       'NRP cardiac arrest: 0.01–0.03 mg/kg IV (0.1–0.3 mL/kg of 1:10,000) q3–5 min',
+      'Low-dose option for hypotension/bradycardia SHORT of arrest: 1 mcg/kg (0.001 mg/kg) — much lower than the arrest dose',
       'ET route not recommended (unreliable absorption)',
       'Peripheral infusion risk: extravasation causes severe necrosis',
       'High doses cause tachyarrhythmia and hypertension',
     ],
-    references: ['NRP 8th edition 2021', 'NNF 9th ed. (2024)'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const arrestDose = 0.01;
       const arrestTotal = weight * arrestDose;
+      const lowDoseTotal = weight * 0.001;
       const concMcgPerMl = 20;
       return {
-        dosePerKg: 'Arrest: 0.01–0.03 mg/kg | Infusion: 0.05–1 mcg/kg/min',
-        totalDose: `Arrest: ${arrestTotal.toFixed(3)}–${(weight * 0.03).toFixed(3)} mg | Infusion: ${(0.05 * weight).toFixed(3)}–${(1 * weight).toFixed(2)} mcg/min`,
+        dosePerKg: 'Arrest: 0.01–0.03 mg/kg | Low-dose (hypotension/bradycardia): 1 mcg/kg | Infusion: 0.1–1 mcg/kg/min',
+        totalDose: `Arrest: ${arrestTotal.toFixed(3)}–${(weight * 0.03).toFixed(3)} mg | Low-dose: ${lowDoseTotal.toFixed(4)} mg (1 mcg/kg) | Infusion: ${(0.1 * weight).toFixed(3)}–${(1 * weight).toFixed(2)} mcg/min`,
         interval: 'Arrest: q3–5 min | Infusion: continuous',
         route: 'IV/IO (arrest); Central IV (infusion)',
         concentration: 'Arrest: 1:10,000 (0.1 mg/mL) | Infusion: 20 mcg/mL standard',
-        volumePerDose: `Arrest (1:10,000): ${mL(arrestTotal, 0.1)} per dose`,
-        basisNote: 'Arrest: IV preferred; ETT not recommended',
-        infusionNote: infusionRate(0.1, 0.3, 1, weight, concMcgPerMl),
+        volumePerDose: `Arrest (1:10,000): ${mL(arrestTotal, 0.1)} per dose | Low-dose: ${mL(lowDoseTotal, 0.1)}`,
+        basisNote: 'Arrest: IV preferred; ETT not recommended. A separate 1 mcg/kg low dose exists for hypotension/bradycardia short of arrest.',
+        infusionNote: infusionRate(0.1, 0.5, 1, weight, concMcgPerMl),
         warningNote: 'Central line mandatory for infusion. Extravasation → severe necrosis.',
       };
     },
@@ -730,20 +934,20 @@ export const neonateDrugs: NeonateDrug[] = [
       'Phosphodiesterase-3 inhibitor: positive inotropy + vasodilation (lusitropy)',
       'Hypotension is common — ensure adequate volume first',
       'Renally cleared — reduce dose in AKI',
-      'Loading dose (50 mcg/kg over 30–60 min) risks severe hypotension — often omitted in neonates',
+      'Loading dose (if used): 50 mcg/kg over 15 min, or 75 mcg/kg over 60 min — risks severe hypotension, often omitted in neonates',
     ],
-    references: ['NNF 9th ed. (2024)', 'Bassler et al. NEJM 2015'],
+    references: ['Neofax 2020', 'Bassler et al. NEJM 2015'],
     calculate: (weight) => {
       const concMcgPerMl = 200;
       return {
-        dosePerKg: '0.25–0.75 mcg/kg/min (usual start: 0.33 mcg/kg/min)',
+        dosePerKg: '0.3–0.75 mcg/kg/min (usual start: 0.33 mcg/kg/min)',
         totalDose: `Start: ${(0.33 * weight).toFixed(3)} mcg/min`,
         interval: 'Continuous infusion',
         route: 'Central IV preferred',
         concentration: `${concMcgPerMl} mcg/mL (10 mg in 50 mL D5W)`,
         volumePerDose: '—',
         basisNote: 'PDE-3 inhibitor — inotropy + vasodilation (lusitropy)',
-        infusionNote: infusionRate(0.25, 0.5, 0.75, weight, concMcgPerMl),
+        infusionNote: infusionRate(0.3, 0.5, 0.75, weight, concMcgPerMl),
         warningNote: 'Hypotension risk — volume-load before starting. Reduce dose in AKI.',
       };
     },
@@ -786,29 +990,29 @@ export const neonateDrugs: NeonateDrug[] = [
     name: 'Adenosine',
     category: 'Cardiovascular',
     indications: ['Neonatal SVT (termination)'],
-    administration: 'Rapid IV push via largest most proximal vein, followed immediately by 2–5 mL saline flush. Nearest port to cannula.',
+    administration: 'Rapid IV/IO push over 1–2 sec via largest most proximal vein, followed immediately by 5–10 mL saline flush.',
     monitoring: ['Continuous ECG during administration', 'BP'],
     cautions: [
       'Half-life < 10 seconds — must flush immediately after dose',
       'Transient AV block and asystole expected — resolves rapidly',
-      'If no response: double dose and repeat; max single dose 0.5 mg/kg',
+      'If no response: increase by 50 mcg/kg (0.05 mg/kg) increments q2min; max 250 mcg/kg (0.25 mg/kg)',
       'Contraindicated in WPW with atrial fibrillation (may precipitate VF)',
     ],
-    references: ['NNF 9th ed. (2024)', 'PALS 2020 guidelines'],
+    references: ['Neofax 2020', 'PALS 2020 guidelines'],
     calculate: (weight) => {
-      const dose1 = 0.1;
-      const dose2 = 0.2;
-      const dose3 = 0.3;
+      const dose1 = 0.05;
+      const dose2 = 0.1;
+      const dose3 = 0.15;
       const total1 = weight * dose1;
       return {
-        dosePerKg: '0.1 mg/kg → double each time → max 0.5 mg/kg',
+        dosePerKg: '0.05 mg/kg (50 mcg/kg) start → +0.05 mg/kg increments q2min → max 0.25 mg/kg',
         totalDose: `1st dose: ${total1.toFixed(2)} mg | 2nd: ${(weight * dose2).toFixed(2)} mg | 3rd: ${(weight * dose3).toFixed(2)} mg`,
-        interval: 'Repeat q1–2 min if no conversion (doubling dose)',
-        route: 'Rapid IV push — flush immediately with 2–5 mL saline',
-        concentration: '3 mg/mL (undiluted) or dilute to 0.3 mg/mL for small volumes',
+        interval: 'Repeat q2min if no conversion (0.05 mg/kg increments)',
+        route: 'Rapid IV/IO push (1–2 sec) — flush immediately with 5–10 mL saline',
+        concentration: '3 mg/mL (undiluted) or dilute 1 mL (3 mg) + 9 mL NS = 0.3 mg/mL for small volumes',
         volumePerDose: `1st dose: ${mL(total1, 3)} (undiluted) | or ${mL(total1, 0.3)} (diluted 0.3 mg/mL)`,
         basisNote: 'Must be proximal vein + immediate saline flush',
-        maxDose: '0.5 mg/kg per dose (or 12 mg absolute max)',
+        maxDose: '0.25 mg/kg (250 mcg/kg) per dose',
         warningNote: 'Transient asystole is expected and brief. ECG monitoring mandatory.',
       };
     },
@@ -822,24 +1026,25 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 5–15 min (stress/emergency) or infusion. PO for physiologic dosing.',
     monitoring: ['BP response within 1–2 h', 'Blood glucose (hyperglycaemia)', 'Electrolytes (Na, K)', 'BP overshoot / hypertension'],
     cautions: [
-      'Vasopressor shock: 1–2 mg/kg/dose q6–12h — aim to wean vasopressors',
-      'Physiologic adrenal insufficiency: 8–10 mg/m²/day divided q8h',
-      'BPD/CLD: 1–2 mg/kg/day — use lowest effective dose; avoid prolonged courses',
+      'Stress/vasopressor-refractory shock: 1 mg/kg/dose q8h — aim to wean vasopressors',
+      'Physiologic adrenal insufficiency: 7–9 mg/m²/day divided q8h',
+      'BPD prevention taper protocol (distinct from stress dosing): 0.5 mg/kg/dose q12h × 12 days → 0.25 mg/kg/dose q12h × 3 days, then stop',
       'Risk of spontaneous intestinal perforation with concurrent indomethacin',
     ],
-    references: ['NNF 9th ed. (2024)', 'Subhedar et al. Cochrane 2023'],
+    references: ['Neofax 2020', 'Subhedar et al. Cochrane 2023'],
     calculate: (weight) => {
-      const dose = 1;
-      const total = weight * dose;
+      const stressDose = weight * 1;
+      const bpdHigh = weight * 0.5;
+      const bpdLow = weight * 0.25;
       return {
-        dosePerKg: '1–2 mg/kg/dose (shock) | 8–10 mg/m²/day (physiologic)',
-        totalDose: `${total.toFixed(0)}–${(weight * 2).toFixed(0)} mg/dose (1–2 mg/kg/dose)`,
-        interval: 'q6–12h (shock); q8h (physiologic)',
+        dosePerKg: 'Stress/shock: 1 mg/kg/dose q8h | BPD taper: 0.5 → 0.25 mg/kg/dose q12h (see basisNote)',
+        totalDose: `Stress: ${stressDose.toFixed(2)} mg/dose | BPD taper days 1–12: ${bpdHigh.toFixed(2)} mg/dose | days 13–15: ${bpdLow.toFixed(2)} mg/dose`,
+        interval: 'Stress: q8h | BPD taper: q12h throughout | Physiologic: q8h',
         route: 'IV over 5–15 min',
         concentration: '50 mg/mL (reconstituted)',
-        volumePerDose: `${mL(total, 50)}–${mL(weight * 2, 50)}`,
-        basisNote: 'Shock: 1–2 mg/kg | Adrenal insufficiency: 8–10 mg/m²/day | BPD: 1 mg/kg/day',
-        warningNote: 'Risk of intestinal perforation with concurrent NSAIDs (indomethacin).',
+        volumePerDose: `Stress: ${mL(stressDose, 50)} | BPD taper: ${mL(bpdHigh, 50)} then ${mL(bpdLow, 50)}`,
+        basisNote: 'Shock: 1 mg/kg q8h | Adrenal insufficiency: 7–9 mg/m²/day q8h | BPD prevention: 0.5 mg/kg q12h ×12d → 0.25 mg/kg q12h ×3d',
+        warningNote: 'Risk of intestinal perforation with concurrent NSAIDs (indomethacin). BPD taper is a distinct protocol from stress dosing — do not conflate the two.',
       };
     },
   },
@@ -995,24 +1200,26 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'PO (preferred) or IV (if enteral not tolerated). IV must be given slowly over 3 hours.',
     monitoring: ['SpO₂ and pre/post-ductal difference', 'BP (systemic hypotension risk)', 'Echo response at 48–72 h', 'Oxygenation index trend'],
     cautions: [
-      'Start low: 0.5 mg/kg q6–8h PO; titrate to 1–2 mg/kg q6–8h',
+      'Oral: 0.5–1 mg/kg/dose TID (q8h) — do NOT titrate above 1 mg/kg/dose',
       'IV dose = 0.4 mg/kg over 3 hours (then 1.6 mg/kg/day by continuous infusion)',
       'Systemic hypotension — monitor BP closely at start',
       'Do NOT use in combination with iNO without caution (rebound PPHN on withdrawal)',
       'Avoid if systemic hypotension or obstructive physiology',
     ],
-    references: ['NNF 9th ed. (2024)', 'TOBY-Silo trial (Steinhorn et al.)'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const dosePerKg = 0.5;
+      const maxDosePerKg = 1;
       const total = weight * dosePerKg;
       return {
-        dosePerKg: '0.5 mg/kg/dose (start) → titrate to 1–2 mg/kg/dose',
-        totalDose: `Starting: ${total.toFixed(2)} mg/dose | Max: ${(weight * 2).toFixed(1)} mg/dose`,
-        interval: 'q6–8h PO',
+        dosePerKg: '0.5 mg/kg/dose (start) → max 1 mg/kg/dose (oral)',
+        totalDose: `Starting: ${total.toFixed(2)} mg/dose | Max: ${(weight * maxDosePerKg).toFixed(2)} mg/dose`,
+        interval: 'q8h (TID) PO',
         route: 'PO (preferred) or IV over 3 h',
         concentration: '10 mg/mL (oral suspension) | 0.8 mg/mL (IV)',
         volumePerDose: `PO: ${mL(total, 10)} | IV: ${mL(total, 0.8)}`,
-        basisNote: 'Start 0.5 mg/kg; titrate up based on SpO₂ / OI response over 24–48 h',
+        basisNote: 'Start 0.5 mg/kg TID; titrate up based on SpO₂ / OI response — do not exceed 1 mg/kg/dose orally',
+        maxDose: `${maxDosePerKg} mg/kg/dose (oral) — do not exceed`,
         warningNote: 'Monitor BP closely — systemic hypotension may worsen oxygenation.',
       };
     },
@@ -1026,26 +1233,27 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 15 min or PO.',
     monitoring: ['Blood glucose (hyperglycaemia common)', 'BP (hypertension)', 'Infection surveillance', 'Growth parameters'],
     cautions: [
-      'DART protocol: 0.15 mg/kg/day × 3d → 0.1 mg/kg/day × 3d → 0.05 mg/kg/day × 2d → 0.02 mg/kg/day × 2d',
+      'DART protocol daily total: 0.15 mg/kg/day × 3d → 0.1 mg/kg/day × 3d → 0.05 mg/kg/day × 2d → 0.02 mg/kg/day × 2d',
+      'Each daily total is given as TWO EQUAL doses q12h (0.075 → 0.05 → 0.025 → 0.01 mg/kg/DOSE) — NOT once daily',
       'Short low-dose course has acceptable neurodevelopmental safety profile (DART trial)',
       'High-dose / long courses associated with cerebral palsy risk — do not exceed DART dosing',
       'Avoid in first week of life (necrotising enterocolitis risk)',
     ],
     references: ['DART trial (Doyle et al. Lancet 2006)', 'NNF 9th ed. (2024)'],
     calculate: (weight) => {
-      const d1 = weight * 0.15;
-      const d2 = weight * 0.1;
-      const d3 = weight * 0.05;
-      const d4 = weight * 0.02;
+      const perDose1 = weight * 0.075;
+      const perDose2 = weight * 0.05;
+      const perDose3 = weight * 0.025;
+      const perDose4 = weight * 0.01;
       return {
-        dosePerKg: 'DART: 0.15 → 0.1 → 0.05 → 0.02 mg/kg/day',
-        totalDose: `Days 1–3: ${d1.toFixed(3)} mg | Days 4–6: ${d2.toFixed(3)} mg | Days 7–8: ${d3.toFixed(3)} mg | Days 9–10: ${d4.toFixed(3)} mg`,
-        interval: 'q24h (once daily)',
+        dosePerKg: 'DART (per dose, q12h): 0.075 → 0.05 → 0.025 → 0.01 mg/kg/dose',
+        totalDose: `Days 1–3: ${perDose1.toFixed(3)} mg/dose | Days 4–6: ${perDose2.toFixed(3)} mg/dose | Days 7–8: ${perDose3.toFixed(3)} mg/dose | Days 9–10: ${perDose4.toFixed(3)} mg/dose`,
+        interval: 'q12h (TWO doses per day, not once daily)',
         route: 'IV over 15 min or PO',
         concentration: '4 mg/mL (IV)',
-        volumePerDose: `Days 1–3: ${mL(d1, 4)} | Days 4–6: ${mL(d2, 4)} | Days 7–8: ${mL(d3, 4)} | Days 9–10: ${mL(d4, 4)}`,
-        basisNote: '10-day course. Use only DART dosing — higher doses carry neurodevelopmental risk.',
-        warningNote: 'Hyperglycaemia, hypertension, infection risk. Do not use in first week of life.',
+        volumePerDose: `Days 1–3: ${mL(perDose1, 4)} | Days 4–6: ${mL(perDose2, 4)} | Days 7–8: ${mL(perDose3, 4)} | Days 9–10: ${mL(perDose4, 4)}`,
+        basisNote: '10-day course, each dose given q12h. Use only DART dosing — higher doses carry neurodevelopmental risk.',
+        warningNote: 'Hyperglycaemia, hypertension, infection risk. Do not use in first week of life. Do NOT give the daily total as a single once-daily dose.',
       };
     },
   },
@@ -1062,28 +1270,30 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'Bolus IV over 5–10 min. Infusion via syringe driver.',
     monitoring: ['Respiratory rate and depth', 'SpO₂ (apnoea/hypoventilation risk)', 'Pain/sedation score (NPASS or PIPP)', 'Urine output and bowel motility (ileus)'],
     cautions: [
-      'Bolus in ventilated infants: 0.05–0.1 mg/kg q4–6h PRN',
-      'Infusion: 0.01–0.02 mg/kg/h (non-ventilated infants at low end)',
+      'Bolus in ventilated infants: 0.05–0.2 mg/kg q4h PRN',
+      'Infusion: typically started with a 0.1 mg/kg loading bolus, then 0.01–0.02 mg/kg/h maintenance',
       'Respiratory depression — have naloxone available (0.01 mg/kg IV)',
       'Accumulates with organ immaturity — use lowest effective dose, frequent reassessment',
       'NAS/NOWS oral morphine: specialist dosing protocol',
     ],
-    references: ['NNF 9th ed. (2024)', 'NEOPAIN trial (Anand et al.)'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const bolusDose = 0.1;
+      const bolusDose = 0.2;
+      const infLoadDose = 0.1;
       const infMinDose = 0.01;
       const infMaxDose = 0.02;
       const bolusTotal = weight * bolusDose;
+      const infLoadTotal = weight * infLoadDose;
       const infMin = weight * infMinDose;
       const infMax = weight * infMaxDose;
       return {
-        dosePerKg: 'Bolus: 0.05–0.1 mg/kg | Infusion: 0.01–0.02 mg/kg/h',
-        totalDose: `Bolus: ${(weight * 0.05).toFixed(3)}–${bolusTotal.toFixed(3)} mg | Infusion: ${infMin.toFixed(4)}–${infMax.toFixed(4)} mg/h`,
-        interval: 'Bolus: q4–6h PRN | Infusion: continuous',
+        dosePerKg: 'Bolus: 0.05–0.2 mg/kg | Infusion: load 0.1 mg/kg then 0.01–0.02 mg/kg/h',
+        totalDose: `Bolus: ${(weight * 0.05).toFixed(3)}–${bolusTotal.toFixed(3)} mg | Infusion load: ${infLoadTotal.toFixed(3)} mg | Maintenance: ${infMin.toFixed(4)}–${infMax.toFixed(4)} mg/h`,
+        interval: 'Bolus: q4h PRN | Infusion: load once, then continuous',
         route: 'IV (bolus over 5–10 min)',
         concentration: '1 mg/mL (standard dilution)',
-        volumePerDose: `Bolus (0.1 mg/kg): ${mL(bolusTotal, 1)} | Infusion: ${infMin.toFixed(3)}–${infMax.toFixed(3)} mL/h`,
-        basisNote: 'Non-ventilated: lower end only. Ventilated: can use higher end.',
+        volumePerDose: `Bolus (0.2 mg/kg max): ${mL(bolusTotal, 1)} | Infusion load: ${mL(infLoadTotal, 1)} | Maintenance: ${infMin.toFixed(3)}–${infMax.toFixed(3)} mL/h`,
+        basisNote: 'When starting an infusion, give the 0.1 mg/kg loading bolus first, then start the 0.01–0.02 mg/kg/h maintenance rate.',
         warningNote: 'Respiratory depression. Naloxone 0.01 mg/kg available at bedside.',
       };
     },
@@ -1098,25 +1308,31 @@ export const neonateDrugs: NeonateDrug[] = [
     monitoring: ['Respiratory rate and SpO₂', 'Chest wall rigidity (rapid infusion)', 'Haemodynamics', 'Pain/sedation score'],
     cautions: [
       'Chest wall rigidity ("wooden chest") with rapid bolus > 3 mcg/kg — slow the infusion',
+      'Analgesia tier: bolus 0.5–3 mcg/kg | infusion 0.5–2 mcg/kg/h',
+      'Sedation tier (deeper, e.g. HFOV adjunct): bolus 0.5–4 mcg/kg | infusion 1–5 mcg/kg/h — these are HIGHER than analgesia dosing',
       'Shorter duration of action than morphine (preferred for procedures)',
       'Tolerance develops rapidly with continuous infusion — wean slowly',
       'Renally cleared metabolites can accumulate in renal failure',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const bolusDose = 2;
-      const infMinDose = 1;
-      const infMaxDose = 4;
-      const bolusTotal = weight * bolusDose;
       const concMcgPerMl = 50;
+      const analgBolusLow = weight * 0.5;
+      const analgBolusHigh = weight * 3;
+      const analgInfLow = weight * 0.5;
+      const analgInfHigh = weight * 2;
+      const sedBolusLow = weight * 0.5;
+      const sedBolusHigh = weight * 4;
+      const sedInfLow = weight * 1;
+      const sedInfHigh = weight * 5;
       return {
-        dosePerKg: 'Bolus: 1–4 mcg/kg | Infusion: 1–4 mcg/kg/h',
-        totalDose: `Bolus: ${(weight * 1).toFixed(1)}–${(weight * 4).toFixed(1)} mcg | Infusion: ${(weight * infMinDose).toFixed(1)}–${(weight * infMaxDose).toFixed(1)} mcg/h`,
+        dosePerKg: 'Analgesia — bolus: 0.5–3 mcg/kg, infusion: 0.5–2 mcg/kg/h | Sedation — bolus: 0.5–4 mcg/kg, infusion: 1–5 mcg/kg/h',
+        totalDose: `Analgesia bolus: ${analgBolusLow.toFixed(1)}–${analgBolusHigh.toFixed(1)} mcg | Analgesia infusion: ${analgInfLow.toFixed(1)}–${analgInfHigh.toFixed(1)} mcg/h | Sedation bolus: ${sedBolusLow.toFixed(1)}–${sedBolusHigh.toFixed(1)} mcg | Sedation infusion: ${sedInfLow.toFixed(1)}–${sedInfHigh.toFixed(1)} mcg/h`,
         interval: 'Bolus PRN | Infusion: continuous',
         route: 'IV (bolus over 3–5 min minimum)',
         concentration: '50 mcg/mL (standard)',
-        volumePerDose: `Bolus (2 mcg/kg): ${mL(bolusTotal, 50)} | Infusion: ${((weight * infMinDose) / 50).toFixed(3)}–${((weight * infMaxDose) / 50).toFixed(3)} mL/h`,
-        basisNote: 'Procedural analgesia: 2–4 mcg/kg; analgesia/sedation infusion: 1–4 mcg/kg/h',
+        volumePerDose: `Analgesia infusion: ${(analgInfLow / concMcgPerMl).toFixed(3)}–${(analgInfHigh / concMcgPerMl).toFixed(3)} mL/h | Sedation infusion: ${(sedInfLow / concMcgPerMl).toFixed(3)}–${(sedInfHigh / concMcgPerMl).toFixed(3)} mL/h`,
+        basisNote: 'Pick the tier matching clinical intent — sedation dosing is meaningfully higher than analgesia dosing, they are not interchangeable.',
         warningNote: 'Chest wall rigidity with rapid bolus — always give slowly over ≥ 3–5 min.',
       };
     },
@@ -1127,39 +1343,43 @@ export const neonateDrugs: NeonateDrug[] = [
     name: 'Paracetamol (Analgesic)',
     category: 'Analgesic & Sedation',
     indications: ['Mild–moderate pain', 'Postoperative analgesia (opioid-sparing)', 'Antipyretic'],
-    administration: 'IV over 15 min. PO or PR also effective.',
+    administration: 'IV over 15 min — NeoFax only clearly supports IV dosing for GA ≥ 32 weeks. For GA < 32 weeks, prefer PO/PR (see cautions for that PMA-graduated schedule).',
     monitoring: ['Hepatic function if prolonged course (> 7 days)', 'Pain score reassessment 30–60 min after dose'],
     cautions: [
-      'PMA-based dosing — preterm neonates need less frequent dosing (slower clearance)',
-      'Max daily dose: 60 mg/kg/day (term) or 45 mg/kg/day (preterm)',
-      'Do not use IV paracetamol for PDA closure (separate higher-dose protocol)',
-      'Hepatotoxic in overdose — respect dosing intervals',
+      'IV dosing is only clearly established for GA ≥ 32 weeks: 12.5 mg/kg/dose q6h',
+      'IV use below 32 weeks GA is not well-supported by NeoFax — consider PO/PR instead',
+      'PO/PR fever-or-pain dosing IS PMA-graduated (different from the IV regimen): <32wk PMA 20–25 mg/kg load then 12–15 mg/kg/dose q12h (PO) or q12h (PR); ≥32wk 12–15 mg/kg/dose q8h (PO) or q8h (PR); term 12–15 mg/kg/dose q6h (PO) or q6h (PR)',
+      'MAX 50 mg/kg/day from ALL routes combined (IV + PO + PR) — this is a hard ceiling, not per-route',
+      'Do not use IV paracetamol for PDA closure (separate higher-dose protocol — see paracetamol-pda)',
+      'Hepatotoxic in overdose — respect dosing intervals and the combined-route max',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight, pma) => {
-      let dose: number;
-      let interval: string;
-      let basisNote: string;
-      let maxDailyMgKg: number;
-      if (pma < 28) {
-        dose = 15; interval = 'q12h'; basisNote = 'PMA < 28 wks'; maxDailyMgKg = 30;
-      } else if (pma < 32) {
-        dose = 15; interval = 'q8–12h'; basisNote = 'PMA 28–31 wks'; maxDailyMgKg = 45;
-      } else if (pma < 37) {
-        dose = 15; interval = 'q8h'; basisNote = 'PMA 32–36 wks'; maxDailyMgKg = 45;
-      } else {
-        dose = 15; interval = 'q6h'; basisNote = 'PMA ≥ 37 wks (term)'; maxDailyMgKg = 60;
+      const maxDailyMgKg = 50;
+      if (pma < 32) {
+        return {
+          dosePerKg: 'IV not well-established below 32 wks GA — PO/PR preferred',
+          totalDose: `See PO/PR schedule in cautions (not IV)`,
+          interval: 'PO/PR: 20–25 mg/kg load, then 12–15 mg/kg/dose q12h',
+          route: 'PO or PR preferred over IV at this PMA',
+          concentration: '10 mg/mL (IV, if used)',
+          volumePerDose: 'N/A — use PO/PR dosing',
+          basisNote: `PMA ${pma} wks (< 32 wks) — IV regimen not clearly supported by NeoFax at this maturity`,
+          maxDose: `${maxDailyMgKg} mg/kg/day (= ${(weight * maxDailyMgKg).toFixed(0)} mg/day) from ALL routes combined`,
+          warningNote: 'Do not extrapolate the ≥32 wk IV dose downward — use PO/PR per the PMA-graduated schedule instead.',
+        };
       }
+      const dose = 12.5;
       const total = weight * dose;
       return {
-        dosePerKg: `${dose} mg/kg/dose`,
-        totalDose: `${total.toFixed(0)} mg`,
-        interval,
-        route: 'IV over 15 min / PO / PR',
+        dosePerKg: `${dose} mg/kg/dose (IV, GA ≥ 32 wks only)`,
+        totalDose: `${total.toFixed(1)} mg`,
+        interval: 'q6h',
+        route: 'IV over 15 min',
         concentration: '10 mg/mL (IV)',
         volumePerDose: mL(total, 10),
-        basisNote,
-        maxDose: `${maxDailyMgKg} mg/kg/day (= ${(weight * maxDailyMgKg).toFixed(0)} mg/day)`,
+        basisNote: 'GA ≥ 32 wks',
+        maxDose: `${maxDailyMgKg} mg/kg/day (= ${(weight * maxDailyMgKg).toFixed(0)} mg/day) from ALL routes combined`,
       };
     },
   },
@@ -1207,23 +1427,23 @@ export const neonateDrugs: NeonateDrug[] = [
     cautions: [
       'Prophylaxis IM: 1 mg (BW ≥ 1.5 kg) or 0.5 mg (BW < 1.5 kg) — single dose at birth',
       'PO prophylaxis: 2 mg at birth, 2 mg at 1 week, 2 mg at 1 month (for breastfed infants)',
-      'Treatment of active bleeding: 0.3 mg/kg IV (max 10 mg) — repeat if needed',
+      'Treatment of active bleeding: FIXED 1 mg IV (NOT weight-based) — repeat if needed',
       'IV route: anaphylaxis risk — have resuscitation available',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFC 2024', 'NICE NG 194'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const prophDose = weight >= 1.5 ? 1 : 0.5;
-      const treatDose = weight * 0.3;
+      const treatDose = 1;
       return {
-        dosePerKg: `Prophylaxis: ${prophDose} mg (fixed) | Treatment: 0.3 mg/kg`,
-        totalDose: `Prophylaxis: ${prophDose} mg | Treatment: ${treatDose.toFixed(2)} mg`,
+        dosePerKg: `Prophylaxis: ${prophDose} mg (fixed) | Treatment: 1 mg FIXED (not weight-based)`,
+        totalDose: `Prophylaxis: ${prophDose} mg | Treatment: ${treatDose} mg`,
         interval: 'Prophylaxis: single dose at birth | Treatment: repeat q6–8h if no response',
         route: 'IM (prophylaxis) | IV over 10–20 min (treatment)',
         concentration: '10 mg/mL (Konakion Neonatal 1 mg/0.1 mL or 2 mg/0.2 mL)',
         volumePerDose: `Prophylaxis: ${mL(prophDose, 10)} | Treatment: ${mL(treatDose, 10)}`,
-        basisNote: `Prophylaxis: ${weight >= 1.5 ? '1 mg (BW ≥ 1.5 kg)' : '0.5 mg (BW < 1.5 kg)'}`,
-        maxDose: 'Treatment: 10 mg per dose',
-        warningNote: 'IV route: anaphylaxis risk — resuscitation ready. IM preferred for prophylaxis.',
+        basisNote: `Prophylaxis: ${weight >= 1.5 ? '1 mg (BW ≥ 1.5 kg)' : '0.5 mg (BW < 1.5 kg)'}. Treatment dose does NOT scale with weight.`,
+        maxDose: 'Treatment: 1 mg per dose (fixed, even for the smallest preterm infants)',
+        warningNote: 'IV route: anaphylaxis risk — resuscitation ready. IM preferred for prophylaxis. Do NOT calculate treatment dose as mg/kg.',
       };
     },
   },
@@ -1236,6 +1456,7 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'PO once daily.',
     monitoring: ['25-OH vitamin D level (target 50–150 nmol/L)', 'Serum calcium and phosphate if on high doses', 'Bone health: alkaline phosphatase, phosphate'],
     cautions: [
+      'This drug intentionally follows ESPGHAN 2021 (800 IU/day for <34wk), which recommends HIGHER doses than NeoFax Essentials 2020 (200–400 IU/day for <2000g) — a genuine, deliberate guideline disagreement, not a data-entry error',
       'Standard prophylaxis: 400–800 IU/day for term infants; 400–1000 IU/day for preterm',
       'VLBW / ELBW: 800–1000 IU/day (higher end due to poor stores + high demand)',
       'Supplementation usually started at first tolerated feeds',
@@ -1315,22 +1536,29 @@ export const neonateDrugs: NeonateDrug[] = [
       'Do not give as rapid IV bolus (cardiac toxicity)',
       'NEC: combine with ampicillin + gentamicin (not monotherapy)',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
-    calculate: (weight, pma) => {
-      let dose: number;
+    references: ['Neofax 2020'],
+    calculate: (weight, pma, pna) => {
+      const dose = 7.5;
+      let interval: string;
       let basisNote: string;
-      if (pma < 29) {
-        dose = 5; basisNote = 'PMA < 29 wks';
+      if (pma <= 29) {
+        interval = pna <= 28 ? 'q12h' : 'q8h';
+        basisNote = `PMA ≤ 29 wks, PNA ${pna <= 28 ? '≤ 28d' : '> 28d'}`;
       } else if (pma <= 36) {
-        dose = 7; basisNote = 'PMA 29–36 wks';
+        interval = pna <= 14 ? 'q12h' : 'q8h';
+        basisNote = `PMA 30–36 wks, PNA ${pna <= 14 ? '≤ 14d' : '> 14d'}`;
+      } else if (pma <= 44) {
+        interval = pna <= 7 ? 'q12h' : 'q8h';
+        basisNote = `PMA 37–44 wks, PNA ${pna <= 7 ? '≤ 7d' : '> 7d'}`;
       } else {
-        dose = 10; basisNote = 'PMA ≥ 37 wks';
+        interval = 'q6h';
+        basisNote = 'PMA ≥ 45 wks';
       }
       const total = weight * dose;
       return {
-        dosePerKg: `${dose} mg/kg`,
+        dosePerKg: `${dose} mg/kg (NeoFax range 5–7.5 mg/kg — not PMA-tiered)`,
         totalDose: `${total.toFixed(1)} mg`,
-        interval: 'q8h',
+        interval,
         route: 'IV over 30–60 min',
         concentration: '15 mg/mL',
         volumePerDose: mL(total, 15),
@@ -1344,28 +1572,29 @@ export const neonateDrugs: NeonateDrug[] = [
     id: 'azithromycin',
     name: 'Azithromycin',
     category: 'Antibiotic',
-    indications: ['Ureaplasma pneumonitis in preterm', 'Chlamydial pneumonia', 'Pertussis (whooping cough)'],
+    indications: ['Ureaplasma pneumonitis in preterm', 'Chlamydial ophthalmia neonatorum', 'Pertussis (whooping cough)', 'BPD prevention (adjunct, evidence from 3 RCTs)'],
     administration: 'IV over 60 min. PO suspension equally effective and preferred when tolerated.',
     monitoring: ['QTc before and during treatment (QT prolongation risk)', 'LFTs', 'Clinical response (Ureaplasma: repeat NPA PCR)'],
     cautions: [
       'QT prolongation — avoid with other QT-prolonging drugs (fluconazole, cisapride)',
       'Pyloric stenosis risk with PO in infants < 6 weeks (use IV if < 6 weeks PO)',
-      'Ureaplasma protocol: 10 mg/kg q24h × 3 days; some centres extend to 5 days',
-      'Pertussis: 10 mg/kg/day × 5 days (not reliably bactericidal — postexposure prophylaxis)',
+      'Pertussis / Ureaplasma: 10 mg/kg q24h × 5 days (Pertussis) or × 3 days (Ureaplasma, some centres extend to 5)',
+      'Chlamydial ophthalmia neonatorum: 20 mg/kg PO q24h × 3 days (NOT 10 mg/kg × 5 days — different dose AND duration from pertussis/ureaplasma)',
+      'BPD prevention (separate protocol, not in the calculator below): 10 mg/kg/day IV × 1 week, then 5 mg/kg/day × 1–5 weeks',
     ],
-    references: ['NNF 9th ed. (2024)', 'Ballard et al. NEJM 2011 (Ureaplasma)', 'BNFc 2024'],
+    references: ['Neofax 2020', 'Ballard et al. NEJM 2011 (Ureaplasma)'],
     calculate: (weight) => {
       const dose = 10;
       const total = weight * dose;
       return {
-        dosePerKg: '10 mg/kg',
+        dosePerKg: '10 mg/kg (Pertussis/Ureaplasma dosing — see cautions for Chlamydial ophthalmia and BPD-prevention regimens, which differ)',
         totalDose: `${total.toFixed(0)} mg`,
-        interval: 'q24h × 3–5 days (indication-dependent)',
+        interval: 'q24h × 3 days (Ureaplasma) or × 5 days (Pertussis)',
         route: 'IV over 60 min or PO',
         concentration: '2 mg/mL (IV) | 40 mg/mL (suspension)',
         volumePerDose: `IV: ${mL(total, 2)} | PO: ${mL(total, 40)}`,
-        basisNote: 'Ureaplasma: 3 days | Pertussis / Chlamydia: 5 days',
-        warningNote: 'Check QTc before starting. Pyloric stenosis risk with PO < 6 weeks — use IV.',
+        basisNote: 'Ureaplasma: 3 days | Pertussis: 5 days. Chlamydial ophthalmia uses a DIFFERENT dose (20 mg/kg × 3 days) — see cautions.',
+        warningNote: 'Check QTc before starting. Pyloric stenosis risk with PO < 6 weeks — use IV. Do not use this 10 mg/kg figure for chlamydial ophthalmia.',
       };
     },
   },
@@ -1379,23 +1608,26 @@ export const neonateDrugs: NeonateDrug[] = [
     monitoring: ['LFTs (hepatotoxicity — weekly)', 'FBC', 'Orange discolouration of urine/secretions (warn family — harmless)', 'Drug levels / interactions'],
     cautions: [
       'NEVER use as monotherapy for MRSA/CoNS — resistance emerges rapidly',
+      'Staph/MRSA adjunct dosing is DIFFERENT by route — PO: 10–20 mg/kg q24h. IV: 5–10 mg/kg q12h. Do not use one interval for both routes.',
       'Potent CYP inducer — lowers levels of many co-medications (check all concurrent drugs)',
       'Hepatotoxicity: check LFTs at baseline and weekly',
-      'Meningococcal prophylaxis dose: 5 mg/kg q12h × 2 days (< 1 month)',
+      'Meningococcal prophylaxis dose: 5 mg/kg q12h × 2 days (< 1 month) — this is a separate, shorter regimen from the Staph-adjunct dosing above',
     ],
-    references: ['NNF 9th ed. (2024)', 'PHE Meningococcal guidelines', 'BNFc 2024'],
-    calculate: (weight, pma) => {
-      const dose = pma < 37 ? 5 : 10;
-      const total = weight * dose;
+    references: ['Neofax 2020', 'PHE Meningococcal guidelines'],
+    calculate: (weight) => {
+      const poDose = 15;
+      const ivDose = 7.5;
+      const poTotal = weight * poDose;
+      const ivTotal = weight * ivDose;
       return {
-        dosePerKg: `${dose} mg/kg (preterm ${pma < 37 ? '5' : '10'} mg/kg)`,
-        totalDose: `${total.toFixed(1)} mg`,
-        interval: 'q12h',
-        route: 'PO preferred | IV over 2–3 h',
+        dosePerKg: 'Staph/MRSA adjunct — PO: 10–20 mg/kg q24h | IV: 5–10 mg/kg q12h',
+        totalDose: `PO: ${poTotal.toFixed(1)} mg q24h | IV: ${ivTotal.toFixed(1)} mg q12h`,
+        interval: 'PO: q24h | IV: q12h (routes are NOT interchangeable at the same interval)',
+        route: 'PO preferred | IV over 2–3 h if oral unavailable',
         concentration: '20 mg/mL (suspension) | 60 mg/mL (IV reconstituted)',
-        volumePerDose: `PO: ${mL(total, 20)} | IV: ${mL(total, 60)}`,
-        basisNote: pma < 37 ? 'Preterm: 5 mg/kg q12h' : 'Term: 10 mg/kg q12h',
-        warningNote: 'Never monotherapy — resistance emerges in days. CYP inducer — check all drug interactions.',
+        volumePerDose: `PO: ${mL(poTotal, 20)} q24h | IV: ${mL(ivTotal, 60)} q12h`,
+        basisNote: 'Staph/MRSA adjunct dosing shown (mid-range of each route). Meningococcal prophylaxis and TB meningitis use different regimens — see cautions.',
+        warningNote: 'Never monotherapy — resistance emerges in days. CYP inducer — check all drug interactions. PO and IV are dosed differently — do not substitute one interval for the other.',
       };
     },
   },
@@ -1417,21 +1649,22 @@ export const neonateDrugs: NeonateDrug[] = [
       'Safer than IV phenytoin (no propylene glycol vehicle)',
       'Half-life very variable in neonates — TDM essential',
     ],
-    references: ['NNF 9th ed. (2024)', 'ILAE neonatal seizure guidelines 2021'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
       const loadPE = 20;
-      const maintPE = 6;
+      const maintPEPerDay = 6;
       const loadTotal = weight * loadPE;
-      const maintTotal = weight * maintPE;
+      const maintTotalPerDay = weight * maintPEPerDay;
+      const maintPerDoseQ12h = maintTotalPerDay / 2;
       return {
-        dosePerKg: `Load: ${loadPE} mg PE/kg | Maintenance: 4–8 mg PE/kg/day`,
-        totalDose: `Load: ${loadTotal.toFixed(0)} mg PE | Maintenance: ${maintTotal.toFixed(0)} mg PE/day`,
-        interval: 'Load: single dose | Maintenance: q12h or q24h',
+        dosePerKg: `Load: ${loadPE} mg PE/kg (once) | Maintenance: 4–8 mg PE/kg/DAY (total), given as split doses`,
+        totalDose: `Load: ${loadTotal.toFixed(0)} mg PE (once) | Maintenance: ${maintTotalPerDay.toFixed(0)} mg PE/day TOTAL = ${maintPerDoseQ12h.toFixed(0)} mg PE PER DOSE if given q12h`,
+        interval: 'Load: single dose | Maintenance: q12h (HALF the daily total per dose) or q24h (FULL daily total per dose)',
         route: 'IV over 10–20 min (max 3 mg PE/kg/min)',
         concentration: '75 mg/mL fosphenytoin = 50 mg PE/mL',
-        volumePerDose: `Load: ${mL(loadTotal, 50)} (at 50 mg PE/mL) | Maintenance: ${mL(maintTotal, 50)}`,
-        basisNote: 'Third-line seizures. Dose in PE not mg fosphenytoin.',
-        warningNote: 'Continuous ECG mandatory during loading. Cardiac arrhythmia and hypotension risk.',
+        volumePerDose: `Load: ${mL(loadTotal, 50)} (at 50 mg PE/mL) | Maintenance q12h: ${mL(maintPerDoseQ12h, 50)} PER DOSE | Maintenance q24h: ${mL(maintTotalPerDay, 50)} PER DOSE`,
+        basisNote: 'Third-line seizures. Dose in PE not mg fosphenytoin. The maintenance figure above is a DAILY TOTAL — if dosing q12h, give HALF of it per administration.',
+        warningNote: 'Continuous ECG mandatory during loading. Cardiac arrhythmia and hypotension risk. Do NOT give the full daily maintenance total as a single q12h dose — that is a ~2x overdose.',
       };
     },
   },
@@ -1444,24 +1677,24 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV: slow push over 2–3 min while EEG monitored. PO for maintenance.',
     monitoring: ['EEG during IV trial (seizure cessation confirms diagnosis)', 'Respiratory rate and SpO₂ (apnoea risk with IV)', 'Pyridoxal-5-phosphate levels if available'],
     cautions: [
-      'IV diagnostic trial: 50–100 mg as a SINGLE slow IV push while on continuous EEG',
-      'Apnoea and hypotonia may occur with IV dose — resuscitation at bedside',
-      'If PDE confirmed: lifelong PO pyridoxine 15–30 mg/kg/day (max 200 mg/day)',
+      'IV diagnostic trial: 50–100 mg FIXED dose (NOT weight-based) as a single slow IV push/IM, on continuous EEG',
+      'Maintenance is also a FIXED dose, not weight-based — 50–100 mg PO q24h; higher doses may be needed during intercurrent illness',
+      'Apnoea, bradycardia and hypotension may occur with IV dose — resuscitation at bedside',
       'Consider folinic acid-responsive seizures if pyridoxine trial negative (send urine pipecolic acid)',
     ],
-    references: ['NNF 9th ed. (2024)', 'Stockler et al. Neuropediatrics 2011'],
-    calculate: (weight) => {
-      const trialDose = Math.min(weight * 30, 100);
-      const maintDose = weight * 15;
+    references: ['Neofax 2020'],
+    calculate: () => {
+      const trialDose = 100;
+      const maintDose = 100;
       return {
-        dosePerKg: 'Trial: 50–100 mg fixed dose | Maintenance: 15–30 mg/kg/day',
-        totalDose: `Trial: ${trialDose.toFixed(0)} mg (capped 100 mg) | Maintenance: ${maintDose.toFixed(0)}–${(weight * 30).toFixed(0)} mg/day`,
-        interval: 'Trial: single IV dose | Maintenance: q24h PO',
-        route: 'IV over 2–3 min (trial) | PO (maintenance)',
+        dosePerKg: 'Trial: 50–100 mg FIXED (not weight-based) | Maintenance: 50–100 mg FIXED (not weight-based)',
+        totalDose: `Trial: ${trialDose} mg IV/IM | Maintenance: ${maintDose} mg PO q24h`,
+        interval: 'Trial: single IV/IM dose | Maintenance: q24h PO',
+        route: 'IV push or IM (trial) | PO (maintenance)',
         concentration: '50 mg/mL (IV)',
         volumePerDose: `Trial: ${mL(trialDose, 50)} IV | Maintenance: variable (oral formulation)`,
-        basisNote: 'IV trial must be given under continuous EEG monitoring',
-        maxDose: '100 mg per IV trial dose',
+        basisNote: 'Fixed dose regardless of weight — do NOT calculate mg/kg. Give under continuous EEG monitoring.',
+        maxDose: '100 mg per dose (trial or maintenance)',
         warningNote: 'Apnoea risk with IV — resuscitation MUST be at bedside before administration.',
       };
     },
@@ -1477,25 +1710,23 @@ export const neonateDrugs: NeonateDrug[] = [
     cautions: [
       'Do NOT use if QTc prolonged or cardiac conduction defect',
       'Do NOT combine with phenytoin / fosphenytoin (additive cardiac toxicity)',
-      'LIDOCAINE protocol: load 2 mg/kg → 6 mg/kg/h × 6h → 3 mg/kg/h × 12h → 1.5 mg/kg/h × 12h → stop',
+      'LIDOCAINE protocol: load 2 mg/kg → 6 mg/kg/h × 6h → 4 mg/kg/h × 12h → 2 mg/kg/h × 12h → stop',
+      'This regimen is only validated for TERM, NORMOTHERMIC infants — dosing in preterm infants and infants on therapeutic hypothermia is uncertain due to accumulation risk (exactly the population most likely to need a 4th-line seizure drug — use with extra caution and lower threshold for serum level checks)',
       'Toxicity: perioral tingling, VT, cardiac arrest — have resuscitation ready',
     ],
-    references: ['NNF 9th ed. (2024)', 'Malingré et al. Neuropediatrics 2006', 'Boylan et al. Lancet Neurol 2013'],
+    references: ['Neofax 2020', 'Malingré et al. Neuropediatrics 2006', 'Boylan et al. Lancet Neurol 2013'],
     calculate: (weight) => {
       const load = weight * 2;
-      const rate1 = (weight * 6) / 60;
-      const rate2 = (weight * 3) / 60;
-      const rate3 = (weight * 1.5) / 60;
       const concMgPerMl = 10;
       return {
-        dosePerKg: 'Load: 2 mg/kg → Infusion: 6 → 3 → 1.5 mg/kg/h (stepdown)',
+        dosePerKg: 'Load: 2 mg/kg → Infusion: 6 → 4 → 2 mg/kg/h (stepdown)',
         totalDose: `Load: ${load.toFixed(1)} mg`,
         interval: 'Load then stepdown infusion (total ~30 h)',
         route: 'IV (central or peripheral)',
         concentration: '10 mg/mL (standard)',
-        volumePerDose: `Load: ${mL(load, concMgPerMl)} over 10 min | Step 1 (6 mg/kg/h): ${((weight * 6) / concMgPerMl).toFixed(2)} mL/h | Step 2: ${((weight * 3) / concMgPerMl).toFixed(2)} mL/h | Step 3: ${((weight * 1.5) / concMgPerMl).toFixed(2)} mL/h`,
-        basisNote: 'Fourth-line only. Step 1: 6 h | Step 2: 12 h | Step 3: 12 h | Stop',
-        warningNote: 'ECG mandatory throughout. Do NOT combine with fosphenytoin. QTc check before starting.',
+        volumePerDose: `Load: ${mL(load, concMgPerMl)} over 10 min | Step 1 (6 mg/kg/h): ${((weight * 6) / concMgPerMl).toFixed(2)} mL/h | Step 2 (4 mg/kg/h): ${((weight * 4) / concMgPerMl).toFixed(2)} mL/h | Step 3 (2 mg/kg/h): ${((weight * 2) / concMgPerMl).toFixed(2)} mL/h`,
+        basisNote: 'Fourth-line only, TERM + normothermic infants. Step 1: 6 h | Step 2: 12 h | Step 3: 12 h | Stop',
+        warningNote: 'ECG mandatory throughout. Do NOT combine with fosphenytoin. QTc check before starting. Not validated in preterm/hypothermia-treated infants — use extra caution.',
       };
     },
   },
@@ -1517,18 +1748,18 @@ export const neonateDrugs: NeonateDrug[] = [
       'Combination with low-dose dopamine (renal dose 2–5 mcg/kg/min) common practice',
       'Titrate by MAP target, not fixed dose',
     ],
-    references: ['NNF 9th ed. (2024)', 'Tourneux et al. Pediatrics 2008'],
+    references: ['Neofax 2020', 'Tourneux et al. Pediatrics 2008'],
     calculate: (weight) => {
       const concMcgPerMl = 40;
       return {
-        dosePerKg: '0.05–2 mcg/kg/min (usual: 0.1–0.5 mcg/kg/min)',
-        totalDose: `Start: ${(0.1 * weight).toFixed(3)} mcg/min`,
+        dosePerKg: '0.2–2 mcg/kg/min (initial and usual starting dose: 0.2–0.5 mcg/kg/min)',
+        totalDose: `Start: ${(0.2 * weight).toFixed(3)} mcg/min`,
         interval: 'Continuous infusion',
         route: 'CENTRAL IV only',
         concentration: `${concMcgPerMl} mcg/mL (4 mg in 100 mL NaCl 0.9%)`,
         volumePerDose: '—',
         basisNote: 'Titrate to MAP target (neonatal MAP goal typically ≥ GA in mmHg)',
-        infusionNote: infusionRate(0.05, 0.2, 0.5, weight, concMcgPerMl),
+        infusionNote: infusionRate(0.2, 0.35, 0.5, weight, concMcgPerMl),
         warningNote: 'CENTRAL LINE ONLY. Peripheral extravasation → severe tissue necrosis.',
       };
     },
@@ -1542,12 +1773,13 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'Continuous IV infusion via central line. Do not bolus.',
     monitoring: ['Arterial BP (arterial line)', 'Urine output (antidiuretic effect — fluid retention)', 'Sodium (hyponatraemia)', 'Peripheral ischaemia (mesenteric, digital)'],
     cautions: [
+      'NOTE: NeoFax Essentials 2020 has no standalone vasopressin monograph (it only appears in passing within other drugs\' shock-algorithm tables) — this dosing is sourced from Meyer et al. below and has NOT been cross-verified against NeoFax',
       'May cause peripheral and mesenteric ischaemia at high doses',
       'SIADH-like effect — monitor sodium and fluid balance closely',
       'Does not replace volume resuscitation',
       'Titrate slowly — effects may take 30–60 min',
     ],
-    references: ['NNF 9th ed. (2024)', 'Meyer et al. Pediatr Crit Care Med 2006'],
+    references: ['Meyer et al. Pediatr Crit Care Med 2006', 'NNF 9th ed. (2024)'],
     calculate: (weight) => {
       const concUnitsPerMl = 0.4;
       const startRate = (0.01 * weight) / concUnitsPerMl;
@@ -1580,20 +1812,21 @@ export const neonateDrugs: NeonateDrug[] = [
       'Nephrocalcinosis with prolonged use — renal ultrasound after 4 weeks of chronic use',
       'Preterm: slower metabolism — q24h initial dosing',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight, pma) => {
       const dose = 1;
       const total = weight * dose;
       const interval = pma < 31 ? 'q24h' : pma <= 36 ? 'q12–24h' : 'q6–12h';
       const basisNote = pma < 31 ? 'PMA < 31 wks (slow clearance — start q24h)' : pma <= 36 ? 'PMA 31–36 wks' : 'PMA ≥ 37 wks';
       return {
-        dosePerKg: '0.5–1 mg/kg/dose IV | 1–2 mg/kg/dose PO',
-        totalDose: `IV: ${(weight * 0.5).toFixed(1)}–${total.toFixed(1)} mg | PO: ${(weight * 1).toFixed(1)}–${(weight * 2).toFixed(1)} mg`,
+        dosePerKg: 'IV/IM: initial 1 mg/kg, max 2 mg/kg/dose | PO: max 6 mg/kg/dose (lower oral bioavailability needs a higher dose)',
+        totalDose: `IV/IM: ${total.toFixed(1)} mg (max ${(weight * 2).toFixed(1)} mg) | PO max: ${(weight * 6).toFixed(1)} mg`,
         interval,
-        route: 'IV over 5–10 min | PO | Continuous infusion 0.1–0.4 mg/kg/h',
+        route: 'IV over 5–10 min | IM | PO | Continuous infusion 0.1–0.4 mg/kg/h',
         concentration: '10 mg/mL (IV) | 10 mg/mL (oral solution)',
         volumePerDose: `IV (1 mg/kg): ${mL(total, 10)}`,
         basisNote,
+        maxDose: `IV/IM: 2 mg/kg/dose | PO: 6 mg/kg/dose`,
         warningNote: 'Monitor electrolytes — hypokalaemia common. Ototoxicity risk with aminoglycosides.',
       };
     },
@@ -1613,27 +1846,30 @@ export const neonateDrugs: NeonateDrug[] = [
       'Toxicity: bradycardia, AV block, VT — stop drug, correct electrolytes, consider digoxin-specific antibody (DigiFab)',
       'Do NOT use in WPW — may increase ventricular rate in accessory pathway conduction',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight, pma) => {
       let totalDigitalisingDose: number;
       let maintDose: number;
+      let maintInterval: string;
       let basisNote: string;
-      if (pma < 30) {
-        totalDigitalisingDose = 15; maintDose = 4; basisNote = 'PMA < 30 wks';
+      if (pma <= 29) {
+        totalDigitalisingDose = 15; maintDose = 4; maintInterval = 'q24h'; basisNote = 'PMA ≤ 29 wks';
       } else if (pma <= 36) {
-        totalDigitalisingDose = 20; maintDose = 5; basisNote = 'PMA 30–36 wks';
+        totalDigitalisingDose = 20; maintDose = 5; maintInterval = 'q24h'; basisNote = 'PMA 30–36 wks';
+      } else if (pma <= 48) {
+        totalDigitalisingDose = 30; maintDose = 4; maintInterval = 'q12h'; basisNote = 'PMA 37–48 wks';
       } else {
-        totalDigitalisingDose = 30; maintDose = 8; basisNote = 'PMA ≥ 37 wks (term)';
+        totalDigitalisingDose = 40; maintDose = 5; maintInterval = 'q12h'; basisNote = 'PMA ≥ 49 wks';
       }
       const totalMcg = weight * totalDigitalisingDose;
       const dose1 = totalMcg / 2;
       const dose2 = totalMcg / 4;
       const maintMcg = weight * maintDose;
       return {
-        dosePerKg: `Digitalising total: ${totalDigitalisingDose} mcg/kg | Maintenance: ${maintDose} mcg/kg/dose`,
+        dosePerKg: `Digitalising total (IV): ${totalDigitalisingDose} mcg/kg | Maintenance (IV): ${maintDose} mcg/kg/dose ${maintInterval}`,
         totalDose: `Dose 1 (½): ${dose1.toFixed(1)} mcg | Dose 2 (¼): ${dose2.toFixed(1)} mcg | Dose 3 (¼): ${dose2.toFixed(1)} mcg | Maintenance: ${maintMcg.toFixed(1)} mcg/dose`,
-        interval: 'Doses 1–2–3 at 0h, 8h, 16h | Maintenance: q12h (start 12h after last digitalising dose)',
-        route: 'IV over 10–20 min | PO (maintenance)',
+        interval: `Doses 1–2–3 over 24h (0h, 8h, 16h) | Maintenance: ${maintInterval} (start ~12h after last digitalising dose)`,
+        route: 'IV over 15–30 min | PO (maintenance — oral doses ~25% higher than IV)',
         concentration: '0.05 mg/mL = 50 mcg/mL (IV) | 0.05 mg/mL (elixir)',
         volumePerDose: `Dose 1: ${mL(dose1, 50)} | Maintenance: ${mL(maintMcg, 50)}`,
         basisNote,
@@ -1654,53 +1890,64 @@ export const neonateDrugs: NeonateDrug[] = [
       'Hypoglycaemia risk — especially with prolonged fasting or preterm; monitor glucose',
       'Withdrawal risk — never stop abruptly (rebound arrhythmia)',
       'Thyrotoxicosis dose: 1–2 mg/kg/day PO divided q6–8h',
+      'Infantile haemangioma: SEPARATE escalating protocol — 0.6 → 1.1 → 1.7 mg/kg/dose BID, each step over ~1 week (~3 weeks total to reach maintenance)',
+      'IV (acute only): start 0.01 mg/kg/dose q6h, max 0.15 mg/kg/dose q6h — much lower than oral doses',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const startDose = 0.25;
-      const total = weight * startDose;
+      const poStart = 0.25;
+      const poMax = 3.5;
+      const ivStart = 0.01;
+      const ivMax = 0.15;
+      const poStartTotal = weight * poStart;
       return {
-        dosePerKg: '0.25 mg/kg/dose (start) → titrate to 0.5–1 mg/kg/dose',
-        totalDose: `Starting: ${total.toFixed(2)} mg | Usual maintenance: ${(weight * 0.5).toFixed(2)}–${(weight * 1).toFixed(2)} mg/dose`,
-        interval: 'q6–8h PO',
-        route: 'PO (preferred) | IV over 5–10 min with ECG monitoring (acute only)',
+        dosePerKg: `PO: ${poStart} mg/kg/dose (start) → titrate to max ${poMax} mg/kg/dose q6h | IV (acute only): ${ivStart} mg/kg/dose (start) → max ${ivMax} mg/kg/dose q6h`,
+        totalDose: `PO starting: ${poStartTotal.toFixed(2)} mg | PO max: ${(weight * poMax).toFixed(2)} mg/dose | IV starting: ${(weight * ivStart).toFixed(3)} mg | IV max: ${(weight * ivMax).toFixed(2)} mg/dose`,
+        interval: 'q6h (both PO and IV)',
+        route: 'PO (preferred) | IV over 5–10 min with ECG monitoring (acute only — doses are much lower than oral)',
         concentration: '1 mg/mL (oral solution)',
-        volumePerDose: `Starting dose: ${mL(total, 1)} PO`,
-        basisNote: 'Start low (0.25 mg/kg) — titrate up every 48–72 h based on response and HR',
-        maxDose: '4–5 mg/kg/day total daily dose',
-        warningNote: 'Hypoglycaemia risk in neonates. Never stop abruptly. Contraindicated in heart failure / bronchospasm.',
+        volumePerDose: `PO starting dose: ${mL(poStartTotal, 1)}`,
+        basisNote: 'Start low (PO 0.25 mg/kg) — titrate up every 48–72 h based on response and HR. IV dosing is much lower than PO — do not confuse the two.',
+        maxDose: `PO: ${poMax} mg/kg/dose q6h | IV: ${ivMax} mg/kg/dose q6h`,
+        warningNote: 'Hypoglycaemia risk in neonates. Never stop abruptly. Contraindicated in heart failure / bronchospasm. Haemangioma dosing uses a different escalation protocol — see cautions.',
       };
     },
   },
 
   {
     id: 'paracetamol-pda',
-    name: 'Paracetamol IV (PDA Closure)',
-    brandName: 'Perfalgan / Ofirmev — PDA protocol',
+    name: 'Paracetamol (PDA Closure)',
+    brandName: 'Perfalgan / Ofirmev (IV) — PDA protocol',
     category: 'Cardiovascular',
-    indications: ['Hemodynamically significant PDA in preterm infants (alternative to NSAIDs)', 'PDA closure when ibuprofen/indomethacin contraindicated (renal failure, thrombocytopenia)'],
-    administration: 'IV over 15 min. PO equally effective when enteral route tolerated.',
+    indications: ['Hemodynamically significant PDA in preterm infants (alternative to NSAIDs)', 'PDA closure when ibuprofen/indomethacin contraindicated (renal failure, thrombocytopenia), or when enteral feeding is not possible'],
+    administration: 'ORAL is the NeoFax-recommended route. IV is a cited-study alternative for infants who cannot feed enterally (contraindication to feeding, or feeding intolerance) — NOT a separate NeoFax "boxed" dose recommendation the way the oral one is. There is no rectal (PR) regimen for PDA closure in NeoFax.',
     monitoring: ['LFTs before and after course (hepatotoxicity at these repeated doses)', 'Echo at 48 h to assess ductal response', 'Urine output (gentler on kidneys than NSAIDs)', 'Platelets (less effect than NSAIDs)'],
     cautions: [
-      'PDA DOSE: 15 mg/kg q6h × 3–7 days — this is HIGHER than standard analgesic dosing',
+      'ORAL (NeoFax\'s actual recommended PDA-closure dose): 15 mg/kg/dose q6h × 3 days; a second course may be required',
+      'IV (from a specific cited RCT, offered when the infant cannot feed — NOT the same number as oral): 20 mg/kg loading dose, then 7.5 mg/kg/dose q6h × 4 days',
+      'There is NO rectal (PR) PDA-closure regimen in NeoFax — do not use the fever/pain PR dose (30 mg/kg) for this indication',
       'Monitor LFTs — hepatotoxicity possible with repeated high-dose use',
       'Safer renal and platelet profile than ibuprofen/indomethacin',
-      'Do NOT confuse with standard analgesic paracetamol dosing (15 mg/kg q6–12h)',
+      'Do NOT confuse with standard analgesic paracetamol dosing (see paracetamol-iv)',
     ],
-    references: ['Oncel et al. J Pediatr 2013', 'Ohlsson & Shah Cochrane 2020', 'NNF 9th ed. (2024)'],
+    references: ['Neofax 2020', 'Oncel et al. J Pediatr 2013', 'Ohlsson & Shah Cochrane 2020'],
     calculate: (weight) => {
-      const dose = 15;
-      const total = weight * dose;
+      const poDose = 15;
+      const ivLoadDose = 20;
+      const ivMaintDose = 7.5;
+      const poTotal = weight * poDose;
+      const ivLoadTotal = weight * ivLoadDose;
+      const ivMaintTotal = weight * ivMaintDose;
       return {
-        dosePerKg: '15 mg/kg/dose (PDA closure protocol)',
-        totalDose: `${total.toFixed(0)} mg per dose`,
-        interval: 'q6h × 3–7 days',
-        route: 'IV over 15 min or PO',
+        dosePerKg: 'Oral (primary route): 15 mg/kg/dose × 3 days | IV (feed-intolerant alternative, per cited RCT): 20 mg/kg load → 7.5 mg/kg/dose × 4 days',
+        totalDose: `Oral: ${poTotal.toFixed(0)} mg/dose | IV load: ${ivLoadTotal.toFixed(0)} mg | IV maintenance: ${ivMaintTotal.toFixed(0)} mg/dose`,
+        interval: 'q6h for both routes (Oral: 3 days | IV: load once, then q6h × 4 days)',
+        route: 'Oral (NeoFax-recommended, first-line) OR IV (only if enteral route not possible) — NO rectal regimen for this indication',
         concentration: '10 mg/mL (IV)',
-        volumePerDose: mL(total, 10),
-        basisNote: 'PDA protocol — 3 days minimum, extend to 7 days if duct not closed on echo',
-        maxDose: `${(weight * 60).toFixed(0)} mg/day (= 60 mg/kg/day)`,
-        warningNote: 'PDA DOSE — not standard analgesic dose. Monitor LFTs. Check echo at 48 h.',
+        volumePerDose: `Oral: ${mL(poTotal, 10)} | IV load: ${mL(ivLoadTotal, 10)} | IV maintenance: ${mL(ivMaintTotal, 10)}`,
+        basisNote: 'Oral protocol (3 days) is the NeoFax-recommended route. IV protocol (load + 4 days) is a cited-study alternative for infants who cannot feed — not interchangeable at the same mg/kg.',
+        maxDose: `${(weight * 60).toFixed(0)} mg/day (= 60 mg/kg/day) from all routes combined`,
+        warningNote: 'PDA DOSE — not standard analgesic dose. Monitor LFTs. Check echo at 48 h. Oral and IV are NOT the same number, and there is no rectal option for this indication.',
       };
     },
   },
@@ -1717,26 +1964,28 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'IV over 10–20 min for treatment doses. Cardiac arrest: may give more rapidly but not as undiluted rapid push. Must be diluted in D5W or NaCl 0.9% for infusion.',
     monitoring: ['Serum calcium (ionised preferred: target iCa 1.1–1.3 mmol/L)', 'ECG during infusion (bradycardia, QT shortening)', 'IV site — extravasation causes severe tissue necrosis', 'Phosphate (balance with calcium)'],
     cautions: [
-      '10% calcium gluconate = 9 mg/mL elemental Ca = 0.22 mmol/mL',
+      '10% calcium gluconate = 100 mg salt/mL = 9.3 mg/mL elemental Ca = 0.46 mEq/mL',
+      'Initial treatment dose (100–200 mg/kg = 1–2 mL/kg) is NOT the same as maintenance treatment dose (200–800 mg/kg/day = 2–8 mL/kg/day) — do not confuse the two',
+      'Routine daily calcium requirement (2–4 mEq/kg/day preterm; 0.5–4 mEq/kg/day term) is a DIFFERENT, smaller figure — only for infants with no active hypocalcaemia to correct',
       'NEVER give undiluted rapid IV push in non-arrest setting — cardiac arrest risk',
       'Extravasation → severe tissue necrosis — central line strongly preferred',
-      'Do not mix with sodium bicarbonate in same line (precipitates)',
-      'Cardiac arrest dose: 0.5–1 mL/kg of 10% solution',
+      'Do not mix or co-infuse with ceftriaxone (fatal precipitate) or sodium bicarbonate (precipitates)',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const doseML = 2 * weight;
-      const doseMg = doseML * 9;
-      const doseMmol = doseML * 0.22;
+      const initLowML = 1 * weight;
+      const initHighML = 2 * weight;
+      const maintLowML = 2 * weight;
+      const maintHighML = 8 * weight;
       return {
-        dosePerKg: '2 mL/kg of 10% (= 18 mg/kg elemental Ca = 0.45 mmol/kg)',
-        totalDose: `${doseML.toFixed(1)} mL (= ${doseMg.toFixed(0)} mg elemental Ca = ${doseMmol.toFixed(2)} mmol)`,
-        interval: 'Acute: single dose (repeat as needed) | Maintenance infusion: 45–90 mg/kg/day',
-        route: 'IV over 10–20 min (diluted). Central line preferred.',
-        concentration: '10% = 9 mg elemental Ca/mL = 0.22 mmol/mL',
-        volumePerDose: `${doseML.toFixed(1)} mL of 10% solution`,
-        basisNote: 'Symptomatic: 2 mL/kg over 10–20 min. Cardiac arrest: 0.5–1 mL/kg rapidly.',
-        warningNote: 'Extravasation → tissue necrosis. Never mix with bicarbonate. ECG monitoring during infusion.',
+        dosePerKg: 'Initial treatment: 1–2 mL/kg/dose (100–200 mg/kg) | Maintenance treatment: 2–8 mL/kg/day (200–800 mg/kg/day)',
+        totalDose: `Initial: ${initLowML.toFixed(1)}–${initHighML.toFixed(1)} mL/dose | Maintenance: ${maintLowML.toFixed(1)}–${maintHighML.toFixed(1)} mL/day`,
+        interval: 'Initial: single dose over 10–60 min (repeat as needed) | Maintenance: continuous IV infusion ×3–5 days',
+        route: 'IV over 10–60 min (diluted), or continuous infusion for maintenance. Central line preferred.',
+        concentration: '10% = 100 mg salt/mL = 9.3 mg elemental Ca/mL = 0.46 mEq/mL',
+        volumePerDose: `Initial: ${initLowML.toFixed(1)}–${initHighML.toFixed(1)} mL of 10% solution`,
+        basisNote: 'Symptomatic hypocalcaemia: 1–2 mL/kg initial, then 2–8 mL/kg/day maintenance infusion.',
+        warningNote: 'Extravasation → tissue necrosis. Never co-infuse with ceftriaxone or bicarbonate. Monitor HR — stop if bradycardic.',
       };
     },
   },
@@ -1746,28 +1995,29 @@ export const neonateDrugs: NeonateDrug[] = [
     name: 'Magnesium Sulfate',
     category: 'Electrolyte & Metabolic',
     indications: ['Neonatal hypomagnesaemia (Mg < 0.6 mmol/L or symptomatic)', 'Adjunct in PPHN (bronchodilation + vasodilation)', 'Seizures secondary to hypomagnesaemia'],
-    administration: 'IV over 2–4 h for deficiency correction. Slow infusion — rapid infusion causes hypotension and respiratory depression.',
+    administration: 'IV/IO, diluted to 100–200 mg/mL. Infusion time depends on indication: pulseless torsades = rapid (over several minutes); torsades WITH pulses = 10–20 min; general hypomagnesaemia correction = 30–60 min. Do NOT use the slow 30–60 min rate for an unstable arrhythmia — it delays treatment.',
     monitoring: ['Serum magnesium (target 0.7–1.0 mmol/L)', 'Respiratory rate and SpO₂ (respiratory depression at high levels)', 'BP (vasodilation / hypotension)', 'Deep tendon reflexes (loss = early toxicity sign)', 'Urine output (renal excretion)'],
     cautions: [
-      '50% MgSO₄ = 500 mg/mL = 2 mmol/mL — MUST dilute before IV use',
-      'Dilute to ≤ 20% (≤ 200 mg/mL) for neonatal use',
+      '50% MgSO₄ = 500 mg/mL = 2 mmol/mL — MUST dilute to 100–200 mg/mL before IV use',
       'Respiratory depression at levels > 3 mmol/L — have calcium gluconate (antidote) available',
       'Antidote for toxicity: calcium gluconate 2 mL/kg IV over 10 min',
+      'Infusion time is indication-dependent — do not default to the slowest rate for pulseless torsades',
     ],
-    references: ['NNF 9th ed. (2024)', 'BNFc 2024'],
+    references: ['Neofax 2020'],
     calculate: (weight) => {
-      const doseMmol = 0.15 * weight;
-      const doseMgSO4 = doseMmol * 246;
-      const vol50Percent = doseMgSO4 / 500;
+      const doseLowMg = 25 * weight;
+      const doseHighMg = 50 * weight;
+      const vol50Low = doseLowMg / 500;
+      const vol50High = doseHighMg / 500;
       return {
-        dosePerKg: '0.1–0.2 mmol/kg (= 25–50 mg/kg MgSO₄)',
-        totalDose: `${doseMmol.toFixed(2)} mmol (= ${doseMgSO4.toFixed(0)} mg MgSO₄ = ${vol50Percent.toFixed(2)} mL of 50% solution)`,
-        interval: 'Acute correction: single dose over 2–4 h | Maintenance: 0.1–0.2 mmol/kg/day infusion',
-        route: 'IV over 2–4 h (diluted to ≤ 20%). Never undiluted.',
-        concentration: 'Dilute 50% solution to 10% (1:4 with NaCl 0.9%) = 100 mg/mL = 0.4 mmol/mL',
-        volumePerDose: `${vol50Percent.toFixed(2)} mL of 50% (dilute before use) | ${(doseMgSO4 / 100).toFixed(2)} mL of 10%`,
+        dosePerKg: '25–50 mg/kg (same dose for all indications — infusion RATE differs by indication)',
+        totalDose: `${doseLowMg.toFixed(0)}–${doseHighMg.toFixed(0)} mg (= ${vol50Low.toFixed(2)}–${vol50High.toFixed(2)} mL of 50% solution, diluted before use)`,
+        interval: 'Pulseless torsades: rapid, over several minutes | Torsades w/ pulses: 10–20 min | Hypomagnesaemia: 30–60 min. PN maintenance requirement: 0.125–0.25 mmol/kg/day (separate, smaller figure).',
+        route: 'IV/IO, diluted to 100–200 mg/mL. Rate depends on indication — see interval.',
+        concentration: 'Dilute 50% (500 mg/mL) to 100–200 mg/mL before use',
+        volumePerDose: `${vol50Low.toFixed(2)}–${vol50High.toFixed(2)} mL of 50% (must dilute before administering)`,
         basisNote: 'Antidote for toxicity: calcium gluconate 2 mL/kg IV',
-        warningNote: 'MUST dilute 50% solution. Respiratory depression risk. Antidote (CaGluc) at bedside.',
+        warningNote: 'MUST dilute before use. Match infusion time to indication — pulseless torsades needs rapid infusion, not 30–60 min.',
       };
     },
   },
@@ -1783,22 +2033,27 @@ export const neonateDrugs: NeonateDrug[] = [
       'Use 4.2% (isotonic for neonates) — dilute 8.4% 1:1 with water for injection',
       'NEVER use in respiratory acidosis — worsens CO₂ retention',
       'Rapid infusion → IVH in preterm (hyperosmolarity)',
-      'Metabolic acidosis dose: Base deficit × weight × 0.3 (give half over 30 min, reassess)',
+      'Metabolic acidosis dose: Base deficit × weight × 0.3 (give half over 30 min, reassess) — MAX 8 mEq/kg/day',
+      'Cardiac arrest (simpler dosing, not the base-deficit formula): 1–2 mEq/kg IV/IO slowly, after ventilation established',
       'Do NOT mix with calcium in same line (precipitates)',
     ],
-    references: ['NNF 9th ed. (2024)', 'NRP 8th edition 2021'],
+    references: ['Neofax 2020', 'NRP 8th edition 2021'],
     calculate: (weight) => {
       const baseDeficit = 10;
       const dose = baseDeficit * weight * 0.3;
       const halfDose = dose / 2;
+      const arrestLow = weight * 1;
+      const arrestHigh = weight * 2;
+      const maxDaily = weight * 8;
       return {
-        dosePerKg: 'Dose (mmol) = Base Deficit × Weight × 0.3 (give half first)',
-        totalDose: `Example (BD = 10): ${dose.toFixed(1)} mmol total | Give ${halfDose.toFixed(1)} mmol first`,
+        dosePerKg: 'Metabolic acidosis: Base Deficit × Weight × 0.3 mEq (give half first) | Cardiac arrest: 1–2 mEq/kg (simpler, separate dosing)',
+        totalDose: `Example (BD = 10): ${dose.toFixed(1)} mEq total | Give ${halfDose.toFixed(1)} mEq first | Arrest dose: ${arrestLow.toFixed(1)}–${arrestHigh.toFixed(1)} mEq`,
         interval: 'Single correction then reassess blood gas',
         route: 'IV over 30–60 min (metabolic acidosis) | 2–5 min (cardiac arrest only)',
-        concentration: '4.2% (0.5 mmol/mL) — dilute 8.4% 1:1 with WFI',
-        volumePerDose: `Half-dose (${halfDose.toFixed(1)} mmol): ${(halfDose / 0.5).toFixed(1)} mL of 4.2%`,
-        basisNote: 'Give half → repeat blood gas → give remainder if still acidotic',
+        concentration: '4.2% (0.5 mEq/mL) — dilute 8.4% 1:1 with WFI',
+        volumePerDose: `Half-dose (${halfDose.toFixed(1)} mEq): ${(halfDose / 0.5).toFixed(1)} mL of 4.2% | Arrest dose: ${(arrestLow / 0.5).toFixed(1)}–${(arrestHigh / 0.5).toFixed(1)} mL of 4.2%`,
+        basisNote: 'Give half → repeat blood gas → give remainder if still acidotic. Cardiac arrest uses the simpler 1–2 mEq/kg dose, not this formula.',
+        maxDose: `${maxDaily.toFixed(1)} mEq/day (= 8 mEq/kg/day) — do not exceed`,
         warningNote: 'Use 4.2% ONLY. Rapid infusion → IVH. Never in respiratory acidosis. Dilutes ionised Ca.',
       };
     },
@@ -1845,26 +2100,27 @@ export const neonateDrugs: NeonateDrug[] = [
     administration: 'Continuous IV infusion via syringe driver. Prime the line — insulin adsorbs to tubing.',
     monitoring: ['Blood glucose q30–60 min until stable, then q1–2h', 'Potassium (hypokalaemia with insulin)', 'Urine output', 'Signs of hypoglycaemia'],
     cautions: [
-      'Insulin adsorbs to PVC tubing — prime line with 5–10 mL of insulin solution before connecting to patient',
+      'Insulin adsorbs to plastic tubing — fill (prime) the line with insulin solution and WAIT AT LEAST 20 MINUTES before connecting to patient (preconditioning saturates binding sites)',
+      'Recommended standard neonatal concentration: 0.1 or 0.5 unit/mL (NOT 1 unit/mL)',
       'Start at low end (0.01–0.02 units/kg/h); titrate by 0.01 units/kg/h',
       'Target BG: 90–180 mg/dL (avoid tight control — hypoglycaemia risk)',
       'Hold if BG < 90 mg/dL; STOP if BG < 54 mg/dL and give dextrose bolus',
       'Do not reduce TPN glucose rate as the primary intervention — maintain adequate caloric delivery',
     ],
-    references: ['NNF 9th ed. (2024)', 'ESPEN neonatal nutrition guidelines'],
+    references: ['Neofax 2020', 'ESPEN neonatal nutrition guidelines'],
     calculate: (weight) => {
       const startDose = 0.02;
       const startTotal = weight * startDose;
-      const concUnitsPerMl = 1;
+      const concUnitsPerMl = 0.5;
       return {
         dosePerKg: '0.01–0.1 units/kg/h (start: 0.01–0.02 units/kg/h)',
         totalDose: `Start: ${startTotal.toFixed(4)} units/h`,
         interval: 'Continuous infusion',
         route: 'IV via dedicated syringe driver',
-        concentration: '1 unit/mL (dilute 50 units in 50 mL NaCl 0.9%)',
+        concentration: '0.5 unit/mL standard (or 0.1 unit/mL) — dilute 25 units in 50 mL NaCl 0.9% for 0.5 unit/mL',
         volumePerDose: `Start: ${(startTotal / concUnitsPerMl).toFixed(3)} mL/h | Max (0.1 units/kg/h): ${((weight * 0.1) / concUnitsPerMl).toFixed(3)} mL/h`,
-        basisNote: 'Prime line with 5–10 mL solution before connecting. Target BG 90–180 mg/dL.',
-        warningNote: 'Prime tubing — insulin adsorbs to plastic. Check BG q30 min until stable. Hold if BG < 90 mg/dL.',
+        basisNote: 'Prime line and WAIT ≥ 20 minutes before connecting to patient. Target BG 90–180 mg/dL.',
+        warningNote: 'Prime tubing and wait ≥ 20 min — insulin adsorbs to plastic. Check BG q30 min until stable. Hold if BG < 90 mg/dL.',
       };
     },
   },
@@ -1895,6 +2151,245 @@ export const neonateDrugs: NeonateDrug[] = [
         volumePerDose: `${(total / 10).toFixed(2)} mL/day (at 15 mg Fe/1.5 mL = 10 mg/mL)`,
         basisNote: weight < 1 ? 'VLBW < 1 kg or on EPO: 3–6 mg/kg/day' : 'Standard preterm: 2–3 mg/kg/day',
         maxDose: '6 mg/kg/day elemental iron',
+      };
+    },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ADDITIONAL DRUGS (added following NeoFax 2020 accuracy audit)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  {
+    id: 'atropine',
+    name: 'Atropine',
+    category: 'Cardiovascular',
+    indications: ['Symptomatic bradycardia (esp. drug-induced or vagal)', 'Premedication before intubation', 'Reducing muscarinic effects when reversing neuromuscular blockade with neostigmine'],
+    administration: 'IV over 1 min. IM acceptable. ET route: immediately followed by 1 mL NS flush.',
+    monitoring: ['Continuous ECG (arrhythmia, esp. in first 2 min post-dose)', 'HR response', 'Signs of anticholinergic excess (fever, flushing, ileus)'],
+    cautions: [
+      'Bradycardia: repeat q10–15min to effect, cumulative MAX 0.04 mg/kg',
+      'Premedication dose (0.01–0.02 mg/kg) is LOWER than the bradycardia treatment dose (0.01–0.03 mg/kg)',
+      'Paradoxical bradycardia/AV dissociation can occur in the first 2 minutes, more often with smaller doses',
+      'Reduces bowel motility — may worsen ileus/abdominal distension',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight) => {
+      const bradyLow = weight * 0.01;
+      const bradyHigh = weight * 0.03;
+      const premedLow = weight * 0.01;
+      const premedHigh = weight * 0.02;
+      const maxCumulative = weight * 0.04;
+      const concMgPerMl = 0.1;
+      return {
+        dosePerKg: 'Bradycardia: 0.01–0.03 mg/kg | Premedication: 0.01–0.02 mg/kg',
+        totalDose: `Bradycardia: ${bradyLow.toFixed(3)}–${bradyHigh.toFixed(3)} mg | Premedication: ${premedLow.toFixed(3)}–${premedHigh.toFixed(3)} mg`,
+        interval: 'Bradycardia: repeat q10–15min PRN | Premedication: single dose immediately before other induction drugs',
+        route: 'IV over 1 min (or IM)',
+        concentration: `${concMgPerMl} mg/mL (0.05, 0.1, 0.4, 1 mg/mL formulations exist — confirm which is in hand)`,
+        volumePerDose: `Bradycardia: ${mL(bradyLow, concMgPerMl)}–${mL(bradyHigh, concMgPerMl)} | Premedication: ${mL(premedLow, concMgPerMl)}–${mL(premedHigh, concMgPerMl)}`,
+        basisNote: 'Confirm concentration before drawing up — multiple strengths exist (0.05/0.1/0.4/1 mg/mL).',
+        maxDose: `Bradycardia cumulative max: ${maxCumulative.toFixed(3)} mg/kg`,
+        warningNote: 'ECG monitoring — paradoxical bradycardia possible in first 2 min. Do not confuse premedication and bradycardia-treatment doses.',
+      };
+    },
+  },
+
+  {
+    id: 'naloxone',
+    name: 'Naloxone',
+    category: 'Analgesic & Sedation',
+    indications: ['Reversal of opioid-induced respiratory depression', 'Suspected opioid overdose'],
+    administration: 'IV push preferred. IM/subQ acceptable if adequate perfusion. Tracheal administration NOT recommended.',
+    monitoring: ['Respiratory rate and effort', 'SpO₂', 'Sedation level / return of opioid effect (naloxone is shorter-acting than most opioids — re-sedation can occur)'],
+    cautions: [
+      'NOT recommended as part of INITIAL delivery-room resuscitation for respiratory depression — restore heart rate and colour via ventilation FIRST',
+      'Doses to reverse narcotic-induced respiratory depression may be as low as 0.01 mg/kg — start low and titrate to effect rather than always using the full 0.1 mg/kg',
+      'Duration of action is SHORTER than most opioids — monitor for re-sedation/renarcotisation and redose or infuse as needed',
+      'In infants with known/suspected maternal opioid exposure, abrupt full-dose reversal can precipitate acute withdrawal — consider the lower end of dosing',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight) => {
+      const lowDose = weight * 0.01;
+      const suggestedDose = weight * 0.1;
+      const concMgPerMl = 0.4;
+      return {
+        dosePerKg: 'Suggested: 0.1 mg/kg IV push | May be as low as 0.01 mg/kg to reverse narcotic-induced depression',
+        totalDose: `Low end: ${lowDose.toFixed(3)} mg | Suggested: ${suggestedDose.toFixed(2)} mg`,
+        interval: 'Single dose, repeat/infuse as needed — duration is shorter than most opioids',
+        route: 'IV push (preferred) | IM/subQ if adequate perfusion | NOT tracheal',
+        concentration: `${concMgPerMl} mg/mL (also available as 1 mg/mL)`,
+        volumePerDose: `Low end: ${mL(lowDose, concMgPerMl)} | Suggested: ${mL(suggestedDose, concMgPerMl)}`,
+        basisNote: 'Consider starting at the lower end (0.01 mg/kg) and titrating, especially with known maternal opioid exposure.',
+        warningNote: 'Do NOT use for initial delivery-room resuscitation — support ventilation first. Watch for re-sedation as naloxone wears off before the opioid does.',
+      };
+    },
+  },
+
+  {
+    id: 'heparin',
+    name: 'Heparin',
+    category: 'Cardiovascular',
+    indications: ['Maintaining patency of central or peripheral vascular catheters', 'Treatment of thrombosis'],
+    administration: 'Continuous IV infusion for line patency and for treatment. Loading dose (treatment only) given over 10 min. Avoid IM (haematoma risk).',
+    monitoring: ['aPTT 4h after starting treatment-dose infusion, then per protocol', 'Anti-factor Xa level if available (target 0.35–0.7 for treatment)', 'Signs of bleeding', 'Platelet count (heparin-induced thrombocytopenia, rare but serious)'],
+    cautions: [
+      'Line patency (central catheter): 0.5 units/kg/hour continuous infusion',
+      'Line patency (peripheral): 0.5–1 unit/mL added to IV fluid — NOT the same as the central-line rate',
+      'Treatment of thrombosis: 75 units/kg IV load over 10 min, then 28 units/kg/hour continuous — target aPTT 60–85 sec (anti-Xa 0.35–0.7)',
+      'Treatment courses typically limited to 10–14 days; some switch to enoxaparin after 3–5 days',
+      'Confirm correct concentration before drawing up — heparin concentration errors are a classic, serious neonatal medication error',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight) => {
+      const patencyRate = weight * 0.5;
+      const loadDose = weight * 75;
+      const maintRate = weight * 28;
+      return {
+        dosePerKg: 'Line patency: 0.5 units/kg/h (central) | Treatment: 75 units/kg load → 28 units/kg/h',
+        totalDose: `Patency: ${patencyRate.toFixed(2)} units/h | Treatment load: ${loadDose.toFixed(0)} units | Treatment maintenance: ${maintRate.toFixed(1)} units/h`,
+        interval: 'Patency: continuous | Treatment: load once over 10 min, then continuous',
+        route: 'IV (avoid IM — haematoma risk)',
+        concentration: 'Loading: 100–500 units/mL | Maintenance infusion: 10–500 units/mL — confirm the exact concentration in use',
+        volumePerDose: 'Depends on chosen concentration — verify against the actual infusion bag being used',
+        basisNote: 'Line-patency dosing and treatment dosing are very different — confirm which indication applies before calculating.',
+        warningNote: 'Heparin concentration mix-ups are a well-documented, serious neonatal medication error — independent double-check strongly recommended.',
+      };
+    },
+  },
+
+  {
+    id: 'enoxaparin',
+    name: 'Enoxaparin',
+    brandName: 'Clexane / Lovenox',
+    category: 'Cardiovascular',
+    indications: ['Treatment of neonatal thrombosis', 'Low-risk thrombosis prophylaxis'],
+    administration: 'SubQ injection only (NOT IV). Evaluate for bleeding disorder before starting unless urgently needed.',
+    monitoring: ['Anti-factor Xa level (target 0.5–1.0 unit/mL treatment; 0.1–0.4 unit/mL prophylaxis) — takes several days to reach target range', 'Platelet count', 'Signs of bleeding'],
+    cautions: [
+      'Treatment dose is GESTATIONAL-AGE dependent: term infants 1.7 mg/kg/dose, preterm infants 2 mg/kg/dose — both subQ q12h',
+      'Preterm infants often need quite variable doses (0.8–3 mg/kg q12h) to reach target anti-Xa — reassess and adjust, do not assume the starting dose is final',
+      'Prophylaxis dose (0.75 mg/kg q12h) is LOWER than treatment dose — do not confuse the two',
+      'Cannot be rapidly/completely reversed (unlike unfractionated heparin) — factor this into the risk assessment before starting',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight, pma) => {
+      const isTerm = pma >= 37;
+      const treatDose = isTerm ? 1.7 : 2;
+      const treatTotal = weight * treatDose;
+      const prophDose = 0.75;
+      const prophTotal = weight * prophDose;
+      return {
+        dosePerKg: `Treatment: ${treatDose} mg/kg/dose (${isTerm ? 'term' : 'preterm'}) q12h | Prophylaxis: ${prophDose} mg/kg/dose q12h`,
+        totalDose: `Treatment: ${treatTotal.toFixed(2)} mg/dose | Prophylaxis: ${prophTotal.toFixed(2)} mg/dose`,
+        interval: 'q12h (both treatment and prophylaxis)',
+        route: 'SubQ only — do NOT give IV',
+        concentration: '100 mg/mL standard vial (dilute for accurate small-volume dosing)',
+        volumePerDose: `Treatment: ${mL(treatTotal, 100)} | Prophylaxis: ${mL(prophTotal, 100)}`,
+        basisNote: `${isTerm ? 'Term' : 'Preterm'} treatment starting dose shown — preterm infants often need dose adjustment (range 0.8–3 mg/kg q12h) to reach target anti-Xa.`,
+        warningNote: 'SubQ ONLY — never IV. Reversal is incomplete/slow if bleeding occurs — weigh this before starting.',
+      };
+    },
+  },
+
+  {
+    id: 'potassium-chloride',
+    name: 'Potassium Chloride',
+    category: 'Electrolyte & Metabolic',
+    indications: ['Treatment of hypokalaemia', 'Routine potassium replacement/maintenance'],
+    administration: 'IV infusion (never IV push/bolus) or PO with feeds. Central line required for concentrated solutions.',
+    monitoring: ['Serum potassium before and during correction', 'Continuous ECG during IV correction (arrhythmia risk)', 'Renal function — contraindicated in renal failure', 'IV site (peripheral concentrated solutions cause thrombophlebitis)'],
+    cautions: [
+      'Contraindicated in renal failure',
+      'MAXIMUM infusion rate: 1 mEq/kg/hour — never exceed',
+      'Peripheral line: preferred concentration 40 mEq/L, max 60–80 mEq/L. Central line: max 200 mEq/L.',
+      'Rapid/concentrated IV push can cause fatal arrhythmia/cardiac arrest — NEVER give as a bolus',
+      'Use with caution alongside potassium-sparing diuretics (e.g. spironolactone)',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight) => {
+      const acuteLow = weight * 0.5;
+      const acuteHigh = weight * 1;
+      const dailyLow = weight * 2;
+      const dailyHigh = weight * 4;
+      const maxRate = weight * 1;
+      return {
+        dosePerKg: 'Acute symptomatic hypokalaemia: 0.5–1 mEq/kg IV over 1h | Daily requirement: 2–4 mEq/kg/day IV | Oral replacement: 0.5–1 mEq/kg/day',
+        totalDose: `Acute: ${acuteLow.toFixed(2)}–${acuteHigh.toFixed(2)} mEq over 1h | Daily requirement: ${dailyLow.toFixed(2)}–${dailyHigh.toFixed(2)} mEq/day`,
+        interval: 'Acute: single infusion over 1h, then reassess | Daily requirement: continuous/divided',
+        route: 'IV infusion only (never push) or PO with feeds',
+        concentration: 'Peripheral: 40 mEq/L (max 60–80) | Central: max 200 mEq/L',
+        volumePerDose: 'Depends on chosen infusion concentration — verify against the actual bag/pump setting',
+        basisNote: `Maximum infusion rate: ${maxRate.toFixed(2)} mEq/h — never exceed regardless of urgency.`,
+        maxDose: `${maxRate.toFixed(2)} mEq/kg/hour maximum infusion rate`,
+        warningNote: 'NEVER give as IV push/bolus — fatal arrhythmia risk. Contraindicated in renal failure. Continuous ECG during correction.',
+      };
+    },
+  },
+
+  {
+    id: 'rocuronium',
+    name: 'Rocuronium',
+    category: 'Analgesic & Sedation',
+    indications: ['Neuromuscular blockade for endotracheal intubation', 'Ongoing paralysis during mechanical ventilation (adjunct to sedation)'],
+    administration: 'IV push over 5–10 sec (intubation dose). Continuous infusion for maintenance paralysis. MUST be accompanied by adequate analgesia/sedation — rocuronium has no sedative or analgesic effect of its own.',
+    monitoring: ['Train-of-four (TOF) monitoring if available', 'HR and BP', 'Adequacy of sedation/analgesia (paralysis can mask pain and distress)', 'Ventilation adequacy (patient cannot breathe or signal distress while paralysed)'],
+    cautions: [
+      'MUST give adequate sedation/analgesia first or alongside — paralysis without sedation is inhumane and can cause awareness during procedures',
+      'NeoFax notes it is not recommended for rapid sequence intubation in paediatric patients generally, though it is commonly used for premedicated NICU intubation in practice — follow local protocol',
+      'Onset ~60–75 seconds at intubation doses',
+      'Recovery from a single dose can take 60–100 minutes — plan accordingly if a short procedure is intended',
+    ],
+    references: ['Neofax 2020'],
+    calculate: (weight) => {
+      const intubationDose = 0.6;
+      const intubationLow = 0.45;
+      const maintBolus = 0.15;
+      const infLow = 7;
+      const infHigh = 10;
+      const intubationTotal = weight * intubationDose;
+      const intubationLowTotal = weight * intubationLow;
+      const maintBolusTotal = weight * maintBolus;
+      const concMgPerMl = 10;
+      return {
+        dosePerKg: `Intubation: ${intubationLow}–${intubationDose} mg/kg | Maintenance bolus: ${maintBolus} mg/kg at return of T3 | Infusion: ${infLow}–${infHigh} mcg/kg/min`,
+        totalDose: `Intubation: ${intubationLowTotal.toFixed(2)}–${intubationTotal.toFixed(2)} mg | Maintenance bolus: ${maintBolusTotal.toFixed(2)} mg | Infusion: ${((infLow * weight) / 1000).toFixed(3)}–${((infHigh * weight) / 1000).toFixed(3)} mg/min`,
+        interval: 'Intubation: single dose | Maintenance: redose at return of neuromuscular function (T3), or continuous infusion',
+        route: 'IV push over 5–10 sec (intubation) | Continuous IV (maintenance, dilute to ≤ 5 mg/mL)',
+        concentration: `${concMgPerMl} mg/mL (undiluted) — dilute to ≤ 5 mg/mL for continuous infusion`,
+        volumePerDose: `Intubation: ${mL(intubationLowTotal, concMgPerMl)}–${mL(intubationTotal, concMgPerMl)} | Maintenance bolus: ${mL(maintBolusTotal, concMgPerMl)}`,
+        basisNote: 'Onset ~60–75 sec. Recovery from a single dose can take 60–100 min.',
+        warningNote: 'NEVER give without adequate sedation/analgesia already on board. Patient cannot breathe or communicate distress while paralysed.',
+      };
+    },
+  },
+
+  {
+    id: 'nitric-oxide',
+    name: 'Inhaled Nitric Oxide (iNO)',
+    category: 'Respiratory',
+    indications: ['Persistent Pulmonary Hypertension of the Newborn (PPHN) with oxygenation index > 25', 'Term/near-term hypoxaemic respiratory failure to reduce need for ECMO'],
+    administration: 'Inhaled via ventilator circuit, dose expressed in ppm (parts per million) — NOT a weight-based mg/kg drug.',
+    monitoring: ['Pre/post-ductal SpO₂', 'Methaemoglobin level (iNO toxicity)', 'NO₂ level in circuit', 'Oxygenation index trend', 'Rebound pulmonary hypertension on withdrawal — wean slowly, do not stop abruptly'],
+    cautions: [
+      'Dosing is in ppm, NOT mg/kg — this is a gas concentration, not a weight-based drug',
+      'Evidence does NOT support use in preterm infants < 34 weeks GA for respiratory failure/BPD prevention — reserve for term/near-term PPHN per current evidence',
+      'Start 20 ppm (max 20 ppm). If PaO2 ≥ 60 torr within 4h, decrease to 5 ppm and wean FiO2 as tolerated.',
+      'Wean 1 ppm increments approximately q4h once FiO2 < 0.6 and ventilatory support has been decreased. Discontinue when stable on 1 ppm for 4h.',
+      'Usual treatment course < 4 days — if not weanable by day 4, investigate for other underlying disease',
+      'NEVER stop abruptly — rebound pulmonary hypertension can be severe and life-threatening',
+    ],
+    references: ['Neofax 2020'],
+    calculate: () => {
+      return {
+        dosePerKg: '20 ppm start (NOT weight-based — gas concentration)',
+        totalDose: 'Start 20 ppm → 5 ppm once PaO2 ≥ 60 torr within 4h → wean by 1 ppm q4h once FiO2 < 0.6',
+        interval: 'Continuous inhalation via ventilator circuit; wean per protocol above',
+        route: 'Inhaled, via ventilator circuit',
+        concentration: 'N/A — gas-phase ppm concentration, not a liquid drug concentration',
+        volumePerDose: 'N/A',
+        basisNote: 'Restricted to term/near-term PPHN per current evidence — not indicated for preterm <34wk GA respiratory failure.',
+        maxDose: '20 ppm maximum',
+        warningNote: 'Do NOT stop abruptly — rebound pulmonary hypertension risk. Monitor methaemoglobin. Not weight-based.',
       };
     },
   },

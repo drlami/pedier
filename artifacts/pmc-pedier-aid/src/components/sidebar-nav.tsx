@@ -4,13 +4,10 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  Stethoscope, UserCog, HeartPulse, Brain, Pill, Users,
-  FlaskConical, Baby, BookOpen, Calculator, Building2, LayoutDashboard, LayoutGrid,
-  Search, ChevronRight, Activity
+  UserCog, HeartPulse, Pill, Users,
+  Baby, BookOpen, Calculator, Building2, LayoutDashboard, LayoutGrid,
+  Search, Activity
 } from "lucide-react";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
@@ -29,7 +26,7 @@ const CLINICAL_TOOLS = [
   { href: "/ward", label: "Ward Dashboard", icon: Building2, emergency: false },
   { href: "/cardiac-arrest", label: "Cardiac Arrest", icon: HeartPulse, emergency: true },
   { href: "/neonatology/hyperbilirubinemia", label: "Hyperbilirubinemia", icon: Baby, emergency: false },
-  { href: "/drug-doses", label: "Drug Dosing", icon: Pill, emergency: false },
+  { href: "/drug-doses", label: "PediaDose", icon: Pill, emergency: false },
   { href: "/calculators", label: "Calculators", icon: Calculator, emergency: false },
 ] as const;
 
@@ -37,23 +34,6 @@ const ADMIN_LINKS = [
   { href: "/admin/protocols", label: "Protocol Management", icon: BookOpen },
   { href: "/admin/users", label: "User Management", icon: Users },
   { href: "/admin", label: "Admin Panel", icon: UserCog },
-] as const;
-
-const EXTRA_SYSTEMS = ["Metabolic Diseases", "Neonatology"] as const;
-
-const WARD_SYSTEMS = [
-  "Respiratory System",
-  "Cardiovascular System",
-  "Gastrointestinal & Hepatology",
-  "Neurological System",
-  "Renal & Urinary System",
-  "Hematology & Oncology",
-  "Endocrinology",
-  "Metabolic Diseases",
-  "Infectious Diseases",
-  "Immunology & Rheumatology",
-  "Dermatology",
-  "Nutrition & Growth"
 ] as const;
 
 export function SidebarNav() {
@@ -82,14 +62,15 @@ export function SidebarNav() {
   const currentSystem = searchParams.get("system");
 
   const systems = useMemo(() => {
-    const systemSet = new Set([
-      ...filteredProtocols.map((p) => p.system),
-      ...(currentUnit === "er" ? EXTRA_SYSTEMS : currentUnit === "ward" ? WARD_SYSTEMS : []),
-    ]);
-    return Array.from(systemSet).sort((a, b) => a.localeCompare(b));
-  }, [filteredProtocols, currentUnit]);
+    const counts = new Map<string, number>();
+    for (const p of filteredProtocols) {
+      counts.set(p.system, (counts.get(p.system) ?? 0) + 1);
+    }
+    return Array.from(counts, ([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredProtocols]);
 
-  const defaultSystem = systems[0] ?? "";
+  const defaultSystem = systems[0]?.name ?? "";
   const isAdminPage = pathname.startsWith("/admin");
   const isNeoPage = pathname.startsWith("/neonatology");
   const isToolPage = CLINICAL_TOOLS.some(
@@ -157,12 +138,20 @@ export function SidebarNav() {
               emergency={false}
               onNavigate={closeAll}
             />
+            <NavItem
+              href="/nicu"
+              label="NICU Dashboard"
+              icon={Baby}
+              active={pathname === "/nicu"}
+              emergency={false}
+              onNavigate={closeAll}
+            />
           </div>
         </div>
       </div>
 
       <ScrollArea className="flex-1 px-3 pb-4">
-        <Accordion type="multiple" defaultValue={["protocols", "tools", "calculators"]} className="w-full">
+        <Accordion type="multiple" defaultValue={["protocols", "tools"]} className="w-full">
           {!isLandingPage && (
             <>
               <AccordionItem value="tools" className="border-none">
@@ -202,36 +191,22 @@ export function SidebarNav() {
                   {systems.length === 0 ? (
                     <p className="px-1 text-[11px] text-muted-foreground/50 italic">No protocols loaded</p>
                   ) : (
-                    <div className="space-y-2 px-0.5">
-                      <Select value={activeSystem ?? ""} onValueChange={handleSystemChange}>
-                        <SelectTrigger className={cn("h-8 text-xs w-full", isProtocolPage ? "border-primary/30 text-primary font-medium" : "text-muted-foreground") }>
-                          <Stethoscope className="h-3.5 w-3.5 shrink-0 mr-1.5 opacity-60" />
-                          <SelectValue placeholder="Select a system…" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-72">
-                          {systems.map((system) => (
-                            <SelectItem key={system} value={system} className="text-xs">{system}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {isProtocolPage && activeSystem && (
-                        <p className="px-1 text-[10px] text-primary/70 font-medium truncate">Viewing: {activeSystem}</p>
-                      )}
+                    <div className="space-y-0.5">
+                      {systems.map(({ name, count }) => (
+                        <SystemRow
+                          key={name}
+                          system={name}
+                          count={count}
+                          active={isProtocolPage && activeSystem === name}
+                          onClick={() => handleSystemChange(name)}
+                        />
+                      ))}
                     </div>
                   )}
                 </AccordionContent>
               </AccordionItem>
             </>
           )}
-
-          <AccordionItem value="calculators" className="border-none">
-            <AccordionTrigger className="hover:no-underline py-2">
-              <SectionLabel className="mb-0">Calculators</SectionLabel>
-            </AccordionTrigger>
-            <AccordionContent className="pb-2">
-              <NavItem href="/calculators" label="Open Calculators" icon={Calculator} active={pathname === "/calculators"} emergency={false} onNavigate={closeAll} />
-            </AccordionContent>
-          </AccordionItem>
 
           {isAdmin && !isLandingPage && (
             <AccordionItem value="admin" className="border-none">
@@ -295,5 +270,39 @@ function NavItem({ href, label, icon: Icon, active, emergency, onNavigate }: Nav
       <Icon className={cn("h-4 w-4 shrink-0", active ? (emergency ? "text-red-600" : "text-primary") : "opacity-50 group-hover:opacity-80")} />
       <span className="leading-none">{label}</span>
     </Link>
+  );
+}
+
+interface SystemRowProps {
+  system: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}
+
+function SystemRow({ system, count, active, onClick }: SystemRowProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-between w-full gap-2 rounded-md px-2.5 py-2 text-xs font-medium transition-colors relative group text-left",
+        active
+          ? "bg-primary/10 text-primary border border-primary/15 font-semibold"
+          : "text-sidebar-foreground hover:bg-muted/60 hover:text-foreground",
+      )}
+    >
+      {active && (
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-primary" />
+      )}
+      <span className="truncate">{system}</span>
+      <span
+        className={cn(
+          "shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full",
+          active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground/70",
+        )}
+      >
+        {count}
+      </span>
+    </button>
   );
 }

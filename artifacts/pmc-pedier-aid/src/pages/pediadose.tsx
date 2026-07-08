@@ -7,47 +7,47 @@ import {
   AlertTriangle,
   Info,
   ChevronLeft,
-  FlaskConical,
+  Pill,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  neonateDrugs,
-  DRUG_CATEGORIES,
-  type DrugCategory,
-  type NeonateDrug,
-  type DoseResult,
-} from "@/lib/nicu/neodose-database";
+  pediatricDrugs,
+  PEDIA_CATEGORIES,
+  type PediaCategory,
+  type PediatricDrug,
+  type PediaDoseResult,
+} from "@/lib/pediadose-database";
 import { LevelGuidanceSection } from "@/components/level-guidance";
 
 // ─── category colours ────────────────────────────────────────────────────────
 
-const CATEGORY_STYLE: Record<DrugCategory, { bg: string; text: string; badge: string }> = {
-  Antibiotic:             { bg: "bg-blue-50",    text: "text-blue-700",    badge: "bg-blue-100 text-blue-800" },
-  Antifungal:             { bg: "bg-violet-50",  text: "text-violet-700",  badge: "bg-violet-100 text-violet-800" },
-  Antiviral:              { bg: "bg-pink-50",    text: "text-pink-700",    badge: "bg-pink-100 text-pink-800" },
-  Anticonvulsant:         { bg: "bg-amber-50",   text: "text-amber-700",   badge: "bg-amber-100 text-amber-800" },
-  Cardiovascular:         { bg: "bg-red-50",     text: "text-red-700",     badge: "bg-red-100 text-red-800" },
-  Respiratory:            { bg: "bg-teal-50",    text: "text-teal-700",    badge: "bg-teal-100 text-teal-800" },
-  "Analgesic & Sedation":  { bg: "bg-orange-50",  text: "text-orange-700",  badge: "bg-orange-100 text-orange-800" },
-  "Electrolyte & Metabolic": { bg: "bg-cyan-50",  text: "text-cyan-700",   badge: "bg-cyan-100 text-cyan-800" },
-  "Vitamin & Supplement":  { bg: "bg-emerald-50", text: "text-emerald-700", badge: "bg-emerald-100 text-emerald-800" },
+const CATEGORY_STYLE: Record<PediaCategory, { bg: string; text: string; badge: string }> = {
+  Antibiotic:                { bg: "bg-blue-50",    text: "text-blue-700",    badge: "bg-blue-100 text-blue-800" },
+  Antifungal:                { bg: "bg-fuchsia-50", text: "text-fuchsia-700", badge: "bg-fuchsia-100 text-fuchsia-800" },
+  Antiviral:                 { bg: "bg-indigo-50",  text: "text-indigo-700",  badge: "bg-indigo-100 text-indigo-800" },
+  Seizure:                   { bg: "bg-amber-50",   text: "text-amber-700",   badge: "bg-amber-100 text-amber-800" },
+  Respiratory:               { bg: "bg-teal-50",    text: "text-teal-700",    badge: "bg-teal-100 text-teal-800" },
+  "Analgesia & Sedation":    { bg: "bg-orange-50",  text: "text-orange-700",  badge: "bg-orange-100 text-orange-800" },
+  Cardiovascular:            { bg: "bg-red-50",     text: "text-red-700",     badge: "bg-red-100 text-red-800" },
+  "Haematology & Anticoagulation": { bg: "bg-rose-50", text: "text-rose-700", badge: "bg-rose-100 text-rose-800" },
+  Neurology:                 { bg: "bg-violet-50",  text: "text-violet-700",  badge: "bg-violet-100 text-violet-800" },
+  Endocrine:                 { bg: "bg-lime-50",    text: "text-lime-700",    badge: "bg-lime-100 text-lime-800" },
+  "Allergy & Anaphylaxis":   { bg: "bg-pink-50",    text: "text-pink-700",    badge: "bg-pink-100 text-pink-800" },
 };
 
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 function PatientBar({
   weight, setWeight,
-  pma, setPma,
-  pna, setPna,
+  age, setAge,
 }: {
   weight: string; setWeight: (v: string) => void;
-  pma: string; setPma: (v: string) => void;
-  pna: string; setPna: (v: string) => void;
+  age: string; setAge: (v: string) => void;
 }) {
-  const isComplete = parseFloat(weight) > 0 && parseFloat(pma) > 0;
+  const isComplete = parseFloat(weight) > 0 && parseFloat(age) >= 0;
   return (
     <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b py-3 px-2 sm:px-4">
       <div className="max-w-4xl mx-auto">
@@ -57,67 +57,34 @@ function PatientBar({
             <Input
               type="number"
               inputMode="decimal"
-              placeholder="e.g. 1.5"
+              placeholder="e.g. 12"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
+              className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
             />
           </div>
           <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PMA (weeks)</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Age (years)</label>
             <Input
               type="number"
               inputMode="decimal"
-              placeholder="e.g. 30"
-              value={pma}
-              onChange={(e) => setPma(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
-            />
-          </div>
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PNA (days)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 5"
-              value={pna}
-              onChange={(e) => setPna(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
+              placeholder="e.g. 4"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
             />
           </div>
           <div className="pb-0.5">
             {isComplete ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 text-teal-700 text-xs font-black border border-teal-200">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 Doses calculated
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-black">
-                Enter weight + PMA
+                Enter weight + age
               </span>
             )}
-          </div>
-        </div>
-
-        {/* PMA / PNA explainer */}
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PMA</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              Postmenstrual age = GA at birth + weeks of life.
-            </span>
-            <span className="text-[11px] text-muted-foreground italic">
-              e.g. born 28 wks, now 14 days old → PMA&nbsp;30&nbsp;wks
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PNA</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              Postnatal age = days since birth.
-            </span>
-            <span className="text-[11px] text-muted-foreground italic">
-              e.g. born 14 days ago → PNA&nbsp;14&nbsp;d
-            </span>
           </div>
         </div>
       </div>
@@ -127,31 +94,30 @@ function PatientBar({
 
 function DoseRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={cn("flex gap-3 py-1.5 border-b last:border-0", highlight && "bg-teal-50/60 -mx-4 px-4 rounded")}>
+    <div className={cn("flex gap-3 py-1.5 border-b last:border-0", highlight && "bg-blue-50/60 -mx-4 px-4 rounded")}>
       <span className="text-xs font-black text-muted-foreground w-24 shrink-0 pt-0.5">{label}</span>
       <span className="text-sm font-bold text-foreground leading-snug">{value}</span>
     </div>
   );
 }
 
-function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
-  drug: NeonateDrug;
+function DrugCard({ drug, weightKg, ageYears }: {
+  drug: PediatricDrug;
   weightKg: number;
-  pmaWeeks: number;
-  pnaDays: number;
+  ageYears: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const hasPatient = weightKg > 0 && pmaWeeks > 0;
+  const hasPatient = weightKg > 0;
   const style = CATEGORY_STYLE[drug.category];
 
-  const result: DoseResult | null = useMemo(() => {
+  const result: PediaDoseResult | null = useMemo(() => {
     if (!hasPatient) return null;
     try {
-      return drug.calculate(weightKg, pmaWeeks, pnaDays);
+      return drug.calculate(weightKg, ageYears);
     } catch {
       return null;
     }
-  }, [hasPatient, drug, weightKg, pmaWeeks, pnaDays]);
+  }, [hasPatient, drug, weightKg, ageYears]);
 
   return (
     <div className={cn(
@@ -164,7 +130,7 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
         onClick={() => setExpanded((v) => !v)}
       >
         <div className={cn("p-2 rounded-xl shrink-0 mt-0.5", style.bg)}>
-          <FlaskConical className={cn("h-4 w-4", style.text)} />
+          <Pill className={cn("h-4 w-4", style.text)} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -211,7 +177,7 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
       {!expanded && !hasPatient && (
         <div className="px-4 pb-3 -mt-1">
           <div className="bg-muted/40 rounded-xl px-3 py-2 text-center">
-            <span className="text-xs text-muted-foreground font-medium">Enter weight + PMA above to calculate dose</span>
+            <span className="text-xs text-muted-foreground font-medium">Enter weight above to calculate dose</span>
           </div>
         </div>
       )}
@@ -249,7 +215,7 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
             </div>
           ) : (
             <div className="pt-3 bg-muted/40 rounded-xl px-3 py-3 text-center">
-              <span className="text-xs text-muted-foreground font-medium">Enter patient weight + PMA to calculate dose</span>
+              <span className="text-xs text-muted-foreground font-medium">Enter patient weight to calculate dose</span>
             </div>
           )}
 
@@ -266,7 +232,7 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
               <ul className="space-y-1">
                 {drug.monitoring.map((m, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm font-medium text-foreground">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
                     {m}
                   </li>
                 ))}
@@ -292,6 +258,14 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
             </div>
           )}
 
+          {/* Adult dose reference */}
+          {drug.adultDose && (
+            <div className="border-t pt-3">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Adult Dose (reference only)</div>
+              <p className="text-sm font-medium text-foreground leading-relaxed">{drug.adultDose}</p>
+            </div>
+          )}
+
           {/* References */}
           {drug.references.length > 0 && (
             <div className="border-t pt-3">
@@ -307,19 +281,17 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
 
 // ─── main page ───────────────────────────────────────────────────────────────
 
-export default function NicuDrugsPage() {
+export default function PediaDosePage() {
   const [weight, setWeight] = useState("");
-  const [pma, setPma] = useState("");
-  const [pna, setPna] = useState("0");
+  const [age, setAge] = useState("");
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<DrugCategory | "All">("All");
+  const [activeCategory, setActiveCategory] = useState<PediaCategory | "All">("All");
 
   const weightKg = parseFloat(weight) || 0;
-  const pmaWeeks = parseFloat(pma) || 0;
-  const pnaDays = parseFloat(pna) || 0;
+  const ageYears = parseFloat(age) || 0;
 
   const filteredDrugs = useMemo(() => {
-    let drugs = neonateDrugs;
+    let drugs = pediatricDrugs;
     if (activeCategory !== "All") {
       drugs = drugs.filter((d) => d.category === activeCategory);
     }
@@ -337,8 +309,8 @@ export default function NicuDrugsPage() {
   }, [activeCategory, search]);
 
   const countByCategory = useMemo(() => {
-    const m: Record<string, number> = { All: neonateDrugs.length };
-    for (const d of neonateDrugs) {
+    const m: Record<string, number> = { All: pediatricDrugs.length };
+    for (const d of pediatricDrugs) {
       m[d.category] = (m[d.category] ?? 0) + 1;
     }
     return m;
@@ -348,26 +320,26 @@ export default function NicuDrugsPage() {
     <div className="max-w-4xl mx-auto pb-32">
       {/* Back link */}
       <div className="px-2 sm:px-4 pt-4 pb-2">
-        <Link href="/nicu" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/calculators" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="h-3.5 w-3.5" />
-          NICU Dashboard
+          Calculators
         </Link>
       </div>
 
       {/* Hero */}
       <div className="px-2 sm:px-4 pb-4">
-        <div className="rounded-[28px] bg-teal-600 p-5 text-white relative overflow-hidden">
+        <div className="rounded-[28px] bg-blue-600 p-5 text-white relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
-              <FlaskConical className="h-6 w-6" />
-              <span className="font-black text-2xl tracking-tight">NeoDose</span>
-              <Badge className="bg-white/20 text-white border-none text-[10px] font-black tracking-widest">NICU DRUG REFERENCE</Badge>
+              <Pill className="h-6 w-6" />
+              <span className="font-black text-2xl tracking-tight">PediaDose</span>
+              <Badge className="bg-white/20 text-white border-none text-[10px] font-black tracking-widest">PAEDIATRIC DRUG REFERENCE</Badge>
             </div>
-            <p className="text-teal-100 text-sm font-medium max-w-lg">
-              NEOFAX-style neonatal IV drug calculator. Enter patient weight, PMA, and PNA — doses, intervals, and volumes are calculated automatically per drug.
+            <p className="text-blue-100 text-sm font-medium max-w-lg">
+              General paediatric (0–18y) drug calculator. Enter patient weight and age — doses, intervals, and routes are calculated automatically per drug.
             </p>
-            <p className="text-teal-200/70 text-[11px] font-medium mt-2">
-              ⚠ Verify all doses against local formulary and pharmacy policy before clinical use.
+            <p className="text-blue-200/70 text-[11px] font-medium mt-2">
+              ⚠ Verify all doses against local formulary and pharmacy policy before clinical use. For neonatal (PMA/PNA-based) dosing, use NeoDose instead.
             </p>
           </div>
           <div className="absolute top-0 right-0 -mr-8 -mt-8 w-36 h-36 bg-white/10 rounded-full blur-3xl" />
@@ -377,8 +349,7 @@ export default function NicuDrugsPage() {
       {/* Patient bar */}
       <PatientBar
         weight={weight} setWeight={setWeight}
-        pma={pma} setPma={setPma}
-        pna={pna} setPna={setPna}
+        age={age} setAge={setAge}
       />
 
       {/* Category tabs */}
@@ -389,13 +360,13 @@ export default function NicuDrugsPage() {
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition-colors",
               activeCategory === "All"
-                ? "bg-teal-600 text-white"
+                ? "bg-blue-600 text-white"
                 : "bg-muted text-muted-foreground hover:bg-muted/80",
             )}
           >
             All ({countByCategory.All})
           </button>
-          {DRUG_CATEGORIES.map((cat) => {
+          {PEDIA_CATEGORIES.map((cat) => {
             const count = countByCategory[cat] ?? 0;
             if (!count) return null;
             const style = CATEGORY_STYLE[cat];
@@ -423,7 +394,7 @@ export default function NicuDrugsPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
           <Input
             type="search"
-            placeholder="Search drug name or indication (e.g. 'gentamicin', 'sepsis', 'PDA')..."
+            placeholder="Search drug name or indication (e.g. 'amoxicillin', 'seizure', 'asthma')..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 rounded-xl h-11 text-sm"
@@ -444,7 +415,7 @@ export default function NicuDrugsPage() {
           <>
             {/* Group by category when showing All */}
             {activeCategory === "All" && !search.trim() ? (
-              DRUG_CATEGORIES.map((cat) => {
+              PEDIA_CATEGORIES.map((cat) => {
                 const drugs = filteredDrugs.filter((d) => d.category === cat);
                 if (!drugs.length) return null;
                 const style = CATEGORY_STYLE[cat];
@@ -460,8 +431,7 @@ export default function NicuDrugsPage() {
                         key={drug.id}
                         drug={drug}
                         weightKg={weightKg}
-                        pmaWeeks={pmaWeeks}
-                        pnaDays={pnaDays}
+                        ageYears={ageYears}
                       />
                     ))}
                   </div>
@@ -473,8 +443,7 @@ export default function NicuDrugsPage() {
                   key={drug.id}
                   drug={drug}
                   weightKg={weightKg}
-                  pmaWeeks={pmaWeeks}
-                  pnaDays={pnaDays}
+                  ageYears={ageYears}
                 />
               ))
             )}
@@ -487,7 +456,7 @@ export default function NicuDrugsPage() {
         <div className="flex items-start gap-3 bg-muted/50 rounded-2xl p-4">
           <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-            <strong>Clinical disclaimer:</strong> NeoDose provides starting doses based on NNF 9th ed. (2024), BNFc, and Neofax 2023. All doses must be verified against your institution's formulary and validated by a neonatologist or clinical pharmacist before administration. Weight, PMA, and clinical context may alter appropriate dosing. This tool does not replace clinical judgement.
+            <strong>Clinical disclaimer:</strong> PediaDose provides starting doses based on the Harriet Lane Handbook. All doses must be verified against your institution's formulary and validated by a paediatrician or clinical pharmacist before administration. Weight, age, and clinical context may alter appropriate dosing. This tool does not replace clinical judgement.
           </p>
         </div>
       </div>

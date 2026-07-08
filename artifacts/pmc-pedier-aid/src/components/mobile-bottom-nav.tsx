@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Stethoscope, Search, Calculator, Building2, LayoutGrid, HeartPulse } from "lucide-react";
+import { Stethoscope, Search, Calculator, Building2, LayoutGrid, HeartPulse, Baby } from "lucide-react";
 import { SearchModal } from "@/components/search-modal";
 import { useProtocolById } from "@/contexts/protocols-context";
 
@@ -17,6 +17,7 @@ export function MobileBottomNav() {
   const isHome        = pathname === "/";
   const isER          = pathname === "/er" || (pathname.startsWith("/diseases/") && (diseaseProtocol?.unit || "er") === "er");
   const isWard        = pathname === "/ward" || (pathname.startsWith("/diseases/") && diseaseProtocol?.unit === "ward");
+  const isNicu        = pathname.startsWith("/nicu") || (pathname.startsWith("/diseases/") && diseaseProtocol?.unit === "nicu");
   const isCalculators = pathname.startsWith("/calculators");
   const isArrest      = pathname === "/cardiac-arrest";
 
@@ -74,6 +75,12 @@ export function MobileBottomNav() {
           <Indicator active={isWard} />
           <Building2 className={iconCls(isWard)} />
           <span className={labelCls(isWard)}>Ward</span>
+        </Link>
+
+        <Link href="/nicu" className={tabCls(isNicu)}>
+          <Indicator active={isNicu} />
+          <Baby className={iconCls(isNicu)} />
+          <span className={labelCls(isNicu)}>NICU</span>
         </Link>
 
         <Link href="/calculators" className={tabCls(isCalculators)}>

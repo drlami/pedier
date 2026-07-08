@@ -30,7 +30,7 @@ import { useAllProtocols } from "@/contexts/protocols-context";
 import { CALCULATOR_SHORTCUTS } from "@/lib/clinical-dashboard";
 import { useOffline } from "@/hooks/use-offline";
 import { WifiOff } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isMacPlatform } from "@/lib/utils";
 
 const ROLE_ICON: Record<UserRole, typeof Shield> = {
   admin: Shield,
@@ -53,6 +53,7 @@ export function Header() {
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const { desktopOpen, toggleDesktop, mobileOpen, openMobile, closeMobile } = useSidebar();
   const RoleIcon = user ? ROLE_ICON[user.role] : Shield;
+  const [shortcutLabel] = useState(() => (isMacPlatform() ? "⌘K" : "Ctrl K"));
 
   const resolvedPinned = pinnedItems.map(p => {
     if (p.type === "protocol") {
@@ -144,20 +145,19 @@ export function Header() {
               </Button>
             )}
 
-            {/* Search button */}
+            {/* Search button — bordered "search field" affordance instead of plain ghost text */}
             {user && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 h-8 px-3"
+                className="flex items-center gap-1.5 h-8 px-2 md:px-3 rounded-lg border border-white/15 bg-white/5 text-white/60 hover:text-white hover:bg-white/10 hover:border-white/25 transition-colors"
+                title={`Search (${shortcutLabel})`}
               >
-                <Search className="h-4 w-4" />
-                <span className="hidden md:block text-xs">Search</span>
+                <Search className="h-4 w-4 shrink-0" />
+                <span className="hidden md:block text-xs whitespace-nowrap">Search</span>
                 <kbd className="hidden lg:inline-flex items-center gap-0.5 text-[10px] font-mono bg-white/10 border border-white/20 rounded px-1.5 py-0.5 text-white/50">
-                  ⌘K
+                  {shortcutLabel}
                 </kbd>
-              </Button>
+              </button>
             )}
 
             {user ? (

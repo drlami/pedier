@@ -128,7 +128,7 @@ export const PRESENTATION_GROUPS: PresentationGroup[] = [
 
 export const CALCULATOR_SHORTCUTS: CalculatorShortcut[] = [
   {
-    label: "Drug Dosing",
+    label: "PediaDose",
     description: "Weight-based medication doses",
     href: "/drug-doses",
     accent: "orange",

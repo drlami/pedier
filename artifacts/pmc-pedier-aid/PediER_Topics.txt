@@ -1,0 +1,123 @@
+PediER Aid - ER Protocol Topics
+=================================
+
+
+PALS ALGORITHMS
+
+  Cardiac Arrest
+  Systematic Approach
+  Hypovolemic Shock
+  Cardiogenic Shock
+  Shock Framework
+  Septic Shock
+  Anaphylaxis
+  Bradycardia
+  Tachycardia / SVT
+  Respiratory Failure
+
+
+BREATHING DIFFICULTY
+
+  Asthma
+  Bronchiolitis
+  Croup
+  Pneumonia
+  Epiglottitis
+  Foreign Body Aspiration
+  Bacterial Tracheitis
+  Cyanosis
+  Apnea
+
+
+FEVER AND SYSTEMIC INFECTIONS
+
+  Fever Without Source
+  Fever in the Neutropenic Child
+  Fever with Rash
+  Meningitis / Encephalitis
+
+
+FOCAL INFECTIONS
+
+  Skin and Soft Tissue Infection
+  Mastoiditis
+  Orbital Cellulitis
+  Periorbital Cellulitis
+  Cervical Lymphadenitis
+  Urinary Tract Infection
+  Acute Otitis Media
+
+
+CARDIOVASCULAR
+
+  Heart Failure / Myocarditis
+  Chest Pain in Children
+  Syncope
+  Palpitations
+  Murmur with Symptoms
+
+
+SEIZURES AND NEUROLOGY
+
+  Status Epilepticus
+  Febrile Seizure
+  First Afebrile Seizure
+  Altered Mental Status
+  Headache Red Flags
+  Raised Intracranial Pressure
+  Pediatric Stroke
+  Acute Flaccid Weakness
+  Acute Ataxia
+  VP Shunt Malfunction
+
+
+ABDOMINAL
+
+  Abdominal Pain
+  Bilious Vomiting
+  Abdominal Distention / Constipation
+  Intussusception
+  GI Bleeding
+  Persistent Vomiting
+  Dehydration / Gastroenteritis
+
+
+METABOLIC AND ENDOCRINE EMERGENCIES
+
+  Metabolic Crisis
+  Diabetic Ketoacidosis
+  Hypoglycemia
+  Adrenal Crisis
+
+
+ELECTROLYTE DISORDERS
+
+  Hyperkalemia
+  Hypokalemia
+  Hypomagnesemia
+  Hypernatremia
+  Hyponatremia
+  Hypercalcemia
+  Hypocalcemia
+
+
+TOXICOLOGY AND ENVENOMATION
+
+  Paracetamol Toxicity
+  Iron Toxicity
+  Organophosphorus Ingestion
+  Carbon Monoxide Poisoning
+  Chlorine Inhalation
+  Snake Bite
+  Scorpion Sting
+
+
+TRAUMA
+
+  Head Trauma
+  Smoke Inhalation / Burns
+
+
+RENAL AND URINARY
+
+  Acute Renal Failure

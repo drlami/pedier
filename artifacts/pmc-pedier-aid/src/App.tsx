@@ -23,7 +23,7 @@ import NicuDrugsPage from "@/pages/nicu-drugs";
 import DiseasePage from "@/pages/disease";
 import SummaryPage from "@/pages/summary";
 import CardiacArrestPage from "@/pages/cardiac-arrest";
-import DrugDosesPage from "@/pages/drug-doses";
+import PediaDosePage from "@/pages/pediadose";
 import ResuscitationDosesPage from "@/pages/resuscitation-doses";
 import CalculatorsPage from "@/pages/calculators";
 import AdminPage from "@/pages/admin";
@@ -207,7 +207,7 @@ function Router() {
 
       {/* Specific Routes first */}
       <Route path="/cardiac-arrest" component={() => <ProtectedRoute component={CardiacArrestPage} />} />
-      <Route path="/drug-doses" component={() => <ProtectedRoute component={DrugDosesPage} />} />
+      <Route path="/drug-doses" component={() => <ProtectedRoute component={PediaDosePage} />} />
       
       <Route path="/calculators/resuscitation-doses" component={() => <ProtectedRoute component={ResuscitationDosesPage} />} />
       <Route path="/calculators/advanced-fluids" component={() => <ProtectedRoute component={AdvancedFluidsPage} />} />
