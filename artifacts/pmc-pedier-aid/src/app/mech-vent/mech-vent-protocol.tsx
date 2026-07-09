@@ -875,7 +875,7 @@ export function MechVentProtocol() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-16 z-30 bg-background/95 backdrop-blur py-2 border-b mb-3 overflow-x-auto">
+        <div className="sticky top-16 z-30 bg-background py-2 border-b mb-3 overflow-x-auto">
           <TabsList className="w-max h-auto flex flex-nowrap justify-start gap-1 bg-transparent p-0 px-1">
             {[
               { value: "setup",   label: "Setup" },

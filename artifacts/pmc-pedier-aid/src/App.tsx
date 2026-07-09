@@ -121,9 +121,9 @@ function Footer() {
 function Layout({ children }: { children: React.ReactNode }) {
   const { desktopOpen } = useSidebar();
   return (
-    <div className="font-body antialiased flex flex-col min-h-screen bg-background text-foreground">
+    <div className="font-body antialiased flex flex-col h-screen bg-background text-foreground">
       <Header />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <aside
           className={cn(
             "flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground overflow-hidden flex-col transition-[width] duration-200 ease-in-out",
@@ -135,8 +135,10 @@ function Layout({ children }: { children: React.ReactNode }) {
             <SidebarNav />
           </Suspense>
         </aside>
-        <main className="flex-1 overflow-y-auto p-4 pb-20 md:p-6 lg:p-8 lg:pb-8">
-          {children}
+        <main className="flex-1 min-h-0 overflow-y-auto">
+          <div className="p-4 pb-20 md:p-6 lg:p-8 lg:pb-8">
+            {children}
+          </div>
         </main>
       </div>
       <MobileBottomNav />

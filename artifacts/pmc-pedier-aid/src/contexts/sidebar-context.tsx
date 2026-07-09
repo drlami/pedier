@@ -6,7 +6,6 @@ interface SidebarCtx {
   toggleDesktop: () => void;
   openMobile: () => void;
   closeMobile: () => void;
-  closeAll: () => void;
 }
 
 const SidebarContext = createContext<SidebarCtx>({
@@ -15,7 +14,6 @@ const SidebarContext = createContext<SidebarCtx>({
   toggleDesktop: () => {},
   openMobile: () => {},
   closeMobile: () => {},
-  closeAll: () => {},
 });
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
@@ -30,10 +28,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
         toggleDesktop: () => setDesktopOpen((v) => !v),
         openMobile: () => setMobileOpen(true),
         closeMobile: () => setMobileOpen(false),
-        closeAll: () => {
-          setDesktopOpen(false);
-          setMobileOpen(false);
-        },
       }}
     >
       {children}

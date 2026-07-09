@@ -268,7 +268,7 @@ export function WardMMPView({ protocol }: WardMMPViewProps) {
   return (
     <div className="space-y-8 pb-32">
       {/* 1. DOCTOR'S ACTION BAR (Sticky) */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b pb-4 pt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-40 bg-background border-b pb-4 pt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 text-white rounded-2xl p-4 shadow-xl">
             <div className="flex items-center gap-3">

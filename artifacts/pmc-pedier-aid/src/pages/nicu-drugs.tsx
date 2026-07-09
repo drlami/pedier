@@ -49,79 +49,99 @@ function PatientBar({
 }) {
   const isComplete = parseFloat(weight) > 0 && parseFloat(pma) > 0;
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b py-3 px-2 sm:px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Weight (kg)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 1.5"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
-            />
+    <>
+      {/* ── Inputs — normal (non-sticky) flow, scrolls away naturally ── */}
+      <div className="px-2 sm:px-4 pt-3 pb-2">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[90px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Weight (kg)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="e.g. 1.5"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
+              />
+            </div>
+            <div className="flex-1 min-w-[90px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PMA (weeks)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="e.g. 30"
+                value={pma}
+                onChange={(e) => setPma(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
+              />
+            </div>
+            <div className="flex-1 min-w-[90px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PNA (days)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="e.g. 5"
+                value={pna}
+                onChange={(e) => setPna(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
+              />
+            </div>
+            <div className="pb-0.5">
+              {isComplete ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 text-teal-700 text-xs font-black border border-teal-200">
+                  <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                  Doses calculated
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-black">
+                  Enter weight + PMA
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PMA (weeks)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 30"
-              value={pma}
-              onChange={(e) => setPma(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
-            />
-          </div>
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">PNA (days)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 5"
-              value={pna}
-              onChange={(e) => setPna(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-teal-500"
-            />
-          </div>
-          <div className="pb-0.5">
-            {isComplete ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 text-teal-700 text-xs font-black border border-teal-200">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                Doses calculated
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-black">
-                Enter weight + PMA
-              </span>
-            )}
-          </div>
-        </div>
 
-        {/* PMA / PNA explainer */}
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PMA</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              Postmenstrual age = GA at birth + weeks of life.
-            </span>
-            <span className="text-[11px] text-muted-foreground italic">
-              e.g. born 28 wks, now 14 days old → PMA&nbsp;30&nbsp;wks
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PNA</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              Postnatal age = days since birth.
-            </span>
-            <span className="text-[11px] text-muted-foreground italic">
-              e.g. born 14 days ago → PNA&nbsp;14&nbsp;d
-            </span>
+          {/* PMA / PNA explainer */}
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PMA</span>
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Postmenstrual age = GA at birth + weeks of life.
+              </span>
+              <span className="text-[11px] text-muted-foreground italic">
+                e.g. born 28 wks, now 14 days old → PMA&nbsp;30&nbsp;wks
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-teal-600">PNA</span>
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Postnatal age = days since birth.
+              </span>
+              <span className="text-[11px] text-muted-foreground italic">
+                e.g. born 14 days ago → PNA&nbsp;14&nbsp;d
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ── Sticky compact bar — fixed height, never resizes ── */}
+      <div className="sticky top-0 z-20 bg-background border-b px-2 sm:px-4 py-2">
+        <div className="max-w-4xl mx-auto flex items-center gap-3 text-xs font-bold text-muted-foreground">
+          <span>{weight ? `${weight} kg` : '— kg'}</span>
+          <span>PMA {pma || '—'}w</span>
+          <span>PNA {pna || '—'}d</span>
+          {isComplete ? (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-teal-700 font-black">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+              Doses calculated
+            </span>
+          ) : (
+            <span className="ml-auto font-black">Enter weight + PMA</span>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 

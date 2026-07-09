@@ -994,19 +994,8 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-0 pb-24">
-      {/* ── Sticky Patient Bar ── */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b px-2 sm:px-4 py-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Patient {ageMonths > 0 ? `· ${normals.ageLabel}` : ''}
-          </span>
-          {severity.level !== 'unknown' && (
-            <span className={cn('text-[10px] font-black text-white px-2 py-0.5 rounded-md', severityBadgeColor)}>
-              {severity.scoreDetails?.interpretation ?? severity.level.toUpperCase()}
-              {severity.scoreDetails ? ` (${severity.scoreDetails.totalScore}/${severity.scoreDetails.maxScore})` : ''}
-            </span>
-          )}
-        </div>
+      {/* ── Vitals inputs — normal (non-sticky) flow, scrolls away naturally ── */}
+      <div className="px-2 sm:px-4 pt-3 pb-2">
         <div className="flex gap-2 overflow-x-auto">
           <div className="flex-1 min-w-[130px]">
             <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Age</div>
@@ -1049,6 +1038,28 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
             status={hr > 0 && ageMonths > 0 ? hrStatus(hr, normals) : undefined}
             note={hr > 0 && ageMonths > 0 ? statusLabel(hrStatus(hr, normals), 'hr', hr, normals) : undefined}
           />
+        </div>
+      </div>
+
+      {/* ── Sticky Patient Bar — fixed height, never resizes ── */}
+      <div className="sticky top-0 z-20 bg-background border-b px-2 sm:px-4 py-2 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground shrink-0">
+            Patient {ageMonths > 0 ? `· ${normals.ageLabel}` : ''}
+          </span>
+          {(weight > 0 || spo2 > 0 || hr > 0) && (
+            <span className="text-[10px] font-bold text-muted-foreground truncate">
+              {weight > 0 ? `${weight}kg` : ''}
+              {spo2 > 0 ? ` · SpO₂ ${spo2}%` : ''}
+              {hr > 0 ? ` · HR ${hr}` : ''}
+            </span>
+          )}
+          {severity.level !== 'unknown' && (
+            <span className={cn('text-[10px] font-black text-white px-2 py-0.5 rounded-md shrink-0', severityBadgeColor)}>
+              {severity.scoreDetails?.interpretation ?? severity.level.toUpperCase()}
+              {severity.scoreDetails ? ` (${severity.scoreDetails.totalScore}/${severity.scoreDetails.maxScore})` : ''}
+            </span>
+          )}
         </div>
 
         {/* ── Tabs ── */}

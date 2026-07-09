@@ -49,46 +49,65 @@ function PatientBar({
 }) {
   const isComplete = parseFloat(weight) > 0 && parseFloat(age) >= 0;
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b py-3 px-2 sm:px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Weight (kg)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 12"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
-            />
-          </div>
-          <div className="flex-1 min-w-[90px]">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Age (years)</label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g. 4"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
-            />
-          </div>
-          <div className="pb-0.5">
-            {isComplete ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                Doses calculated
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-black">
-                Enter weight + age
-              </span>
-            )}
+    <>
+      {/* ── Inputs — normal (non-sticky) flow, scrolls away naturally ── */}
+      <div className="px-2 sm:px-4 pt-3 pb-2">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[90px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Weight (kg)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="e.g. 12"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
+              />
+            </div>
+            <div className="flex-1 min-w-[90px]">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1">Age (years)</label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                placeholder="e.g. 4"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="h-10 text-base font-bold rounded-xl border-2 focus:border-blue-500"
+              />
+            </div>
+            <div className="pb-0.5">
+              {isComplete ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black border border-blue-200">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  Doses calculated
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-muted-foreground text-xs font-black">
+                  Enter weight + age
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ── Sticky compact bar — fixed height, never resizes ── */}
+      <div className="sticky top-0 z-20 bg-background border-b px-2 sm:px-4 py-2">
+        <div className="max-w-4xl mx-auto flex items-center gap-3 text-xs font-bold text-muted-foreground">
+          <span>{weight ? `${weight} kg` : '— kg'}</span>
+          <span>{age || '—'} yrs</span>
+          {isComplete ? (
+            <span className="ml-auto inline-flex items-center gap-1.5 text-blue-700 font-black">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              Doses calculated
+            </span>
+          ) : (
+            <span className="ml-auto font-black">Enter weight + age</span>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 

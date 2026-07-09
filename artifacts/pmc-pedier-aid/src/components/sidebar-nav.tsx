@@ -40,7 +40,7 @@ const ADMIN_LINKS = [
 export function SidebarNav() {
   const [pathname] = useLocation();
   const { isAdmin } = useAuth();
-  const { closeAll } = useSidebar();
+  const { closeMobile } = useSidebar();
   const [searchOpen, setSearchOpen] = useState(false);
 
   const isAdminPage = pathname.startsWith("/admin");
@@ -64,7 +64,7 @@ export function SidebarNav() {
           icon={LayoutGrid}
           active={isLandingPage}
           emergency={false}
-          onNavigate={closeAll}
+          onNavigate={closeMobile}
         />
 
         <NavItem
@@ -73,7 +73,7 @@ export function SidebarNav() {
           icon={HeartPulse}
           active={pathname === "/cardiac-arrest"}
           emergency
-          onNavigate={closeAll}
+          onNavigate={closeMobile}
         />
 
         <div>
@@ -87,7 +87,7 @@ export function SidebarNav() {
                 icon={Icon}
                 active={pathname === href}
                 emergency={false}
-                onNavigate={closeAll}
+                onNavigate={closeMobile}
               />
             ))}
           </div>
@@ -105,7 +105,7 @@ export function SidebarNav() {
                 <div className="space-y-0.5">
                   {ADMIN_LINKS.map(({ href, label, icon: Icon }) => {
                     const active = pathname === href || (href === "/admin/protocols" && isAdminPage && pathname !== "/admin/users" && pathname !== "/admin");
-                    return <NavItem key={href} href={href} label={label} icon={Icon} active={active} emergency={false} onNavigate={closeAll} />;
+                    return <NavItem key={href} href={href} label={label} icon={Icon} active={active} emergency={false} onNavigate={closeMobile} />;
                   })}
                 </div>
               </AccordionContent>

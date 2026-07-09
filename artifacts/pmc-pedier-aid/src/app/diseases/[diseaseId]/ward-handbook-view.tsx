@@ -55,7 +55,7 @@ export function WardHandbookView({ protocol }: WardHandbookViewProps) {
   return (
     <div className="space-y-6 pb-24">
       {/* 1. Patient Parameters Header (Sticky) */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b pb-4 pt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-0 z-30 bg-background border-b pb-4 pt-2 -mx-4 px-4 sm:mx-0 sm:px-0">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary/5 rounded-2xl p-4 border border-primary/10 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">

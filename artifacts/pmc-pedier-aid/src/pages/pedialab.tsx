@@ -64,7 +64,7 @@ function PatientBar({
 }) {
   const isComplete = parseFloat(ageValue) >= 0 && ageValue.trim() !== "";
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b py-3 px-2 sm:px-4">
+    <div className="sticky top-0 z-20 bg-background border-b py-3 px-2 sm:px-4">
       <div className="max-w-4xl mx-auto space-y-2">
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[90px]">
