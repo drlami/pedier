@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   UserCog, HeartPulse, Pill, Users,
   Baby, BookOpen, Calculator, Building2, LayoutDashboard, LayoutGrid,
-  Search, Activity, Syringe, FlaskConical
+  Search, Activity, Syringe, FlaskConical, Star
 } from "lucide-react";
 import {
   Accordion,
@@ -29,6 +29,7 @@ export const MAIN_SECTIONS = [
   { href: "/drug-doses", label: "PediaDose", icon: Pill },
   { href: "/pedialab", label: "PediaLab", icon: FlaskConical },
   { href: "/calculators", label: "Calculators", icon: Calculator },
+  { href: "/favorites", label: "Favorites", icon: Star },
 ] as const;
 
 const ADMIN_LINKS = [

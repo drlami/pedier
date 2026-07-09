@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Pill, Calculator, ChevronRight, Baby, Clock, Activity, Droplet, Scale, Ruler, Syringe, HeartPulse } from "lucide-react";
+import { Pill, Calculator, ChevronRight, Baby, Clock, Activity, Droplet, Scale, Ruler, Syringe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Tool {
@@ -17,7 +17,6 @@ const NEONATAL_TOOLS: Tool[] = [
   { label: "Fenton Growth Charts", desc: "Preterm growth percentiles", href: "/calculators/fenton-charts", icon: Scale },
   { label: "Weight Loss", desc: "Neonatal % weight change", href: "/calculators/weight-loss", icon: Scale },
   { label: "TPN Calculator", desc: "Parenteral nutrition", href: "/calculators/tpn-calculator", icon: Droplet },
-  { label: "NRP Timer", desc: "Resuscitation event timer", href: "/calculators/nrp-timer", icon: HeartPulse },
   { label: "Apgar Score", desc: "1 & 5-minute scoring", href: "/calculators/apgar", icon: Activity },
   { label: "ETT Depth", desc: "Tube depth by weight/age", href: "/calculators/ett-depth", icon: Ruler },
   { label: "UAC / UVC Length", desc: "Umbilical line insertion depth", href: "/calculators/uac-uvc-length", icon: Ruler },

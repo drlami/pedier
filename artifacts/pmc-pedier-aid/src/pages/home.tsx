@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
-import { PinnedWorkspace } from "@/components/pinned-workspace";
 import { MAIN_SECTIONS } from "@/components/sidebar-nav";
 import {
   CALCULATOR_SHORTCUTS,
@@ -205,10 +204,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* 3. PINNED FAVORITES */}
-          <PinnedWorkspace />
-
-          {/* 4. SYSTEMS BROWSER */}
+          {/* 3. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

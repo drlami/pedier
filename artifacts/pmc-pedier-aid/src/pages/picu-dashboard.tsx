@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
-import { PinnedWorkspace } from "@/components/pinned-workspace";
 import {
   CALCULATOR_SHORTCUTS,
 } from "@/lib/clinical-dashboard";
@@ -187,8 +186,6 @@ export default function PICUDashboard() {
         </section>
       ) : (
         <>
-          <PinnedWorkspace />
-
           {/* 3. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />

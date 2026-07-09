@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link } from "wouter";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Link, useSearch } from "wouter";
 import {
   ChevronDown,
   ChevronUp,
@@ -8,6 +8,7 @@ import {
   Info,
   ChevronLeft,
   FlaskConical,
+  Star,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import {
   type DoseResult,
 } from "@/lib/nicu/neodose-database";
 import { LevelGuidanceSection } from "@/components/level-guidance";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
 
 // ─── category colours ────────────────────────────────────────────────────────
 
@@ -154,15 +156,25 @@ function DoseRow({ label, value, highlight }: { label: string; value: string; hi
   );
 }
 
-function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
+function DrugCard({ drug, weightKg, pmaWeeks, pnaDays, highlighted }: {
   drug: NeonateDrug;
   weightKg: number;
   pmaWeeks: number;
   pnaDays: number;
+  highlighted?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(!!highlighted);
+  const cardRef = useRef<HTMLDivElement>(null);
   const hasPatient = weightKg > 0 && pmaWeeks > 0;
   const style = CATEGORY_STYLE[drug.category];
+  const { togglePin, isPinned } = usePinnedItems();
+  const pinned = isPinned({ type: "drug", system: "neodose", id: drug.id });
+
+  useEffect(() => {
+    if (highlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [highlighted]);
 
   const result: DoseResult | null = useMemo(() => {
     if (!hasPatient) return null;
@@ -174,14 +186,18 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
   }, [hasPatient, drug, weightKg, pmaWeeks, pnaDays]);
 
   return (
-    <div className={cn(
+    <div ref={cardRef} className={cn(
       "rounded-2xl border bg-card overflow-hidden transition-all duration-200",
       expanded && "shadow-md",
+      highlighted && "ring-2 ring-teal-400 ring-offset-2",
     )}>
       {/* Header */}
-      <button
-        className="w-full text-left p-4 flex items-start gap-3"
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full text-left p-4 flex items-start gap-3 cursor-pointer"
         onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded((v) => !v); } }}
       >
         <div className={cn("p-2 rounded-xl shrink-0 mt-0.5", style.bg)}>
           <FlaskConical className={cn("h-4 w-4", style.text)} />
@@ -200,10 +216,19 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
             {drug.indications.join(" · ")}
           </p>
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); togglePin({ type: "drug", system: "neodose", id: drug.id }); }}
+          className={cn(
+            "shrink-0 mt-0.5 p-1.5 rounded-lg transition-colors",
+            pinned ? "text-amber-500" : "text-muted-foreground/30 hover:text-muted-foreground",
+          )}
+        >
+          <Star className={cn("h-4 w-4", pinned && "fill-current")} />
+        </button>
         <div className="shrink-0 mt-1 text-muted-foreground/40">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
-      </button>
+      </div>
 
       {/* Calculated dose preview (collapsed) */}
       {!expanded && result && (
@@ -328,6 +353,8 @@ function DrugCard({ drug, weightKg, pmaWeeks, pnaDays }: {
 // ─── main page ───────────────────────────────────────────────────────────────
 
 export default function NicuDrugsPage() {
+  const routeQuery = useSearch();
+  const highlightDrugId = new URLSearchParams(routeQuery).get("drug");
   const [weight, setWeight] = useState("");
   const [pma, setPma] = useState("");
   const [pna, setPna] = useState("0");
@@ -482,6 +509,7 @@ export default function NicuDrugsPage() {
                         weightKg={weightKg}
                         pmaWeeks={pmaWeeks}
                         pnaDays={pnaDays}
+                        highlighted={drug.id === highlightDrugId}
                       />
                     ))}
                   </div>
@@ -495,6 +523,7 @@ export default function NicuDrugsPage() {
                   weightKg={weightKg}
                   pmaWeeks={pmaWeeks}
                   pnaDays={pnaDays}
+                  highlighted={drug.id === highlightDrugId}
                 />
               ))
             )}

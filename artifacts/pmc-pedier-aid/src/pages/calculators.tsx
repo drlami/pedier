@@ -1,4 +1,4 @@
-﻿import { useState, useMemo, useEffect } from "react";
+﻿import { useState, useMemo } from "react";
 import { Calculator, Search, ArrowRight, Pin, PinOff, X, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,44 +8,19 @@ import { cn } from "@/lib/utils";
 import {
   type CalcCategory, type CalcTool, CATEGORY_METADATA, categoryOrder, colorClasses, CALCULATORS,
 } from "@/lib/calculator-catalog";
-
-const PINNED_ITEMS_KEY = "pmc-pinned-items-v2";
-
-type PinnedItem =
-  | { type: "protocol"; id: string }
-  | { type: "calculator"; href: string };
+import { usePinnedItems } from "@/contexts/pinned-items-context";
 
 export default function CalculatorsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | CalcCategory>("all");
-  const [pinnedItems, setPinnedItems] = useState<PinnedItem[]>([]);
+  const { togglePin: togglePinItem, isPinned: isPinnedItem } = usePinnedItems();
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PINNED_ITEMS_KEY);
-      if (raw) setPinnedItems(JSON.parse(raw));
-    } catch {
-      setPinnedItems([]);
-    }
-  }, []);
-
-  const togglePin = (href: string) => {
-    const item: PinnedItem = { type: "calculator", href };
-    setPinnedItems((prev) => {
-      const isPinned = prev.some(p => p.type === "calculator" && p.href === href);
-      const next = isPinned
-        ? prev.filter(p => !(p.type === "calculator" && p.href === href))
-        : [item, ...prev];
-      localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const isPinned = (href: string) => pinnedItems.some(p => p.type === "calculator" && p.href === href);
+  const togglePin = (href: string) => togglePinItem({ type: "calculator", href });
+  const isPinned = (href: string) => isPinnedItem({ type: "calculator", href });
 
   const pinnedTools = useMemo(
-    () => CALCULATORS.filter(c => c.href && isPinned(c.href)),
-    [pinnedItems]
+    () => CALCULATORS.filter(c => c.href && isPinnedItem({ type: "calculator", href: c.href })),
+    [isPinnedItem]
   );
 
   const isSearching = searchQuery.trim().length > 0;

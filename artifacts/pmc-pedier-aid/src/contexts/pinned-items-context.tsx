@@ -9,9 +9,21 @@ import {
 
 const PINNED_ITEMS_KEY = "pmc-pinned-items-v2";
 
-export type PinnedItem = 
+export type PinnedItem =
   | { type: "protocol"; id: string }
-  | { type: "calculator"; href: string };
+  | { type: "calculator"; href: string }
+  | { type: "drug"; system: "neodose" | "pediadose"; id: string }
+  | { type: "lab"; id: string };
+
+function samePinnedItem(a: PinnedItem, b: PinnedItem): boolean {
+  if (a.type !== b.type) return false;
+  switch (a.type) {
+    case "protocol": return b.type === "protocol" && a.id === b.id;
+    case "calculator": return b.type === "calculator" && a.href === b.href;
+    case "drug": return b.type === "drug" && a.system === b.system && a.id === b.id;
+    case "lab": return b.type === "lab" && a.id === b.id;
+  }
+}
 
 interface PinnedItemsContextValue {
   pinnedItems: PinnedItem[];
@@ -46,34 +58,18 @@ export function PinnedItemsProvider({ children }: { children: ReactNode }) {
 
   const togglePin = useCallback((item: PinnedItem) => {
     setPinnedItems((prev) => {
-      const alreadyPinned = prev.some(p => {
-        if (p.type !== item.type) return false;
-        if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
-        if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
-        return false;
-      });
-      
-      const next = alreadyPinned 
-        ? prev.filter(p => {
-            if (p.type !== item.type) return true;
-            if (p.type === "protocol" && item.type === "protocol") return p.id !== item.id;
-            if (p.type === "calculator" && item.type === "calculator") return p.href !== item.href;
-            return true;
-          })
+      const alreadyPinned = prev.some(p => samePinnedItem(p, item));
+      const next = alreadyPinned
+        ? prev.filter(p => !samePinnedItem(p, item))
         : [item, ...prev];
-        
+
       localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(next));
       return next;
     });
   }, []);
 
   const isPinned = useCallback((item: PinnedItem) => {
-    return pinnedItems.some(p => {
-      if (p.type !== item.type) return false;
-      if (p.type === "protocol" && item.type === "protocol") return p.id === item.id;
-      if (p.type === "calculator" && item.type === "calculator") return p.href === item.href;
-      return false;
-    });
+    return pinnedItems.some(p => samePinnedItem(p, item));
   }, [pinnedItems]);
 
   return (

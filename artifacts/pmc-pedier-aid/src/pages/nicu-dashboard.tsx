@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
-import { PinnedWorkspace } from "@/components/pinned-workspace";
 import { CALCULATOR_SHORTCUTS } from "@/lib/clinical-dashboard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -166,7 +165,6 @@ export default function NICUDashboard() {
         </section>
       ) : (
         <>
-          <PinnedWorkspace />
           <section className="space-y-6">
             <SectionHeader title="Browse Protocols by System" icon={LayoutGrid} />
             {systems.length === 0 ? (

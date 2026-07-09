@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAllProtocols } from "@/contexts/protocols-context";
 import { usePinnedItems } from "@/contexts/pinned-items-context";
-import { PinnedWorkspace } from "@/components/pinned-workspace";
 import { cn } from "@/lib/utils";
 
 const WARD_SYSTEMS = [
@@ -186,8 +185,6 @@ export default function WardDashboard() {
         </section>
       ) : (
         <>
-          <PinnedWorkspace />
-
           {/* 2. SYSTEMS BROWSER */}
           <section className="space-y-6">
             <SectionHeader title="Browse Ward by System" icon={LayoutGrid} />

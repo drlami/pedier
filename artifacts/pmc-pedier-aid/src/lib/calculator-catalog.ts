@@ -1,7 +1,7 @@
 import {
   ShieldAlert, Baby, Wind, Zap, Heart, Syringe, Droplets, Flame, Apple, Pill, Ruler,
-  Brain, Stethoscope, Activity, Clock, Scissors, FlaskConical, Scale, Calendar,
-  TrendingUp, TrendingDown, Thermometer, HeartPulse, Dna,
+  Brain, Stethoscope, Activity, Scissors, FlaskConical, Scale, Calendar,
+  TrendingUp, TrendingDown, Thermometer, HeartPulse, Dna, Shield,
 } from "lucide-react";
 
 export type CalcCategory =
@@ -153,14 +153,6 @@ export const CALCULATORS: CalcTool[] = [
     category: "Neonatal", icon: Brain,
     href: "/calculators/thompson-hie",
     tags: ["hie", "encephalopathy", "cooling", "hypothermia", "neonatal", "seizure"]
-  },
-  {
-    id: "nrp-timer",
-    name: "NRP Timer & Log",
-    description: "Interactive delivery-room resuscitation timer with APGAR prompts and event log.",
-    category: "Neonatal", icon: Clock,
-    href: "/calculators/nrp-timer",
-    tags: ["neonatal", "resuscitation", "nrp", "delivery", "code"]
   },
   {
     id: "apgar",
@@ -361,12 +353,30 @@ export const CALCULATORS: CalcTool[] = [
     isNew: true
   },
   {
-    id: "febrile-neutropenia",
-    name: "Febrile Neutropenia Risk",
-    description: "MASCC/ESMO risk stratification for oncology patients with febrile neutropenia — guides outpatient vs. inpatient care.",
-    category: "Haematology", icon: Thermometer,
-    href: "/calculators/febrile-neutropenia",
-    tags: ["neutropenia", "fever", "oncology", "chemotherapy", "mascc", "infection"],
+    id: "anc",
+    name: "Absolute Neutrophil Count",
+    description: "ANC from WBC and differential, with neutropenia severity grading and infection risk.",
+    category: "Haematology", icon: Shield,
+    href: "/calculators/anc",
+    tags: ["anc", "neutropenia", "wbc", "differential", "infection risk"],
+    isNew: true
+  },
+  {
+    id: "reticulocyte",
+    name: "Reticulocyte Calculator",
+    description: "Absolute reticulocyte count, corrected retic %, and Reticulocyte Production Index for anaemia workup.",
+    category: "Haematology", icon: Droplets,
+    href: "/calculators/reticulocyte",
+    tags: ["reticulocyte", "retic", "rpi", "anaemia", "haemolysis", "marrow"],
+    isNew: true
+  },
+  {
+    id: "csf-correction",
+    name: "CSF Traumatic Tap Correction",
+    description: "Corrected CSF WBC and protein after a bloody (traumatic) lumbar puncture.",
+    category: "Haematology", icon: FlaskConical,
+    href: "/calculators/csf-correction",
+    tags: ["csf", "traumatic tap", "lumbar puncture", "meningitis", "corrected wbc", "corrected protein"],
     isNew: true
   },
   // ── Fluids & Nephrology ───────────────────────────────────────────────
@@ -534,15 +544,6 @@ export const CALCULATORS: CalcTool[] = [
     href: "/calculators/tapering-calculator",
     tags: ["taper", "weaning", "steroid", "prednisolone", "dexamethasone", "wean"]
   },
-  {
-    id: "antibiotic-stewardship",
-    name: "Antibiotic Stewardship Pathway",
-    description: "Syndrome-based antibiotic choice with de-escalation criteria and duration guidance.",
-    category: "Pharmacology", icon: Pill,
-    href: "/calculators/antibiotic-stewardship",
-    tags: ["antibiotic", "stewardship", "pathogen", "de-escalation", "duration", "antimicrobial"],
-    isNew: true
-  },
   // ── Clinical Reference ─────────────────────────────────────────────────
   {
     id: "bsa",
@@ -559,23 +560,6 @@ export const CALCULATORS: CalcTool[] = [
     category: "Reference", icon: Activity,
     href: "/calculators/gfr",
     tags: ["renal", "creatinine", "kidney", "gfr", "schwartz", "egfr"]
-  },
-  {
-    id: "child-pugh",
-    name: "Child-Pugh Score",
-    description: "Severity and surgical risk stratification for chronic liver disease.",
-    category: "Reference", icon: Stethoscope,
-    href: "/calculators/child-pugh",
-    tags: ["liver", "cirrhosis", "hepatic", "child-pugh", "hepatology"]
-  },
-  {
-    id: "vesikari",
-    name: "Vesikari Gastroenteritis Score",
-    description: "Severity scoring for acute gastroenteritis in children — guides admission and treatment intensity.",
-    category: "Reference", icon: Stethoscope,
-    href: "/calculators/vesikari",
-    tags: ["gastroenteritis", "diarrhoea", "vomiting", "severity", "vesikari", "dehydration"],
-    isNew: true
   },
   {
     id: "genetic-disease-screener",

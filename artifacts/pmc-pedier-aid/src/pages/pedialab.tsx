@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link } from "wouter";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Link, useSearch } from "wouter";
 import {
   ChevronDown,
   ChevronUp,
@@ -7,6 +7,7 @@ import {
   Info,
   ChevronLeft,
   FlaskConical,
+  Star,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ import {
   type LabTest,
   type FluidPanel,
 } from "@/lib/pedialab-database";
+import { usePinnedItems } from "@/contexts/pinned-items-context";
 
 // ─── category colours ────────────────────────────────────────────────────────
 
@@ -133,15 +135,25 @@ function PatientBar({
   );
 }
 
-function LabCard({ test, ageDays, hasAge, sex, unitMode }: {
+function LabCard({ test, ageDays, hasAge, sex, unitMode, highlighted }: {
   test: LabTest;
   ageDays: number;
   hasAge: boolean;
   sex: SexFilter;
   unitMode: UnitMode;
+  highlighted?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(!!highlighted);
+  const cardRef = useRef<HTMLDivElement>(null);
   const style = CATEGORY_STYLE[test.category];
+  const { togglePin, isPinned } = usePinnedItems();
+  const pinned = isPinned({ type: "lab", id: test.id });
+
+  useEffect(() => {
+    if (highlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [highlighted]);
 
   const activeRange = useMemo(() => {
     if (!hasAge) return null;
@@ -151,13 +163,17 @@ function LabCard({ test, ageDays, hasAge, sex, unitMode }: {
   const rangesToShow = expanded ? test.ranges : activeRange ? [activeRange] : [];
 
   return (
-    <div className={cn(
+    <div ref={cardRef} className={cn(
       "rounded-2xl border bg-card overflow-hidden transition-all duration-200",
       expanded && "shadow-md",
+      highlighted && "ring-2 ring-violet-400 ring-offset-2",
     )}>
-      <button
-        className="w-full text-left p-4 flex items-start gap-3"
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full text-left p-4 flex items-start gap-3 cursor-pointer"
         onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded((v) => !v); } }}
       >
         <div className={cn("p-2 rounded-xl shrink-0 mt-0.5", style.bg)}>
           <FlaskConical className={cn("h-4 w-4", style.text)} />
@@ -176,10 +192,19 @@ function LabCard({ test, ageDays, hasAge, sex, unitMode }: {
             <p className="text-xs text-amber-700 font-medium">No band in this table covers that age — tap to see all bands</p>
           )}
         </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); togglePin({ type: "lab", id: test.id }); }}
+          className={cn(
+            "shrink-0 mt-0.5 p-1.5 rounded-lg transition-colors",
+            pinned ? "text-amber-500" : "text-muted-foreground/30 hover:text-muted-foreground",
+          )}
+        >
+          <Star className={cn("h-4 w-4", pinned && "fill-current")} />
+        </button>
         <div className="shrink-0 mt-1 text-muted-foreground/40">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
-      </button>
+      </div>
 
       {rangesToShow.length > 0 && (
         <div className="px-4 pb-4 space-y-1.5">
@@ -389,6 +414,8 @@ function FluidPanelCard({ panel }: { panel: FluidPanel }) {
 type MainTab = "chemistry" | "fluids";
 
 export default function PediaLabPage() {
+  const routeQuery = useSearch();
+  const highlightTestId = new URLSearchParams(routeQuery).get("test");
   const [mainTab, setMainTab] = useState<MainTab>("chemistry");
   const [ageValue, setAgeValue] = useState("");
   const [ageUnit, setAgeUnit] = useState<AgeUnit>("years");
@@ -548,7 +575,7 @@ export default function PediaLabPage() {
               </div>
             ) : (
               filteredTests.map((test) => (
-                <LabCard key={test.id} test={test} ageDays={ageDays} hasAge={hasAge} sex={sex} unitMode={unitMode} />
+                <LabCard key={test.id} test={test} ageDays={ageDays} hasAge={hasAge} sex={sex} unitMode={unitMode} highlighted={test.id === highlightTestId} />
               ))
             )}
 
