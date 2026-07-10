@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { DiseaseProtocol, FormData, ErHistoryItem, Severity } from '@/lib/protocols/types';
+import { DiseaseProtocol, FormData, ErHistoryItem, Severity, SeverityBand } from '@/lib/protocols/types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'assess',  label: 'Assess',  icon: Activity },
   { id: 'manage',  label: 'Manage',  icon: Stethoscope },
   { id: 'labs',    label: 'Labs',    icon: FlaskConical },
-  { id: 'dispose', label: 'Dispose', icon: LogOut },
+  { id: 'dispose', label: 'Admit/Discharge', icon: LogOut },
 ];
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -131,6 +131,334 @@ function QuestionCard({ q, val, onSelect }: {
   return null;
 }
 
+// Gate-mode severity card — shows which decision-tree criteria fired, grouped
+// by the tier they trigger, instead of a summed "X/Y" score. Used when a
+// protocol's calculateSeverity returns gateFindings (see types.ts).
+const GATE_TIER_ORDER = ['critical', 'severe', 'moderate', 'some', 'mild', 'low', 'no'] as const;
+
+function GateCard({ severity, ss, actionHint }: {
+  severity: Severity;
+  ss: { bg: string; text: string; badge: string };
+  actionHint: string;
+}) {
+  const findings = severity.gateFindings ?? [];
+  const groups = GATE_TIER_ORDER
+    .map(tier => ({ tier, items: findings.filter(f => f.tier === tier) }))
+    .filter(g => g.items.length > 0);
+
+  const overrides = severity.admitOverrides ?? [];
+  const overrideMet = overrides.filter(o => o.met);
+
+  return (
+    <div className="space-y-3">
+      {/* Severity classification card */}
+      <div className={cn('rounded-2xl border-2 p-4 space-y-3', ss.bg)}>
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+          Severity Classification
+        </span>
+
+        <div>
+          <div className={cn('text-lg font-black leading-tight', ss.text)}>
+            {severity.level.toUpperCase()}
+          </div>
+          <div className={cn('text-xs font-medium mt-1 leading-snug opacity-80', ss.text)}>
+            {actionHint}
+          </div>
+        </div>
+
+        <div className="space-y-3 border-t border-black/10 pt-3">
+          {groups.map(g => (
+            <div key={g.tier} className="space-y-1">
+              <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
+                {g.tier} — any one of these
+              </div>
+              {g.items.map(f => (
+                <div
+                  key={f.id}
+                  className={cn('flex items-center gap-2 text-xs leading-snug rounded-lg px-1.5 py-1', f.met ? 'font-bold' : 'opacity-45')}
+                >
+                  <span className={cn(
+                    'shrink-0 h-4 w-4 rounded-full flex items-center justify-center',
+                    f.met ? cn(ss.badge, 'text-white') : 'bg-black/10',
+                  )}>
+                    {f.met && <Check className="h-2.5 w-2.5" />}
+                  </span>
+                  <span className={ss.text}>{f.label}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Admit-override layer — mandatory admission independent of severity */}
+      {overrides.length > 0 && (
+        <div className={cn(
+          'rounded-2xl border-2 p-4 space-y-2',
+          overrideMet.length > 0 ? 'bg-red-50 border-red-300' : 'bg-muted/30 border-border',
+        )}>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              'text-[10px] font-black uppercase tracking-widest',
+              overrideMet.length > 0 ? 'text-red-700' : 'text-muted-foreground/60',
+            )}>
+              Admit Regardless of Severity — any one
+            </span>
+          </div>
+          {overrideMet.length > 0 && (
+            <div className="flex items-center gap-2 text-xs font-black text-red-700">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              ADMIT — {overrideMet.length} mandatory-admission factor{overrideMet.length > 1 ? 's' : ''} present, even though pneumonia severity is {severity.level.toUpperCase()}
+            </div>
+          )}
+          <div className="space-y-1 pt-0.5">
+            {overrides.map(o => (
+              <div
+                key={o.id}
+                className={cn('flex items-center gap-2 text-xs leading-snug rounded-lg px-1.5 py-1', o.met ? 'font-bold text-red-800' : 'opacity-45')}
+              >
+                <span className={cn(
+                  'shrink-0 h-4 w-4 rounded-full flex items-center justify-center',
+                  o.met ? 'bg-red-500 text-white' : 'bg-black/10',
+                )}>
+                  {o.met && <Check className="h-2.5 w-2.5" />}
+                </span>
+                <span>{o.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── REFERENCE-MODE ASSESS (classify-by-table, tap-to-route) ─────────────────
+// Used when protocol.erData.severityClassification is present. The clinician
+// READS the severity table and taps the band — no input→score computation.
+
+const BAND_META: Record<SeverityBand, { label: string; head: string; col: string; sel: string; text: string }> = {
+  mild:     { label: 'Mild',     head: 'bg-emerald-500', col: 'bg-emerald-50',  sel: 'border-emerald-400 ring-2 ring-emerald-400', text: 'text-emerald-800' },
+  moderate: { label: 'Moderate', head: 'bg-amber-500',   col: 'bg-amber-50',    sel: 'border-amber-400 ring-2 ring-amber-400',     text: 'text-amber-800' },
+  severe:   { label: 'Severe',   head: 'bg-red-500',     col: 'bg-red-50',      sel: 'border-red-400 ring-2 ring-red-400',         text: 'text-red-800' },
+};
+const BANDS: SeverityBand[] = ['mild', 'moderate', 'severe'];
+
+function ReferenceAssess({ protocol, formData, setFormData, severity }: {
+  protocol: DiseaseProtocol;
+  formData: FormData;
+  setFormData: (d: FormData) => void;
+  severity: Severity;
+}) {
+  const cls = protocol.erData!.severityClassification!;
+  const band = formData.manualSeverity as SeverityBand | undefined;
+  const setBand = (b: SeverityBand) => setFormData({ ...formData, manualSeverity: b });
+
+  const overrides = severity.admitOverrides ?? [];
+  const overrideMet = overrides.filter(o => o.met);
+  const metById = (id: string) => overrides.find(o => o.id === id)?.met ?? false;
+
+  const history = protocol.erData?.historyChecklist ?? [];
+  const immunizedQ = protocol.questions.find(q => q.id === 'immunized');
+
+  return (
+    <div className="space-y-4">
+      <div className="text-xs text-muted-foreground font-medium px-1">
+        Read the table, match the child by their <span className="font-black">worst feature</span>, and tap the band.
+      </div>
+
+      {/* ── Severity classification table ── */}
+      <div className="rounded-2xl border-2 overflow-hidden">
+        <div className="grid grid-cols-[1.15fr_1fr_1fr_1fr]">
+          {/* header row */}
+          <div className="bg-muted/40 p-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground/70 flex items-end">Feature</div>
+          {BANDS.map(b => (
+            <button
+              key={b}
+              onClick={() => setBand(b)}
+              className={cn(
+                'p-2 text-xs font-black text-white text-center transition-all active:scale-95',
+                BAND_META[b].head,
+                band === b ? 'ring-2 ring-offset-1 ring-black/40' : 'opacity-80 hover:opacity-100',
+              )}
+            >
+              {BAND_META[b].label}
+              {band === b && <Check className="h-3 w-3 inline-block ml-1 -mt-0.5" />}
+            </button>
+          ))}
+          {/* data rows */}
+          {cls.rows.map((row, ri) => (
+            <div key={row.feature} className="contents">
+              <div className={cn('p-2 text-[11px] font-bold leading-snug border-t', ri === 0 && 'border-t-0')}>{row.feature}</div>
+              {BANDS.map(b => (
+                <div
+                  key={b}
+                  onClick={() => setBand(b)}
+                  className={cn(
+                    'p-2 text-[11px] leading-snug border-t cursor-pointer',
+                    ri === 0 && 'border-t-0',
+                    band === b ? cn(BAND_META[b].col, 'font-bold', BAND_META[b].text) : 'text-muted-foreground',
+                  )}
+                >
+                  {row[b]}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[11px] text-muted-foreground px-1 leading-snug">
+        Classify by the <span className="font-black">single worst feature</span> — any one Severe-column feature = severe pneumonia.
+      </p>
+
+      {/* ── Selected band → action ──
+          CRITICAL: this must show the REAL computed disposition
+          (protocol.getDisposition), never a static per-band text lookup.
+          A static lookup can't know about admit-overrides, which produced a
+          real bug: tapping "Mild" on a genuinely-mandatory-admit patient (e.g.
+          age < 6 months) showed "discharge" here while the override checklist
+          below said "ADMIT" — two contradictory answers to the same question
+          on the same screen. getDisposition() is the one place that already
+          combines severity + overrides correctly; everything else must defer
+          to it instead of re-deriving the answer. */}
+      {band ? (() => {
+        const disposition = protocol.getDisposition(severity, formData);
+        const overrideFired = (severity.admitOverrides ?? []).some(o => o.met);
+        const contradicted = overrideFired && band !== 'severe';
+        const col  = contradicted ? 'bg-red-50'  : BAND_META[band].col;
+        const sel  = contradicted ? 'border-red-400 ring-2 ring-red-400' : BAND_META[band].sel;
+        const text = contradicted ? 'text-red-800' : BAND_META[band].text;
+        return (
+          <div className={cn('rounded-2xl border-2 p-4', col, sel)}>
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">Your assessment</div>
+            <div className={cn('text-lg font-black mt-0.5', text)}>
+              {BAND_META[band].label} pneumonia{contradicted ? ' — but ADMIT (override below)' : ''}
+            </div>
+            <div className={cn('text-sm font-bold mt-1 leading-snug space-y-1', text)}>
+              {disposition.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+            <div className="text-[11px] text-muted-foreground font-medium mt-2">→ Open the <span className="font-black">Manage</span> tab for the matching pathway.</div>
+          </div>
+        );
+      })() : (
+        <div className="rounded-2xl border-2 border-dashed p-4 text-center text-xs font-bold text-muted-foreground">
+          Tap a band above to set the severity and route management.
+        </div>
+      )}
+
+      {/* ── Admit-override checklist ── */}
+      <div className="space-y-2">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">
+          Admit regardless of severity — tick any that apply
+        </div>
+        {overrideMet.length > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-300 rounded-2xl">
+            <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+            <span className="text-xs font-black text-red-700">
+              ADMIT — {overrideMet.length} mandatory-admission factor{overrideMet.length > 1 ? 's' : ''} present{band && band !== 'severe' ? `, despite ${BAND_META[band].label.toLowerCase()} severity` : ''}
+            </span>
+          </div>
+        )}
+        {cls.admitOverrides.map(o => {
+          const auto = o.autoAgeMonthsBelow != null;
+          const met = metById(o.id);
+          return (
+            <button
+              key={o.id}
+              disabled={auto}
+              onClick={() => { if (!auto) setFormData({ ...formData, [o.id]: !(formData[o.id] === true) }); }}
+              className={cn(
+                'w-full text-left flex items-center gap-3 p-3 rounded-2xl border-2 transition-all',
+                met ? 'bg-red-50 border-red-300' : 'bg-card border-transparent',
+                auto ? 'cursor-default' : 'active:scale-[0.99]',
+              )}
+            >
+              <span className={cn(
+                'shrink-0 h-5 w-5 rounded border-2 flex items-center justify-center',
+                met ? 'bg-red-500 border-red-500' : 'border-muted-foreground/40',
+              )}>
+                {met && <Check className="h-3 w-3 text-white" />}
+              </span>
+              <span className={cn('text-sm font-bold leading-snug', met && 'text-red-800')}>
+                {o.label}
+                {auto && <span className="text-[10px] font-medium text-muted-foreground ml-1">(auto — from age)</span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Antibiotic-selection input ── */}
+      {immunizedQ && (
+        <div className="space-y-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">For inpatient antibiotic choice</div>
+          <QuestionCard q={immunizedQ} val={formData[immunizedQ.id]} onSelect={v => setFormData({ ...formData, [immunizedQ.id]: v })} />
+        </div>
+      )}
+
+      {/* ── Clinical context flags (change management, not disposition) ── */}
+      {history.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Clinical context — changes management</div>
+          {history.map(item => {
+            const ans = formData[item.id] as boolean | undefined;
+            return (
+              <div key={item.id} className={cn(
+                'rounded-2xl border-2 p-3 transition-all',
+                ans === true ? (item.redFlag ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-200') : 'bg-card border-transparent',
+              )}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {item.redFlag && <span className="text-[10px] font-black text-red-600 bg-red-100 px-1.5 py-0.5 rounded-md shrink-0">⚠ RED FLAG</span>}
+                      <span className="text-sm font-bold text-foreground">{item.question}</span>
+                    </div>
+                    {ans === true && item.ifYes && (
+                      <div className={cn('mt-2 text-xs font-bold px-3 py-1.5 rounded-xl leading-snug', item.redFlag ? 'bg-red-100 text-red-800' : 'bg-amber-50 text-amber-800')}>
+                        → {item.ifYes}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    {(['Yes', 'No'] as const).map(opt => (
+                      <button
+                        key={opt}
+                        onClick={() => setFormData({ ...formData, [item.id]: opt === 'Yes' })}
+                        className={cn(
+                          'px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all',
+                          ans !== undefined && String(ans) === String(opt === 'Yes')
+                            ? opt === 'Yes' ? (item.redFlag ? 'bg-red-500 text-white border-red-500' : 'bg-amber-500 text-white border-amber-500') : 'bg-emerald-500 text-white border-emerald-500'
+                            : 'bg-muted border-transparent text-muted-foreground',
+                        )}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Reset */}
+      {(band || overrideMet.length > 0 || Object.keys(formData).some(k => k.startsWith('ovr_'))) && (
+        <button
+          onClick={() => {
+            const cleared: FormData = { weight: formData.weight, ageMonths: formData.ageMonths, oxygenSaturation: formData.oxygenSaturation, heartRate: formData.heartRate, respiratoryRate: formData.respiratoryRate };
+            setFormData(cleared);
+          }}
+          className="text-xs text-muted-foreground underline w-full text-center"
+        >
+          Reset assessment
+        </button>
+      )}
+    </div>
+  );
+}
+
 function AssessTab({ protocol, formData, setFormData, weight }: {
   protocol: DiseaseProtocol;
   formData: FormData;
@@ -138,6 +466,11 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
   weight: number;
 }) {
   const severity = useMemo(() => protocol.calculateSeverity(formData), [formData, protocol]);
+
+  // Reference mode: classify-by-table instead of the scored/gate assessment.
+  if (protocol.erData?.severityClassification) {
+    return <ReferenceAssess protocol={protocol} formData={formData} setFormData={setFormData} severity={severity} />;
+  }
 
   // Split questions into suspicion group vs severity group
   const allQ = protocol.questions.filter(q => q.id !== 'weight');
@@ -250,6 +583,13 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
         const actionHint = actionHintMap[severity.level] ?? '';
         const factors = severity.details; // show ALL details — details[0] may carry critical emergency-specific action text
 
+        // Gate-mode protocols (criteria/decision-tree guidelines) report *why* a
+        // tier fired via gateFindings instead of a summed score — render the
+        // transparent criteria checklist instead of faking a numeric score card.
+        if (severity.gateFindings && severity.gateFindings.length > 0) {
+          return <GateCard severity={severity} ss={ss} actionHint={actionHint} />;
+        }
+
         return (
           <div className={cn('rounded-2xl border-2 p-4 space-y-3', ss.bg)}>
             {/* Row 1: label + answered count */}
@@ -268,7 +608,7 @@ function AssessTab({ protocol, formData, setFormData, weight }: {
                 <div className="text-5xl font-black">
                   {severity.scoreDetails?.totalScore ?? '—'}
                 </div>
-                {severity.scoreDetails && (
+                {severity.scoreDetails?.maxScore != null && (
                   <div className="text-xs font-bold opacity-50">/{severity.scoreDetails.maxScore}</div>
                 )}
               </div>
@@ -959,6 +1299,7 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
   const [weightStr, setWeightStr] = useState('');
   const [spo2Str, setSpo2Str] = useState('');
   const [hrStr, setHrStr] = useState('');
+  const [rrStr, setRrStr] = useState('');
   const [formData, setFormData] = useState<FormData>({});
 
   const ageMonths = useMemo(() => {
@@ -970,9 +1311,11 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
   const weight = parseFloat(weightStr) || 0;
   const spo2 = parseFloat(spo2Str) || 0;
   const hr = parseFloat(hrStr) || 0;
+  const rr = parseFloat(rrStr) || 0;
   const normals: VitalsNormals = useMemo(() => getVitalsNormals(ageMonths), [ageMonths]);
 
-  // Sync weight and age into formData so protocols can use them
+  // Sync weight, age, and vitals into formData so protocols can use them —
+  // this is the shared pipe every protocol's calculateSeverity reads from.
   useEffect(() => {
     if (weight > 0) setFormData(prev => ({ ...prev, weight }));
   }, [weight]);
@@ -980,6 +1323,18 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
   useEffect(() => {
     setFormData(prev => ({ ...prev, ageMonths: ageMonths > 0 ? ageMonths : undefined }));
   }, [ageMonths]);
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, oxygenSaturation: spo2 > 0 ? spo2 : undefined }));
+  }, [spo2]);
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, heartRate: hr > 0 ? hr : undefined }));
+  }, [hr]);
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, respiratoryRate: rr > 0 ? rr : undefined }));
+  }, [rr]);
 
   const severity = useMemo(() => protocol.calculateSeverity(formData), [formData, protocol]);
 
@@ -991,6 +1346,13 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
     unknown: 'bg-muted-foreground',
   };
   const severityBadgeColor = severityBadgeColors[severity.level] ?? 'bg-muted-foreground';
+
+  // Reference-mode protocols (severity read off a table, tapped by the
+  // clinician) don't compute anything from raw SpO2/HR/RR — showing them
+  // here is not just dead weight, it actively risks confusion, since the
+  // vitals bar colour-codes against generic age-normals which can disagree
+  // with the protocol's own severity-table bands for the same number.
+  const isReferenceMode = !!protocol.erData?.severityClassification;
 
   return (
     <div className="max-w-2xl mx-auto space-y-0 pb-24">
@@ -1026,18 +1388,28 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
             label="Weight" unit="kg" placeholder="e.g. 18"
             value={weightStr} onChange={setWeightStr}
           />
-          <VitalInput
-            label="SpO₂" unit="%" placeholder="e.g. 94"
-            value={spo2Str} onChange={setSpo2Str}
-            status={spo2 > 0 ? spo2Status(spo2) : undefined}
-            note={spo2 > 0 ? statusLabel(spo2Status(spo2), 'spo2', spo2, normals) : undefined}
-          />
-          <VitalInput
-            label="HR" unit="bpm" placeholder="e.g. 130"
-            value={hrStr} onChange={setHrStr}
-            status={hr > 0 && ageMonths > 0 ? hrStatus(hr, normals) : undefined}
-            note={hr > 0 && ageMonths > 0 ? statusLabel(hrStatus(hr, normals), 'hr', hr, normals) : undefined}
-          />
+          {!isReferenceMode && (
+            <>
+              <VitalInput
+                label="SpO₂" unit="%" placeholder="e.g. 94"
+                value={spo2Str} onChange={setSpo2Str}
+                status={spo2 > 0 ? spo2Status(spo2) : undefined}
+                note={spo2 > 0 ? statusLabel(spo2Status(spo2), 'spo2', spo2, normals) : undefined}
+              />
+              <VitalInput
+                label="HR" unit="bpm" placeholder="e.g. 130"
+                value={hrStr} onChange={setHrStr}
+                status={hr > 0 && ageMonths > 0 ? hrStatus(hr, normals) : undefined}
+                note={hr > 0 && ageMonths > 0 ? statusLabel(hrStatus(hr, normals), 'hr', hr, normals) : undefined}
+              />
+              <VitalInput
+                label="RR" unit="/min" placeholder="e.g. 45"
+                value={rrStr} onChange={setRrStr}
+                status={rr > 0 && ageMonths > 0 ? rrStatus(rr, normals) : undefined}
+                note={rr > 0 && ageMonths > 0 ? statusLabel(rrStatus(rr, normals), 'rr', rr, normals) : undefined}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -1047,17 +1419,18 @@ export function ErProtocolView({ protocol }: { protocol: DiseaseProtocol }) {
           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground shrink-0">
             Patient {ageMonths > 0 ? `· ${normals.ageLabel}` : ''}
           </span>
-          {(weight > 0 || spo2 > 0 || hr > 0) && (
+          {(weight > 0 || (!isReferenceMode && (spo2 > 0 || hr > 0 || rr > 0))) && (
             <span className="text-[10px] font-bold text-muted-foreground truncate">
               {weight > 0 ? `${weight}kg` : ''}
-              {spo2 > 0 ? ` · SpO₂ ${spo2}%` : ''}
-              {hr > 0 ? ` · HR ${hr}` : ''}
+              {!isReferenceMode && spo2 > 0 ? ` · SpO₂ ${spo2}%` : ''}
+              {!isReferenceMode && hr > 0 ? ` · HR ${hr}` : ''}
+              {!isReferenceMode && rr > 0 ? ` · RR ${rr}` : ''}
             </span>
           )}
           {severity.level !== 'unknown' && (
             <span className={cn('text-[10px] font-black text-white px-2 py-0.5 rounded-md shrink-0', severityBadgeColor)}>
               {severity.scoreDetails?.interpretation ?? severity.level.toUpperCase()}
-              {severity.scoreDetails ? ` (${severity.scoreDetails.totalScore}/${severity.scoreDetails.maxScore})` : ''}
+              {severity.scoreDetails?.maxScore != null ? ` (${severity.scoreDetails.totalScore}/${severity.scoreDetails.maxScore})` : ''}
             </span>
           )}
         </div>

@@ -309,11 +309,20 @@ export const CALCULATORS: CalcTool[] = [
   },
   {
     id: "developmental-screener",
-    name: "Developmental Red Flag Screener",
-    description: "Age-stratified milestone checklist with red flags for referral across 4 developmental domains.",
+    name: "Developmental Milestone Screener",
+    description: "CDC 2022 milestone checklist (12 checkpoints, 2mo-5y) with corrected age for preterm infants, domain-level delay detection, and referral guidance.",
     category: "Neurology", icon: Brain,
     href: "/calculators/developmental-screener",
-    tags: ["development", "milestone", "delay", "referral", "autism", "speech"],
+    tags: ["development", "milestone", "delay", "referral", "autism", "speech", "m-chat", "corrected age"],
+    isNew: true
+  },
+  {
+    id: "csf-correction",
+    name: "CSF Traumatic Tap Correction",
+    description: "Corrected CSF WBC and protein after a bloody (traumatic) lumbar puncture.",
+    category: "Neurology", icon: Brain,
+    href: "/calculators/csf-correction",
+    tags: ["csf", "traumatic tap", "lumbar puncture", "meningitis", "corrected wbc", "corrected protein"],
     isNew: true
   },
   // ── Cardiology & ECG ──────────────────────────────────────────────────
@@ -368,15 +377,6 @@ export const CALCULATORS: CalcTool[] = [
     category: "Haematology", icon: Droplets,
     href: "/calculators/reticulocyte",
     tags: ["reticulocyte", "retic", "rpi", "anaemia", "haemolysis", "marrow"],
-    isNew: true
-  },
-  {
-    id: "csf-correction",
-    name: "CSF Traumatic Tap Correction",
-    description: "Corrected CSF WBC and protein after a bloody (traumatic) lumbar puncture.",
-    category: "Haematology", icon: FlaskConical,
-    href: "/calculators/csf-correction",
-    tags: ["csf", "traumatic tap", "lumbar puncture", "meningitis", "corrected wbc", "corrected protein"],
     isNew: true
   },
   // ── Fluids & Nephrology ───────────────────────────────────────────────

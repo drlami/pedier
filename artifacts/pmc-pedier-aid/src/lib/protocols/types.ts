@@ -27,10 +27,41 @@ export interface StandardizedScore {
   referenceTable?: { range: string; meaning: string }[];
 }
 
+/**
+ * A single gating criterion for "Gate mode" protocols — guidelines that are
+ * written as a decision tree (ANY of these → tier X) rather than a summed,
+ * validated instrument. `met` is evaluated by the protocol's calculateSeverity
+ * against the current form data / vitals; `source` distinguishes criteria
+ * derived automatically from entered vitals (SpO2, RR) from ones the clinician
+ * answers directly, purely for UI labelling.
+ */
+export interface GateFinding {
+  id: string;
+  label: string;
+  met: boolean;
+  tier: SeverityLevel;
+  source: 'vital' | 'manual';
+}
+
+/**
+ * A mandatory-admission factor that is INDEPENDENT of clinical severity — e.g.
+ * age < 6 months, immunocompromise, complicated pneumonia, social factors. A
+ * child with mild pneumonia but a met admit-override still requires admission.
+ * Kept separate from GateFinding so severity ("how sick") and disposition
+ * ("must this child be admitted") are never conflated.
+ */
+export interface AdmitOverride {
+  id: string;
+  label: string;
+  met: boolean;
+}
+
 export interface Severity {
   level: SeverityLevel;
   score?: number;
   scoreDetails?: StandardizedScore;
+  gateFindings?: GateFinding[];
+  admitOverrides?: AdmitOverride[];
   details: string[];
   diagnosticConfidence?: 'high' | 'moderate' | 'low';
   alternativeProtocol?: { id: string; name: string };
@@ -141,6 +172,37 @@ export interface ErTimerStep {
   action: string;
 }
 
+// ─── Reference-mode severity (classify-by-table, tap-to-route) ─────────────────
+// The clinician READS a severity table and picks the band; the app routes to the
+// matching management. No input→score computation decides severity — this removes
+// the false-precision / automation-bias failure mode of the interactive scorer.
+
+export type SeverityBand = 'mild' | 'moderate' | 'severe';
+
+export interface ClassificationRow {
+  feature: string;                                  // row label, e.g. "Work of breathing"
+  mild: string;
+  moderate: string;
+  severe: string;
+}
+
+export interface AdmitOverrideItem {
+  id: string;                                       // formData key it writes to
+  label: string;
+  autoAgeMonthsBelow?: number;                      // if set, auto-met when ageMonths < this (no manual toggle)
+}
+
+export interface SeverityClassification {
+  rows: ClassificationRow[];
+  // No per-band "action" text field here on purpose — the "what happens now"
+  // summary is ALWAYS computed live by DiseaseProtocol.getDisposition(), never
+  // a static per-band lookup. A static field previously existed here and
+  // caused a real bug: it couldn't know about admit-overrides, so it showed
+  // "discharge" for a band the override checklist simultaneously said "ADMIT"
+  // for. Do not re-add a static disposition string to this interface.
+  admitOverrides: AdmitOverrideItem[];              // mandatory-admission facts, independent of severity
+}
+
 export interface ErData {
   historyChecklist: ErHistoryItem[];
   investigations: ErInvestigation[];
@@ -148,6 +210,7 @@ export interface ErData {
   highRiskFactors?: string[];           // Lower threshold — admit if incomplete response or borderline
   dischargeCriteria: string[];
   safetyNetting: string[];
+  severityClassification?: SeverityClassification;  // present → renderer uses reference mode
   timer?: {
     label: string;
     steps: ErTimerStep[];
