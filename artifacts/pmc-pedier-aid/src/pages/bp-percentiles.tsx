@@ -36,13 +36,17 @@ function TermSection() {
 
   const result = useMemo(() => {
     if (!isValid || !reference) return null;
-    const { systolic90, systolic95, diastolic90, diastolic95 } = reference;
+    const { systolic90, systolic95, diastolic90, diastolic95, systolicHypotension } = reference;
     let status = "Normal";
     let color  = "text-green-600";
     let bg     = "bg-green-50";
-    let severity: "normal" | "elevated" | "stage1" | "stage2" = "normal";
+    let severity: "hypotensive" | "normal" | "elevated" | "stage1" | "stage2" = "normal";
 
-    if (ageNum >= 13) {
+    if (sNum < systolicHypotension) {
+      // PALS/APLS lower-limit-of-normal SBP rule — takes priority over the
+      // upper-threshold bands below since a low SBP indicates possible shock.
+      status = "Hypotension"; color = "text-red-800"; bg = "bg-red-100"; severity = "hypotensive";
+    } else if (ageNum >= 13) {
       // AAP 2017: adult ACC/AHA thresholds for adolescents ≥ 13
       if (sNum >= 140 || dNum >= 90) {
         status = "Stage 2 Hypertension"; color = "text-red-700"; bg = "bg-red-50"; severity = "stage2";
@@ -61,7 +65,7 @@ function TermSection() {
         status = "Elevated Blood Pressure"; color = "text-yellow-600"; bg = "bg-yellow-50"; severity = "elevated";
       }
     }
-    return { status, color, bg, severity, systolic95, diastolic95 };
+    return { status, color, bg, severity, systolic95, diastolic95, systolicHypotension };
   }, [ageNum, sex, sNum, dNum, isValid, reference]);
 
   return (
@@ -137,7 +141,9 @@ function TermSection() {
                 <ShieldAlert className="h-5 w-5" />
                 <AlertTitle className="font-black uppercase tracking-widest text-xs">Clinical Action Required</AlertTitle>
                 <AlertDescription className="text-xs font-medium opacity-90 leading-relaxed">
-                  {result.severity === "stage2"
+                  {result.severity === "hypotensive"
+                    ? "Possible shock — assess perfusion (cap refill, HR, mental status). IV/IO access, consider 10–20 mL/kg isotonic fluid bolus. Urgent senior review. Investigate: sepsis, hemorrhage, cardiac, anaphylaxis."
+                    : result.severity === "stage2"
                     ? "Urgent evaluation and initiation of therapy required. Assess for target organ damage."
                     : result.severity === "stage1"
                     ? "Lifestyle modifications recommended. Repeat BP measurement in 1-2 weeks."
@@ -175,6 +181,10 @@ function TermSection() {
                 {ageNum >= 13 ? (
                   // Adult/adolescent fixed thresholds (AAP 2017 + ACC/AHA 2017)
                   <tbody className="divide-y divide-rose-50">
+                    <tr className="bg-red-100/50">
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-700 flex-shrink-0" /><span className="font-semibold text-red-800">Hypotension</span><span className="text-muted-foreground">(SBP)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-red-800 pr-2" colSpan={2}>SBP &lt; {reference.systolicHypotension}</td>
+                    </tr>
                     <tr>
                       <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span></span></td>
                       <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;120</td>
@@ -199,6 +209,10 @@ function TermSection() {
                 ) : (
                   // Ages 1–12: percentile-based categories
                   <tbody className="divide-y divide-rose-50">
+                    <tr className="bg-red-100/50">
+                      <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-700 flex-shrink-0" /><span className="font-semibold text-red-800">Hypotension</span><span className="text-muted-foreground">(SBP)</span></span></td>
+                      <td className="py-2 text-center font-mono font-bold text-red-800 pr-2" colSpan={2}>SBP &lt; {reference.systolicHypotension}</td>
+                    </tr>
                     <tr>
                       <td className="py-2 pr-3"><span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" /><span className="font-semibold text-green-700">Normal</span><span className="text-muted-foreground">(&lt;90th)</span></span></td>
                       <td className="py-2 text-center font-mono font-bold text-green-700 pr-2">&lt;{reference.systolic90}</td>
@@ -238,7 +252,7 @@ function TermSection() {
           </div>
         )}
 
-        {isAgeValid && (
+        {isAgeValid && reference && (
           <Card className="bg-muted/30 border-dashed">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 mb-3 text-rose-700 font-black text-[10px] uppercase tracking-widest">
@@ -246,18 +260,21 @@ function TermSection() {
               </div>
               {ageNum >= 13 ? (
                 <div className="space-y-2 text-[11px] leading-relaxed">
+                  <p>• <strong>Hypotension:</strong> SBP &lt; {reference.systolicHypotension} — possible shock.</p>
                   <p>• <strong>Normal:</strong> SBP &lt; 120 AND DBP &lt; 80.</p>
                   <p>• <strong>Elevated:</strong> SBP 120–129 AND DBP &lt; 80.</p>
                   <p>• <strong>Stage 1 HTN:</strong> SBP ≥ 130 OR DBP ≥ 80.</p>
                   <p>• <strong>Stage 2 HTN:</strong> SBP ≥ 140 OR DBP ≥ 90.</p>
-                  <p className="text-muted-foreground mt-1">Per AAP 2017 — adolescents ≥ 13 use adult ACC/AHA criteria.</p>
+                  <p className="text-muted-foreground mt-1">Per AAP 2017 — adolescents ≥ 13 use adult ACC/AHA criteria. Hypotension threshold is the PALS/APLS lower-limit-of-normal SBP rule (&gt;10 yrs: &lt;90) — a bedside approximation, not a percentile. Validated population data can run 5–10 mmHg higher; treat any borderline low reading as clinically significant.</p>
                 </div>
               ) : (
                 <div className="space-y-2 text-[11px] leading-relaxed">
+                  <p>• <strong>Hypotension:</strong> SBP &lt; {reference.systolicHypotension} — possible shock.</p>
                   <p>• <strong>Normal:</strong> &lt; 90th percentile.</p>
                   <p>• <strong>Elevated:</strong> 90th to &lt; 95th percentile.</p>
                   <p>• <strong>Stage 1 HTN:</strong> 95th to &lt; 95th + 12 mmHg.</p>
                   <p>• <strong>Stage 2 HTN:</strong> ≥ 95th + 12 mmHg OR ≥ 140/90.</p>
+                  <p className="text-muted-foreground mt-1">Hypotension threshold is the PALS/APLS lower-limit-of-normal SBP rule (1–10 yrs: 70 + 2×age) — a bedside approximation, not a percentile. Validated population data can run 5–10 mmHg higher; treat any borderline low reading as clinically significant.</p>
                 </div>
               )}
             </CardContent>

@@ -81,6 +81,8 @@ import UPCRPage from "@/pages/upcr";
 import ANCCalculatorPage from "@/pages/anc-calculator";
 import ReticulocyteCalculatorPage from "@/pages/reticulocyte-calculator";
 import CSFCorrectionPage from "@/pages/csf-correction";
+import MentzerIndexPage from "@/pages/mentzer-index";
+import SedationSelectorPage from "@/pages/sedation-selector";
 import NeonatalPolycythemiaPage from "@/pages/neonatal-polycythemia";
 import PhoenixSepsisPage from "@/pages/phoenix-sepsis";
 import PecarnHeadPage from "@/pages/pecarn-head";
@@ -266,6 +268,8 @@ function Router() {
       <Route path="/calculators/anc" component={() => <ProtectedRoute component={ANCCalculatorPage} />} />
       <Route path="/calculators/reticulocyte" component={() => <ProtectedRoute component={ReticulocyteCalculatorPage} />} />
       <Route path="/calculators/csf-correction" component={() => <ProtectedRoute component={CSFCorrectionPage} />} />
+      <Route path="/calculators/mentzer-index" component={() => <ProtectedRoute component={MentzerIndexPage} />} />
+      <Route path="/calculators/sedation-selector" component={() => <ProtectedRoute component={SedationSelectorPage} />} />
       <Route path="/calculators/fluid-balance" component={() => <ProtectedRoute component={FluidBalancePage} />} />
       <Route path="/calculators/diabetes-insulin" component={() => <ProtectedRoute component={DiabetesInsulinPage} />} />
       <Route path="/calculators/stress-hydrocortisone" component={() => <ProtectedRoute component={StressHydrocortisonePage} />} />

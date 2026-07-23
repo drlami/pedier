@@ -106,6 +106,10 @@ export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 
   const systolic50  = isAdult ? 112 : Math.round(systolic95  - (ageYears <= 5 ? 15 : 17));
   const diastolic50 = isAdult ? 72  : Math.round(diastolic95 - (ageYears <= 5 ? 11 : 13));
 
+  // Hypotension (lower limit of normal SBP) — PALS/APLS shock-recognition rule,
+  // independent of the AAP percentile bands above: 1–10 yrs = 70 + (2 × age); >10 yrs = 90.
+  const systolicHypotension = ageYears > 10 ? 90 : Math.round(70 + ageYears * 2);
+
   return {
     systolic50,
     systolic90:  Math.round(systolic90),
@@ -113,6 +117,7 @@ export const calculateSimplifiedBPPercentile = (ageYears: number, sex: 'male' | 
     diastolic50,
     diastolic90: Math.round(diastolic90),
     diastolic95: Math.round(diastolic95),
+    systolicHypotension,
     isAdultCriteria: isAdult,
   };
 };

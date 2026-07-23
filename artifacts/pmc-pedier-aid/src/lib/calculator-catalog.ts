@@ -1,7 +1,7 @@
 import {
   ShieldAlert, Baby, Wind, Zap, Heart, Syringe, Droplets, Flame, Apple, Pill, Ruler,
   Brain, Stethoscope, Activity, Scissors, FlaskConical, Scale, Calendar,
-  TrendingUp, TrendingDown, Thermometer, HeartPulse, Dna, Shield,
+  TrendingUp, TrendingDown, Thermometer, HeartPulse, Dna, Shield, Microscope,
 } from "lucide-react";
 
 export type CalcCategory =
@@ -379,6 +379,15 @@ export const CALCULATORS: CalcTool[] = [
     tags: ["reticulocyte", "retic", "rpi", "anaemia", "haemolysis", "marrow"],
     isNew: true
   },
+  {
+    id: "mentzer-index",
+    name: "Mentzer Index",
+    description: "MCV/RBC screening ratio to differentiate thalassaemia trait from iron deficiency anaemia.",
+    category: "Haematology", icon: Microscope,
+    href: "/calculators/mentzer-index",
+    tags: ["mentzer", "thalassemia", "thalassaemia", "iron deficiency", "microcytic", "anemia", "anaemia", "mcv"],
+    isNew: true
+  },
   // ── Fluids & Nephrology ───────────────────────────────────────────────
   {
     id: "fluids",
@@ -568,6 +577,15 @@ export const CALCULATORS: CalcTool[] = [
     category: "Reference", icon: Dna,
     href: "/calculators/genetic-disease-screener",
     tags: ["genetics", "dysmorphology", "anomaly", "syndrome", "microarray", "referral"],
+    isNew: true
+  },
+  {
+    id: "sedation-selector",
+    name: "Sedation Agent Selector",
+    description: "Preferred vs avoid sedation agents by comorbidity/shock type (procedural) or by disease for continuous PICU ventilator sedation — includes expected withdrawal by agent class.",
+    category: "Reference", icon: Syringe,
+    href: "/calculators/sedation-selector",
+    tags: ["sedation", "ketamine", "propofol", "etomidate", "dexmedetomidine", "procedural sedation", "porphyria", "airway", "comorbidity", "septic shock", "cardiogenic shock", "kawasaki shock syndrome", "kdss", "hypovolemic shock", "anaphylaxis", "picu", "ventilator", "withdrawal", "pandem"],
     isNew: true
   },
 ];
