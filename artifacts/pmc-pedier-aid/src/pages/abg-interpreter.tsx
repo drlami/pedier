@@ -56,6 +56,23 @@ function deltaDeltaInterpret(ratio: number) {
   };
 }
 
+function metabolicAcidosisAgDifferentials(effectiveAG: number | null, deltaRatio: number | null): { differentials: string[]; deltaText: string } {
+  const differentials: string[] = [];
+  let deltaText = "";
+  if (effectiveAG !== null && effectiveAG > NORMAL_AG) {
+    differentials.push("DKA", "Uraemia", "Lactic acidosis (shock)", "Toxic ingestion (methanol, ethylene glycol, salicylate, iron)");
+    if (deltaRatio !== null) {
+      const dd = deltaDeltaInterpret(deltaRatio);
+      deltaText = ` Delta ratio ${deltaRatio.toFixed(2)}: ${dd.label}.`;
+    }
+  } else if (effectiveAG !== null) {
+    differentials.push("Diarrhoea (most common cause in children)", "Renal tubular acidosis", "Early/partial renal failure", "Large-volume normal saline resuscitation");
+  } else {
+    differentials.push("DKA", "Lactic acidosis (shock)", "Diarrhoea / RTA", "Toxic ingestion — enter Na⁺/Cl⁻ below to narrow this with the anion gap");
+  }
+  return { differentials, deltaText };
+}
+
 function plausibilityWarnings(ph: number, pco2: number, hco3: number): string[] {
   const warnings: string[] = [];
   if (ph < 6.8 || ph > 7.8) warnings.push(`pH ${ph} is outside a physiologically survivable range — check for a data-entry or units error before trusting this interpretation.`);
@@ -139,12 +156,16 @@ function computeInterpretation(
         differentials.push(...CHRONIC_RESP_ACIDOSIS_CAUSES);
       } else if (hco3Num > chronicHigh) {
         pathologyType = "Mixed";
+        primary = "Mixed Respiratory Acidosis & Metabolic Alkalosis";
         compensationStatus = "HCO₃⁻ exceeds even the chronic-compensation ceiling — mixed respiratory acidosis + metabolic alkalosis";
         differentials.push("Chronic lung disease with superimposed diuretic use", "Post-hypercapnic bicarbonate overshoot (e.g. after starting NIV)", "Concurrent vomiting / NG losses", ...CHRONIC_RESP_ACIDOSIS_CAUSES);
       } else {
         pathologyType = "Mixed";
-        compensationStatus = "HCO₃⁻ lower than expected even for acute compensation — mixed respiratory & metabolic acidosis";
-        differentials.push("Concurrent shock/sepsis (lactic acidosis)", "Renal failure", ...ACUTE_RESP_ACIDOSIS_CAUSES);
+        primary = "Mixed Respiratory & Metabolic Acidosis";
+        compensationStatus = "HCO₃⁻ lower than expected even for acute compensation — a concurrent metabolic acidosis is present, and it may be driving this more than the respiratory component";
+        const { differentials: agDiffs, deltaText } = metabolicAcidosisAgDifferentials(effectiveAG, deltaRatio);
+        differentials.push(...agDiffs, "Severe underlying illness causing respiratory fatigue/failure (sepsis, pneumonia, exhaustion)", ...ACUTE_RESP_ACIDOSIS_CAUSES);
+        if (deltaText) compensationDetail += deltaText;
       }
 
       if (population === "neonate") {
@@ -159,27 +180,23 @@ function computeInterpretation(
 
       if (pco2Num < expectedPco2 - 2) {
         pathologyType = "Mixed";
+        primary = "Mixed Metabolic Acidosis & Respiratory Alkalosis";
         compensationStatus = "Mixed metabolic acidosis & respiratory alkalosis (pCO₂ lower than Winters' predicts)";
         differentials.push("Salicylate poisoning", "Sepsis with early ARDS/hyperventilation");
       } else if (pco2Num > expectedPco2 + 2) {
         pathologyType = "Mixed";
-        compensationStatus = "Mixed metabolic & respiratory acidosis (pCO₂ higher than Winters' predicts)";
+        primary = "Mixed Metabolic & Respiratory Acidosis";
+        compensationStatus = "Mixed metabolic & respiratory acidosis (pCO₂ higher than Winters' predicts) — the respiratory component may be limiting or failing compensation";
         differentials.push("Cardiac arrest / severe shock with respiratory exhaustion", "Severe pulmonary oedema", "Concurrent primary lung disease limiting compensation");
       } else {
         pathologyType = "Compensated";
         compensationStatus = "Appropriate respiratory compensation (Winters' formula)";
       }
 
-      if (effectiveAG !== null && effectiveAG > NORMAL_AG) {
-        differentials.push("DKA", "Uraemia", "Lactic acidosis (shock)", "Toxic ingestion (methanol, ethylene glycol, salicylate, iron)");
-        if (deltaRatio !== null) {
-          const dd = deltaDeltaInterpret(deltaRatio);
-          compensationDetail += ` Delta ratio ${deltaRatio.toFixed(2)}: ${dd.label}.`;
-        }
-      } else if (effectiveAG !== null) {
-        differentials.push("Diarrhoea (most common cause in children)", "Renal tubular acidosis", "Early/partial renal failure", "Large-volume normal saline resuscitation");
-      } else {
-        differentials.push("DKA", "Lactic acidosis (shock)", "Diarrhoea / RTA", "Toxic ingestion — enter Na⁺/Cl⁻ below to narrow this with the anion gap");
+      {
+        const { differentials: agDiffs, deltaText } = metabolicAcidosisAgDifferentials(effectiveAG, deltaRatio);
+        differentials.push(...agDiffs);
+        if (deltaText) compensationDetail += deltaText;
       }
     }
   } else if (isAlkalemia) {
@@ -204,10 +221,14 @@ function computeInterpretation(
         differentials.push("Chronic hypoxaemia (high altitude, cyanotic heart disease)", "Chronic liver disease", "Pregnancy", "CNS lesion causing chronic hyperventilation");
       } else if (hco3Num < chronicExpected - tol) {
         pathologyType = "Mixed";
-        compensationStatus = "HCO₃⁻ lower than expected even for chronic compensation — mixed respiratory alkalosis + metabolic acidosis";
-        differentials.push("Salicylate toxicity (mixed picture)", "Sepsis with concurrent lactic acidosis");
+        primary = "Mixed Respiratory Alkalosis & Metabolic Acidosis";
+        compensationStatus = "HCO₃⁻ lower than expected even for chronic compensation — a concurrent metabolic acidosis is present alongside the respiratory alkalosis";
+        const { differentials: agDiffs, deltaText } = metabolicAcidosisAgDifferentials(effectiveAG, deltaRatio);
+        differentials.push("Salicylate toxicity (classically drives both a respiratory alkalosis and a high-anion-gap metabolic acidosis)", ...agDiffs);
+        if (deltaText) compensationDetail += deltaText;
       } else {
         pathologyType = "Mixed";
+        primary = "Mixed Respiratory & Metabolic Alkalosis";
         compensationStatus = "HCO₃⁻ higher than expected — mixed respiratory alkalosis + metabolic alkalosis";
         differentials.push("Hyperventilation in a patient also vomiting or diuresing");
       }
@@ -223,9 +244,11 @@ function computeInterpretation(
 
       if (pco2Num > expectedPco2 + tol) {
         pathologyType = "Mixed";
+        primary = "Mixed Metabolic Alkalosis & Respiratory Acidosis";
         compensationStatus = "Mixed metabolic alkalosis & respiratory acidosis";
       } else if (pco2Num < expectedPco2 - tol) {
         pathologyType = "Mixed";
+        primary = "Mixed Metabolic & Respiratory Alkalosis";
         compensationStatus = "Mixed metabolic alkalosis & respiratory alkalosis";
       } else {
         pathologyType = "Compensated";

@@ -542,6 +542,7 @@ function InfantSection() {
                 <Info className="h-3.5 w-3.5" /> Infant BP Guide
               </div>
               <div className="space-y-1.5 text-[11px] leading-relaxed">
+                <p>• <strong>MAP (calculated):</strong> DBP + ⅓ × (SBP − DBP) — e.g. 80/50 → 50 + ⅓×(80−50) = 60 mmHg. The hypotension call below is based on this calculated MAP, not on SBP/DBP alone.</p>
                 <p>• <strong>Hypotension:</strong> MAP &lt; {reference.mapHypotension} mmHg — urgent evaluation.</p>
                 <p>• <strong>Normal:</strong> SBP &lt; {reference.sbp90} AND DBP &lt; {reference.dbp90} mmHg.</p>
                 <p>• <strong>Elevated:</strong> SBP/DBP ≥ 90th — repeat after 5 min rest.</p>

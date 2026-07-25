@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { 
-  ShieldAlert, Calculator, Info, 
-  ArrowLeft, CheckCircle2, AlertTriangle, Activity, Stethoscope, Thermometer, Clock
+import {
+  ShieldAlert, Calculator, Info,
+  ArrowLeft, CheckCircle2, AlertTriangle, Activity, Stethoscope, Thermometer, Clock, FlaskConical
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,9 +93,11 @@ export default function EosRiskCalc() {
         color: "text-red-600",
         bg: "bg-red-50",
         plan: [
-          "Start Empiric Antibiotics immediately.",
-          "Obtain Blood Culture.",
-          "Obtain CBC, CRP, and consider LP if stable.",
+          "Start empiric antibiotics immediately — do not delay for labs.",
+          "Obtain blood culture (≥1 mL) before/at the first antibiotic dose if feasible without delaying treatment.",
+          "Obtain CBC with differential (ANC, I:T ratio) — most predictive if drawn ≥4h after birth (ideally 6–12h of age); a very early CBC has poor sensitivity.",
+          "Obtain CRP at baseline; a repeat at 24h increases sensitivity — a single early value doesn't rule sepsis out.",
+          "Consider LP if the infant is stable enough to tolerate it AND blood culture is positive or meningitis is clinically suspected — never delay antibiotics to obtain it.",
           "Continuous vital sign monitoring in NICU/HDU."
         ]
       };
@@ -107,8 +109,10 @@ export default function EosRiskCalc() {
         color: "text-red-600",
         bg: "bg-red-50",
         plan: [
-          "Start Empiric Antibiotics.",
-          "Obtain Blood Culture.",
+          "Start empiric antibiotics.",
+          "Obtain blood culture (≥1 mL) before the first antibiotic dose.",
+          "Obtain CBC with differential — most predictive if drawn at 6–12h of age; an early CBC (<4h) has poor sensitivity.",
+          "CRP is optional/adjunctive here — useful serially (baseline + 24h) to support stopping antibiotics later, not to decide starting them.",
           "Frequent vital signs (at least every 4 hours)."
         ]
       };
@@ -120,9 +124,10 @@ export default function EosRiskCalc() {
         color: "text-amber-600",
         bg: "bg-amber-50",
         plan: [
-          "Obtain Blood Culture.",
+          "Obtain blood culture (≥1 mL) before starting any antibiotics, in case status changes.",
+          "CBC with differential is optional — if drawn, most informative at 6–12h of age; an isolated abnormal ANC/I:T ratio in a well-appearing infant should prompt closer observation, not automatic antibiotics.",
           "Monitor vitals every 4 hours for 24 hours.",
-          "No empiric antibiotics unless clinical status worsens."
+          "No empiric antibiotics unless clinical status worsens or the culture flags positive."
         ]
       };
     }
@@ -133,9 +138,9 @@ export default function EosRiskCalc() {
           color: "text-blue-600",
           bg: "bg-blue-50",
           plan: [
+            "No labs or cultures required.",
             "Monitor vitals every 4 hours for 24 hours.",
-            "Continue routine newborn care.",
-            "No culture or antibiotics required."
+            "Continue routine newborn care."
           ]
         };
     }
@@ -145,9 +150,8 @@ export default function EosRiskCalc() {
       color: "text-green-600",
       bg: "bg-green-50",
       plan: [
-        "Standard newborn observation.",
-        "Routine vital signs as per hospital policy.",
-        "No further intervention required."
+        "No labs, cultures, or antibiotics required.",
+        "Standard newborn observation and routine vital signs as per hospital policy."
       ]
     };
   }, [riskResult, clinicalStatus]);
@@ -350,6 +354,21 @@ export default function EosRiskCalc() {
                         </CardContent>
                     </Card>
                   </div>
+
+                  <Card className="bg-muted/30 border-dashed border-2">
+                      <CardContent className="pt-4 text-[10px] leading-relaxed">
+                          <h5 className="font-black uppercase tracking-widest mb-2 flex items-center gap-1 text-indigo-600">
+                              <FlaskConical className="h-3 w-3" /> Labs Needed by Classification
+                          </h5>
+                          <ul className="space-y-2 text-muted-foreground font-medium">
+                              <li>• <strong>Routine Care:</strong> None — no labs, cultures, or antibiotics.</li>
+                              <li>• <strong>Enhanced Observation:</strong> None — vitals monitoring only.</li>
+                              <li>• <strong>Blood Culture & Obs:</strong> Blood culture (≥1 mL) before any antibiotics are given. CBC/diff is optional — most predictive at 6–12h of age; an isolated abnormal count in a well-appearing infant shouldn't trigger antibiotics on its own.</li>
+                              <li>• <strong>Evaluate & Treat:</strong> Blood culture (≥1 mL) + CBC with differential (best drawn at 6–12h of age) + start empiric antibiotics. CRP is adjunctive/serial (baseline + 24h) — it supports stopping antibiotics, not the decision to start them.</li>
+                              <li>• <strong>Evaluate & Treat (Ill):</strong> All of the above, plus CRP at baseline with a repeat at 24h, and LP if the infant is stable enough AND (blood culture positive or meningitis clinically suspected) — never delay antibiotics to obtain the LP.</li>
+                          </ul>
+                      </CardContent>
+                  </Card>
 
                   <Card className="bg-slate-50 border-2 border-slate-200">
                       <CardHeader className="pb-2">

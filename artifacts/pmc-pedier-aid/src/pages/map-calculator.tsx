@@ -12,18 +12,25 @@ import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
 export default function MapCalculator() {
+  const [mode, setMode] = useState<"ti-te" | "rate">("ti-te");
   const [pip, setPip] = useState<string>("");
   const [peep, setPeep] = useState<string>("");
   const [ti, setTi] = useState<string>("");
   const [rate, setRate] = useState<string>("");
   const [te, setTe] = useState<string>("");
 
+  const peepExceedsPip = useMemo(() => {
+    const p = parseFloat(pip);
+    const pe = parseFloat(peep);
+    return !isNaN(p) && !isNaN(pe) && pe >= p;
+  }, [pip, peep]);
+
   const mapByTi = useMemo(() => {
     const p = parseFloat(pip);
     const pe = parseFloat(peep);
     const t = parseFloat(ti);
     const e = parseFloat(te);
-    if (isNaN(p) || isNaN(pe) || isNaN(t) || isNaN(e) || (t + e) === 0) return null;
+    if (isNaN(p) || isNaN(pe) || isNaN(t) || isNaN(e) || (t + e) === 0 || pe >= p) return null;
     return ((p - pe) * (t / (t + e))) + pe;
   }, [pip, peep, ti, te]);
 
@@ -32,7 +39,7 @@ export default function MapCalculator() {
     const pe = parseFloat(peep);
     const t = parseFloat(ti);
     const r = parseFloat(rate);
-    if (isNaN(p) || isNaN(pe) || isNaN(t) || isNaN(r)) return null;
+    if (isNaN(p) || isNaN(pe) || isNaN(t) || isNaN(r) || pe >= p) return null;
     return (((p - pe) * t * r) / 60) + pe;
   }, [pip, peep, ti, rate]);
 
@@ -60,7 +67,7 @@ export default function MapCalculator() {
               <CardTitle className="text-base uppercase tracking-widest font-black text-muted-foreground">Ventilator Settings</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <Tabs defaultValue="ti-te" className="w-full">
+            <Tabs value={mode} onValueChange={(v) => setMode(v as "ti-te" | "rate")} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="ti-te">By Ti / Te</TabsTrigger>
                 <TabsTrigger value="rate">By Rate</TabsTrigger>
@@ -117,18 +124,19 @@ export default function MapCalculator() {
         </Card>
 
         <div className="space-y-6">
-            <Tabs defaultValue="ti-te" className="w-full">
-              <TabsContent value="ti-te">
-                {mapByTi !== null ? (
-                  <ResultCard value={mapByTi} />
-                ) : <EmptyState />}
-              </TabsContent>
-              <TabsContent value="rate">
-                {mapByRate !== null ? (
-                  <ResultCard value={mapByRate} />
-                ) : <EmptyState />}
-              </TabsContent>
-            </Tabs>
+            {peepExceedsPip ? (
+              <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-4 border-dashed rounded-[40px] p-12 text-center bg-red-50 border-red-200">
+                <AlertTriangle className="h-16 w-16 text-red-300 mb-6" />
+                <h3 className="text-xl font-black text-red-700 tracking-tight">Invalid Settings</h3>
+                <p className="text-red-700/80 font-medium text-sm mt-3 leading-relaxed max-w-[280px]">
+                  PEEP must be lower than PIP — check the entered values.
+                </p>
+              </div>
+            ) : mode === "ti-te" ? (
+              mapByTi !== null ? <ResultCard value={mapByTi} /> : <EmptyState />
+            ) : (
+              mapByRate !== null ? <ResultCard value={mapByRate} /> : <EmptyState />
+            )}
 
             <Card className="bg-muted/30 border-dashed">
                 <CardContent className="pt-6">

@@ -146,16 +146,16 @@ const NEUROMUSCULAR_CRITERIA: Criterion[] = [
   { 
     name: "Posture", 
     icon: Baby,
-    howTo: "Observe infant quiet and supine. Score based on degree of flexion of arms and legs.",
+    howTo: "Observe infant quiet and supine. Score based on degree of flexion of arms and legs — higher scores mean more resting tone/flexion, a sign of greater maturity.",
     illustration: <PostureSvg />,
     values: [
-      { score: -1, desc: "Limp, flaccid" },
-      { score: 0, desc: "Arms/legs extended" },
-      { score: 1, desc: "Slight flexion of hips/knees" },
-      { score: 2, desc: "Moderate flexion" },
-      { score: 3, desc: "Arms flexed, legs flexed" },
-      { score: 4, desc: "Full flexion (all four)" }
-    ] 
+      { score: -1, desc: "Completely limp, flaccid — no resistance to positioning" },
+      { score: 0, desc: "Arms and legs extended, no flexion" },
+      { score: 1, desc: "Slight flexion of hips/knees; arms still extended" },
+      { score: 2, desc: "Moderate flexion of hips/knees (legs); arms still mostly extended" },
+      { score: 3, desc: "Arms flexed; legs flexed and abducted (frog-leg posture)" },
+      { score: 4, desc: "Full flexion of arms and legs, tucked against trunk (fetal position)" }
+    ]
   },
   { 
     name: "Square Window", 
@@ -290,11 +290,11 @@ const PHYSICAL_CRITERIA: Criterion[] = [
   { 
     name: "Eye/Ear", 
     icon: Info,
-    howTo: "Check if eyelids are fused and assess cartilage/recoil of pinna.",
+    howTo: "First check if the eyelids are fused (a marker of extreme immaturity) — if open, assess pinna cartilage form and recoil speed instead.",
     illustration: <EyeEarSvg />,
     values: [
-      { score: -1, desc: "Ear flat, stays folded" },
-      { score: 0, desc: "Lids open; flat pinna" },
+      { score: -1, desc: "Lids fused (loosely — opens with gentle traction)" },
+      { score: 0, desc: "Lids open; pinna flat, stays folded when creased" },
       { score: 1, desc: "Slightly curved pinna; slow recoil" },
       { score: 2, desc: "Well curved pinna; ready recoil" },
       { score: 3, desc: "Formed & firm pinna; instant recoil" },
@@ -411,6 +411,15 @@ export default function BallardScoreCalc() {
               </SheetHeader>
               
               <div className="space-y-8">
+                <div className="p-5 rounded-2xl bg-primary/5 border-2 border-primary/10 space-y-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider flex items-center gap-2 text-primary">
+                    <Info className="h-3.5 w-3.5" /> How to Read Each Score
+                  </h4>
+                  <p className="text-xs leading-relaxed text-muted-foreground font-medium">
+                    Across every criterion, <strong>lower/negative scores mean a more immature finding</strong> (less muscle tone, more resistance-free movement, thinner/more transparent skin, less-formed cartilage or genitalia), and <strong>higher scores mean a more mature finding</strong> (more tone and flexion, more resistance to stretch, thicker skin, well-formed cartilage/genitalia). The specific exam finding differs per row — tap the <Info className="inline h-3 w-3 mx-0.5" /> icon next to any criterion for exactly what to look for at each score.
+                  </p>
+                </div>
+
                 <div className="space-y-4">
                   <h4 className="font-bold text-sm text-primary uppercase tracking-widest flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-primary" />
