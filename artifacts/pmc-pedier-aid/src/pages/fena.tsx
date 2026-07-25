@@ -56,8 +56,8 @@ function NumInput({ label, unit, value, onChange, hint }: {
 }
 
 export default function FENaPage() {
-  const [uNa, setUNa] = useState(""); // Urine Na mmol/L
-  const [sNa, setSNa] = useState(""); // Serum Na mmol/L
+  const [uNa, setUNa] = useState(""); // Urine Na mEq/L
+  const [sNa, setSNa] = useState(""); // Serum Na mEq/L
   const [sCr, setSCr] = useState(""); // Serum Cr mg/dL
   const [uCr, setUCr] = useState(""); // Urine Cr mg/dL
   const [uUrea, setUUrea] = useState(""); // Urine urea mmol/L
@@ -101,8 +101,8 @@ export default function FENaPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
-            <NumInput label="Serum Sodium" unit="mmol/L" value={sNa} onChange={setSNa} />
-            <NumInput label="Urine Sodium" unit="mmol/L" value={uNa} onChange={setUNa} />
+            <NumInput label="Serum Sodium" unit="mEq/L" value={sNa} onChange={setSNa} />
+            <NumInput label="Urine Sodium" unit="mEq/L" value={uNa} onChange={setUNa} />
             <NumInput label="Serum Creatinine" unit="mg/dL" value={sCr} onChange={setSCr} />
             <NumInput label="Urine Creatinine" unit="mg/dL" value={uCr} onChange={setUCr} />
           </div>
