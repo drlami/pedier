@@ -33,7 +33,8 @@ export default function EosRiskCalc() {
   const isGaBelowValidatedRange = !isNaN(gaExact) && gaExact < 34;
 
   const riskResult = useMemo(() => {
-    const temp = parseFloat(maternalTemp);
+    // Empty temp field = no fever recorded/reported during labor, not missing data.
+    const temp = maternalTemp.trim() === "" ? 36.5 : parseFloat(maternalTemp);
     const rom = parseFloat(romDuration);
 
     if (
@@ -60,9 +61,10 @@ export default function EosRiskCalc() {
     if (rom >= 24) priorRisk *= 2.2;
 
     // GBS ADJUSTMENT
-    // "Unknown" is treated conservatively (no negative culture for reassurance),
-    // consistent with the CDC risk-factor-based approach when status can't be confirmed.
-    if (maternalGbs === "positive") priorRisk *= 1.2;
+    // Confirmed colonization (positive) must carry at least as much risk as an
+    // unconfirmed/unknown status — unknown is a conservative placeholder for
+    // "could be positive," never a worse assumption than a known positive result.
+    if (maternalGbs === "positive") priorRisk *= 1.5;
     if (maternalGbs === "unknown") priorRisk *= 1.3;
     if (maternalGbs === "negative" && antibiotics === "none") priorRisk *= 0.8;
 
@@ -118,7 +120,7 @@ export default function EosRiskCalc() {
       };
     }
 
-    if (p >= 1.0) {
+    if (p >= 1.0 || clinicalStatus === "equivocal") {
       return {
         label: "Blood Culture & Obs",
         color: "text-amber-600",
@@ -199,7 +201,7 @@ export default function EosRiskCalc() {
                     Max Maternal Temp (°C) <Thermometer className="h-3 w-3" />
                   </label>
                   <Input type="number" step="0.1" placeholder="e.g. 38.2" value={maternalTemp} onChange={(e) => setMaternalTemp(e.target.value)} className="h-11 font-mono" />
-                  <p className="text-[9px] text-muted-foreground italic">Highest temperature during labor</p>
+                  <p className="text-[9px] text-muted-foreground italic">Highest temperature during labor — leave blank if no fever/temp was recorded (assumed afebrile)</p>
                 </div>
               </div>
 
