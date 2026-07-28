@@ -925,6 +925,11 @@ function ManageTab({ protocol, formData, weight }: {
             ? { card: 'bg-orange-50 border-orange-300', title: 'text-orange-800', dot: 'bg-orange-500' }
           : t.includes('STEP 2') || t.includes('REASSESS')
             ? { card: 'bg-amber-50 border-amber-200', title: 'text-amber-800', dot: 'bg-amber-500' }
+          // Personalized-from-answers card (e.g. built from Assess-tab context
+          // flags) — a distinct tone so it visibly stands apart from the
+          // generic step text instead of blending into the default gray card.
+          : t.includes('CONTEXT') || t.includes('BASED ON YOUR ANSWERS')
+            ? { card: 'bg-indigo-50 border-indigo-300', title: 'text-indigo-800', dot: 'bg-indigo-500' }
             : { card: 'bg-card border-border', title: 'text-foreground', dot: 'bg-primary' };
         return (
           <div key={gi} className={cn('rounded-2xl border-2 p-4 space-y-2.5', tone.card)}>

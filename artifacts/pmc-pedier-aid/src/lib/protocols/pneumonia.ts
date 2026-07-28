@@ -167,6 +167,30 @@ export const pneumoniaProtocol: DiseaseProtocol = {
     const hasOverride = overrideMet.length > 0;
     const overrideList = overrideMet.map(o => o.label).join(', ');
 
+    // Clinical context flags from the Assess tab (erData.historyChecklist).
+    // These are documented there as flags that "change management" — that
+    // promise has to be kept here, not left as a note next to the question
+    // that nothing downstream ever reads.
+    const tbContact      = data.tb_contact === true;
+    const viralProdrome   = data.viral_prodrome === true;
+    const aspiration      = data.aspiration === true;
+    const underlyingLung  = data.underlying_lung === true;
+    const priorHosp       = data.prior_hosp === true;
+    const chdChestwall    = data.chd_chestwall === true;
+
+    const contextLines: string[] = [];
+    if (tbContact) contextLines.push('TB contact/travel/no BCG flagged: obtain sputum AFB smear + culture and CXR; refer paediatric ID/TB clinic. If stable, hold empirical bacterial antibiotics pending TB workup — if unstable, treat CAP empirically in parallel.');
+    if (viralProdrome) contextLines.push('Post-viral (influenza/varicella) flagged: cover PVL-producing Staphylococcus aureus — add IV Vancomycin + Clindamycin (see Drug Doses) regardless of severity band.');
+    if (aspiration) contextLines.push('Aspiration risk flagged: switch first-line to Amoxicillin-Clavulanate (or Piperacillin-Tazobactam if severe) for anaerobic cover instead of plain Amoxicillin. Arrange a post-treatment swallow assessment.');
+    if (underlyingLung) contextLines.push('Underlying lung disease (CF / bronchiectasis / recurrent pneumonia) flagged: discuss with respiratory specialist, send sputum cultures, use broader antibiotic cover than standard CAP.');
+    if (priorHosp) contextLines.push('Recent hospitalisation / healthcare exposure flagged: higher risk of resistant organisms — add MRSA cover (Vancomycin) if no response to standard therapy.');
+    if (chdChestwall) contextLines.push('Known CHD or chest wall deformity flagged: reduced respiratory reserve — use a lower threshold for admission and for starting supplemental oxygen.');
+
+    const CONTEXT_CARD = contextLines.length > 0 ? {
+      title: 'CONTEXT — Adjust therapy based on your Assess answers',
+      recommendations: contextLines,
+    } : null;
+
     // Narrow- vs broad-spectrum inpatient first-line (Nelson): fully immunized
     // + not severely ill → ampicillin / penicillin G; otherwise ceftriaxone.
     const inpatientAbx = fullyImmunized
@@ -188,8 +212,13 @@ export const pneumoniaProtocol: DiseaseProtocol = {
       ],
     };
 
-    const STEP4 = {
-      title: 'STEP 4 — LIFE-THREATENING: Respiratory failure or septic shock',
+    // Renamed from "STEP 4" and moved to render right after the main step in
+    // every branch below — a deterioration trigger is the single most
+    // time-critical thing on this tab and shouldn't be the last card a doctor
+    // scrolls to. "LIFE-THREAT" stays in the title so the tone-colour match
+    // in er-protocol-view.tsx still renders it red.
+    const LIFE_THREAT = {
+      title: 'IF THIS HAPPENS NOW — LIFE-THREATENING: Respiratory failure or septic shock',
       recommendations: [
         'SpO₂ < 88% despite O₂, rising CO₂, exhaustion, haemodynamic instability.',
         'CALL PICU + SENIOR NOW.',
@@ -213,21 +242,24 @@ export const pneumoniaProtocol: DiseaseProtocol = {
         {
           title: 'STEP 1 — Severe CAP: Immediate management',
           recommendations: [
-            'Oxygen — titrate to SpO₂ ≥ 94%. Where ventilator-derived CPAP is unavailable, bubble CPAP improves mortality in hypoxaemic pneumonia (Nelson).',
+            'Oxygen — titrate to SpO₂ ≥ 94%.',
+            '•  Where ventilator-derived CPAP is unavailable, bubble CPAP improves mortality in hypoxaemic pneumonia (Nelson).',
             'IV access. Blood culture × 2 BEFORE antibiotics.',
             isNeonate
               ? 'Neonatal antibiotics: Cefotaxime 50 mg/kg q8–12h + Ampicillin 50 mg/kg q6h (cover GBS / Listeria).'
-              : 'Severely ill → IV Ceftriaxone or Cefotaxime first-line (broader cover regardless of immunisation status).'
-                + (isInfant ? '' : ' Add a macrolide (Azithromycin) if Mycoplasma / Chlamydophila possible in school-age child.'),
+              : 'Severely ill → IV Ceftriaxone or Cefotaxime first-line (broader cover regardless of immunisation status).',
+            ...(!isNeonate && !isInfant ? ['•  Add a macrolide (Azithromycin) if Mycoplasma / Chlamydophila possible in school-age child.'] : []),
             'If staphylococcal features (pneumatoceles, empyema, rapid deterioration, post-influenza) → add Vancomycin or Clindamycin.',
-            'CXR (chest X-ray) — PA + lateral. Blood: CBC (complete blood count), CRP, U&E (urea & electrolytes), LFTs (liver function tests).',
+            'CXR (chest X-ray) — PA + lateral.',
+            'Blood: CBC (complete blood count), CRP, U&E (urea & electrolytes), LFTs (liver function tests).',
             'IV / NG (nasogastric) fluids if unable to maintain oral intake.',
             'In low/middle-income settings: oral zinc reduces mortality in severe pneumonia (10 mg/day if < 12 mo, 20 mg/day if ≥ 12 mo, for 7 days).',
             'Admit to ward or PICU based on response to oxygen/fluids/first antibiotic dose.',
           ],
         },
+        LIFE_THREAT,
+        ...(CONTEXT_CARD ? [CONTEXT_CARD] : []),
         HANDOVER,
-        STEP4,
       ];
     }
 
@@ -249,6 +281,8 @@ export const pneumoniaProtocol: DiseaseProtocol = {
             'IV fluids if inadequate oral intake.',
           ],
         },
+        LIFE_THREAT,
+        ...(CONTEXT_CARD ? [CONTEXT_CARD] : []),
         {
           title: 'STEP 2 — REASSESS at 4–6 h (this is the decision point)',
           recommendations: [
@@ -256,11 +290,10 @@ export const pneumoniaProtocol: DiseaseProtocol = {
               ? 'Admitted for the override factor regardless of this reassessment — see HANDOVER below.'
               : 'RESPONSE at 4–6 h (all of): SpO₂ ≥ 93% on room air, RR settling, work of breathing improving, feeding acceptable, no new severe feature → discharge on oral antibiotics + 48 h follow-up.',
             'NO RESPONSE at 4–6 h (static: unchanged distress, SpO₂ still 90–92%, or not feeding) → ADMIT for IV antibiotics — see HANDOVER below. Do NOT send home, and do NOT simply keep observing longer.',
-            'DETERIORATION at any point during observation (SpO₂ dropping, new grunting, lethargy) → the child is now SEVERE → oxygen + IV now, go to STEP 4.',
+            'DETERIORATION at any point during observation (SpO₂ dropping, new grunting, lethargy) → the child is now SEVERE → oxygen + IV now, see the LIFE-THREATENING card above.',
           ],
         },
         HANDOVER,
-        STEP4,
       ];
     }
 
@@ -286,6 +319,8 @@ export const pneumoniaProtocol: DiseaseProtocol = {
           'CXR NOT required for uncomplicated mild CAP (PIDS/IDSA — imaging rarely changes outpatient management).',
         ],
       },
+      LIFE_THREAT,
+      ...(CONTEXT_CARD ? [CONTEXT_CARD] : []),
       ...(hasOverride ? [HANDOVER] : [{
         title: 'STEP 2 — REVIEW at 48 h (telephone or in person)',
         recommendations: [
@@ -294,7 +329,6 @@ export const pneumoniaProtocol: DiseaseProtocol = {
           'RETURN SOONER — do NOT wait for the 48 h review — if breathing becomes faster/harder, the child is drowsy or not drinking, or lips/fingertips turn blue. These are deterioration and need immediate reassessment.',
         ],
       }]),
-      STEP4,
     ];
   },
 
@@ -347,7 +381,29 @@ export const pneumoniaProtocol: DiseaseProtocol = {
       return doses;
     }
 
+    if (severity.level !== 'severe' && severity.level !== 'moderate' && severity.level !== 'mild') {
+      doses.push({ drugName: 'Select a severity band in the Assess tab', dose: 'Antibiotic choice depends on severity — doses appear here once Mild, Moderate, or Severe is selected.' });
+      return doses;
+    }
+
     const ageMonths = Number(data.ageMonths || 0);
+    // Same Assess-tab context flags read in getManagement — a dose list that
+    // ignores them would silently contradict the management recommendations
+    // built from the same answers.
+    const aspiration    = data.aspiration === true;
+    const viralProdrome = data.viral_prodrome === true;
+    const priorHosp     = data.prior_hosp === true;
+    const underlyingLung = data.underlying_lung === true;
+
+    // Same severity/override gating as getManagement — this is what makes the
+    // list respond to what was actually selected, instead of always showing
+    // every drug regardless of band (oral next to IV, staph cover shown even
+    // when nothing suggests Staph).
+    const overrideMet    = (severity.admitOverrides ?? []).filter(o => o.met);
+    const hasOverride     = overrideMet.length > 0;
+    const showOral        = severity.level === 'mild' || (severity.level === 'moderate' && !hasOverride);
+    const showIV          = severity.level === 'severe' || severity.level === 'moderate' || hasOverride;
+    const showStaphCover  = severity.level === 'severe' || viralProdrome || priorHosp;
 
     const amoxTotal    = (90 * wt).toFixed(0);
     const amoxPerDose  = (90 * wt / 2).toFixed(0);
@@ -361,32 +417,52 @@ export const pneumoniaProtocol: DiseaseProtocol = {
     const para         = Math.min(15 * wt, 1000).toFixed(0);
     const ibu          = Math.min(10 * wt, 400).toFixed(0);
 
-    doses.push({ drugName: 'Amoxicillin PO (1st line — mild/moderate)', dose: `${amoxPerDose} mg BID (90 mg/kg/day total ${amoxTotal} mg/day, divided twice daily)`, notes: 'Nelson: high-dose twice-daily dosing. 5-day course for uncomplicated CAP; continue until afebrile 72 h if slower response.' });
-    doses.push({ drugName: 'Amoxicillin-Clavulanate PO (outpatient alternative)', dose: `${amoxClav} mg (amox component) BID (based on 90 mg/kg/day amoxicillin)`, notes: 'Alternative to amoxicillin; also covers aspiration risk. Cefuroxime is another option.' });
-    const ageEntered = ageMonths > 0;
-    if (!ageEntered) {
-      doses.push({
-        drugName: '⚠ Enter age above',
-        dose: 'Age is required to pick the correct IV antibiotic — neonates (< 3 months) need a different regimen (Cefotaxime + Ampicillin), and Ceftriaxone carries a bilirubin-displacement risk in young infants. Both options are shown below until age is entered — confirm which applies before prescribing.',
-      });
+    if (showOral) {
+      doses.push({ drugName: 'Amoxicillin PO (1st line — mild/moderate)', dose: `${amoxPerDose} mg BID (90 mg/kg/day total ${amoxTotal} mg/day, divided twice daily)`, notes: aspiration
+        ? '⚠ Aspiration risk flagged in Assess — prefer Amoxicillin-Clavulanate below instead of plain Amoxicillin, for anaerobic cover.'
+        : 'Nelson: high-dose twice-daily dosing. 5-day course for uncomplicated CAP; continue until afebrile 72 h if slower response.' });
+      doses.push({ drugName: 'Amoxicillin-Clavulanate PO (outpatient alternative)', dose: `${amoxClav} mg (amox component) BID (based on 90 mg/kg/day amoxicillin)`, notes: aspiration
+        ? '⚠ INDICATED — aspiration risk flagged in Assess. Use in place of plain Amoxicillin for anaerobic cover; Piperacillin-Tazobactam IV instead if severe.'
+        : 'Alternative to amoxicillin; also covers aspiration risk. Cefuroxime is another option.' });
     }
 
-    if (ageEntered && ageMonths < 3) {
-      doses.push({ drugName: 'Cefotaxime IV (neonates / infants < 3 months)', dose: `${cefotaxime} mg q8–12h (50 mg/kg/dose)`, notes: 'Give with Ampicillin to cover Listeria and GBS.' });
-      doses.push({ drugName: 'Ampicillin IV (neonates)', dose: `${ampicillin} mg q6h (50 mg/kg/dose)`, notes: 'In combination with Cefotaxime for neonatal CAP.' });
-    } else if (ageEntered) {
-      doses.push({ drugName: 'Ampicillin / Penicillin G IV (inpatient — fully immunized, not severely ill)', dose: `Ampicillin ${ampicillin} mg q6h (50 mg/kg/dose)`, notes: 'Nelson narrow-spectrum first-line when fully immunized (Hib + PCV) and not severely ill.' });
-      doses.push({ drugName: 'Ceftriaxone IV (severe, or not fully immunized)', dose: `${ceftriaxone} mg OD (50–100 mg/kg/day, max 4 g)`, notes: 'For severely ill or under-immunized children. Switch to oral when afebrile + tolerating orals (usually 48–72 h).' });
-    } else {
-      // Age unknown — show BOTH regimens explicitly rather than silently
-      // defaulting to "not neonate", so a missed age entry can't produce a
-      // wrong antibiotic suggestion for an actual young infant.
-      doses.push({ drugName: 'IF < 3 months: Cefotaxime IV + Ampicillin IV', dose: `Cefotaxime ${cefotaxime} mg q8–12h + Ampicillin ${ampicillin} mg q6h (50 mg/kg/dose each)`, notes: 'Neonatal regimen — covers Listeria/GBS. Use only if the child is truly < 3 months.' });
-      doses.push({ drugName: 'IF ≥ 3 months: Ampicillin/Penicillin G or Ceftriaxone IV', dose: `Ampicillin ${ampicillin} mg q6h, OR Ceftriaxone ${ceftriaxone} mg OD (50–100 mg/kg/day, max 4 g)`, notes: 'Ampicillin/Penicillin G if fully immunized and not severely ill; Ceftriaxone if severe or under-immunized.' });
+    if (showIV) {
+      const ageEntered = ageMonths > 0;
+      if (!ageEntered) {
+        doses.push({
+          drugName: '⚠ Enter age above',
+          dose: 'Age is required to pick the correct IV antibiotic — neonates (< 3 months) need a different regimen (Cefotaxime + Ampicillin), and Ceftriaxone carries a bilirubin-displacement risk in young infants. Both options are shown below until age is entered — confirm which applies before prescribing.',
+        });
+      }
+
+      if (ageEntered && ageMonths < 3) {
+        doses.push({ drugName: 'Cefotaxime IV (neonates / infants < 3 months)', dose: `${cefotaxime} mg q8–12h (50 mg/kg/dose)`, notes: 'Give with Ampicillin to cover Listeria and GBS.' });
+        doses.push({ drugName: 'Ampicillin IV (neonates)', dose: `${ampicillin} mg q6h (50 mg/kg/dose)`, notes: 'In combination with Cefotaxime for neonatal CAP.' });
+      } else if (ageEntered) {
+        doses.push({ drugName: 'Ampicillin / Penicillin G IV (inpatient — fully immunized, not severely ill)', dose: `Ampicillin ${ampicillin} mg q6h (50 mg/kg/dose)`, notes: 'Nelson narrow-spectrum first-line when fully immunized (Hib + PCV) and not severely ill.' });
+        doses.push({ drugName: 'Ceftriaxone IV (severe, or not fully immunized)', dose: `${ceftriaxone} mg OD (50–100 mg/kg/day, max 4 g)`, notes: (underlyingLung ? '⚠ Underlying lung disease flagged in Assess — broader cover than standard CAP; discuss with respiratory specialist. ' : '') + 'For severely ill or under-immunized children. Switch to oral when afebrile + tolerating orals (usually 48–72 h).' });
+      } else {
+        // Age unknown — show BOTH regimens explicitly rather than silently
+        // defaulting to "not neonate", so a missed age entry can't produce a
+        // wrong antibiotic suggestion for an actual young infant.
+        doses.push({ drugName: 'IF < 3 months: Cefotaxime IV + Ampicillin IV', dose: `Cefotaxime ${cefotaxime} mg q8–12h + Ampicillin ${ampicillin} mg q6h (50 mg/kg/dose each)`, notes: 'Neonatal regimen — covers Listeria/GBS. Use only if the child is truly < 3 months.' });
+        doses.push({ drugName: 'IF ≥ 3 months: Ampicillin/Penicillin G or Ceftriaxone IV', dose: `Ampicillin ${ampicillin} mg q6h, OR Ceftriaxone ${ceftriaxone} mg OD (50–100 mg/kg/day, max 4 g)`, notes: 'Ampicillin/Penicillin G if fully immunized and not severely ill; Ceftriaxone if severe or under-immunized.' });
+      }
     }
-    doses.push({ drugName: 'Azithromycin PO/IV (atypical cover — school age)', dose: `${azithro} mg OD (10 mg/kg/day, max 500 mg) × 5 days`, notes: 'Add if Mycoplasma or Chlamydophila suspected (age > 5 years, gradual onset, bilateral infiltrates).' });
-    doses.push({ drugName: 'Vancomycin IV (Staph / MRSA)', dose: `${vancomycin} mg/day (60 mg/kg/day in 4 divided doses)`, notes: 'Post-viral cavitary pneumonia or PVL-producing Staph aureus suspected. Monitor levels.' });
-    doses.push({ drugName: 'Clindamycin IV (PVL-Staph add-on)', dose: `${clinda} mg/day (40 mg/kg/day divided q6–8h, max 2700 mg)`, notes: 'Toxin suppressor — add to Vancomycin for PVL-Staph aureus pneumonia.' });
+
+    if (!(ageMonths > 0 && ageMonths < 3)) {
+      doses.push({ drugName: 'Azithromycin PO/IV (atypical cover — school age)', dose: `${azithro} mg OD (10 mg/kg/day, max 500 mg) × 5 days`, notes: 'Add if Mycoplasma or Chlamydophila suspected (age > 5 years, gradual onset, bilateral infiltrates).' });
+    }
+
+    if (showStaphCover) {
+      doses.push({ drugName: 'Vancomycin IV (Staph / MRSA)', dose: `${vancomycin} mg/day (60 mg/kg/day in 4 divided doses)`, notes: (viralProdrome || priorHosp)
+        ? `⚠ INDICATED — ${[viralProdrome && 'post-viral prodrome', priorHosp && 'recent hospitalisation'].filter(Boolean).join(' + ')} flagged in Assess (PVL-Staph/MRSA risk). Monitor levels.`
+        : 'Suspected staphylococcal features (pneumatoceles, empyema, rapid deterioration) in severe CAP. Monitor levels.' });
+      doses.push({ drugName: 'Clindamycin IV (PVL-Staph add-on)', dose: `${clinda} mg/day (40 mg/kg/day divided q6–8h, max 2700 mg)`, notes: viralProdrome
+        ? '⚠ INDICATED — post-viral prodrome flagged in Assess. Add to Vancomycin for PVL-Staph aureus pneumonia.'
+        : 'Toxin suppressor — add to Vancomycin for suspected PVL-Staph aureus pneumonia in severe CAP.' });
+    }
+
     doses.push({ drugName: 'Paracetamol (antipyretic)', dose: `${para} mg q4–6h (15 mg/kg/dose, max 1 g)`, notes: 'Max 4 doses/day. Use for fever and discomfort.' });
     doses.push({ drugName: 'Ibuprofen (antipyretic — age > 3 months)', dose: `${ibu} mg q6–8h (10 mg/kg/dose, max 400 mg)`, notes: 'Alternate with paracetamol if needed. Avoid if dehydrated or renal impairment.' });
 
