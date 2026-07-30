@@ -75,6 +75,7 @@ import FENaPage from "@/pages/fena";
 import TargetHeightPage from "@/pages/target-height";
 import TransfusionPage from "@/pages/transfusion";
 import AKIStagingPage from "@/pages/aki-staging";
+import HydronephrosisPage from "@/pages/hydronephrosis";
 import KawasakiPage from "@/pages/kawasaki";
 import GrowthVelocityPage from "@/pages/growth-velocity";
 import UPCRPage from "@/pages/upcr";
@@ -254,6 +255,7 @@ function Router() {
       <Route path="/calculators/target-height" component={() => <ProtectedRoute component={TargetHeightPage} />} />
       <Route path="/calculators/transfusion" component={() => <ProtectedRoute component={TransfusionPage} />} />
       <Route path="/calculators/aki-staging" component={() => <ProtectedRoute component={AKIStagingPage} />} />
+      <Route path="/calculators/hydronephrosis" component={() => <ProtectedRoute component={HydronephrosisPage} />} />
       <Route path="/calculators/kawasaki" component={() => <ProtectedRoute component={KawasakiPage} />} />
       <Route path="/calculators/growth-velocity" component={() => <ProtectedRoute component={GrowthVelocityPage} />} />
       <Route path="/calculators/upcr" component={() => <ProtectedRoute component={UPCRPage} />} />

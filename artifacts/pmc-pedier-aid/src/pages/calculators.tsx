@@ -101,7 +101,7 @@ export default function CalculatorsPage() {
             return (
               <CategoryPill
                 key={cat}
-                label={cat}
+                label={cat === "Fluids" ? "Fluids & Nephrology" : cat}
                 count={categoryCounts[cat] || 0}
                 active={activeCategory === cat}
                 onClick={() => setActiveCategory(cat)}

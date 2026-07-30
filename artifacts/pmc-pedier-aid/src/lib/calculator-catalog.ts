@@ -449,6 +449,15 @@ export const CALCULATORS: CalcTool[] = [
     tags: ["fluid", "balance", "overload", "intake", "output", "icu"],
     isNew: true
   },
+  {
+    id: "hydronephrosis",
+    name: "Postnatal Management of Antenatal Hydronephrosis",
+    description: "UTD (Urinary Tract Dilation) postnatal classification (P1–P3) and follow-up per the 2025 AAP clinical report.",
+    category: "Fluids", icon: Droplets,
+    href: "/calculators/hydronephrosis",
+    tags: ["hydronephrosis", "utd", "renal pelvis", "aprpd", "vcug", "vur", "antenatal", "postnatal", "urology", "nephrology"],
+    isNew: true
+  },
   // ── Endocrine & Metabolic ─────────────────────────────────────────────
   {
     id: "sod-corr",
